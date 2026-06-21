@@ -4,8 +4,6 @@ id: TASK-0001
 schema_version: awkp/0.1
 title: Validate the AWKP starter repository
 description: Run the linter and publish a verification report for the starter repository.
-status: active
-owner: team:platform
 context_id: CTX-awkp-bootstrap
 priority: P1
 risk_level: R0

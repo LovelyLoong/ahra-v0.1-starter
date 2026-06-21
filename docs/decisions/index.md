@@ -16,4 +16,6 @@ tags: [decisions]
 
 # Decisions
 
-No concepts have been added yet.
+| Decision | Purpose |
+|---|---|
+| [ADR-0001](ADR-0001-separate-contract-state-events.md) | Separate task contract, state snapshot, and event ledger |

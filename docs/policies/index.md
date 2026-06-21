@@ -16,4 +16,6 @@ tags: [policies]
 
 # Policies
 
-No concepts have been added yet.
+| Concept | Purpose |
+|---|---|
+| [Document governance](document-governance.md) | Authority, provenance, freshness, and review rules for project knowledge |

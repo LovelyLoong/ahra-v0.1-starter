@@ -186,7 +186,7 @@ spec:
   instructions:
     refs:
       - prompts/repository-maintainer.md
-      - profiles/awkp/AGENTS.md
+      - AGENTS.md
   inputSchemaRef: schemas/repository-task-input.json
   outputSchemaRef: schemas/repository-task-output.json
 
@@ -1272,8 +1272,14 @@ agent-harness/
 │   ├── SPEC.md                         # AHRA
 │   ├── decisions/
 │   └── threat-model/
-├── profiles/
-│   └── awkp/                           # 现有 AWKP profile
+├── SPEC.md                             # AWKP
+├── docs/                               # AWKP durable knowledge
+├── work/                               # AWKP tasks, state, events, handoffs
+├── artifacts/                          # AWKP artifact references
+├── evidence/                           # AWKP evidence references
+├── sources/                            # AWKP source references
+├── skills/                             # AWKP and project procedures
+├── schemas/                            # AWKP schemas
 ├── contracts/
 │   ├── schemas/
 │   ├── events/

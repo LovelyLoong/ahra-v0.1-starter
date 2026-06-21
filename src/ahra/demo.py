@@ -36,7 +36,7 @@ def main() -> None:
         kind=MemoryKind.SEMANTIC,
         scope=MemoryScope(tenant_id="TEN-1", project_id="PRJ-1"),
         statement="项目要求所有完成状态都关联 Evidence。",
-        source_refs=("profiles/awkp/WORKFLOW.md",),
+        source_refs=("WORKFLOW.md",),
         created_by="REL-memory-extractor@sha256:demo",
         confidence=0.95,
         sensitivity="internal",

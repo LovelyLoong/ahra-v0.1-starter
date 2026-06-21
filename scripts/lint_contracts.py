@@ -45,8 +45,8 @@ def main() -> int:
                 failures += 1
                 print(f"ERROR {path.relative_to(ROOT)} imports adapter dependency {name}")
 
-    awkp_lint = ROOT / "profiles/awkp/scripts/lint_awkp.py"
-    result = subprocess.run([sys.executable, str(awkp_lint)], cwd=ROOT / "profiles/awkp", check=False)
+    awkp_lint = ROOT / "scripts/lint_awkp.py"
+    result = subprocess.run([sys.executable, str(awkp_lint)], cwd=ROOT, check=False)
     if result.returncode:
         failures += 1
         print("ERROR embedded AWKP profile lint failed")

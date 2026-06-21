@@ -18,6 +18,11 @@ ALLOWED_STATES = {
 REQUIRED_DOC_KEYS = {
     "type", "id", "schema_version", "title", "description", "status", "owner",
 }
+REQUIRED_WORK_ITEM_KEYS = {
+    "type", "id", "schema_version", "title", "description", "context_id",
+    "priority", "risk_level", "requester", "reviewer", "created_at",
+    "depends_on", "input_refs", "output_contract",
+}
 ERRORS: list[str] = []
 WARNINGS: list[str] = []
 
@@ -98,11 +103,16 @@ def lint_docs() -> None:
     now = datetime.now(timezone.utc)
     for base in [ROOT / "docs", ROOT / "work"]:
         for path in base.rglob("*.md"):
+            if path.name == "README.md":
+                continue
             fm = simple_frontmatter(path)
             if fm is None:
                 err(path, "missing or malformed YAML frontmatter")
                 continue
-            missing = REQUIRED_DOC_KEYS - set(fm)
+            if fm.get("type") == "WorkItem":
+                missing = REQUIRED_WORK_ITEM_KEYS - set(fm)
+            else:
+                missing = REQUIRED_DOC_KEYS - set(fm)
             if missing:
                 err(path, "missing top-level fields: " + ", ".join(sorted(missing)))
             doc_id = fm.get("id")

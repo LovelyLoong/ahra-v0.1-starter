@@ -8,7 +8,7 @@ spec:
   instructions:
     refs:
       - prompts/repository-maintainer.md
-      - profiles/awkp/AGENTS.md
+      - AGENTS.md
   inputSchemaRef: schemas/repository-task-input.json
   outputSchemaRef: schemas/repository-task-output.json
   modelPolicy:
@@ -24,7 +24,7 @@ spec:
       - tool: deployment.production
         mode: human_approval
   skills:
-    - ref: profiles/awkp/skills/doc-gardening/SKILL.md
+    - ref: skills/doc-gardening/SKILL.md
   memoryPolicy:
     readScopes: [project, task, user-consented]
     writeScopes: [task-episodic, project-candidate]
