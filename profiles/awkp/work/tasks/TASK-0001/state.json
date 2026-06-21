@@ -1,0 +1,16 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0001",
+  "context_id": "CTX-awkp-bootstrap",
+  "state": "ready",
+  "state_version": 1,
+  "owner": null,
+  "attempt": 0,
+  "lease": null,
+  "next_action": "Claim with CAS and run the baseline linter",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-06-21T00:00:00Z"
+}

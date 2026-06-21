@@ -1,0 +1,17 @@
+{
+  "specversion": "1.0",
+  "id": "EVT-01JEXAMPLE",
+  "source": "urn:ahra:run-service",
+  "type": "dev.ahra.run.status_changed.v1",
+  "subject": "RUN-01JEXAMPLE",
+  "time": "2026-06-21T00:00:00Z",
+  "datacontenttype": "application/json",
+  "tenantid": "TEN-1",
+  "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+  "data": {
+    "task_id": "TASK-0001",
+    "from": "running",
+    "to": "paused_auth",
+    "version": 7
+  }
+}

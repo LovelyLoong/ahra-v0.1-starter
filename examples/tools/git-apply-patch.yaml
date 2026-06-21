@@ -1,0 +1,25 @@
+apiVersion: ahra.dev/v1alpha1
+kind: Tool
+metadata:
+  name: repository.git.apply_patch
+  version: 1.2.0
+  owner: team:developer-platform
+spec:
+  inputSchemaRef: schemas/git-apply-patch-input.json
+  outputSchemaRef: schemas/git-apply-patch-output.json
+  transport:
+    kind: native
+    target: tool-runner
+  sideEffect: reversible_write
+  idempotency: caller_key_required
+  timeoutSeconds: 120
+  retryPolicy: safe_on_transport_failure_only
+  compensationTool: repository.git.reset_commit
+  riskLevel: R1
+  requiredScopes: [repo:write]
+  networkEgress: []
+  dataClassesAllowed: [public, internal]
+  approvalPolicy: policy_engine
+  resultPolicy:
+    maxInlineBytes: 65536
+    largeResult: artifact_reference

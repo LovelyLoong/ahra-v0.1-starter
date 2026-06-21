@@ -1,0 +1,28 @@
+{
+  "schema_version": "ahra/memory-record/0.1",
+  "memory_id": "MEM-01JEXAMPLE",
+  "kind": "semantic",
+  "scope": {
+    "tenant_id": "TEN-1",
+    "project_id": "PRJ-1",
+    "task_id": null,
+    "subject_id": "user:42",
+    "agent_id": null
+  },
+  "content": {
+    "statement": "用户偏好先看架构决策，再看实现细节。",
+    "entities": ["user:42"],
+    "tags": ["preference", "communication"]
+  },
+  "status": "candidate",
+  "confidence": 0.72,
+  "source_refs": ["SES-123#event-18"],
+  "created_by": "REL-memory-extractor@sha256:demo",
+  "created_at": "2026-06-21T00:00:00Z",
+  "valid_from": null,
+  "valid_to": null,
+  "review_after": "2026-09-21T00:00:00Z",
+  "sensitivity": "personal",
+  "retention_policy": "user-controlled",
+  "supersedes": []
+}

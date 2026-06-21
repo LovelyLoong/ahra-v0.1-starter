@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/awkp/0.1/event.schema.json",
+  "title": "AWKP Event",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "event_id",
+    "idempotency_key",
+    "task_id",
+    "context_id",
+    "event_type",
+    "actor",
+    "occurred_at",
+    "correlation_id",
+    "reason",
+    "refs"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "awkp/0.1"
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "context_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor": {
+      "type": "string",
+      "minLength": 1
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "causation_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "from_state": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "to_state": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

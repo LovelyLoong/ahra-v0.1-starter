@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/awkp/0.1/artifact-manifest.schema.json",
+  "title": "AWKP Artifact Manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "task_id",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "awkp/0.1"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "task_id",
+          "kind",
+          "name",
+          "uri",
+          "sha256",
+          "media_type",
+          "created_by",
+          "created_at"
+        ],
+        "properties": {
+          "artifact_id": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "uri": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "media_type": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "input_refs": {
+            "type": "array"
+          },
+          "evidence_refs": {
+            "type": "array"
+          },
+          "supersedes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

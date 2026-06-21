@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/context-manifest.0.1.json",
+  "title": "AHRA Context Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "context_manifest_id",
+    "run_id",
+    "agent_release_digest",
+    "items",
+    "token_budget",
+    "compiler_version",
+    "sha256"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ahra/context-manifest/0.1"
+    },
+    "context_manifest_id": {
+      "type": "string",
+      "pattern": "^CTXMAN-"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^RUN-"
+    },
+    "agent_release_digest": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "ref",
+          "sha256",
+          "trust",
+          "priority",
+          "estimated_tokens"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "policy",
+              "agent_release",
+              "task",
+              "run_state",
+              "awkp_document",
+              "skill",
+              "tool_schema",
+              "memory",
+              "session",
+              "input",
+              "output_contract"
+            ]
+          },
+          "ref": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "trust": {
+            "enum": [
+              "system-authoritative",
+              "project-authoritative",
+              "human-provided",
+              "retrieved-untrusted",
+              "tool-output-untrusted",
+              "remote-agent-untrusted",
+              "model-generated"
+            ]
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "estimated_tokens": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "token_budget": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "compiler_version": {
+      "type": "string"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

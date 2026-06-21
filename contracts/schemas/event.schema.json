@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/event.0.1.json",
+  "title": "AHRA CloudEvents-compatible Envelope",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "subject",
+    "time",
+    "datacontenttype",
+    "data"
+  ],
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^dev\\.ahra\\..+\\.v[0-9]+$"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "tenantid": {
+      "type": "string"
+    },
+    "traceparent": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object"
+    }
+  }
+}

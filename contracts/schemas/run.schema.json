@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/run.0.1.json",
+  "title": "AHRA Run Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "task_id",
+    "context_id",
+    "attempt",
+    "agent_release",
+    "status",
+    "status_version",
+    "budgets",
+    "usage",
+    "trace_id",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ahra/run/0.1"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^RUN-"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^TASK-"
+    },
+    "context_id": {
+      "type": "string",
+      "pattern": "^CTX-"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "agent_release": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workflow_definition": {
+      "type": "string"
+    },
+    "workflow_execution_id": {
+      "type": "string"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "created",
+        "admitted",
+        "queued",
+        "provisioning",
+        "running",
+        "paused_input",
+        "paused_auth",
+        "paused_policy",
+        "backoff",
+        "suspended",
+        "verifying",
+        "succeeded",
+        "failed",
+        "timed_out",
+        "canceled"
+      ]
+    },
+    "status_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "lease": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "holder",
+        "fencing_token",
+        "heartbeat_at",
+        "expires_at"
+      ],
+      "properties": {
+        "holder": {
+          "type": "string"
+        },
+        "fencing_token": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "heartbeat_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "runtime_profile": {
+      "type": "string"
+    },
+    "workspace_ref": {
+      "type": "string"
+    },
+    "context_manifest_ref": {
+      "type": "string"
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_cost_usd",
+        "max_model_calls",
+        "max_tool_calls",
+        "deadline"
+      ],
+      "properties": {
+        "max_cost_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_model_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_tool_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deadline": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cost_usd",
+        "model_calls",
+        "tool_calls"
+      ],
+      "properties": {
+        "cost_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "model_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tool_calls": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "checkpoint_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 16
+    },
+    "failure": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

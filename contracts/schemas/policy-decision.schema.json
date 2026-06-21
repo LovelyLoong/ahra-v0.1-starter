@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/policy-decision.0.1.json",
+  "title": "AHRA Policy Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "decision_id",
+    "allow",
+    "reason_code",
+    "policy_version",
+    "obligations",
+    "decided_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ahra/policy-decision/0.1"
+    },
+    "decision_id": {
+      "type": "string",
+      "pattern": "^PDEC-"
+    },
+    "allow": {
+      "type": "boolean"
+    },
+    "reason_code": {
+      "type": "string"
+    },
+    "policy_version": {
+      "type": "string"
+    },
+    "obligations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "approval_required": {
+          "type": "boolean"
+        },
+        "required_runtime_tier": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "credential_scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "argument_constraints": {
+          "type": "object"
+        },
+        "capture_content": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "approval_required",
+        "credential_scopes"
+      ]
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

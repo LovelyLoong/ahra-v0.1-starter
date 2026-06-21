@@ -1,0 +1,15 @@
+{
+  "schema_version": "ahra/policy-decision/0.1",
+  "decision_id": "PDEC-01JEXAMPLE",
+  "allow": false,
+  "reason_code": "approval_required",
+  "policy_version": "reference-policy/0.1",
+  "obligations": {
+    "approval_required": true,
+    "required_runtime_tier": "T3",
+    "credential_scopes": [],
+    "argument_constraints": {},
+    "capture_content": false
+  },
+  "decided_at": "2026-06-21T00:00:00Z"
+}

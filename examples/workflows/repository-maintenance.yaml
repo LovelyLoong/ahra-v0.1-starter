@@ -1,0 +1,33 @@
+apiVersion: ahra.dev/v1alpha1
+kind: Workflow
+metadata:
+  name: repository-maintenance
+  version: 0.1.0
+  owner: team:platform
+spec:
+  entrypoint: prepare
+  steps:
+    - id: prepare
+      kind: deterministic
+      action: project.prepare_workspace
+      next: implement
+      onFailure: null
+      maxAttempts: 2
+    - id: implement
+      kind: agent
+      agentRef: repository-maintainer@0.1.0
+      next: verify
+      onFailure: null
+      maxAttempts: 1
+    - id: verify
+      kind: verify
+      action: project.test
+      next: publish
+      onFailure: implement
+      maxAttempts: 2
+    - id: publish
+      kind: publish
+      action: artifact.publish_candidate
+      next: null
+      onFailure: null
+      maxAttempts: 1

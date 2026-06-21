@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/tool.v1alpha1.json",
+  "title": "AHRA Tool Descriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "Tool"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "owner"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputSchemaRef",
+        "outputSchemaRef",
+        "transport",
+        "sideEffect",
+        "idempotency",
+        "timeoutSeconds",
+        "retryPolicy",
+        "riskLevel",
+        "requiredScopes",
+        "networkEgress",
+        "dataClassesAllowed",
+        "approvalPolicy",
+        "resultPolicy"
+      ],
+      "properties": {
+        "inputSchemaRef": {
+          "type": "string"
+        },
+        "outputSchemaRef": {
+          "type": "string"
+        },
+        "transport": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "target"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "native",
+                "mcp",
+                "http",
+                "cli",
+                "a2a"
+              ]
+            },
+            "target": {
+              "type": "string"
+            }
+          }
+        },
+        "sideEffect": {
+          "enum": [
+            "read_only",
+            "reversible_write",
+            "external_write",
+            "irreversible_or_high_impact"
+          ]
+        },
+        "idempotency": {
+          "enum": [
+            "intrinsic",
+            "caller_key_required",
+            "not_idempotent"
+          ]
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "retryPolicy": {
+          "type": "string"
+        },
+        "compensationTool": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "riskLevel": {
+          "enum": [
+            "R0",
+            "R1",
+            "R2",
+            "R3"
+          ]
+        },
+        "requiredScopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "networkEgress": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dataClassesAllowed": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "public",
+              "internal",
+              "confidential",
+              "personal",
+              "restricted"
+            ]
+          }
+        },
+        "approvalPolicy": {
+          "type": "string"
+        },
+        "resultPolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "maxInlineBytes",
+            "largeResult"
+          ],
+          "properties": {
+            "maxInlineBytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "largeResult": {
+              "const": "artifact_reference"
+            }
+          }
+        }
+      }
+    }
+  }
+}

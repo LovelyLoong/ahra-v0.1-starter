@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/approval.0.1.json",
+  "title": "AHRA Approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "approval_id",
+    "task_id",
+    "run_id",
+    "requested_by",
+    "action",
+    "resource",
+    "risk_level",
+    "requested_scopes",
+    "expires_at",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ahra/approval/0.1"
+    },
+    "approval_id": {
+      "type": "string",
+      "pattern": "^APR-"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^TASK-"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^RUN-"
+    },
+    "requested_by": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "resource": {
+      "type": "string"
+    },
+    "preview_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "risk_level": {
+      "enum": [
+        "R0",
+        "R1",
+        "R2",
+        "R3"
+      ]
+    },
+    "requested_scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "expired",
+        "revoked"
+      ]
+    },
+    "decision_by": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "decision_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

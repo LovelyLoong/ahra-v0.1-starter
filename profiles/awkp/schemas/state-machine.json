@@ -1,0 +1,68 @@
+{
+  "schema_version": "awkp/0.1",
+  "terminal_states": [
+    "completed",
+    "failed",
+    "canceled",
+    "rejected"
+  ],
+  "transitions": {
+    "queued": [
+      "ready",
+      "canceled",
+      "rejected"
+    ],
+    "ready": [
+      "working",
+      "canceled",
+      "rejected"
+    ],
+    "working": [
+      "waiting_input",
+      "waiting_auth",
+      "waiting_dependency",
+      "review",
+      "failed",
+      "canceled"
+    ],
+    "waiting_input": [
+      "working",
+      "canceled",
+      "rejected"
+    ],
+    "waiting_auth": [
+      "working",
+      "canceled",
+      "rejected"
+    ],
+    "waiting_dependency": [
+      "ready",
+      "canceled",
+      "rejected"
+    ],
+    "review": [
+      "completed",
+      "changes_requested",
+      "failed",
+      "canceled"
+    ],
+    "changes_requested": [
+      "working",
+      "review",
+      "failed",
+      "canceled"
+    ],
+    "completed": [
+      "ready"
+    ],
+    "failed": [
+      "ready"
+    ],
+    "canceled": [],
+    "rejected": []
+  },
+  "notes": {
+    "completed_to_ready": "Requires an explicit task_reopened event and authorization.",
+    "failed_to_ready": "Represents an approved retry or revised contract."
+  }
+}

@@ -1,0 +1,23 @@
+apiVersion: ahra.dev/v1alpha1
+kind: HarnessConfig
+metadata:
+  environment: local
+spec:
+  stores:
+    metadata: sqlite:///./.runtime/ahra.db
+    artifact: file://./.runtime/artifacts
+  workflowEngine:
+    adapter: in_memory_reference
+  runtime:
+    defaultProfile: examples/runtimes/repo-container.yaml
+  modelGateway:
+    adapter: unset
+  policy:
+    adapter: reference
+    defaultDecision: deny
+  observability:
+    protocol: otlp
+    captureContent: false
+  limits:
+    maxConcurrentRuns: 4
+    maxSubtasksPerRun: 8

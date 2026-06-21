@@ -1,0 +1,19 @@
+{
+  "schema_version": "ahra/context-manifest/0.1",
+  "context_manifest_id": "CTXMAN-01JEXAMPLE",
+  "run_id": "RUN-01JEXAMPLE",
+  "agent_release_digest": "sha256:demo",
+  "items": [
+    {
+      "kind": "policy",
+      "ref": "POL-1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "trust": "system-authoritative",
+      "priority": 100,
+      "estimated_tokens": 120
+    }
+  ],
+  "token_budget": 48000,
+  "compiler_version": "context-builder/0.1",
+  "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}

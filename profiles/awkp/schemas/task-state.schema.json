@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/awkp/0.1/task-state.schema.json",
+  "title": "AWKP Task State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "context_id",
+    "state",
+    "state_version",
+    "attempt",
+    "next_action",
+    "blockers",
+    "artifact_refs",
+    "evidence_refs",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "awkp/0.1"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^TASK-[A-Za-z0-9._-]+$"
+    },
+    "context_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state": {
+      "enum": [
+        "queued",
+        "ready",
+        "working",
+        "waiting_input",
+        "waiting_auth",
+        "waiting_dependency",
+        "review",
+        "changes_requested",
+        "completed",
+        "failed",
+        "canceled",
+        "rejected"
+      ]
+    },
+    "state_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "owner": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "lease": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "next_action": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "pause_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "blockers": {
+      "type": "array"
+    },
+    "artifact_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

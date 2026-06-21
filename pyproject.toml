@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ahra-reference"
+version = "0.1.0"
+description = "Reference contracts and a minimal core for the Agent Harness Reference Architecture"
+requires-python = ">=3.11"
+dependencies = [
+  "jsonschema>=4.20",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+ahra-demo = "ahra.demo:main"
+ahra-lint = "ahra.validation:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
