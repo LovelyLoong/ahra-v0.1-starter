@@ -1,0 +1,20 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0002",
+  "context_id": "CTX-ahra-workflow-modules",
+  "state": "review",
+  "state_version": 5,
+  "owner": null,
+  "attempt": 1,
+  "lease": null,
+  "next_action": "Independent verifier should rerun tests and decide whether TASK-0002 can move to completed.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0002-0001"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0002-0001"
+  ],
+  "updated_at": "2026-06-22T07:46:30Z"
+}

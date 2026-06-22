@@ -16,4 +16,8 @@ tags: [architecture]
 
 # Architecture
 
-No concepts have been added yet.
+| Concept | Purpose |
+|---|---|
+| [Workflow modules](workflow-modules.md) | Concrete workflow implementations plugged into the AHRA template |
+| [Agent drivers and workflow invocation](agent-drivers-and-workflow-invocation.md) | Agent-neutral driver adapters and stable workflow launch requests |
+| [Reference runtime adapters and MCP](reference-runtime-adapters-and-mcp.md) | Optional local adapters, Codex SDK driver, resume requests, and MCP entrypoint |

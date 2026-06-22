@@ -1,0 +1,32 @@
+apiVersion: ahra.dev/v1alpha1
+kind: WorkflowRunRequest
+metadata:
+  name: example-standard-task
+spec:
+  moduleId: standard-harness
+  input:
+    task:
+      id: set-value
+      title: Set value
+      objective: Set VALUE to 2
+      acceptance_criteria:
+        - VALUE equals 2
+      checks:
+        - name: value check
+          argv:
+            - python
+            - -c
+            - import value; assert value.VALUE == 2
+      policy:
+        allowed_globs:
+          - value.py
+        protected_globs: []
+        sensitive_globs: []
+        max_changed_files: 1
+        max_added_lines: 5
+        max_deleted_lines: 5
+  workspaceRef: .
+  driverRef: fake-reference
+  storeRef: local-file
+  artifactDir: .runtime/ahra-runs/example-standard-task
+  approvalMode: manual

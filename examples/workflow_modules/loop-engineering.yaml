@@ -1,0 +1,65 @@
+apiVersion: ahra.dev/v1alpha1
+kind: WorkflowModule
+metadata:
+  name: loop-engineering
+  version: 0.1.0
+  owner: team:platform
+spec:
+  moduleId: loop-engineering
+  extends: standard-harness
+  description: Goal-level workflow that composes bounded Harness tasks, runs global checks and goal review, and gates dynamic plans behind human approval by default.
+  source:
+    repository: E:\harness-first-starter
+    components:
+      - src/harnesskit/loop.py
+      - src/harnesskit/harness.py
+      - src/harnesskit/review_contracts.py
+  inputs:
+    - GoalSpec
+    - standard-harness TaskSpec list
+    - RunRecord
+    - WorkspaceRef
+    - AgentDriver
+  outputs:
+    - Goal run status
+    - completed task records
+    - global evidence
+    - goal review evidence
+    - next-step proposal
+  stateMapping:
+    run:
+      complete: succeeded
+      blocked: failed
+      needs_human: paused_input
+      awaiting_plan_approval: paused_input
+    task:
+      complete: review
+      blocked: changes_requested
+      needs_human: waiting_input
+      awaiting_plan_approval: waiting_input
+  requiredPorts:
+    - AgentDriver
+    - RuntimeProvider
+    - WorkspaceProvider
+    - EventPublisher
+    - ArtifactStore
+    - EvidenceStore
+    - ApprovalService
+    - PolicyEngine
+  safetyGates:
+    - every task executes through standard-harness
+    - parent goal policy constrains every static or dynamic task
+    - global deterministic checks run before goal semantic acceptance
+    - goal reviewer PASS must cover every success criterion
+    - planner cannot declare completion
+    - proposed tasks require human approval before execution by default
+  artifacts:
+    - cumulative.patch
+    - next-step.json
+    - goal-report.md
+  evidence:
+    - global-evidence.json
+    - goal-review.json
+  tests:
+    - tests/test_reference_runner.py::LoopEngineeringTests
+    - tests/test_workflow_modules.py

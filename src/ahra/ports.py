@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from datetime import datetime
+from enum import StrEnum
 from typing import Any, Iterable, Protocol, runtime_checkable
 
 from .domain import (
@@ -11,6 +13,56 @@ from .domain import (
     RunRecord,
     ToolDescriptor,
 )
+
+
+class AgentRole(StrEnum):
+    EXECUTOR = "executor"
+    TASK_REVIEWER = "task_reviewer"
+    GOAL_REVIEWER = "goal_reviewer"
+    PLANNER = "planner"
+
+
+@dataclass(frozen=True, slots=True)
+class AgentRunRequest:
+    role: AgentRole
+    run_id: str
+    expected_output: str
+    payload: dict[str, Any]
+    workspace_ref: str | None = None
+    attempt: int | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class AgentRunResult:
+    output: Any
+    raw_output: Any | None = None
+    trace_ref: str | None = None
+    evidence_refs: tuple[str, ...] = ()
+
+
+@runtime_checkable
+class AgentDriver(Protocol):
+    async def run(self, request: AgentRunRequest) -> AgentRunResult: ...
+
+
+class AgentDriverRegistry:
+    def __init__(self) -> None:
+        self._drivers: dict[str, AgentDriver] = {}
+
+    def register(self, driver_ref: str, driver: AgentDriver) -> None:
+        if driver_ref in self._drivers:
+            raise ValueError(f"duplicate agent driver ref: {driver_ref}")
+        self._drivers[driver_ref] = driver
+
+    def get(self, driver_ref: str) -> AgentDriver:
+        try:
+            return self._drivers[driver_ref]
+        except KeyError as exc:
+            raise ValueError(f"unknown agent driver ref: {driver_ref}") from exc
+
+    def refs(self) -> tuple[str, ...]:
+        return tuple(sorted(self._drivers))
 
 
 @runtime_checkable
@@ -97,9 +149,27 @@ class RuntimeProvider(Protocol):
 
 
 @runtime_checkable
+class WorkspaceProvider(Protocol):
+    def resolve_path(self, workspace_ref: str) -> str: ...
+    def current_head(self, workspace_ref: str) -> str: ...
+    def changed_files(self, workspace_ref: str, checkpoint: str) -> list[str]: ...
+    def numstat(self, workspace_ref: str, checkpoint: str) -> tuple[int, int]: ...
+    def patch(self, workspace_ref: str, checkpoint: str) -> str: ...
+    def restore_patch(self, workspace_ref: str, checkpoint: str, patch_text: str) -> None: ...
+    def rollback(self, workspace_ref: str, checkpoint: str) -> None: ...
+    def commit_all(self, workspace_ref: str, message: str) -> str: ...
+
+
+@runtime_checkable
 class ArtifactStore(Protocol):
     def put(self, content: bytes, media_type: str, metadata: dict[str, Any]) -> str: ...
     def get(self, artifact_ref: str) -> bytes: ...
+
+
+@runtime_checkable
+class EvidenceStore(Protocol):
+    def put(self, content: bytes, media_type: str, metadata: dict[str, Any]) -> str: ...
+    def get(self, evidence_ref: str) -> bytes: ...
 
 
 @runtime_checkable

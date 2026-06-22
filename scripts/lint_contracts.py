@@ -16,6 +16,11 @@ MAPPINGS = [
     ("examples/tools/git-apply-patch.yaml", "contracts/schemas/tool.schema.json"),
     ("examples/runtimes/repo-container.yaml", "contracts/schemas/runtime-profile.schema.json"),
     ("examples/workflows/repository-maintenance.yaml", "contracts/schemas/workflow.schema.json"),
+    ("examples/workflow_modules/standard-harness.yaml", "contracts/schemas/workflow-module.schema.json"),
+    ("examples/workflow_modules/loop-engineering.yaml", "contracts/schemas/workflow-module.schema.json"),
+    ("examples/workflow_runs/standard-task.yaml", "contracts/schemas/workflow-run-request.schema.json"),
+    ("examples/workflow_runs/loop-goal.yaml", "contracts/schemas/workflow-run-request.schema.json"),
+    ("examples/workflow_runs/loop-resume.yaml", "contracts/schemas/workflow-resume-request.schema.json"),
     ("examples/records/run.json", "contracts/schemas/run.schema.json"),
     ("examples/records/memory.json", "contracts/schemas/memory-record.schema.json"),
     ("examples/records/context-manifest.json", "contracts/schemas/context-manifest.schema.json"),
@@ -38,7 +43,12 @@ def main() -> int:
             print(f"OK    {document}")
 
     forbidden = ("openai", "anthropic", "langgraph", "temporalio", "boto3", "kubernetes")
-    for path in [ROOT / "src/ahra/domain.py", ROOT / "src/ahra/ports.py"]:
+    for path in [
+        ROOT / "src/ahra/domain.py",
+        ROOT / "src/ahra/ports.py",
+        ROOT / "src/ahra/workflow_modules.py",
+        *sorted((ROOT / "src/ahra/reference_runner").glob("*.py")),
+    ]:
         text = path.read_text(encoding="utf-8")
         for name in forbidden:
             if f"import {name}" in text or f"from {name}" in text:

@@ -1,0 +1,20 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0004",
+  "context_id": "CTX-ahra-runtime-adapters-mcp",
+  "state": "review",
+  "state_version": 4,
+  "owner": null,
+  "attempt": 1,
+  "lease": null,
+  "next_action": "Independent verifier should rerun documentation, WorkflowResumeRequest, Codex adapter, MCP handler, and AWKP evidence checks before deciding whether TASK-0004 can move to completed.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0004-0001"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0004-0001"
+  ],
+  "updated_at": "2026-06-22T10:55:00Z"
+}

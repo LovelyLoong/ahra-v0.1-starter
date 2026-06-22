@@ -9,8 +9,8 @@ owner: human:maintainer
 source_refs: [../task.md, ../state.json]
 evidence_refs: []
 confidence: verified
-last_verified_at: 2026-06-21T00:00:00Z
-review_after: 2026-06-22T00:00:00Z
+last_verified_at: 2026-06-22T07:45:45Z
+review_after: 2026-09-22T00:00:00Z
 tags: [handoff]
 ---
 

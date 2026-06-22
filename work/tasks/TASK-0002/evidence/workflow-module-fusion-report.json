@@ -1,0 +1,70 @@
+{
+  "schema_version": "awkp/0.1",
+  "report_id": "RPT-TASK-0002-0001",
+  "task_id": "TASK-0002",
+  "context_id": "CTX-ahra-workflow-modules",
+  "generated_at": "2026-06-22T07:46:30Z",
+  "generated_by": "agent:codex",
+  "scope": "Workflow module fusion for ahra-v0.1-starter as the outer Harness template and harness-first-starter as the source of concrete workflow implementations.",
+  "issue_resolutions": [
+    {
+      "issue": "Port boundary",
+      "resolution": [
+        "Added EvidenceStore and WorkspaceProvider to src/ahra/ports.py.",
+        "TaskHarness and LoopEngine now accept workspace_ref plus provider-backed workspace/runtime dependencies.",
+        "ReferenceRunStore protocol separates module code from the concrete FileRunStore adapter.",
+        "Local Git and subprocess behavior is contained in local WorkspaceProvider and RuntimeProvider adapters."
+      ]
+    },
+    {
+      "issue": "Evidence and event format",
+      "resolution": [
+        "FileRunStore writes CloudEvents-compatible events.",
+        "Artifacts and Evidence receive stable IDs, local URIs, SHA-256 hashes, media types, creator metadata, and manifest records.",
+        "Workflow module examples no longer list raw events.jsonl as Evidence."
+      ]
+    },
+    {
+      "issue": "Workflow module schema strength",
+      "resolution": [
+        "workflow-module.schema.json enumerates valid AHRA Run statuses, AWKP Task statuses, and known AHRA ports.",
+        "WorkflowModuleContract.validate performs semantic checks for required ArtifactStore, EvidenceStore, and EventPublisher boundaries.",
+        "Tests include negative probes for DefinitelyMissingPort and not_a_run_status."
+      ]
+    },
+    {
+      "issue": "AWKP acceptance chain",
+      "resolution": [
+        "Created TASK-0002 for workflow module fusion instead of reusing the old bootstrap linter task.",
+        "State is review, not completed, so independent verifier approval remains required.",
+        "Added task events, artifact manifest, evidence manifest, and handoff."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "$env:PYTHONPATH='src'; python -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "Ran 19 tests; OK."
+    },
+    {
+      "command": "$env:PYTHONPATH='src'; python scripts\\lint_contracts.py",
+      "exit_code": 0,
+      "summary": "AHRA lint: 0 failure(s)."
+    },
+    {
+      "command": "$env:PYTHONPATH='src'; python scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 error(s), 0 warning(s)."
+    }
+  ],
+  "residual_risk": [
+    "TASK-0002 remains in review until an independent verifier reruns checks and updates AWKP state.",
+    "FileRunStore is a local reference adapter and is not the authoritative AHRA RunStore."
+  ]
+}

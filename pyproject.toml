@@ -13,11 +13,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+codex = ["openai-codex"]
 dev = ["pytest>=8.0"]
 
 [project.scripts]
 ahra-demo = "ahra.demo:main"
 ahra-lint = "ahra.validation:main"
+ahra-mcp = "ahra.mcp_server:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

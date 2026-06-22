@@ -1,0 +1,20 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0002",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0002-0001",
+      "task_id": "TASK-0002",
+      "kind": "verification_report",
+      "name": "workflow-module-fusion-report.json",
+      "uri": "local://evidence/workflow-module-fusion-report.json",
+      "sha256": "0616fd698aefa84ff04166710870e4634cf52bbabba4209bcb306ecde682b563",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-06-22T07:46:30Z",
+      "refs": [
+        "ART-TASK-0002-0001"
+      ]
+    }
+  ]
+}

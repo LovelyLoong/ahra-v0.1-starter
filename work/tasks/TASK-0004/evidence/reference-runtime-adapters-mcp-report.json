@@ -1,0 +1,53 @@
+{
+  "schema_version": "awkp/0.1",
+  "report_id": "RPT-TASK-0004-0001",
+  "task_id": "TASK-0004",
+  "context_id": "CTX-ahra-runtime-adapters-mcp",
+  "generated_at": "2026-06-22T10:54:00Z",
+  "scope": "Reference runtime adapters, workflow resume request, and MCP operation surface.",
+  "implementation_summary": [
+    "Added ADR-0006 and architecture documentation for optional reference adapters, local runtime profile, manual resume, and MCP entrypoint.",
+    "Added WorkflowResumeRequest schema and a validating example.",
+    "Added manual loop-engineering resume support bound to the approved plan artifact SHA-256.",
+    "Changed the reference FileRunStore to preserve existing artifact and evidence manifests across resume.",
+    "Added optional Codex Python SDK AgentDriver adapter under src/ahra/adapters with delayed openai_codex import.",
+    "Added a thin local stdio MCP server with tools for module listing, request validation, workflow start, run inspection, and resume.",
+    "Added regression tests for resume digest enforcement, Codex adapter parsing, and MCP handler dispatch."
+  ],
+  "contract_boundaries": [
+    "Codex SDK is not imported by AHRA domain code, ports, workflow module registry, or reference workflow modules.",
+    "Workflow modules still call only AgentDriver and runner contracts.",
+    "MCP calls dispatch through the same request loaders, schema validation, module registry, driver registry, and runner APIs.",
+    "ProjectAdapter remains non-mandatory."
+  ],
+  "verification_commands": [
+    {
+      "command": "$env:PYTHONPATH='src'; python -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "34 tests passed."
+    },
+    {
+      "command": "$env:PYTHONPATH='src'; python scripts\\lint_contracts.py",
+      "exit_code": 0,
+      "summary": "Contract examples and embedded AWKP lint passed after TASK-0004 closeout metadata was added."
+    },
+    {
+      "command": "$env:PYTHONPATH='src'; python scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "summary": "AWKP lint passed."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors; Git reported line-ending normalization warnings only."
+    }
+  ],
+  "known_limits": [
+    "The Codex SDK adapter is optional and unit-tested with a fake client; baseline tests do not require a live Codex login or network call.",
+    "The current Codex SDK reference adapter passes model and sandbox to Codex. The process should be started from the intended local workspace because the local SDK snippet used for implementation does not expose a documented cwd parameter.",
+    "Cloud and sandbox runtime profiles are documented as future adapters, not implemented in this task.",
+    "The MCP server is a thin local stdio entrypoint, not a production multi-tenant gateway."
+  ],
+  "review_status": "ready_for_independent_verifier",
+  "completion_authority": "AWKP evidence gate and independent verifier"
+}

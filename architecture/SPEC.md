@@ -1,7 +1,7 @@
 # Agent Harness Reference Architecture（AHRA）v0.1
 
-> **状态：建议稿（Proposed Reference Architecture），2026-06-21。**  
-> AHRA 是在 AWKP 之上的通用 Agent Harness 外围参考架构。AWKP 继续负责项目知识、任务契约、状态投影、事件、交接、产物与证据；AHRA 补齐 Agent 定义、工作流执行、Memory、Context、模型、工具、协议、运行环境、调度、扩缩容、安全、可观测性、评估与人工控制。  
+> **状态：建议稿（Proposed Reference Architecture），2026-06-21。**
+> AHRA 是在 AWKP 之上的通用 Agent Harness 外围参考架构。AWKP 继续负责项目知识、任务契约、状态投影、事件、交接、产物与证据；AHRA 补齐 Agent 定义、可插拔工作流模块契约、Memory、Context、模型、工具、协议、运行环境、调度、扩缩容、安全、可观测性、评估与人工控制。
 > 当前归档的 AWKP 文件标识为 `awkp/0.1`。如果项目将其正式发布为 1.1，只需通过兼容性声明和迁移记录升级版本，不应靠口头版本推断数据格式。
 
 ---
@@ -12,7 +12,7 @@
 
 1. **稳定的领域协议**：Task、Run、Session、Checkpoint、Memory、Artifact、Evidence、Approval 等对象有明确边界。
 2. **控制平面与执行平面分离**：控制平面负责准入、调度、状态、策略和恢复；执行平面负责模型调用、工具执行和隔离运行。
-3. **显式工作流包住有限自主循环**：可预测步骤由确定性 Workflow 控制，只有真正需要判断的节点才交给 Agent。
+3. **可插拔工作流模块包住有限自主循环**：可预测步骤由确定性 workflow module 控制，只有真正需要判断的节点才交给 Agent；AHRA 核心定义契约和门禁，不把某个工作流实现写死。
 4. **所有外部能力走端口与适配器**：模型、MCP、A2A、运行时、数据库、向量检索、云部署均可替换。
 5. **Memory 不是聊天记录，也不是向量数据库**：它是有作用域、来源、置信度、有效期、权限和晋升流程的知识对象。
 6. **模型输出只是“不可信意图”**：任何副作用都必须经过类型校验、策略判定、权限收敛、必要审批和隔离执行。
@@ -156,7 +156,7 @@ REL-...       Agent Release
 
 ### 4.1 定义
 
-**Agent Definition** 是 Git 中可编辑的源定义。  
+**Agent Definition** 是 Git 中可编辑的源定义。
 **Agent Release** 是经校验、评估和签名后生成的不可变版本，其内容摘要是运行时身份的一部分。
 
 Agent Release 至少包含：
@@ -328,6 +328,8 @@ Scheduler 负责：
 
 ## 6. 工作流与 Agent 自主性的边界
 
+本节定义 AHRA 对工作流的底层约束。具体执行算法由可插拔 workflow module 提供，而不是由 AHRA 领域核心固定实现。当前主仓库为 `E:\ahra-v0.1-starter`；`E:\harness-first-starter` 是初始 reference workflow 的实现来源。
+
 ### 6.1 默认原则
 
 **确定性控制流优先，Agent 判断局部化。**
@@ -346,16 +348,18 @@ Scheduler 负责：
 
 ### 6.2 推荐的四种基础模式
 
-1. **Sequential Pipeline**  
+这些模式是 workflow module 可以实现的模式，不是 AHRA 核心必须全部内置的类层级。
+
+1. **Sequential Pipeline**
    明确的分析→实现→验证→审阅。用于大多数工程任务。
 
-2. **Parallel Map/Reduce**  
+2. **Parallel Map/Reduce**
    将独立子任务并行执行，再用确定性聚合器或 Verifier 合并。必须限制 fan-out。
 
-3. **Supervisor–Delegate**  
+3. **Supervisor–Delegate**
    Supervisor 提出子任务计划，Harness 校验范围、预算与依赖后创建 Task/Run。Supervisor 不拥有绕过 Scheduler 的“无限派生权”。
 
-4. **Worker–Reviewer/Verifier**  
+4. **Worker–Reviewer/Verifier**
    执行者产出，独立 Reviewer 检查；高风险交给人类批准。Verifier 可以拒绝完成并生成 `changes_requested`。
 
 ### 6.3 不推荐作为默认的模式
@@ -367,9 +371,34 @@ Scheduler 负责：
 - 把完整对话历史当作工作流状态；
 - 通过重跑整个 Agent 来处理每个瞬时错误。
 
-### 6.4 Durable Workflow Engine 端口
+### 6.4 Workflow Module Contract
 
-AHRA 只定义接口，不绑定实现：
+每个 workflow module 必须先登记契约，再迁入实现：
+
+- `module_id`：稳定 ID，例如 `standard-harness` 或 `loop-engineering`；
+- 用途与非目标；
+- 输入对象：Task、Context、Goal、Run、Approval 或项目适配输入；
+- 输出对象：Run 状态、Artifact、Evidence、Handoff、Report、下一步建议；
+- 状态映射：模块内部状态如何投影到 AHRA Run/AWKP Task 状态；
+- 所需 Port：AgentDriver、RuntimeProvider、WorkspaceProvider、ArtifactStore、EvidenceStore、ApprovalService 等；
+- 安全门禁：路径/规模策略、确定性检查、独立 Reviewer、人工审批、预算和超时；
+- 产物与证据目录或对象引用；
+- 失败、重试、回滚和恢复语义；
+- 必须覆盖的 contract/recovery/security 测试。
+
+当前初始模块：
+
+1. **standard-harness**
+   一个有边界任务的默认 Harness 工作流。来源为 `E:\harness-first-starter` 的 `TaskHarness` 思路。职责包括隔离工作区、路径与变更规模策略、确定性检查、独立只读 Reviewer、有界重试、Artifact/Evidence 捕获、接受提交或回滚。它不得合并、推送或部署。
+
+2. **loop-engineering**
+   目标级 Loop Engineering 工作流。来源为 `E:\harness-first-starter` 的 `LoopEngine` 思路。职责是在 `standard-harness` 之上运行任务队列、累计全局检查、独立 Goal Reviewer、有限动态规划和默认人工批准计划。Planner 不能宣布完成，也不能绕过父 Goal policy。
+
+后续模块可以扩展上述模块，也可以新增独立模块，但必须通过 AHRA 端口接入，不能把模型 SDK、云 SDK、数据库客户端或单一 runner 状态写入领域核心。
+
+### 6.5 Durable Workflow Engine 端口
+
+AHRA 只定义接口，不绑定实现。该端口可以由 `standard-harness`、`loop-engineering`、Temporal/Restate/DBOS adapter 或其他模块实现：
 
 ```python
 class WorkflowEngine(Protocol):
@@ -442,7 +471,7 @@ Checkpoint 只保存恢复所需状态：
 
 ### 7.3 取消与超时
 
-取消必须向下传播：Task/Run → Workflow → Agent Loop → Model Stream → Tool → Runtime Process。  
+取消必须向下传播：Task/Run → Workflow → Agent Loop → Model Stream → Tool → Runtime Process。
 工具或外部系统不支持取消时，要记录“取消已请求但副作用可能继续”，并触发对账或补偿。
 
 ---
@@ -1337,7 +1366,7 @@ agent-harness/
 |---|---|---|
 | API/Domain | Python + FastAPI/Pydantic | Go/Java/TS 等保持 Schema 兼容 |
 | Metadata/Run Store | SQLite | Postgres |
-| Workflow | 轻量状态机 | Temporal / Restate / DBOS adapter |
+| Workflow module | `standard-harness` + `loop-engineering` reference modules | Temporal / Restate / DBOS adapter 或项目自定义模块 |
 | Queue | DB queue | Kafka/NATS/SQS/云队列或引擎内队列 |
 | Artifact | 本地文件 + SHA-256 | S3 compatible + retention/versioning |
 | Memory | SQL records + optional local index | SQL authority + vector/graph/search index |
@@ -1361,7 +1390,7 @@ agent-harness/
 - 本文架构与 ADR；
 - Task/Run/Agent/Tool/Memory/Runtime/Policy/Event JSON Schema；
 - Port interfaces；
-- AWKP 与 Run/Workflow 状态映射；
+- AWKP 与 Run/workflow module 状态映射；
 - 威胁模型和数据分类；
 - Contract test harness。
 
@@ -1373,7 +1402,8 @@ agent-harness/
 
 - Agent Registry；
 - Run Service + 本地 Scheduler；
-- 简单显式 Workflow；
+- `standard-harness` reference module；
+- `loop-engineering` reference module；
 - SQLite Store；
 - Context Builder；
 - Model Gateway adapter；
@@ -1420,7 +1450,7 @@ agent-harness/
 
 ```text
 Domain contracts
-  → Run/Workflow state
+  → Run + workflow module state mapping
   → Runtime isolation
   → Model + Tool gateway
   → Context + Memory
@@ -1501,7 +1531,7 @@ Domain contracts
 
 1. AWKP 是治理与工作知识平面，不是整个 Harness。
 2. Task、Run、Session、Checkpoint、Memory、Artifact 必须分开。
-3. 显式 Workflow 控制确定性流程，Agent 自主性被预算和策略包围。
+3. 可插拔 workflow module 控制确定性流程，Agent 自主性被预算和策略包围；AHRA 核心只定义契约、端口和门禁。
 4. 重试生成可识别 attempt；外部副作用必须幂等或可补偿。
 5. Agent Release 不可变、可寻址、可评估、可回滚。
 6. Context 由独立 Builder 生成并保存 Manifest。
@@ -1520,7 +1550,7 @@ Domain contracts
 
 1. 核心实现语言与 API 风格；
 2. Local Profile 是否采用 SQLite，Team Profile 是否采用 Postgres；
-3. 第一版 Workflow Engine 是内置状态机还是直接接 Durable Engine；
+3. 第一版 workflow module registry、模块契约和 reference module 边界；
 4. 默认 Runtime 是 Docker 还是远端 Sandbox；
 5. 第一批支持的模型 Provider；
 6. Memory 的最小范围：仅 project/task，还是包含 user preference；
@@ -1529,7 +1559,7 @@ Domain contracts
 9. 第一批 MCP Server/Tool；
 10. 第一套端到端 Eval 数据集和 SLO。
 
-推荐默认：先做 **Python + Postgres-compatible domain + local SQLite + OCI Runtime + OTel + 内置 Workflow adapter**，但所有端口按可替换设计；当长任务、跨天等待和分布式恢复成为真实需求时，再切 Durable Engine。
+推荐默认：先做 **Python + Postgres-compatible domain + local SQLite + OCI Runtime + OTel + `standard-harness`/`loop-engineering` reference modules**，但所有端口按可替换设计；当长任务、跨天等待和分布式恢复成为真实需求时，再切 Durable Engine 或项目自定义 workflow module。
 
 ---
 

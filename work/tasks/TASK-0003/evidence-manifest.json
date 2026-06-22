@@ -1,0 +1,20 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0003",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0003-0001",
+      "task_id": "TASK-0003",
+      "kind": "verification_report",
+      "name": "agent-neutral-workflow-invocation-report.json",
+      "uri": "local://evidence/agent-neutral-workflow-invocation-report.json",
+      "sha256": "acb24199b499d99f18ab205481e3235e5377c597ab7e645ace778e8423929abc",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-06-22T09:37:04Z",
+      "refs": [
+        "ART-TASK-0003-0001"
+      ]
+    }
+  ]
+}

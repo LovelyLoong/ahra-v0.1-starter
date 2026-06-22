@@ -38,6 +38,12 @@
 - Live work: `work/index.md`
 - Reusable procedures: `skills/`
 
+## Local skills
+
+- `skills/ahra-workflow-runner/SKILL.md`: use when a user asks to start,
+  run, resume, or validate `standard-harness`, `loop-engineering`, or another
+  AHRA workflow module.
+
 ## Commands
 
 ```bash

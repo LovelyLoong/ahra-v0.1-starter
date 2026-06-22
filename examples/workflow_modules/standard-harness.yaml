@@ -1,0 +1,64 @@
+apiVersion: ahra.dev/v1alpha1
+kind: WorkflowModule
+metadata:
+  name: standard-harness
+  version: 0.1.0
+  owner: team:platform
+spec:
+  moduleId: standard-harness
+  extends: null
+  description: Bounded task workflow with isolated workspace, policy gates, deterministic checks, independent review, limited retry, and rollback.
+  source:
+    repository: E:\harness-first-starter
+    components:
+      - src/harnesskit/harness.py
+      - src/harnesskit/checks.py
+      - src/harnesskit/policy.py
+      - src/harnesskit/review_contracts.py
+  inputs:
+    - TaskSpec
+    - RunRecord
+    - WorkspaceRef
+    - AgentDriver
+  outputs:
+    - Run terminal status
+    - patch artifact
+    - deterministic evidence
+    - review evidence
+    - task report
+  stateMapping:
+    run:
+      accepted: succeeded
+      rejected: failed
+      needs_human: paused_input
+      error: failed
+    task:
+      accepted: review
+      rejected: changes_requested
+      needs_human: waiting_input
+      error: failed
+  requiredPorts:
+    - AgentDriver
+    - RuntimeProvider
+    - WorkspaceProvider
+    - EventPublisher
+    - ArtifactStore
+    - EvidenceStore
+    - PolicyEngine
+  safetyGates:
+    - path and change-size policy runs before repository checks
+    - deterministic checks use argv and never shell interpolation
+    - verification mutations fail the gate and are restored before retry
+    - independent reviewer cannot mutate files or share executor state
+    - reviewer PASS must cover every acceptance criterion
+    - accepted changes remain isolated until human review or an approved deployment workflow
+  artifacts:
+    - patch.diff
+    - rejected.patch
+    - task-report.json
+  evidence:
+    - deterministic-evidence.json
+    - review.json
+  tests:
+    - tests/test_reference_runner.py::StandardHarnessTests
+    - tests/test_workflow_modules.py

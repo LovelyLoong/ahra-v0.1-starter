@@ -1,0 +1,63 @@
+{
+  "schema_version": "awkp/0.1",
+  "report_id": "RPT-TASK-0003-0001",
+  "task_id": "TASK-0003",
+  "context_id": "CTX-ahra-workflow-invocation",
+  "generated_at": "2026-06-22T09:37:04Z",
+  "generated_by": "agent:codex",
+  "scope": "Agent-neutral workflow invocation for AHRA workflow modules.",
+  "changes": [
+    "Documented ADR-0005 for agent-neutral workflow invocation.",
+    "Added architecture documentation for AgentDriver roles, driver registry, and WorkflowRunRequest launch semantics.",
+    "Added local skill instructions for workflow module startup.",
+    "Added workflow-run-request schema and examples.",
+    "Converted AgentDriver to a role-based run(request) port.",
+    "Added AgentDriverRegistry and stable run_workflow API.",
+    "Added tests for driver registry and WorkflowRunRequest startup.",
+    "Added fail-closed WorkflowRunRequest validation in the document loader and direct run_workflow API path.",
+    "Made approvalMode drive LoopEngineering planner behavior: manual pauses on proposals, auto executes proposals within limits, and disabled blocks without planner proposals.",
+    "Tightened embedded task and goal schema shapes while keeping policy optional.",
+    "Fixed default ChangePolicy loading for schema-valid embedded tasks without a policy field.",
+    "Added regression tests for invalid approvalMode, minimal embedded task defaults, and approvalMode behavior.",
+    "Promoted AgentDriver, AgentRole, AgentRunRequest, AgentRunResult, and AgentDriverRegistry to AHRA global ports.",
+    "Updated workflow module contracts so standard-harness and loop-engineering require AgentDriver but do not require ProjectAdapter or ModelGateway.",
+    "Changed run_workflow to resolve the workflow module registry and reference dispatcher before creating any artifact store.",
+    "Added regression tests for missing AgentDriver module contracts and unknown workflow modules leaving no artifact directory."
+  ],
+  "verification": [
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors; Git reported CRLF normalization warnings for working-copy files."
+    },
+    {
+      "command": "$env:PYTHONPATH='src'; python scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "$env:PYTHONPATH='src'; python scripts\\lint_contracts.py",
+      "exit_code": 0,
+      "summary": "AHRA lint: 0 failure(s)."
+    },
+    {
+      "command": "$env:PYTHONPATH='src'; python -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "summary": "Ran 28 tests; OK."
+    },
+    {
+      "command": "$env:PYTHONPATH='src'; python -m ahra.demo",
+      "exit_code": 0,
+      "summary": "Demo command completed and emitted run, memory, context manifest, and policy decision records."
+    },
+    {
+      "command": "make check",
+      "exit_code": 1,
+      "summary": "Environment tooling note: make is not installed in this PowerShell environment; equivalent lint and unittest commands were run directly above."
+    }
+  ],
+  "residual_risk": [
+    "No production Codex, Claude Code, OpenAI Agents SDK, or open-source agent framework adapter is included.",
+    "TASK-0003 remains in review until an independent verifier reruns checks and updates AWKP state."
+  ]
+}

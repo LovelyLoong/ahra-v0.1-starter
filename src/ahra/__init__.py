@@ -13,8 +13,15 @@ from .domain import (
     SideEffect,
     ToolDescriptor,
 )
+from .ports import AgentDriver, AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
+from .workflow_modules import WorkflowModuleContract, WorkflowModuleRegistry
 
 __all__ = [
+    "AgentDriver",
+    "AgentDriverRegistry",
+    "AgentRole",
+    "AgentRunRequest",
+    "AgentRunResult",
     "Budget",
     "ContextItem",
     "ContextManifest",
@@ -26,4 +33,6 @@ __all__ = [
     "RunStatus",
     "SideEffect",
     "ToolDescriptor",
+    "WorkflowModuleContract",
+    "WorkflowModuleRegistry",
 ]

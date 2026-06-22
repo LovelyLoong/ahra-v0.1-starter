@@ -1,0 +1,19 @@
+apiVersion: ahra.dev/v1alpha1
+kind: WorkflowResumeRequest
+metadata:
+  name: approve-loop-plan
+spec:
+  runId: RUN-example-loop
+  moduleId: loop-engineering
+  workspaceRef: .
+  driverRef: fake-reference
+  storeRef: local-file
+  artifactDir: .runtime/ahra-runs/RUN-example-loop
+  approval:
+    actor: human:maintainer
+    approved: true
+    reason: Proposed task is within the goal boundary.
+    planArtifact: cycles/1/next-step.json
+    expectedPlanSha256: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    approvedTaskIds:
+      - set-value-3

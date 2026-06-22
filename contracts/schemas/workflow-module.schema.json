@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/workflow-module.v1alpha1.json",
+  "title": "AHRA Workflow Module",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "WorkflowModule"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "owner"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,62}$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "moduleId",
+        "description",
+        "source",
+        "inputs",
+        "outputs",
+        "stateMapping",
+        "requiredPorts",
+        "safetyGates",
+        "artifacts",
+        "evidence",
+        "tests"
+      ],
+      "properties": {
+        "moduleId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,62}$"
+        },
+        "extends": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "repository",
+            "components"
+          ],
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "components": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "stateMapping": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "run",
+            "task"
+          ],
+          "properties": {
+            "run": {
+              "type": "object",
+              "additionalProperties": {
+                "enum": [
+                  "created",
+                  "admitted",
+                  "queued",
+                  "provisioning",
+                  "running",
+                  "paused_input",
+                  "paused_auth",
+                  "paused_policy",
+                  "backoff",
+                  "suspended",
+                  "verifying",
+                  "succeeded",
+                  "failed",
+                  "timed_out",
+                  "canceled"
+                ]
+              }
+            },
+            "task": {
+              "type": "object",
+              "additionalProperties": {
+                "enum": [
+                  "queued",
+                  "ready",
+                  "working",
+                  "waiting_input",
+                  "waiting_auth",
+                  "waiting_dependency",
+                  "review",
+                  "changes_requested",
+                  "completed",
+                  "failed",
+                  "canceled",
+                  "rejected"
+                ]
+              }
+            }
+          }
+        },
+        "requiredPorts": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "AgentDriver",
+              "RunStore",
+              "EventPublisher",
+              "WorkflowEngine",
+              "SessionStore",
+              "CheckpointStore",
+              "MemoryStore",
+              "ContextBuilderPort",
+              "ModelGateway",
+              "ToolRegistry",
+              "ToolExecutor",
+              "PolicyEngine",
+              "RuntimeProvider",
+              "WorkspaceProvider",
+              "ArtifactStore",
+              "EvidenceStore",
+              "ApprovalService",
+              "EvalRunner",
+              "ProjectAdapter"
+            ]
+          }
+        },
+        "safetyGates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tests": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

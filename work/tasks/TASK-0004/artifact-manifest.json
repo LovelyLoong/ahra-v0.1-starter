@@ -1,0 +1,26 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0004",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0004-0001",
+      "task_id": "TASK-0004",
+      "kind": "verification_report",
+      "name": "reference-runtime-adapters-mcp-report.json",
+      "uri": "local://evidence/reference-runtime-adapters-mcp-report.json",
+      "sha256": "c4140023c2f348c4cc63553befbc0c27252f8ca62c9baa34e50a911bf72f3873",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-06-22T10:54:00Z",
+      "input_refs": [
+        "../../../architecture/decisions/ADR-0006-reference-runtime-adapters-mcp-and-resume.md",
+        "../../../docs/architecture/reference-runtime-adapters-and-mcp.md",
+        "../../../contracts/schemas/workflow-resume-request.schema.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0004-0001"
+      ],
+      "supersedes": null
+    }
+  ]
+}
