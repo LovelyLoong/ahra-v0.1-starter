@@ -1,10 +1,10 @@
 .PHONY: test lint check demo
 
 lint:
-	PYTHONPATH=src python scripts/lint_contracts.py
+	python scripts/check.py --lint
 
 test:
-	PYTHONPATH=src python -m unittest discover -s tests -v
+	python scripts/check.py --test
 
 check: lint test
 

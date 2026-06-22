@@ -1,0 +1,37 @@
+{
+  "report_id": "RPT-TASK-0007-0001",
+  "task_id": "TASK-0007",
+  "generated_by": "agent:codex",
+  "generated_at": "2026-06-22T23:36:00+08:00",
+  "scope": "Implementation of local EvidenceGate verifier completion for AWKP tasks.",
+  "changes": [
+    "Added src/ahra/evidence_gate.py with local file-backed task inspect and EvidenceGate evaluation.",
+    "Added CLI entrypoint ahra-evidence-gate and python -m ahra.evidence_gate support.",
+    "Added MCP tools ahra.task_inspect and ahra.evidence_gate_evaluate that call the same service.",
+    "Added tests/test_evidence_gate.py covering approve, request changes, stale expected version, producer self-verification rejection, missing evidence rejection, inspect, and MCP dispatch.",
+    "Updated EvidenceGate and MCP architecture docs to describe the implemented verifier report shape and MCP tools."
+  ],
+  "non_goals_observed": [
+    "No durable database store, dashboard, CI workflow, OTel exporter, EvalRunner, ApprovalStore, or sandbox runtime provider was implemented.",
+    "TASK-0002, TASK-0003, TASK-0004, and TASK-0006 were not marked completed.",
+    "EvidenceGate was not used to self-complete TASK-0007."
+  ],
+  "verification": [
+    {
+      "command": "python scripts\\check.py",
+      "status": "passed",
+      "summary": "Contract lint passed and 41 unit tests passed."
+    },
+    {
+      "command": "python scripts\\lint_awkp.py",
+      "status": "passed",
+      "summary": "AWKP lint reported 0 errors and 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors were reported; Git emitted an LF-to-CRLF warning for pyproject.toml only."
+    }
+  ],
+  "next_recommended_task": "Have an independent verifier review TASK-0007, then use EvidenceGate for later task completion only after approval."
+}

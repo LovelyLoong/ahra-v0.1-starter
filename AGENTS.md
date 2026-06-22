@@ -47,6 +47,7 @@
 ## Commands
 
 ```bash
+python scripts/check.py
 make check
 make demo
 ```

@@ -1,0 +1,37 @@
+{
+  "report_id": "RPT-TASK-0006-0001",
+  "task_id": "TASK-0006",
+  "generated_by": "agent:codex",
+  "generated_at": "2026-06-22T23:08:00+08:00",
+  "scope": "Documentation-only alignment for AHRA framework completion gaps.",
+  "changes": [
+    "Added docs/architecture/framework-completion-roadmap.md to classify EvidenceGate as immediate, durable control plane as non-UI/deferred, scaffold and CI as optional, and runtime sandbox as pending alignment.",
+    "Added docs/architecture/evidence-gate.md to define verifier-side task completion semantics, inputs, outputs, decisions, and fail-closed rules.",
+    "Added docs/architecture/approval-service.md to explain scoped action authorization without requiring a visual panel.",
+    "Added docs/architecture/observability-and-evaluation.md to define minimal local audit, trace, cost, and eval records.",
+    "Updated docs/architecture/index.md to link the new architecture documents."
+  ],
+  "non_goals_observed": [
+    "No EvidenceGate code was implemented.",
+    "No durable store, dashboard, sandbox runtime, ApprovalStore, scaffold command, CI workflow, OTel exporter, or EvalRunner code was implemented.",
+    "TASK-0002, TASK-0003, and TASK-0004 were not marked completed."
+  ],
+  "verification": [
+    {
+      "command": "python scripts\\lint_awkp.py",
+      "status": "passed",
+      "summary": "AWKP lint reported 0 errors and 0 warnings."
+    },
+    {
+      "command": "python scripts\\check.py --lint",
+      "status": "passed",
+      "summary": "Contract lint and AWKP lint passed."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors were reported."
+    }
+  ],
+  "next_recommended_task": "Implement EvidenceGate as the next P0 code task after independent review approves these docs."
+}

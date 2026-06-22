@@ -63,7 +63,8 @@ Change AHRA infrastructure in this order:
 3. Update domain objects and `src/ahra/ports.py`.
 4. Update adapters or reference implementations.
 5. Add contract, recovery, and security tests.
-6. Run `make check`.
+6. Run `python scripts/check.py`. `make check` may wrap the same checks where
+   `make` is available.
 
 Compatibility rules:
 

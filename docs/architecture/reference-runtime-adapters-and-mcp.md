@@ -77,6 +77,32 @@ The local reference runner may use `LocalGitWorkspaceProvider`,
 ports. They are not a claim that every project must use local Git or local
 files.
 
+# Local Workspace Isolation
+
+For the local profile, `WorkflowRunRequest.workspaceRef` names the source Git
+worktree or repository root. It is not the mutable execution directory.
+
+The reference runner must materialize a run-owned Git worktree before invoking
+`standard-harness` or `loop-engineering`. Executor, reviewer checks, commits,
+rollback, and cleanup commands must target that isolated worktree, not the
+source worktree named by `workspaceRef`.
+
+The isolated worktree is part of the run evidence surface. The runner records
+the source workspace, base commit, branch, and effective isolated workspace in
+the run artifacts. It must fail closed if it cannot create or recover that
+workspace.
+
+Manual resume continues the same isolated worktree that the paused run used.
+The caller still provides the original `workspaceRef`; the runner verifies it
+against the stored start request and reads the effective workspace from the
+stored run result. A resume request must not silently switch to a different
+workspace.
+
+Accepted commits remain on the run-owned branch until a human or authorized
+deployment workflow merges, publishes, or deletes them. The runner should not
+remove the isolated worktree automatically while the run is awaiting review,
+approval, or resume.
+
 # Resume Contract
 
 `WorkflowRunRequest` starts a run. `WorkflowResumeRequest` continues a run.
@@ -104,10 +130,14 @@ exposes tools for:
 - Starting a workflow through the same runner API as direct Python callers.
 - Inspecting a local run artifact directory.
 - Resuming an approved manual plan through `WorkflowResumeRequest`.
+- Inspecting AWKP task state, manifests, events, and acceptance criteria.
+- Evaluating AWKP task completion through EvidenceGate.
 
 MCP tools must validate inputs, resolve the workflow module registry first,
-resolve `driverRef` through `AgentDriverRegistry`, and then call the reference
-runner. MCP does not own workflow logic.
+resolve `driverRef` through `AgentDriverRegistry` for workflow runs, and then
+call the same underlying Python APIs as direct callers. MCP does not own
+workflow logic and must not bypass EvidenceGate expected-version or verifier
+separation checks.
 
 # Agent Operation
 
@@ -118,7 +148,9 @@ An agent should prefer this order:
 3. Load workflow modules.
 4. Resolve driver adapters.
 5. Start or resume through the runner API or MCP tool.
-6. Report factual run status and artifact/evidence locations.
+6. When a task is in review, inspect AWKP task state and invoke EvidenceGate
+   with a verifier report.
+7. Report factual run status and artifact/evidence locations.
 
 The launch agent remains an operator. It is not automatically the driver
 unless a driver adapter explicitly represents it.

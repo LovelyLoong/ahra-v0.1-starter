@@ -1,0 +1,20 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0005",
+  "context_id": "CTX-ahra-runner-isolation",
+  "state": "completed",
+  "state_version": 5,
+  "owner": null,
+  "attempt": 1,
+  "lease": null,
+  "next_action": "Completed by independent verification; no further action for TASK-0005.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0005-0001"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0005-0001"
+  ],
+  "updated_at": "2026-06-22T14:44:00Z"
+}

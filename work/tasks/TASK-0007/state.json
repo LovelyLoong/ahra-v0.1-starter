@@ -1,0 +1,20 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0007",
+  "context_id": "CTX-ahra-evidence-gate",
+  "state": "review",
+  "state_version": 4,
+  "owner": null,
+  "attempt": 1,
+  "lease": null,
+  "next_action": "Independent verifier should review the EvidenceGate implementation, rerun checks, and decide whether TASK-0007 can move to completed.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0007-0001"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0007-0001"
+  ],
+  "updated_at": "2026-06-22T23:37:34+08:00"
+}

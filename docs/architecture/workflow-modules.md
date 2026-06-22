@@ -67,6 +67,8 @@ contracts and ports.
   coverage and internal consistency.
 - Accepted changes stay in isolated artifacts or branches until a human or
   authorized deployment workflow acts on them.
+- The reference runner must treat `workspaceRef` as a source workspace and run
+  module mutations only inside a run-owned isolated workspace.
 
 # Extension Rules
 

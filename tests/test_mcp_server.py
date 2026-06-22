@@ -107,10 +107,18 @@ class MCPServerTests(unittest.TestCase):
             self.assertTrue(validation["valid"])
             started = asyncio.run(server.call_tool("ahra.start_workflow", {"document": document}))
             self.assertEqual(started["status"], WorkflowOutcome.ACCEPTED)
+            self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 1\n")
+            isolated_workspace = Path(started["result"]["workspace"])
+            self.assertNotEqual(isolated_workspace.resolve(), repo.resolve())
+            self.assertEqual(
+                (isolated_workspace / "value.py").read_text(encoding="utf-8"),
+                "VALUE = 2\n",
+            )
             run = asyncio.run(
                 server.call_tool("ahra.get_workflow_run", {"artifactDir": str(Path(temp) / "artifacts")})
             )
             self.assertIn("workflow-run-request.json", run["files"])
+            self.assertIn("workspace.json", run["files"])
             self.assertIn("artifact-manifest.json", run["files"])
 
     def test_mcp_lists_reference_modules(self) -> None:

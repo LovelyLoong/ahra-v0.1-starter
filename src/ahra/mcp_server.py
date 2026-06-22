@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from ahra.evidence_gate import evaluate_task_gate, inspect_task
 from ahra.ports import AgentDriverRegistry
 from ahra.reference_runner.invocation import (
     load_reference_workflow_module_registry,
@@ -95,6 +96,35 @@ class AhraMCPServer:
                     },
                 },
             },
+            {
+                "name": "ahra.task_inspect",
+                "description": "Inspect AWKP task state, manifests, events, and acceptance criteria.",
+                "inputSchema": {
+                    "type": "object",
+                    "required": ["taskId"],
+                    "properties": {
+                        "taskId": {"type": "string"},
+                        "workRoot": {"type": "string"},
+                    },
+                },
+            },
+            {
+                "name": "ahra.evidence_gate_evaluate",
+                "description": "Evaluate an AWKP task through EvidenceGate and update task state.",
+                "inputSchema": {
+                    "type": "object",
+                    "required": ["taskId", "expectedVersion", "reportPath", "actor"],
+                    "properties": {
+                        "taskId": {"type": "string"},
+                        "expectedVersion": {"type": "integer"},
+                        "reportPath": {"type": "string"},
+                        "actor": {"type": "string"},
+                        "decision": {"type": "string", "enum": ["approve", "request_changes"]},
+                        "workRoot": {"type": "string"},
+                        "dryRun": {"type": "boolean"},
+                    },
+                },
+            },
         ]
 
     async def call_tool(self, name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -130,6 +160,21 @@ class AhraMCPServer:
                 runtime_provider=self.runtime_provider,
             )
             return _envelope_summary(envelope)
+        if name == "ahra.task_inspect":
+            return inspect_task(
+                str(arguments["taskId"]),
+                work_root=str(arguments.get("workRoot") or "work"),
+            )
+        if name == "ahra.evidence_gate_evaluate":
+            return evaluate_task_gate(
+                str(arguments["taskId"]),
+                work_root=str(arguments.get("workRoot") or "work"),
+                expected_version=int(arguments["expectedVersion"]),
+                report_path=str(arguments["reportPath"]),
+                actor=str(arguments["actor"]),
+                decision=arguments.get("decision"),
+                dry_run=bool(arguments.get("dryRun") or False),
+            ).to_dict()
         raise ValueError(f"unknown AHRA MCP tool: {name}")
 
     def _module_registry(self) -> WorkflowModuleRegistry:
@@ -185,6 +230,7 @@ def _read_workflow_run(artifact_dir: Path) -> dict[str, Any]:
     names = [
         "workflow-run-request.json",
         "workflow-run-result.json",
+        "workspace.json",
         "workflow-resume-request.json",
         "workflow-resume-result.json",
         "artifact-manifest.json",

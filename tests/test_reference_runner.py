@@ -340,8 +340,17 @@ class WorkflowInvocationTests(unittest.TestCase):
             artifact_dir = Path(result.artifact_dir)
             self.assertTrue((artifact_dir / "workflow-run-request.json").exists())
             self.assertTrue((artifact_dir / "workflow-run-result.json").exists())
+            self.assertTrue((artifact_dir / "workspace.json").exists())
             self.assertTrue((artifact_dir / "artifact-manifest.json").exists())
             self.assertTrue((artifact_dir / "evidence-manifest.json").exists())
+            self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 1\n")
+            isolated_workspace = Path(result.result.workspace)
+            self.assertNotEqual(isolated_workspace.resolve(), repo.resolve())
+            self.assertTrue(isolated_workspace.is_relative_to(artifact_dir.resolve()))
+            self.assertEqual(
+                (isolated_workspace / "value.py").read_text(encoding="utf-8"),
+                "VALUE = 2\n",
+            )
 
     def test_run_workflow_rejects_invalid_direct_request_before_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -466,6 +475,13 @@ class WorkflowInvocationTests(unittest.TestCase):
             )
             paused = asyncio.run(run_workflow(run_request, drivers=registry))
             self.assertEqual(paused.status, WorkflowOutcome.AWAITING_PLAN_APPROVAL)
+            isolated_workspace = Path(paused.result.workspace)
+            self.assertNotEqual(isolated_workspace.resolve(), repo.resolve())
+            self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 1\n")
+            self.assertEqual(
+                (isolated_workspace / "value.py").read_text(encoding="utf-8"),
+                "VALUE = 2\n",
+            )
             plan_artifact = artifact_dir / "cycles" / "1" / "next-step.json"
             plan_sha256 = hashlib.sha256(plan_artifact.read_bytes()).hexdigest()
 
@@ -508,12 +524,18 @@ class WorkflowInvocationTests(unittest.TestCase):
             resumed = asyncio.run(resume_workflow(resume_request, drivers=registry))
             self.assertEqual(resumed.status, WorkflowOutcome.COMPLETE)
             self.assertEqual(len(resumed.result.completed_tasks), 2)
-            self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 3\n")
+            self.assertEqual(Path(resumed.result.workspace).resolve(), isolated_workspace.resolve())
+            self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 1\n")
+            self.assertEqual(
+                (isolated_workspace / "value.py").read_text(encoding="utf-8"),
+                "VALUE = 3\n",
+            )
             self.assertTrue((artifact_dir / "workflow-resume-request.json").exists())
             self.assertTrue((artifact_dir / "workflow-resume-result.json").exists())
             manifest = json.loads((artifact_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
             names = {record["name"] for record in manifest["artifacts"]}
             self.assertIn("workflow-run-request.json", names)
+            self.assertIn("workspace.json", names)
             self.assertIn("workflow-resume-request.json", names)
 
     def test_examples_load_as_workflow_run_requests(self) -> None:

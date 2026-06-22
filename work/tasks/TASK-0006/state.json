@@ -1,0 +1,20 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0006",
+  "context_id": "CTX-ahra-framework-completion-roadmap",
+  "state": "review",
+  "state_version": 4,
+  "owner": null,
+  "attempt": 1,
+  "lease": null,
+  "next_action": "Independent verifier should review the roadmap, EvidenceGate, ApprovalService, and Observability/Evaluation docs before approving the next implementation task.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0006-0001"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0006-0001"
+  ],
+  "updated_at": "2026-06-22T23:00:00+08:00"
+}

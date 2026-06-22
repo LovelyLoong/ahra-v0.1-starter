@@ -14,7 +14,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from ahra.ports import AgentDriver, AgentDriverRegistry
 from ahra.workflow_modules import WorkflowModuleRegistry, load_workflow_module_registry
 
-from .git_ops import LocalGitWorkspaceProvider
+from .git_ops import LocalGitWorkspaceProvider, WorktreeManager
 from .loop_engineering import LoopEngine
 from .models import (
     ChangePolicy,
@@ -193,6 +193,7 @@ async def run_workflow(
     if request.store_ref != "local-file":
         raise ValueError(f"unsupported storeRef for reference runner: {request.store_ref}")
     driver = drivers.get(request.driver_ref)
+    should_isolate_workspace = workspace_provider is None
     workspace_provider = workspace_provider or LocalGitWorkspaceProvider()
     runtime_provider = runtime_provider or LocalRuntimeProvider()
     run_id = request.run_id or f"RUN-{uuid4().hex}"
@@ -200,6 +201,19 @@ async def run_workflow(
     store = FileRunStore(artifact_dir)
     branch = request.branch or "ahra/reference-runner"
     base_commit = request.base_commit or workspace_provider.current_head(request.workspace_ref)
+    execution_workspace_ref = request.workspace_ref
+    workspace_record: dict[str, Any] | None = None
+    if should_isolate_workspace:
+        workspace_record = _create_isolated_workspace(
+            request=request,
+            run_id=run_id,
+            store=store,
+            branch=branch,
+            base_commit=base_commit,
+        )
+        execution_workspace_ref = str(workspace_record["effective_workspace_ref"])
+        branch = str(workspace_record["branch"])
+        base_commit = str(workspace_record["base_commit"])
     effective_request = replace(
         request,
         run_id=run_id,
@@ -218,12 +232,23 @@ async def run_workflow(
         created_by="workflow-runner:reference",
         input_refs=[effective_request.module_id, effective_request.driver_ref],
     )
+    if workspace_record is not None:
+        store.write_artifact(
+            "workspace.json",
+            workspace_record,
+            task_id=subject_id,
+            kind="isolated_workspace",
+            media_type="application/json",
+            created_by="workflow-runner:reference",
+            input_refs=[run_id, effective_request.workspace_ref, base_commit],
+        )
 
     result = await handler(
         request=effective_request,
         driver=driver,
         workspace_provider=workspace_provider,
         runtime_provider=runtime_provider,
+        execution_workspace_ref=execution_workspace_ref,
         branch=branch,
         base_commit=base_commit,
         run_id=run_id,
@@ -327,8 +352,9 @@ async def resume_workflow(
     completed = tuple(_task_result_from_mapping(item) for item in stored_result.get("completed_tasks", ()))
     branch = stored_request.branch or request.branch or "ahra/reference-runner"
     base_commit = stored_request.base_commit or request.base_commit
+    execution_workspace_ref = _stored_execution_workspace_ref(stored_result)
     if base_commit is None:
-        base_commit = workspace_provider.current_head(request.workspace_ref)
+        base_commit = workspace_provider.current_head(execution_workspace_ref)
 
     if not request.approval.approved:
         result = GoalRunResult(
@@ -336,11 +362,11 @@ async def resume_workflow(
             goal_id=subject_id,
             status=WorkflowOutcome.BLOCKED,
             branch=branch,
-            workspace=workspace_provider.resolve_path(request.workspace_ref),
+            workspace=workspace_provider.resolve_path(execution_workspace_ref),
             artifact_dir=str(store.run_dir),
             completed_tasks=completed,
             next_step=decision,
-            final_commit=workspace_provider.current_head(request.workspace_ref),
+            final_commit=workspace_provider.current_head(execution_workspace_ref),
             message=f"Plan approval rejected by {request.approval.actor}: {request.approval.reason}",
         )
         store.write_artifact(
@@ -379,7 +405,7 @@ async def resume_workflow(
         runtime_provider=runtime_provider,
     ).run_goal(
         goal=_apply_approval_mode(stored_request.goal, stored_request.approval_mode),
-        workspace_ref=request.workspace_ref,
+        workspace_ref=execution_workspace_ref,
         branch=branch,
         base_commit=base_commit,
         run_id=request.run_id,
@@ -459,6 +485,7 @@ async def _run_standard_harness(
     driver: AgentDriver,
     workspace_provider,
     runtime_provider,
+    execution_workspace_ref: str,
     branch: str,
     base_commit: str,
     run_id: str,
@@ -472,7 +499,7 @@ async def _run_standard_harness(
         runtime_provider=runtime_provider,
     ).run_task(
         task=request.task,
-        workspace_ref=request.workspace_ref,
+        workspace_ref=execution_workspace_ref,
         branch=branch,
         run_id=run_id,
         store=store,
@@ -485,6 +512,7 @@ async def _run_loop_engineering(
     driver: AgentDriver,
     workspace_provider,
     runtime_provider,
+    execution_workspace_ref: str,
     branch: str,
     base_commit: str,
     run_id: str,
@@ -499,7 +527,7 @@ async def _run_loop_engineering(
         runtime_provider=runtime_provider,
     ).run_goal(
         goal=goal,
-        workspace_ref=request.workspace_ref,
+        workspace_ref=execution_workspace_ref,
         branch=branch,
         base_commit=base_commit,
         run_id=run_id,
@@ -686,6 +714,45 @@ def _ensure_resume_matches_start(
         raise ValueError("workflow resume request branch conflicts with stored run request")
     if request.base_commit and stored_request.base_commit and request.base_commit != stored_request.base_commit:
         raise ValueError("workflow resume request baseCommit conflicts with stored run request")
+
+
+def _create_isolated_workspace(
+    *,
+    request: WorkflowRunRequest,
+    run_id: str,
+    store: FileRunStore,
+    branch: str,
+    base_commit: str,
+) -> dict[str, Any]:
+    source_path = Path(request.workspace_ref).resolve()
+    worktree_path = store.run_dir / "workspace"
+    workspace = WorktreeManager(source_path).create(
+        run_id=run_id,
+        label=branch,
+        base_ref=base_commit,
+        destination=worktree_path,
+        branch_name=request.branch,
+    )
+    return {
+        "run_id": run_id,
+        "isolation": "git-worktree",
+        "source_workspace_ref": str(source_path),
+        "effective_workspace_ref": str(workspace.path),
+        "branch": workspace.branch,
+        "base_commit": workspace.base_commit,
+    }
+
+
+def _stored_execution_workspace_ref(stored_result: dict[str, Any]) -> str:
+    workspace = stored_result.get("workspace")
+    if not isinstance(workspace, str) or not workspace:
+        raise ValueError("stored workflow result is missing effective workspace")
+    path = Path(workspace)
+    if not path.exists():
+        raise ValueError(f"stored workflow workspace does not exist: {workspace}")
+    if not path.is_dir():
+        raise ValueError(f"stored workflow workspace is not a directory: {workspace}")
+    return str(path.resolve())
 
 
 def _artifact_path(run_dir: Path, artifact_ref: str) -> Path:

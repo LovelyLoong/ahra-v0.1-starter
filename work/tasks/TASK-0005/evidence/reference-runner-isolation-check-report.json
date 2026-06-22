@@ -1,0 +1,54 @@
+{
+  "schema_version": "awkp/0.1",
+  "report_id": "RPT-TASK-0005-0001",
+  "task_id": "TASK-0005",
+  "context_id": "CTX-ahra-runner-isolation",
+  "generated_at": "2026-06-22T14:36:00Z",
+  "generated_by": "agent:codex",
+  "scope": "Reference runner workspace isolation and cross-platform check entrypoint.",
+  "implementation_summary": [
+    "Updated architecture docs before implementation to define workspaceRef as the source workspace and require a run-owned local Git worktree for default reference runner execution.",
+    "Changed run_workflow() so the default local workspace provider creates artifactDir/workspace as a Git worktree before invoking standard-harness or loop-engineering.",
+    "Recorded workspace.json as an isolated_workspace artifact with source workspace, effective workspace, branch, and base commit.",
+    "Changed manual resume to continue the effective workspace from the stored run result after validating the resume request matches the stored start request.",
+    "Exposed workspace.json through MCP run inspection.",
+    "Added python scripts/check.py as a cross-platform check entrypoint and made Makefile lint/test wrap it."
+  ],
+  "verification": [
+    {
+      "command": "python -m unittest tests.test_reference_runner.WorkflowInvocationTests.test_workflow_run_request_starts_standard_harness -v",
+      "exit_code": 0,
+      "summary": "Passed; source repo value.py stayed VALUE = 1 while isolated workspace value.py became VALUE = 2."
+    },
+    {
+      "command": "python -m unittest tests.test_reference_runner.WorkflowInvocationTests.test_manual_loop_resume_requires_matching_plan_digest_and_completes -v",
+      "exit_code": 0,
+      "summary": "Passed; manual resume continued the same isolated workspace and source repo stayed unchanged."
+    },
+    {
+      "command": "python -m unittest tests.test_mcp_server.MCPServerTests.test_mcp_handler_validates_and_starts_workflow -v",
+      "exit_code": 0,
+      "summary": "Passed; MCP start used isolated workspace and run inspection returned workspace.json."
+    },
+    {
+      "command": "python scripts\\check.py",
+      "exit_code": 0,
+      "summary": "Contract/AWKP lint passed and 34 unit tests passed."
+    },
+    {
+      "command": "python scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors."
+    }
+  ],
+  "known_limits": [
+    "The reference runner retains isolated worktrees for review/resume; cleanup or garbage collection remains future operational work.",
+    "Custom injected workspace providers are assumed to enforce their own isolation semantics; this fix hardens the default local runner path.",
+    "TASK-0005 remains in review until an independent verifier reruns checks and updates AWKP state."
+  ]
+}

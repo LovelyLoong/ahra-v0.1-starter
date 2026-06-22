@@ -83,13 +83,21 @@ class WorktreeManager:
         self.source_repo = source_repo.resolve()
         ensure_git_repo(self.source_repo)
 
-    def create(self, *, run_id: str, label: str, base_ref: str, destination: Path) -> Workspace:
+    def create(
+        self,
+        *,
+        run_id: str,
+        label: str,
+        base_ref: str,
+        destination: Path,
+        branch_name: str | None = None,
+    ) -> Workspace:
         destination = destination.resolve()
         destination.parent.mkdir(parents=True, exist_ok=True)
         if destination.exists():
             raise GitError(f"worktree destination already exists: {destination}")
         base_commit = run_git(self.source_repo, "rev-parse", base_ref).stdout.strip()
-        branch = f"ahra/{slug(label)}/{slug(run_id)[:12]}"
+        branch = branch_name or f"ahra/{slug(label)}/{slug(run_id)[:12]}"
         run_git(
             self.source_repo,
             "worktree",
