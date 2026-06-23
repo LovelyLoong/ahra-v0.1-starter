@@ -1,0 +1,29 @@
+apiVersion: ahra.dev/v1alpha1
+kind: RuntimeProfile
+metadata:
+  name: local-worktree
+  version: 0.1.0
+spec:
+  providerClass: local-process
+  image: local-host
+  user: current-user
+  filesystem:
+    root: writable
+    writableMounts:
+      - name: run-owned-worktree
+        path: ${AHRA_RUN_WORKTREE}
+    deniedPaths: []
+  network:
+    default: allow
+    allow: []
+  resources:
+    cpu: host
+    memoryMiB: 1024
+    ephemeralDiskMiB: 10240
+    processLimit: 1
+  timeoutSeconds: 1800
+  snapshot:
+    enabled: false
+  secrets:
+    injection: none
+    persistInSnapshot: false

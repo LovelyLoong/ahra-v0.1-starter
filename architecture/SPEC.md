@@ -1,14 +1,16 @@
-# Agent Harness Reference Architecture（AHRA）v0.1
+# Agent Workflow Foundation / AHRA v0.1
 
 > **状态：建议稿（Proposed Reference Architecture），2026-06-21。**
-> AHRA 是在 AWKP 之上的通用 Agent Harness 外围参考架构。AWKP 继续负责项目知识、任务契约、状态投影、事件、交接、产物与证据；AHRA 补齐 Agent 定义、可插拔工作流模块契约、Memory、Context、模型、工具、协议、运行环境、调度、扩缩容、安全、可观测性、评估与人工控制。
+> 本项目定位为 Agent workflow foundation：一套完整的 Agent 工作流与工作规范底座。AWKP 继续负责项目知识、任务契约、状态投影、事件、交接、产物与证据；AHRA 补齐 Agent 定义、可插拔工作流模块契约、Memory、Context、模型、工具、协议、运行环境、调度、扩缩容、安全、可观测性、评估与人工控制。
 > 当前归档的 AWKP 文件标识为 `awkp/0.1`。如果项目将其正式发布为 1.1，只需通过兼容性声明和迁移记录升级版本，不应靠口头版本推断数据格式。
 
 ---
 
 ## 0. 最终建议
 
-通用 Harness 不应当是某一个 Agent SDK 的二次封装，也不应把所有能力都塞进一个“万能 Agent 类”。推荐采用：
+本项目不应只被理解为某个项目外侧的 Harness 模板，也不应当是某一个 Agent SDK 的二次封装。推荐把它作为 Agent 项目底座：工作规范是所有 Agent 的约束，标准工作流是推荐执行路径，项目适配和自定义工作流通过稳定契约扩展。
+
+推荐采用：
 
 1. **稳定的领域协议**：Task、Run、Session、Checkpoint、Memory、Artifact、Evidence、Approval 等对象有明确边界。
 2. **控制平面与执行平面分离**：控制平面负责准入、调度、状态、策略和恢复；执行平面负责模型调用、工具执行和隔离运行。
@@ -18,6 +20,13 @@
 6. **模型输出只是“不可信意图”**：任何副作用都必须经过类型校验、策略判定、权限收敛、必要审批和隔离执行。
 7. **可观测、可评估、可恢复是第一天能力**：不能等上线后再补 Trace、Checkpoint、Replay、Evidence 和成本账本。
 8. **从单机到分布式保持同一契约**：本地可以用 SQLite/文件/容器；规模化时替换为 Postgres、对象存储和 Durable Workflow Engine，而不改领域模型。
+
+基础使用模式：
+
+1. **标准工作流模式**：通过 `standard-harness`、`loop-engineering` 等内置 workflow module 运行项目工作。这是推荐路径。
+2. **受治理的外部 Agent 模式**：使用任意 Agent 或人工工具，但必须遵守任务、状态、证据、交接和完成门禁。
+3. **项目适配工作流模式**：项目添加本地 docs、Skills、命令、检查项、策略和适配器。
+4. **自定义工作流模式**：高级使用者通过 workflow module contract 组合或实现自己的专属 workflow。
 
 建议把整体划分为八个平面：
 
@@ -212,7 +221,7 @@ spec:
     writeScopes: [task-episodic, project-candidate]
     directPermanentWrite: false
 
-  runtimeProfileRef: runtimes/repo-container.yaml
+  runtimeProfileRef: runtimes/local-worktree.yaml
   budgets:
     wallTimeSeconds: 1800
     maxModelCalls: 80
@@ -820,7 +829,13 @@ AG-UI Adapter 用于：
 ### 12.1 Runtime 与 Workspace 分开
 
 - **Workspace**：某个 Task/Run 可写的项目工作目录、分支、挂载和快照。
-- **Runtime**：执行命令、代码、浏览器或工具的隔离计算环境。
+- **Runtime**：执行命令、代码、浏览器或工具的计算环境。
+
+v0.1 starter 的本地默认边界是 **run-owned Git worktree isolation**：
+Workflow runner 必须在每个 Run 独占的 Git worktree 中执行仓库变更、检查、
+提交和回滚，避免直接污染源 worktree。这个本地默认不声明 process、
+network、host 或 secret 隔离；需要这些能力时必须选择后续的 Runtime
+sandbox adapter。
 
 同一 Workspace 可以被新 Runtime 恢复；同一 Runtime 不应无边界承载不同租户的 Workspace。
 
@@ -830,33 +845,31 @@ AG-UI Adapter 用于：
 apiVersion: ahra.dev/v1alpha1
 kind: RuntimeProfile
 metadata:
-  name: repo-container
+  name: local-worktree
   version: 0.1.0
 spec:
-  providerClass: oci-container
-  image: registry.example/agent-runtime@sha256:...
-  user: 10001:10001
+  providerClass: local-process
+  image: local-host
+  user: current-user
   filesystem:
-    root: read_only
+    root: writable
     writableMounts:
-      - name: workspace
-        path: /workspace
-    deniedPaths: [/var/run/docker.sock, /home/host]
+      - name: run-owned-worktree
+        path: ${AHRA_RUN_WORKTREE}
+    deniedPaths: []
   network:
-    default: deny
-    allow:
-      - host: api.model-gateway.internal
-        ports: [443]
+    default: allow
+    allow: []
   resources:
-    cpu: "2"
-    memoryMiB: 4096
+    cpu: host
+    memoryMiB: 1024
     ephemeralDiskMiB: 10240
-    processLimit: 256
+    processLimit: 1
   timeoutSeconds: 1800
   snapshot:
-    enabled: true
+    enabled: false
   secrets:
-    injection: short_lived_files
+    injection: none
     persistInSnapshot: false
 ```
 
@@ -865,8 +878,8 @@ spec:
 | 等级 | 形态 | 用途 |
 |---|---|---|
 | T0 | 无代码执行，仅模型和只读 API | 文本分析 |
-| T1 | 本地子进程 | 个人开发；不得处理不可信代码或敏感凭证 |
-| T2 | OCI 容器 | 默认开发/CI 运行时 |
+| T1 | 本地子进程 + run-owned Git worktree | v0.1 starter 默认；不得处理不可信代码或敏感凭证 |
+| T2 | OCI 容器 | 后续 CI/团队适配器；不是 v0.1 starter 默认 |
 | T3 | 强化容器（如 gVisor/Kata 类） | 多租户、不可信代码 |
 | T4 | 远端 MicroVM/专用沙箱 | 高隔离、浏览器、复杂代码、外部客户任务 |
 
@@ -885,15 +898,16 @@ class RuntimeProvider(Protocol):
 
 ### 12.5 通用规则
 
-- 基础镜像使用 digest，不用可变 tag；
-- 默认非 root、只读根文件系统、无宿主 Docker socket；
-- 网络默认拒绝，按工具和任务放行；
+- 本地 profile 的默认文件系统边界是 run-owned Git worktree；
+- 强隔离 profile 的基础镜像使用 digest，不用可变 tag；
+- 强隔离 profile 默认非 root、只读根文件系统、无宿主 Docker socket；
+- 强隔离 profile 网络默认拒绝，按工具和任务放行；
 - Secret 由 Broker 短期注入，不写入镜像、Git、Memory、Prompt 或 Snapshot；
 - CPU、内存、磁盘、进程、文件数、执行时长均有上限；
 - stdout/stderr 做大小限制、脱敏和 Artifact 外置；
 - Runtime 结束后销毁凭证并清理资源；
-- 项目环境通过 OCI/lockfile 和可选 Dev Container 元数据描述，保持可复现；
-- 对任意代码执行，容器只是起点，高风险应使用更强隔离和独立凭证。
+- 本地 profile 通过 Git worktree、lockfile 和项目命令保持可复现；
+- 对不可信代码、敏感凭证或外部客户任务，local worktree 不足以作为隔离边界，必须选择后续强隔离 Runtime adapter。
 
 ---
 
@@ -936,7 +950,7 @@ SQL Metadata + Transactional Outbox
 - 单进程 Control API + Worker；
 - SQLite 或本地 Postgres；
 - 文件系统对象存储；
-- Docker/Podman；
+- local process runner + run-owned Git worktree；
 - 内存队列或 DB 队列；
 - OTLP Console/本地 Trace。
 
@@ -1370,7 +1384,7 @@ agent-harness/
 | Queue | DB queue | Kafka/NATS/SQS/云队列或引擎内队列 |
 | Artifact | 本地文件 + SHA-256 | S3 compatible + retention/versioning |
 | Memory | SQL records + optional local index | SQL authority + vector/graph/search index |
-| Runtime | Docker/Podman | gVisor/Kata/MicroVM/remote sandbox |
+| Runtime | local process runner + run-owned Git worktree | Docker/Podman/gVisor/Kata/MicroVM/remote sandbox |
 | Model Gateway | Provider adapters | LiteLLM/Envoy AI Gateway/自建网关 |
 | Policy | 内置 declarative rules | OPA/云策略服务 |
 | Identity | 开发 token | OIDC + workload identity/SPIFFE 类体系 |
@@ -1537,7 +1551,7 @@ Domain contracts
 6. Context 由独立 Builder 生成并保存 Manifest。
 7. Memory 写入先成为候选，带来源、作用域、时效和权限。
 8. 所有 Tool/MCP/A2A 结果均视为不可信数据。
-9. 任意代码在隔离 Runtime 中执行，Secret 使用短期最小权限。
+9. v0.1 本地默认只承诺 run-owned Git worktree isolation；不可信代码、敏感凭证或外部客户任务必须进入强隔离 Runtime adapter，Secret 使用短期最小权限。
 10. OTel Trace、不可丢失 Audit、成本账本和 Eval 从第一天存在。
 11. 完成状态由 AWKP 门禁与独立 Evidence 决定，不由 Worker 自证。
 12. 所有基础设施通过 Port/Adapter 替换，项目差异进入 ProjectAdapter。
@@ -1551,7 +1565,7 @@ Domain contracts
 1. 核心实现语言与 API 风格；
 2. Local Profile 是否采用 SQLite，Team Profile 是否采用 Postgres；
 3. 第一版 workflow module registry、模块契约和 reference module 边界；
-4. 默认 Runtime 是 Docker 还是远端 Sandbox；
+4. 第一批强隔离 Runtime adapter 是 OCI、Dev Container 还是远端 Sandbox；
 5. 第一批支持的模型 Provider；
 6. Memory 的最小范围：仅 project/task，还是包含 user preference；
 7. 哪些风险动作需要人工批准；
@@ -1559,7 +1573,7 @@ Domain contracts
 9. 第一批 MCP Server/Tool；
 10. 第一套端到端 Eval 数据集和 SLO。
 
-推荐默认：先做 **Python + Postgres-compatible domain + local SQLite + OCI Runtime + OTel + `standard-harness`/`loop-engineering` reference modules**，但所有端口按可替换设计；当长任务、跨天等待和分布式恢复成为真实需求时，再切 Durable Engine 或项目自定义 workflow module。
+推荐默认：先做 **Python + Postgres-compatible domain + local SQLite + local process runner + run-owned Git worktree isolation + OTel + `standard-harness`/`loop-engineering` reference modules**，但所有端口按可替换设计；当不可信代码、敏感凭证、长任务、跨天等待和分布式恢复成为真实需求时，再切强隔离 Runtime adapter、Durable Engine 或项目自定义 workflow module。
 
 ---
 
@@ -1615,7 +1629,7 @@ Domain contracts
     "heartbeat_at": "2026-06-21T00:14:00Z",
     "expires_at": "2026-06-21T00:20:00Z"
   },
-  "runtime_profile": "repo-container@sha256:...",
+  "runtime_profile": "local-worktree@sha256:...",
   "workspace_ref": "workspace://TASK-0001/RUN-01J...",
   "context_manifest_ref": "artifact://CTXMAN-...",
   "budgets": {

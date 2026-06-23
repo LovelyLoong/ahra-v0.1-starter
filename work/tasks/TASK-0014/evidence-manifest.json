@@ -1,0 +1,41 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0014",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0014-0001",
+      "task_id": "TASK-0014",
+      "kind": "implementation_report",
+      "name": "implementation-report.json",
+      "uri": "local://evidence/implementation-report.json",
+      "sha256": "d398f5af2478e319341d59130df08107e4af68f6adb30b2e4c03c868f7ef4755",
+      "media_type": "application/json",
+      "created_by": "agent:codex-cli-skill-operator",
+      "created_at": "2026-06-23T16:16:33+08:00",
+      "refs": [
+        "ART-TASK-0014-0001",
+        "ART-TASK-0014-HANDOFF-2c432c12ad93",
+        "EVT-TASK-0014-0003",
+        ".runtime/ahra-runs/TASK-0014-preflight-driver-gap"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0014-0002",
+      "task_id": "TASK-0014",
+      "kind": "implementation_report",
+      "name": "implementation-report-2.json",
+      "uri": "local://evidence/implementation-report-2.json",
+      "sha256": "480648acd8b8e9b73d9b0dfea1e5d978f9ad5a320e9aeb309c3a0b5998ac5f94",
+      "media_type": "application/json",
+      "created_by": "agent:codex-cli-skill-operator",
+      "created_at": "2026-06-23T16:40:36+08:00",
+      "refs": [
+        "ART-TASK-0014-0002",
+        "ART-TASK-0014-HANDOFF-7be04624b9ae",
+        "EVT-TASK-0014-0007",
+        "EVT-TASK-0014-0008",
+        ".runtime/ahra-runs/probes/RUN-codex-cli-probe-163059"
+      ]
+    }
+  ]
+}

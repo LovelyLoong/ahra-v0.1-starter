@@ -2,15 +2,23 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0009",
   "context_id": "CTX-ahra-runtime-sandbox-alignment",
-  "state": "queued",
-  "state_version": 1,
+  "state": "completed",
+  "state_version": 7,
   "owner": null,
-  "attempt": 0,
+  "attempt": 1,
   "lease": null,
-  "next_action": "Wait for TASK-0008 to complete, then align the default local runtime sandbox profile.",
-  "pause_reason": "dependency",
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "pause_reason": null,
   "blockers": [],
-  "artifact_refs": [],
-  "evidence_refs": [],
-  "updated_at": "2026-06-23T10:32:07+08:00"
+  "artifact_refs": [
+    "ART-TASK-0009-RUNTIME-ENTRYPOINT-e9dbbfebfffc",
+    "ART-TASK-0009-0001",
+    "ART-TASK-0009-0002"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0009-RUNTIME-ENTRYPOINT-e9dbbfebfffc",
+    "EVD-TASK-0009-0001",
+    "EVD-TASK-0009-0002"
+  ],
+  "updated_at": "2026-06-23T07:45:50.227367Z"
 }

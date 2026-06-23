@@ -1,0 +1,83 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0009",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-23T07:45:50.227367Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "TASK-0009 passes independent rereview. The local default runtime boundary is consistently documented as run-owned Git worktree isolation, stronger Runtime adapters are deferred, runtime examples use local-worktree, TASK-0010 input_refs parse correctly, and the declared verification commands pass.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A single default local sandbox direction is selected, or defer is recorded with the exact missing decision input.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0009-REREVIEW-d194c15e53e4"
+      ],
+      "notes": "A single default local sandbox direction is selected: run-owned Git worktree isolation."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "The selected or deferred boundary distinguishes source worktree isolation from process, network, and secret isolation.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0009-REREVIEW-d194c15e53e4"
+      ],
+      "notes": "The selected boundary distinguishes source worktree isolation from process, network, host, secret, and strong sandbox isolation."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Architecture docs or ADRs are updated with compatibility notes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0009-REREVIEW-d194c15e53e4"
+      ],
+      "notes": "Architecture docs include compatibility notes for local-worktree versus future strong Runtime adapters."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Runtime profile examples remain valid and do not imply stronger isolation than they provide.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0009-REREVIEW-d194c15e53e4"
+      ],
+      "notes": "Runtime profile examples validate and use local-worktree, avoiding an implied OCI/container default."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "`python scripts\\check.py`, `python scripts\\lint_awkp.py`, and `git diff --check` pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0009-REREVIEW-d194c15e53e4"
+      ],
+      "notes": "uv run python -B scripts/check.py, uv run python -B scripts/lint_awkp.py, and git diff --check passed."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "AWKP task state, events, artifact manifest, evidence manifest, and handoff exist.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0009-REREVIEW-d194c15e53e4"
+      ],
+      "notes": "AWKP task state, events, manifests, evidence, and handoff exist; TASK-0009 is in review with no blockers."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "notes": "45 unit tests passed; contract and AWKP lint inside check passed."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "No whitespace errors. Git emitted CRLF normalization warnings only."
+    }
+  ]
+}

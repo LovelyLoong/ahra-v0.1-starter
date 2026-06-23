@@ -16,7 +16,7 @@
     "heartbeat_at": "2026-06-21T00:14:00Z",
     "expires_at": "2026-06-21T00:20:00Z"
   },
-  "runtime_profile": "repo-container@sha256:demo",
+  "runtime_profile": "local-worktree@sha256:demo",
   "workspace_ref": "workspace://TASK-0001/RUN-01JEXAMPLE",
   "context_manifest_ref": "artifact://CTXMAN-example",
   "budgets": {

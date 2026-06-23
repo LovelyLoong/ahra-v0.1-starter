@@ -1,0 +1,32 @@
+apiVersion: ahra.dev/v1alpha1
+kind: WorkflowRunRequest
+metadata:
+  name: codex-standard-task
+spec:
+  moduleId: standard-harness
+  input:
+    task:
+      id: update-readme-note
+      title: Update README note
+      objective: Add or refresh a bounded README note in the isolated workflow workspace.
+      acceptance_criteria:
+        - README.md contains a bounded local workflow note.
+      checks:
+        - name: check readme note
+          argv:
+            - python
+            - -c
+            - "from pathlib import Path; assert 'local workflow' in Path('README.md').read_text(encoding='utf-8').lower()"
+      policy:
+        allowed_globs:
+          - README.md
+        protected_globs: []
+        sensitive_globs: []
+        max_changed_files: 1
+        max_added_lines: 10
+        max_deleted_lines: 10
+  workspaceRef: .
+  driverRef: codex-cli
+  storeRef: local-file
+  artifactDir: .runtime/ahra-runs/runnable/codex-standard-task
+  approvalMode: disabled

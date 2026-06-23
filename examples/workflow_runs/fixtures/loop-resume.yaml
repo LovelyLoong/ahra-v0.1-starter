@@ -8,7 +8,7 @@ spec:
   workspaceRef: .
   driverRef: fake-reference
   storeRef: local-file
-  artifactDir: .runtime/ahra-runs/RUN-example-loop
+  artifactDir: .runtime/ahra-runs/fixtures/RUN-example-loop
   approval:
     actor: human:maintainer
     approved: true

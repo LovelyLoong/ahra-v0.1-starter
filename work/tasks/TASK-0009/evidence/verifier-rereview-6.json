@@ -1,0 +1,88 @@
+{
+  "schema_version": "ahra/verifier-rereview-report/0.1",
+  "task_id": "TASK-0009",
+  "generated_by": "agent:verifier",
+  "generated_at": "2026-06-23T15:43:57.9403869+08:00",
+  "summary": "Verifier rereview after EVT-TASK-0009-0006. The previous three blockers are closed and the declared verification commands pass.",
+  "state_checked": {
+    "state": "review",
+    "state_version": 6,
+    "event_id": "EVT-TASK-0009-0006"
+  },
+  "blocker_resolution": [
+    {
+      "previous_criterion": 3,
+      "status": "closed",
+      "evidence": "architecture/SPEC.md now names local process runner plus run-owned Git worktree as the v0.1 local default, and reserves stronger Runtime adapters for untrusted code, sensitive credentials, or external customer tasks."
+    },
+    {
+      "previous_criterion": 4,
+      "status": "closed",
+      "evidence": "The runtime example path now uses examples/runtimes/local-worktree.yaml. The former repo-container OCI example is removed from runnable-looking default references."
+    },
+    {
+      "previous_criterion": 6,
+      "status": "closed",
+      "evidence": "work/tasks/TASK-0010/task.md input_refs parses as five independent references."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "notes": "A single local default direction is selected: run-owned Git worktree isolation."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "notes": "The docs distinguish source worktree isolation from process, network, host, secret, and strong sandbox isolation."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "notes": "Architecture docs include compatibility notes for local-worktree versus future strong Runtime adapters."
+    },
+    {
+      "criterion_index": 4,
+      "status": "passed",
+      "notes": "Runtime examples validate and no longer imply OCI isolation as the starter local default."
+    },
+    {
+      "criterion_index": 5,
+      "status": "passed",
+      "notes": "uv run python -B scripts/check.py, uv run python -B scripts/lint_awkp.py, and git diff --check passed."
+    },
+    {
+      "criterion_index": 6,
+      "status": "passed",
+      "notes": "AWKP task state, events, manifests, evidence, and handoff exist. TASK-0009 is back in review with no blockers."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "notes": "45 unit tests passed; contract and AWKP lint inside check passed."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "No whitespace errors. Git emitted CRLF normalization warnings only."
+    },
+    {
+      "command": "uv run python -B -c \"parse work/tasks/TASK-0010/task.md frontmatter input_refs\"",
+      "status": "passed",
+      "notes": "Parsed five independent input_refs."
+    },
+    {
+      "command": "rg local runtime boundary references",
+      "status": "passed",
+      "notes": "Default references point to local-worktree and reserve OCI/devcontainer/remote sandbox as future strong Runtime adapters."
+    }
+  ]
+}

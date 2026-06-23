@@ -10,9 +10,10 @@ risk_level: R1
 requester: human:maintainer
 reviewer: agent:verifier
 created_at: 2026-06-23T10:32:07+08:00
-depends_on: [TASK-0009]
+depends_on: [TASK-0014]
 input_refs:
   - ../../../docs/architecture/framework-completion-roadmap.md
+  - ../../../docs/architecture/framework-entrypoints.md
   - ../../../docs/architecture/approval-service.md
   - ../../../WORKFLOW.md
   - ../../../src/ahra/ports.py
@@ -26,7 +27,9 @@ output_contract:
 
 Prevent premature ApprovalService implementation by choosing the first concrete
 non-plan high-risk action that needs scoped authorization, or by explicitly
-deferring implementation when no such action exists.
+deferring implementation when no such action exists. This waits for the
+CLI-plus-Skill entrypoint because ApprovalService should be exposed through the
+same default operation surface as other framework commands.
 
 # Scope
 

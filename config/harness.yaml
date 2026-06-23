@@ -9,7 +9,7 @@ spec:
   workflowEngine:
     adapter: in_memory_reference
   runtime:
-    defaultProfile: examples/runtimes/repo-container.yaml
+    defaultProfile: examples/runtimes/local-worktree.yaml
   modelGateway:
     adapter: unset
   policy:

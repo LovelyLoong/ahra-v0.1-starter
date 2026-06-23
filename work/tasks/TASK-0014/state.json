@@ -1,0 +1,24 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0014",
+  "context_id": "CTX-ahra-cli-skill-entrypoint",
+  "state": "review",
+  "state_version": 6,
+  "owner": null,
+  "attempt": 3,
+  "lease": null,
+  "next_action": "Run independent verifier review for TASK-0014, including codex-cli workflow execution and dirty-source fail-closed behavior.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0014-0001",
+    "ART-TASK-0014-HANDOFF-2c432c12ad93",
+    "ART-TASK-0014-0002",
+    "ART-TASK-0014-HANDOFF-7be04624b9ae"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0014-0001",
+    "EVD-TASK-0014-0002"
+  ],
+  "updated_at": "2026-06-23T16:40:36+08:00"
+}

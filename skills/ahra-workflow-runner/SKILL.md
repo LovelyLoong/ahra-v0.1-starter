@@ -9,9 +9,10 @@ workflow module such as `standard-harness` or `loop-engineering`.
 2. `architecture/decisions/ADR-0006-reference-runtime-adapters-mcp-and-resume.md`
 3. `docs/architecture/agent-drivers-and-workflow-invocation.md`
 4. `docs/architecture/reference-runtime-adapters-and-mcp.md`
-5. `docs/architecture/workflow-modules.md`
-6. The referenced `WorkflowRunRequest` or `WorkflowResumeRequest`
-7. The referenced task or goal input
+5. `docs/architecture/framework-entrypoints.md`
+6. `docs/architecture/workflow-modules.md`
+7. The referenced `WorkflowRunRequest` or `WorkflowResumeRequest`
+8. The referenced task or goal input
 
 ## Rules
 
@@ -20,7 +21,7 @@ workflow module such as `standard-harness` or `loop-engineering`.
   special status.
 - Resolve `driverRef` through the driver registry.
 - Validate the `WorkflowRunRequest` before running it.
-- Use the runner API to start the module.
+- Use the `ahra` CLI to start and inspect workflow runs.
 - Use `WorkflowResumeRequest` to continue a paused manual plan.
 - Bind approval to the exact plan artifact SHA-256 before resuming.
 - Record run id, status, artifact directory, and evidence refs.
@@ -41,7 +42,7 @@ spec:
   input:
     taskRef: work/tasks/TASK-1234/task.yaml
   workspaceRef: .
-  driverRef: codex
+  driverRef: codex-cli
   storeRef: local-file
   artifactDir: .runtime/ahra-runs/TASK-1234
   approvalMode: manual
@@ -53,7 +54,7 @@ spec:
 2. Validate it against `contracts/schemas/workflow-run-request.schema.json`.
 3. Load the workflow module registry.
 4. Resolve `driverRef` through `AgentDriverRegistry`.
-5. Call the stable runner API.
+5. Call `uv run ahra workflow start <request>`.
 6. Inspect generated artifact and evidence manifests.
 7. Report factual status and blockers.
 
@@ -65,20 +66,39 @@ spec:
 4. Validate `WorkflowResumeRequest` against
    `contracts/schemas/workflow-resume-request.schema.json`.
 5. Resolve the same workflow module and `driverRef`.
-6. Call the stable resume API.
+6. Call `uv run ahra workflow resume <request>`.
 7. Inspect the updated artifact and evidence manifests.
 
-## MCP Tools
+## Default Commands
 
-Agents may use the local AHRA MCP server instead of direct Python calls when
-available. The MCP tools are thin wrappers around the same validation and
-runner APIs:
+Use these local commands for verification and health checks:
 
-- `ahra.list_workflow_modules`
-- `ahra.validate_workflow_run_request`
-- `ahra.start_workflow`
-- `ahra.get_workflow_run`
-- `ahra.resume_workflow`
+- `uv run ahra workflow validate <request.yaml>`
+- `uv run ahra workflow start <request.yaml>`
+- `uv run ahra workflow inspect <artifact-dir>`
+- `uv run ahra workflow resume <resume-request.yaml>`
+- `uv run ahra task inspect <TASK-ID>`
+- `uv run ahra evidence-gate evaluate <TASK-ID> --expected-version <N> --report <report.json> --actor <verifier>`
+- `uv run ahra doctor`
+- `uv run python -B scripts/check.py`
+- `uv run python -B scripts/check.py --lint`
+- `uv run python -B scripts/check.py --test`
+- `uv run python -B scripts/lint_awkp.py`
+- `uv run python -B -m ahra.demo`
+- `git diff --check`
+
+`fake-reference` is only available for fixture smoke tests when the CLI is
+called with `--enable-fixture-driver`. Do not use it as a runnable default
+driver.
+
+Use `codex-cli` as the maintainer workstation's default non-fixture local
+driver when the installed `codex exec` command is healthy. `codex-python-sdk`
+remains an optional adapter and must fail closed when its Python package is
+not installed.
+
+Do not use the local AHRA MCP server for new workflow operation. MCP is a
+legacy optional adapter surface and is not part of the current default starter
+route.
 
 ## Approval Modes
 

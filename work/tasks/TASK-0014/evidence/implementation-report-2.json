@@ -1,0 +1,138 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0014",
+  "report_id": "TASK-0014-implementation-report-2",
+  "created_by": "agent:codex-cli-skill-operator",
+  "created_at": "2026-06-23T16:39:16+08:00",
+  "summary": "TASK-0014 was extended from a CLI plus Skill entrypoint task into the minimum real workflow usability fix requested by the maintainer. The reference runner now has a local non-fixture Codex CLI driver route, CLI workflow failure states fail closed, branch names avoid shared-prefix collisions, and isolated workflow runs refuse dirty source worktrees instead of silently running stale HEAD.",
+  "scope_change": {
+    "event_id": "EVT-TASK-0014-0007",
+    "reason": "The maintainer rejected entrypoint-only completion while the workflow could not perform a real local non-fixture run.",
+    "resulting_scope": [
+      "Add a real local non-fixture AgentDriver route.",
+      "Make workflow terminal failures surface as CLI failures.",
+      "Keep fixture driver explicit and test-only.",
+      "Preserve clean isolation semantics for worktree-based execution."
+    ]
+  },
+  "implemented_changes": [
+    {
+      "area": "Codex CLI driver",
+      "files": [
+        "src/ahra/adapters/codex_cli.py",
+        "src/ahra/adapters/__init__.py",
+        "src/ahra/cli.py"
+      ],
+      "details": [
+        "Added a SubprocessCodexCLIClient and CodexCLIDriver implementing the AgentDriver port.",
+        "Registered driverRef codex-cli in the CLI driver registry.",
+        "Resolved codex through shutil.which so Windows command shims such as codex.CMD are found."
+      ]
+    },
+    {
+      "area": "CLI failure semantics",
+      "files": [
+        "src/ahra/cli.py"
+      ],
+      "details": [
+        "workflow start and workflow resume now reject terminal failure states such as error, rejected, and blocked instead of returning ok:true.",
+        "Structured CLI errors continue to emit JSON with ok:false and a non-zero exit code."
+      ]
+    },
+    {
+      "area": "Agent prompt contracts",
+      "files": [
+        "src/ahra/adapters/codex_sdk.py",
+        "src/ahra/adapters/codex_cli.py"
+      ],
+      "details": [
+        "Executor, reviewer, planner, and goal reviewer prompts now include role-specific duties and expected JSON output boundaries."
+      ]
+    },
+    {
+      "area": "Worktree isolation",
+      "files": [
+        "src/ahra/reference_runner/git_ops.py"
+      ],
+      "details": [
+        "Generated branch names now include an eight-character SHA-1 suffix so run ids with the same first characters do not collide.",
+        "Worktree creation now fails closed when the source repository has uncommitted changes, preventing workflow runs from silently using stale HEAD."
+      ]
+    },
+    {
+      "area": "Docs, Skill, and examples",
+      "files": [
+        "skills/ahra-workflow-runner/SKILL.md",
+        "docs/architecture/agent-drivers-and-workflow-invocation.md",
+        "docs/architecture/reference-runtime-adapters-and-mcp.md",
+        "docs/architecture/index.md",
+        "examples/workflow_runs/runnable/standard-task-codex.yaml"
+      ],
+      "details": [
+        "Documented codex-cli as the default maintainer-workstation non-fixture local route.",
+        "Kept codex-python-sdk optional and fail-closed when the package extra is missing.",
+        "Updated the runnable standard example to use driverRef codex-cli."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "command": "uv run python -B -m unittest tests.test_git_ops tests.test_codex_cli_driver tests.test_cli -v",
+      "result": "pass",
+      "notes": "11 targeted tests passed."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "result": "pass",
+      "notes": "AWKP lint passed and 56 unit tests passed."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "result": "pass",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "notes": "Exit code 0. Git reported only existing CRLF/LF conversion warnings."
+    },
+    {
+      "command": "uv run ahra workflow validate examples\\workflow_runs\\runnable\\standard-task-codex.yaml",
+      "result": "pass",
+      "notes": "Returned ok:true with module_id standard-harness and driver_ref codex-cli."
+    },
+    {
+      "command": "uv run ahra doctor --dry-run",
+      "result": "pass",
+      "notes": "Returned the three default local health checks."
+    },
+    {
+      "command": "uv run ahra workflow start <temporary dirty-source probe>",
+      "result": "expected_fail_closed",
+      "notes": "With the current source worktree dirty, the command returned ok:false and LASTEXITCODE=2 with error: source worktree has uncommitted changes; commit or stash them before starting an isolated workflow run."
+    },
+    {
+      "command": "uv run ahra workflow start <temporary codex-cli probe request>",
+      "result": "pass",
+      "notes": "Before adding the dirty-source guard, a clean-base codex-cli probe reached status accepted in .runtime/ahra-runs/probes/RUN-codex-cli-probe-163059 and committed b7ae5e54e6876d86ca162cfe5eae0e250ca32c86 on branch ahra/ahra-reference-runner/RUN-codex-cli-probe-1630-2b3e37f6."
+    }
+  ],
+  "current_workflow_usability": {
+    "usable_when": [
+      "The source repository is clean or the workflow is run against a clean checked-out workspace.",
+      "The local codex CLI is installed and authenticated when using driverRef codex-cli.",
+      "artifactDir is unique or empty for the run."
+    ],
+    "not_usable_when": [
+      "The source repository has uncommitted changes. The runner now refuses this state by design.",
+      "A request uses fake-reference without --enable-fixture-driver.",
+      "A request uses codex-python-sdk without the optional openai_codex dependency installed."
+    ]
+  },
+  "remaining_limits": [
+    "The producer cannot mark TASK-0014 complete; an independent verifier or EvidenceGate approval is still required.",
+    "The runner does not yet support dirty-source snapshot execution. Commit/stash is the required operational step before using the workflow on this repo.",
+    "The CLI does not yet provide a convenience option to generate unique run ids or artifact directories for repeated example runs.",
+    "codex-cli live runs consume local Codex execution time and depend on the user's configured authentication."
+  ]
+}

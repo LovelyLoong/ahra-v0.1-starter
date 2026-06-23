@@ -1,0 +1,82 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0009",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:verifier",
+  "generated_at": "2026-06-23T07:03:14.235904Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "TASK-0009 should not move to completed yet. The work records the intended local worktree boundary and passes the declared commands, but the architecture authority chain and runtime examples still leave OCI/runtime isolation ambiguity, and a touched follow-up task has malformed input_refs.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A single default local sandbox direction is selected, or defer is recorded with the exact missing decision input.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0009-RUNTIME-ENTRYPOINT-e9dbbfebfffc"
+      ],
+      "notes": "The docs and report select run-owned Git worktree isolation as the local default and defer stronger sandbox adapters."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "The selected or deferred boundary distinguishes source worktree isolation from process, network, and secret isolation.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0009-RUNTIME-ENTRYPOINT-e9dbbfebfffc"
+      ],
+      "notes": "The docs explicitly state that worktree isolation is not process, network, host, or secret isolation."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Architecture docs or ADRs are updated with compatibility notes.",
+      "status": "failed",
+      "evidence_refs": [],
+      "notes": "Compatibility notes were added, but the authority chain is still ambiguous: architecture/SPEC.md continues to describe arbitrary code as requiring isolated Runtime and recommends OCI Runtime, while TASK-0009 selects worktree isolation as the local default."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Runtime profile examples remain valid and do not imply stronger isolation than they provide.",
+      "status": "failed",
+      "evidence_refs": [],
+      "notes": "Runtime examples still reference repo-container/oci-container from runnable-looking examples, so future agents can still infer stronger isolation than the starter currently provides."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "`python scripts\\check.py`, `python scripts\\lint_awkp.py`, and `git diff --check` pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0009-RUNTIME-ENTRYPOINT-e9dbbfebfffc"
+      ],
+      "notes": "Re-ran uv run python -B scripts/check.py, uv run python -B scripts/lint_awkp.py, and git diff --check; all passed."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "AWKP task state, events, artifact manifest, evidence manifest, and handoff exist.",
+      "status": "failed",
+      "evidence_refs": [],
+      "notes": "TASK-0009 state, events, manifests, evidence, and handoff exist, but TASK-0009 also modified TASK-0010/task.md and broke its input_refs structure into one concatenated list item."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "notes": "45 unit tests passed; contract and AWKP lint inside check passed."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "No whitespace errors."
+    },
+    {
+      "command": "uv run python -B -c \"parse work/tasks/TASK-0010/task.md frontmatter input_refs\"",
+      "status": "failed",
+      "notes": "PyYAML parsed TASK-0010 input_refs as a single concatenated string item, not separate file references."
+    }
+  ]
+}

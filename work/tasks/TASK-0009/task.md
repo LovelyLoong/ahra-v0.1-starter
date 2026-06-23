@@ -13,8 +13,10 @@ created_at: 2026-06-23T10:32:07+08:00
 depends_on: [TASK-0008]
 input_refs:
   - ../../../docs/architecture/framework-completion-roadmap.md
+  - ../../../docs/architecture/framework-entrypoints.md
+  - ../../../docs/architecture/reference-runtime-adapters-and-mcp.md
   - ../../../architecture/SPEC.md
-  - ../../../examples/runtimes/repo-container.yaml
+  - ../../../examples/runtimes/local-worktree.yaml
   - ../../../src/ahra/ports.py
 output_contract:
   - kind: architecture_decision
@@ -50,16 +52,16 @@ runtime sandbox profile.
 
 # Acceptance criteria
 
-- [ ] A single default local sandbox direction is selected, or defer is recorded
+- [x] A single default local sandbox direction is selected, or defer is recorded
       with the exact missing decision input.
-- [ ] The selected or deferred boundary distinguishes source worktree isolation
+- [x] The selected or deferred boundary distinguishes source worktree isolation
       from process, network, and secret isolation.
-- [ ] Architecture docs or ADRs are updated with compatibility notes.
-- [ ] Runtime profile examples remain valid and do not imply stronger isolation
+- [x] Architecture docs or ADRs are updated with compatibility notes.
+- [x] Runtime profile examples remain valid and do not imply stronger isolation
       than they provide.
-- [ ] `python scripts\check.py`, `python scripts\lint_awkp.py`, and
+- [x] `python scripts\check.py`, `python scripts\lint_awkp.py`, and
       `git diff --check` pass.
-- [ ] AWKP task state, events, artifact manifest, evidence manifest, and
+- [x] AWKP task state, events, artifact manifest, evidence manifest, and
       handoff exist.
 
 # Verification method

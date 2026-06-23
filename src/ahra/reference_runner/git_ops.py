@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import hashlib
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -64,6 +65,15 @@ def current_head(repo: Path) -> str:
     return run_git(repo, "rev-parse", "HEAD").stdout.strip()
 
 
+def ensure_clean_worktree(repo: Path) -> None:
+    output = run_git(repo, "status", "--porcelain", check=True).stdout.strip()
+    if output:
+        raise GitError(
+            "source worktree has uncommitted changes; commit or stash them before "
+            "starting an isolated workflow run"
+        )
+
+
 def slug(value: str) -> str:
     cleaned = re.sub(r"[^A-Za-z0-9._-]+", "-", value).strip("-.")
     return cleaned[:48] or "run"
@@ -96,8 +106,11 @@ class WorktreeManager:
         destination.parent.mkdir(parents=True, exist_ok=True)
         if destination.exists():
             raise GitError(f"worktree destination already exists: {destination}")
+        ensure_clean_worktree(self.source_repo)
         base_commit = run_git(self.source_repo, "rev-parse", base_ref).stdout.strip()
-        branch = branch_name or f"ahra/{slug(label)}/{slug(run_id)[:12]}"
+        run_slug = slug(run_id)
+        run_hash = hashlib.sha1(run_id.encode("utf-8")).hexdigest()[:8]
+        branch = branch_name or f"ahra/{slug(label)}/{run_slug[:24]}-{run_hash}"
         run_git(
             self.source_repo,
             "worktree",

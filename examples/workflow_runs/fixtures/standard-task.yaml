@@ -28,5 +28,5 @@ spec:
   workspaceRef: .
   driverRef: fake-reference
   storeRef: local-file
-  artifactDir: .runtime/ahra-runs/example-standard-task
+  artifactDir: .runtime/ahra-runs/fixtures/example-standard-task
   approvalMode: manual

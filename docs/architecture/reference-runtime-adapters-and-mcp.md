@@ -2,8 +2,8 @@
 type: Architecture
 id: ARCH-reference-runtime-adapters-mcp
 schema_version: awkp/0.1
-title: Reference runtime adapters and MCP entrypoint
-description: Defines the optional Codex SDK driver adapter, local runtime profile, workflow resume contract, and MCP operation surface.
+title: Reference runtime adapters and deprecated MCP entrypoint
+description: Defines the Codex CLI driver adapter, optional Codex SDK driver adapter, local runtime profile, workflow resume contract, and legacy MCP operation surface.
 status: active
 owner: team:platform
 source_refs:
@@ -25,10 +25,35 @@ It contains three replaceable pieces:
 
 - Driver adapters that implement `AgentDriver`.
 - Runtime and workspace adapters for local, cloud, or sandbox execution.
-- Agent-facing entrypoints such as MCP tools.
+- Agent-facing entrypoints, currently CLI plus documented Skills and local
+  commands.
 
 Only the local profile is implemented in the starter. Cloud and sandbox
 profiles are contracts for later adapters.
+
+MCP is no longer a default starter route.
+
+# Codex CLI Driver
+
+The default runnable local driver on the maintainer workstation is
+`CodexCLIDriver`.
+
+It is an adapter, not a workflow module and not AHRA core. It must:
+
+- Implement `src/ahra/ports.py::AgentDriver`.
+- Call the installed `codex exec` command through `driverRef: codex-cli`.
+- Use workspace-write sandboxing for executor role work and read-only
+  sandboxing for reviewer and planner role work.
+- Parse the final Codex CLI response into `WorkReport`, `ReviewResult`,
+  `GoalReviewResult`, or `NextStepDecision`.
+- Fail closed when the Codex CLI binary is missing, returns non-zero, times
+  out, omits the final response file, or returns invalid JSON.
+
+The adapter must not:
+
+- Become the only valid driver path.
+- Bypass `AgentDriverRegistry`.
+- Write credentials into prompts, artifacts, evidence, memory, or snapshots.
 
 # Codex SDK Driver
 
@@ -77,6 +102,9 @@ The local reference runner may use `LocalGitWorkspaceProvider`,
 ports. They are not a claim that every project must use local Git or local
 files.
 
+The selected local isolation boundary is run-owned Git worktree isolation. It
+does not claim process, network, host, or secret isolation.
+
 # Local Workspace Isolation
 
 For the local profile, `WorkflowRunRequest.workspaceRef` names the source Git
@@ -120,10 +148,12 @@ A resume request is required when `approvalMode: manual` pauses a
 The runner must verify the plan artifact digest before executing approved
 tasks. Rejection records an approval artifact and leaves the run blocked.
 
-# MCP Entry Point
+# Deprecated MCP Entry Point
 
-The starter MCP server is a thin stdio JSON-RPC entrypoint for agents. It
-exposes tools for:
+The starter MCP server is a legacy optional adapter surface. It is not required
+to operate the framework and should not receive new default-route features.
+
+If retained temporarily, it must stay a thin stdio JSON-RPC wrapper for:
 
 - Listing workflow modules.
 - Validating a `WorkflowRunRequest` document.
@@ -139,6 +169,8 @@ call the same underlying Python APIs as direct callers. MCP does not own
 workflow logic and must not bypass EvidenceGate expected-version or verifier
 separation checks.
 
+The preferred route is CLI plus Skill.
+
 # Agent Operation
 
 An agent should prefer this order:
@@ -147,7 +179,8 @@ An agent should prefer this order:
 2. Validate the request schema.
 3. Load workflow modules.
 4. Resolve driver adapters.
-5. Start or resume through the runner API or MCP tool.
+5. Start or resume through `uv run ahra workflow start` or
+   `uv run ahra workflow resume`.
 6. When a task is in review, inspect AWKP task state and invoke EvidenceGate
    with a verifier report.
 7. Report factual run status and artifact/evidence locations.

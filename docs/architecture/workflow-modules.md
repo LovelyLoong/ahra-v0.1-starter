@@ -3,7 +3,7 @@ type: Architecture
 id: ARCH-workflow-modules
 schema_version: awkp/0.1
 title: Workflow modules
-description: Defines how concrete workflow implementations plug into the AHRA template.
+description: Defines how concrete workflow implementations plug into the Agent workflow foundation.
 status: active
 owner: team:platform
 source_refs:
@@ -17,14 +17,18 @@ tags: [architecture, workflow, modules]
 
 # Summary
 
-`E:\ahra-v0.1-starter` is the primary repository for the AI engineering
-Harness outer template. It owns the stable bottom-layer constraints:
-contracts, ports, object boundaries, governance, policy, context, memory,
-artifact, evidence, and approval semantics.
+`E:\ahra-v0.1-starter` is the primary repository for the Agent workflow
+foundation. It owns the stable bottom-layer constraints: contracts, ports,
+object boundaries, governance, policy, context, memory, artifact, evidence,
+and approval semantics.
 
 Workflow implementations are modules. A module may execute tasks, compose
 goals, propose follow-up work, or delegate to an external durable engine, but it
 must preserve AHRA's object boundaries and evidence gates.
+
+The built-in modules are the recommended path, but external agents may also
+operate under the same work-governance rules. Advanced users may add custom
+workflow modules when standard workflows are not enough.
 
 # Module Contract
 
@@ -77,3 +81,7 @@ module contract when it changes state semantics, safety gates, external side
 effects, artifact formats, or completion criteria. A small adapter that only
 changes a model provider or runtime provider does not need a new workflow
 module if the observable contract stays the same.
+
+Higher-level "workflow building block" helpers should be added only after the
+module contract, gate types, artifact/evidence records, and recovery semantics
+are stable.

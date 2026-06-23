@@ -3,14 +3,14 @@
   "task_id": "TASK-0010",
   "context_id": "CTX-ahra-approval-service-trigger",
   "state": "queued",
-  "state_version": 1,
+  "state_version": 2,
   "owner": null,
   "attempt": 0,
   "lease": null,
-  "next_action": "Wait for TASK-0009 to complete, then select the first concrete ApprovalService trigger or explicitly defer implementation.",
+  "next_action": "Wait for TASK-0014 to complete, then select the first concrete ApprovalService trigger or explicitly defer implementation.",
   "pause_reason": "dependency",
   "blockers": [],
   "artifact_refs": [],
   "evidence_refs": [],
-  "updated_at": "2026-06-23T10:32:07+08:00"
+  "updated_at": "2026-06-23T14:32:49+08:00"
 }

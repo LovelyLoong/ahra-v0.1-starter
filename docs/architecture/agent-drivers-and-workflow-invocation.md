@@ -78,15 +78,16 @@ spec:
   input:
     taskRef: work/tasks/TASK-1234/task.yaml
   workspaceRef: .
-  driverRef: codex
+  driverRef: codex-cli
   storeRef: local-file
   artifactDir: .runtime/ahra-runs/TASK-1234
   approvalMode: manual
 ```
 
-The request is intentionally independent from any one command-line interface.
-A CLI can submit it, but so can an IDE agent, a chat agent, CI, a local script,
-or an MCP tool.
+The request is intentionally independent from any one caller. The default
+local caller is the `ahra` CLI command surface documented by the local Skill.
+
+MCP is not part of the current default starter route.
 
 # Approval Modes
 
@@ -110,7 +111,7 @@ When a user asks an agent to start a workflow, the agent should:
 2. Locate or create a `WorkflowRunRequest`.
 3. Validate the request against the contract schema.
 4. Resolve the workflow module and `driverRef`.
-5. Call the stable runner API.
+5. Call `uv run ahra workflow start <request>`.
 6. Report the resulting run id, status, artifact dir, and evidence refs.
 7. Leave AWKP Task completion to the evidence gate and independent verifier.
 
@@ -134,10 +135,14 @@ runner API unless it is explicitly registered as a driver adapter.
 The starter may provide optional adapters under `src/ahra/adapters/`.
 Adapters are not part of the workflow module contract.
 
-The Codex Python SDK adapter is the first concrete driver adapter. It is
-registered by a `driverRef` such as `codex-python-sdk`, consumes the user's
-local Codex SDK setup, and returns the same structured result objects as any
+The Codex CLI adapter is the maintainer workstation's first runnable local
+driver adapter. It is registered as `codex-cli`, calls the installed
+`codex exec` command, and returns the same structured result objects as any
 other `AgentDriver`.
+
+The Codex Python SDK adapter remains optional. It is registered as
+`codex-python-sdk`, consumes the user's local Codex SDK setup, and must fail
+closed when the optional package is missing.
 
 Claude Code, OpenAI Agents SDK, local command agents, direct LLM APIs, and
 open-source agent frameworks can be added the same way. Adding one must not
@@ -151,13 +156,16 @@ with `awaiting_plan_approval`, the caller must submit `WorkflowResumeRequest`
 with a decision bound to the exact plan artifact SHA-256.
 
 This keeps approval scoped to the plan that was actually reviewed. It also
-lets an agent say "approve this plan" through a file, direct Python API, or MCP
-tool without guessing workflow internals.
+lets an agent say "approve this plan" through a file, direct Python API, or
+CLI command without guessing workflow internals.
 
-# MCP Operation Surface
+# Deprecated MCP Operation Surface
 
-The local MCP server is a convenience entrypoint for agents. It exposes the
-same operations as the Python API:
+The local MCP server is no longer the default starter entrypoint. It may remain
+temporarily as a legacy adapter surface, but new work should not add MCP-only
+operations.
+
+If kept, MCP must only wrap the same operations as the Python API:
 
 - list workflow modules
 - validate request documents
@@ -166,7 +174,8 @@ same operations as the Python API:
 - resume approved manual plans
 
 MCP tools must not bypass schema validation, module registry resolution,
-driver registry resolution, or artifact/evidence writing.
+driver registry resolution, or artifact/evidence writing. The preferred future
+operation surface is CLI plus Skill.
 
 # Minimal Starter Scope
 
@@ -176,9 +185,10 @@ The starter should provide:
 - A driver registry.
 - A reference runner API.
 - A fake driver for tests.
-- An agent-facing local skill that tells agents how to invoke workflow modules.
+- Agent-facing local Skills and documentation that tell agents which local
+  CLI commands to use.
+- A CLI wrapper around the stable local APIs.
 - An optional Codex Python SDK driver adapter.
-- A thin local MCP server for agent operation.
 - A manual resume request path for approved planner proposals.
 
 The starter should not provide:
@@ -186,4 +196,5 @@ The starter should not provide:
 - A mandatory `ProjectAdapter`.
 - A mandatory model provider integration.
 - A required CLI.
+- A required MCP server.
 - A special Codex-only path.

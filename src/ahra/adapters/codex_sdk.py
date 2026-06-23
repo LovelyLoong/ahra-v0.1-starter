@@ -119,12 +119,35 @@ class CodexSDKDriver(AgentDriver):
 
 def _prompt_for_request(request: AgentRunRequest) -> str:
     payload = json.dumps(to_jsonable(request.payload), ensure_ascii=False, indent=2)
+    role_instructions = {
+        AgentRole.EXECUTOR: (
+            "Executor duty: modify only the provided workspace to satisfy the task. "
+            "Respect the task scope, policy, protected files, and feedback. "
+            "Do not claim success unless the workspace was actually updated or no "
+            "change is required by the task."
+        ),
+        AgentRole.TASK_REVIEWER: (
+            "Task reviewer duty: perform an independent read-only review of the "
+            "task, work report, deterministic evidence, and patch. Do not modify "
+            "files. Return fail if any acceptance criterion lacks evidence."
+        ),
+        AgentRole.GOAL_REVIEWER: (
+            "Goal reviewer duty: perform an independent read-only review of the "
+            "completed task results, global deterministic evidence, and patch. "
+            "Do not modify files."
+        ),
+        AgentRole.PLANNER: (
+            "Planner duty: propose only bounded follow-up tasks within the goal "
+            "scope, or escalate with questions. Do not modify files."
+        ),
+    }
     return (
         "You are an AHRA AgentDriver adapter.\n"
         f"Role: {request.role.value}\n"
         f"Run ID: {request.run_id}\n"
         f"Workspace ref: {request.workspace_ref or '<none>'}\n"
         f"Expected output type: {request.expected_output}\n"
+        f"{role_instructions[request.role]}\n"
         "Return only one JSON object. Do not include markdown or prose.\n"
         "Use snake_case field names matching the expected output type.\n"
         "Payload:\n"

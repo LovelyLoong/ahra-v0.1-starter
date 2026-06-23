@@ -539,8 +539,8 @@ class WorkflowInvocationTests(unittest.TestCase):
             self.assertIn("workflow-resume-request.json", names)
 
     def test_examples_load_as_workflow_run_requests(self) -> None:
-        standard = load_workflow_run_request(ROOT / "examples/workflow_runs/standard-task.yaml")
-        loop = load_workflow_run_request(ROOT / "examples/workflow_runs/loop-goal.yaml")
+        standard = load_workflow_run_request(ROOT / "examples/workflow_runs/fixtures/standard-task.yaml")
+        loop = load_workflow_run_request(ROOT / "examples/workflow_runs/fixtures/loop-goal.yaml")
         self.assertEqual(standard.module_id, "standard-harness")
         self.assertIsNotNone(standard.task)
         self.assertEqual(loop.module_id, "loop-engineering")

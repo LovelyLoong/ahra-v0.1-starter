@@ -48,5 +48,5 @@ spec:
   workspaceRef: .
   driverRef: fake-reference
   storeRef: local-file
-  artifactDir: .runtime/ahra-runs/example-loop-goal
+  artifactDir: .runtime/ahra-runs/fixtures/example-loop-goal
   approvalMode: manual

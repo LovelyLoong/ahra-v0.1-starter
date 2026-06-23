@@ -1,0 +1,52 @@
+{
+  "schema_version": "ahra/task-implementation-report/0.1",
+  "task_id": "TASK-0009",
+  "generated_by": "agent:codex",
+  "generated_at": "2026-06-23T14:32:49+08:00",
+  "summary": "Recorded the local runtime boundary and framework entrypoint decisions.",
+  "decisions": [
+    "The default local runtime boundary is run-owned Git worktree isolation.",
+    "Worktree isolation protects the source worktree but does not claim process, network, host, or secret isolation.",
+    "OCI containers, devcontainers, VMs, remote sandboxes, and secret brokers are deferred future adapters.",
+    "The default operation route is local Skill plus repository documentation.",
+    "The next operation implementation route is CLI plus Skill.",
+    "MCP is deprecated as a default starter route and should not receive new default-route features."
+  ],
+  "implemented_files": [
+    "docs/architecture/framework-entrypoints.md",
+    "docs/architecture/framework-completion-roadmap.md",
+    "docs/architecture/agent-drivers-and-workflow-invocation.md",
+    "docs/architecture/reference-runtime-adapters-and-mcp.md",
+    "docs/architecture/index.md",
+    "README.md",
+    "skills/ahra-workflow-runner/SKILL.md",
+    "work/tasks/TASK-0009/task.md",
+    "work/tasks/TASK-0010/task.md",
+    "work/tasks/TASK-0010/state.json",
+    "work/tasks/TASK-0010/events.jsonl",
+    "work/tasks/TASK-0014/task.md",
+    "work/tasks/TASK-0014/state.json",
+    "work/tasks/TASK-0014/events.jsonl",
+    "work/index.md"
+  ],
+  "verification": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ],
+  "next_task": "TASK-0014",
+  "notes": [
+    "TASK-0014 is the next focused implementation task for CLI plus Skill operation.",
+    "TASK-0010 now waits for TASK-0014 so ApprovalService uses the same default operation surface.",
+    "The producer did not mark TASK-0009 completed; independent verification remains required."
+  ]
+}

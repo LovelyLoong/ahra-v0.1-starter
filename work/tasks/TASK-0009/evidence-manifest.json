@@ -1,5 +1,70 @@
 {
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0009",
-  "evidence": []
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0009-RUNTIME-ENTRYPOINT-e9dbbfebfffc",
+      "task_id": "TASK-0009",
+      "kind": "verification_report",
+      "name": "runtime-entrypoint-alignment-report.json",
+      "uri": "local://evidence/runtime-entrypoint-alignment-report.json",
+      "sha256": "e9dbbfebfffc227b2166f976e3a6809c6643e6e698b2b3763eee64f1aec372f1",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-06-23T14:32:49+08:00",
+      "refs": [
+        "ART-TASK-0009-RUNTIME-ENTRYPOINT-e9dbbfebfffc",
+        "../../../docs/architecture/framework-entrypoints.md",
+        "../../../docs/architecture/framework-completion-roadmap.md"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0009-0001",
+      "task_id": "TASK-0009",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-5.json",
+      "uri": "local://evidence/evidence-gate-report-5.json",
+      "sha256": "af6dfbe5e29b938fd81c26948be05bed13ba23867d12df1498dbf0cc16ddf401",
+      "media_type": "application/json",
+      "created_by": "agent:verifier",
+      "created_at": "2026-06-23T07:03:14.235904Z",
+      "refs": [
+        "ART-TASK-0009-0001",
+        "EVD-TASK-0009-RUNTIME-ENTRYPOINT-e9dbbfebfffc"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0009-REREVIEW-d194c15e53e4",
+      "task_id": "TASK-0009",
+      "kind": "verification_report",
+      "name": "verifier-rereview-6.json",
+      "uri": "local://evidence/verifier-rereview-6.json",
+      "sha256": "d194c15e53e40d7e7931f8fe2cd320c408916cde76553823f2a0244ea8d778b3",
+      "media_type": "application/json",
+      "created_by": "agent:verifier",
+      "created_at": "2026-06-23T15:43:57.9403869+08:00",
+      "refs": [
+        "ART-TASK-0009-REREVIEW-d194c15e53e4",
+        "EVT-TASK-0009-0006",
+        "../../../architecture/SPEC.md",
+        "../../../examples/runtimes/local-worktree.yaml",
+        "../../../work/tasks/TASK-0010/task.md"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0009-0002",
+      "task_id": "TASK-0009",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-7.json",
+      "uri": "local://evidence/evidence-gate-report-7.json",
+      "sha256": "3632f6d34a6467bb902b6e364456c7fb46033c1ce8c48c9d31321341da434599",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-23T07:45:50.227367Z",
+      "refs": [
+        "ART-TASK-0009-0002",
+        "EVD-TASK-0009-REREVIEW-d194c15e53e4"
+      ]
+    }
+  ]
 }

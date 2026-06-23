@@ -3,7 +3,7 @@ type: Concept
 id: DOCS-architecture-framework-completion-roadmap
 schema_version: awkp/0.1
 title: Framework completion roadmap
-description: Implementation-facing roadmap for turning the AHRA starter into a reusable AI-operated Agent project framework template.
+description: Implementation-facing roadmap for turning the starter into an Agent workflow foundation.
 status: active
 owner: team:platform
 source_refs: [../../architecture/SPEC.md, ../../README.md]
@@ -18,24 +18,47 @@ tags: [architecture, roadmap, framework]
 
 This document maps the remaining framework gaps to explicit implementation
 decisions. It is narrower than [AHRA SPEC](../../architecture/SPEC.md): this is
-about what this starter should implement next, defer, or keep optional.
+about what this Agent workflow foundation should implement next, defer, or keep
+optional.
 
-The target product shape is an AI-operated project framework template. Humans
-may operate it through conversation with an AI, and the AI may use MCP tools to
-inspect or mutate framework state. A human-facing dashboard is optional and is
-not part of the default starter scope.
+The target product shape is an Agent project foundation: a work-governance
+framework, executable standard workflows, project adaptation rules, and custom
+workflow extension contracts. Humans may operate it through conversation with
+an AI, but the default operation surface is CLI plus local Skill plus
+repository documentation. The CLI wraps existing Python APIs. MCP is not part
+of the current default starter route. A
+human-facing dashboard is optional and is not part of the default starter
+scope.
 
 # Current Decisions
 
 | # | Capability | Decision | Reason |
 |---|---|---|---|
-| 1 | EvidenceGate / verifier completion | Implement as P0 | Task completion is still too manual. Completion must be derived from acceptance criteria and evidence, not producer self-claim. |
-| 2 | Durable control plane | Defer implementation; keep as architecture requirement | This is not a visual panel. It means durable stores, CAS, events, leases, and reconciliation behind AI/MCP operation. It matters when runs must survive crashes or concurrency. |
-| 3 | Runtime sandbox provider | Pending alignment | Worktree isolation protects source files, but it is not process, network, or secret isolation. Default sandbox product/profile must be chosen before implementation. |
-| 4 | ApprovalService | Document now; defer implementation until approval cases are selected | Approval is a durable authorization object, not a UI requirement. Current manual resume covers only one narrow plan-approval path. |
-| 5 | Project scaffold / initialization | Optional | Copying the whole starter is valid. A helper is only useful to remove sample state, prevent ID collisions, create first tasks, and run a doctor check. |
-| 6 | CI gates | Optional | Some projects will not use CI. Keep local checks authoritative and document CI as an optional wrapper. |
-| 7 | Observability and Evaluation | Document now; implement after EvidenceGate | Trace, audit, cost, replay, and eval should exist as framework concepts, but the first implementation can stay small and local. |
+| 1 | Product position | Agent workflow foundation | The project is a complete Agent work system, not merely an outer harness template. |
+| 2 | EvidenceGate / verifier completion | Implemented local path; keep as the completion gate | Task completion is derived from acceptance criteria and evidence, not producer self-claim. |
+| 3 | Operation entrypoint | Default to CLI plus Skill plus docs; keep MCP as a legacy optional route | The foundation should be operable from local instructions and commands before depending on an agent-client integration protocol. |
+| 4 | Runtime sandbox provider | Default local boundary is run-owned Git worktree isolation; defer stronger sandbox providers | Worktree isolation is enough for the starter. It does not claim process, network, or secret isolation. |
+| 5 | Custom workflows | Allow extension through workflow module contracts before building higher-level composition tools | Users may build project-specific workflows, but stable contracts must come before a broad builder. |
+| 6 | Durable control plane | Defer implementation; keep as architecture requirement | This is not a visual panel. It means durable stores, CAS, events, leases, and reconciliation behind local command/API operation. It matters when runs must survive crashes or concurrency. |
+| 7 | ApprovalService | Document now; defer implementation until approval cases are selected | Approval is a durable authorization object, not a UI requirement. Current manual resume covers only one narrow plan-approval path. |
+| 8 | Project scaffold / initialization | Optional | Copying the whole starter is valid. A helper is only useful to remove sample state, prevent ID collisions, create first tasks, and run a doctor check. |
+| 9 | CI gates | Optional | Some projects will not use CI. Keep local checks authoritative and document CI as an optional wrapper. |
+| 10 | Observability and Evaluation | Implemented minimal local records | Trace, audit, cost, replay, and eval should exist as framework concepts, but the first implementation can stay small and local. |
+
+# Direction
+
+The foundation has five layers:
+
+- work-governance framework;
+- standard workflows;
+- project adaptation;
+- custom workflow extension;
+- operation entrypoint.
+
+The preferred path is to run work through standard workflows. External agents
+and human-operated tools may still be used, but governance is mandatory:
+state, scope, evidence, artifacts, handoff, and completion must follow the
+framework rules.
 
 # Clarifications
 
@@ -48,10 +71,32 @@ The control plane is the framework's state authority and command surface:
 - Artifact and Evidence references.
 - Approval records.
 - Event publication and reconciliation.
-- MCP tools that expose safe commands to AI agents.
+- CLI commands or direct local API calls that expose safe operations to AI
+  agents.
 
 A dashboard would only be one optional client. If the product is AI-only, the
-same control plane can be operated entirely through MCP and project files.
+same control plane can be operated through local Skills, repository
+documentation, CLI commands, and project files.
+
+## MCP Is Not the Default Entry Point
+
+MCP is deprecated as a default starter route.
+
+Existing MCP code can remain temporarily as a legacy adapter surface, but new
+framework work should not add MCP-only features. The stable operation surface
+is CLI plus Skill, where the CLI calls the same Python APIs that tests already
+exercise.
+
+## Worktree Isolation Is the Local Default
+
+For the local starter profile, run-owned Git worktree isolation is the selected
+default. It separates the source worktree from workflow mutation and keeps
+accepted changes on run-owned branches until a human or authorized workflow
+acts.
+
+This is not process, network, host, or secret isolation. OCI containers,
+devcontainers, VMs, remote sandboxes, and secret brokers remain future adapter
+work and should not be implied by local runtime examples.
 
 ## ApprovalService Is Not the Same as EvidenceGate
 
@@ -85,8 +130,13 @@ If manual copying stays reliable, scaffold can remain optional.
 
 # Recommended Next Sequence
 
-1. Implement EvidenceGate as the next code task.
-2. Add minimal local observability/eval artifacts after EvidenceGate.
-3. Revisit runtime sandbox once the default local sandbox profile is chosen.
-4. Revisit ApprovalService when the first non-plan high-risk action needs it.
-5. Treat durable control plane, scaffold, and CI as later or optional layers.
+1. Keep TASK-0009 in verifier review and use it to close the local isolation
+   and entrypoint alignment.
+2. Align the top-level README and architecture docs around the Agent workflow
+   foundation position.
+3. Use the CLI plus Skill operation surface for follow-up executable tasks.
+4. Keep examples split into test fixtures and runnable examples so
+   `fake-reference` cannot be mistaken for a default driver.
+5. Revisit ApprovalService when the first non-plan high-risk action needs it.
+6. Treat durable control plane, scaffold, CI, and higher-level workflow
+   composition helpers as later or optional layers.

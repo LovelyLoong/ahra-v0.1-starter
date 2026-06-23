@@ -29,7 +29,7 @@ spec:
     readScopes: [project, task, user-consented]
     writeScopes: [task-episodic, project-candidate]
     directPermanentWrite: false
-  runtimeProfileRef: examples/runtimes/repo-container.yaml
+  runtimeProfileRef: examples/runtimes/local-worktree.yaml
   budgets:
     wallTimeSeconds: 1800
     maxModelCalls: 80
