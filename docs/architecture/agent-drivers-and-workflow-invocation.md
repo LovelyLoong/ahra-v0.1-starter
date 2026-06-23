@@ -78,7 +78,7 @@ spec:
   input:
     taskRef: work/tasks/TASK-1234/task.yaml
   workspaceRef: .
-  driverRef: codex-cli
+  driverRef: codex-python-sdk
   storeRef: local-file
   artifactDir: .runtime/ahra-runs/TASK-1234
   approvalMode: manual
@@ -135,14 +135,14 @@ runner API unless it is explicitly registered as a driver adapter.
 The starter may provide optional adapters under `src/ahra/adapters/`.
 Adapters are not part of the workflow module contract.
 
-The Codex CLI adapter is the maintainer workstation's first runnable local
-driver adapter. It is registered as `codex-cli`, calls the installed
-`codex exec` command, and returns the same structured result objects as any
-other `AgentDriver`.
+The Codex Python SDK adapter is the starter's first concrete non-fixture local
+driver adapter. It is registered as `codex-python-sdk`, consumes the user's
+local Codex SDK setup, and must fail closed when the optional package,
+workspace binding, or account setup is missing.
 
-The Codex Python SDK adapter remains optional. It is registered as
-`codex-python-sdk`, consumes the user's local Codex SDK setup, and must fail
-closed when the optional package is missing.
+The starter does not provide a separate command-line fallback driver. If the
+user's Codex SDK setup requires authentication, the workflow should report the
+SDK error and let the user complete that setup outside AHRA.
 
 Claude Code, OpenAI Agents SDK, local command agents, direct LLM APIs, and
 open-source agent frameworks can be added the same way. Adding one must not

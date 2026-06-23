@@ -3,11 +3,11 @@
   "task_id": "TASK-0014",
   "context_id": "CTX-ahra-cli-skill-entrypoint",
   "state": "review",
-  "state_version": 9,
+  "state_version": 12,
   "owner": null,
-  "attempt": 4,
+  "attempt": 5,
   "lease": null,
-  "next_action": "Run independent verifier review for TASK-0014, including the successful codex-cli live workflow probe and reviewer workspace context fix.",
+  "next_action": "Run independent verifier review for TASK-0014, focused on the codex-python-sdk route and correction evidence.",
   "pause_reason": null,
   "blockers": [],
   "artifact_refs": [
@@ -16,12 +16,15 @@
     "ART-TASK-0014-0002",
     "ART-TASK-0014-HANDOFF-7be04624b9ae",
     "ART-TASK-0014-0003",
-    "ART-TASK-0014-HANDOFF-d18d3c0ae0a8"
+    "ART-TASK-0014-HANDOFF-d18d3c0ae0a8",
+    "ART-TASK-0014-0004",
+    "ART-TASK-0014-HANDOFF-a4315f9fde65"
   ],
   "evidence_refs": [
     "EVD-TASK-0014-0001",
     "EVD-TASK-0014-0002",
-    "EVD-TASK-0014-0003"
+    "EVD-TASK-0014-0003",
+    "EVD-TASK-0014-0004"
   ],
-  "updated_at": "2026-06-23T16:58:02+08:00"
+  "updated_at": "2026-06-23T17:22:55+08:00"
 }

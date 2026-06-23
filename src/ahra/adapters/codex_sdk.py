@@ -66,12 +66,14 @@ class CodexSDKClient:
             ) from exc
 
         kwargs: dict[str, Any] = {}
-        if self.config.codex_bin:
-            kwargs["config"] = CodexConfig(codex_bin=self.config.codex_bin)
+        if self.config.codex_bin or cwd:
+            kwargs["config"] = CodexConfig(codex_bin=self.config.codex_bin, cwd=cwd)
         async with AsyncCodex(**kwargs) as codex:
             thread_kwargs = {"sandbox": _sdk_sandbox(Sandbox, sandbox)}
             if model is not None:
                 thread_kwargs["model"] = model
+            if cwd is not None:
+                thread_kwargs["cwd"] = cwd
             thread = await codex.thread_start(**thread_kwargs)
             result = await thread.run(prompt)
         return str(getattr(result, "final_response", result))

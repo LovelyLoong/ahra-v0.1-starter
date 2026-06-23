@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 import yaml
@@ -108,6 +109,17 @@ def _write_codex_sdk_request(root: Path, repo: Path, artifact_dir: Path) -> Path
     path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
     return path
 
+class FailingDriver:
+    async def run(self, request):
+        raise RuntimeError("driver broke")
+
+
+def _failing_sdk_registry(*, enable_fixture_driver: bool = False):
+    registry = cli.AgentDriverRegistry()
+    registry.register("codex-python-sdk", FailingDriver())
+    if enable_fixture_driver:
+        registry.register("fake-reference", cli.FixtureDriver())
+    return registry
 
 def _write_task(root: Path) -> Path:
     task_dir = root / "work" / "tasks" / "TASK-CLI"
@@ -195,7 +207,8 @@ class CliTests(unittest.TestCase):
             repo = _init_repo(root)
             request = _write_codex_sdk_request(root, repo, root / "artifacts")
 
-            code, payload, _ = _run_cli(["workflow", "start", str(request)])
+            with mock.patch.object(cli, "_driver_registry", _failing_sdk_registry):
+                code, payload, _ = _run_cli(["workflow", "start", str(request)])
 
             self.assertEqual(code, 2)
             self.assertFalse(payload["ok"])

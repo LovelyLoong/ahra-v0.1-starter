@@ -79,8 +79,8 @@ the human-readable authority, and remove MCP from the default operation path.
 - `python scripts\lint_awkp.py`
 - `git diff --check`
 - CLI smoke probes for each implemented command group.
-- Driver smoke probe for the non-fixture local driver when local credentials
-  and binaries are available.
+- Driver smoke probe for the non-fixture local driver when the local SDK package
+  and user account setup are available.
 
 # Risk and approvals
 

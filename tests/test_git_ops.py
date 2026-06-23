@@ -63,20 +63,20 @@ class WorktreeManagerTests(unittest.TestCase):
             base = _git(repo, "rev-parse", "HEAD")
 
             first = manager.create(
-                run_id="RUN-codex-cli-probe-111111",
+                run_id="RUN-shared-prefix-probe-111111",
                 label="ahra/reference-runner",
                 base_ref=base,
                 destination=root / "worktree-1",
             )
             second = manager.create(
-                run_id="RUN-codex-cli-probe-222222",
+                run_id="RUN-shared-prefix-probe-222222",
                 label="ahra/reference-runner",
                 base_ref=base,
                 destination=root / "worktree-2",
             )
 
             self.assertNotEqual(first.branch, second.branch)
-            self.assertIn("RUN-codex-cli-probe", first.branch)
+            self.assertIn("RUN-shared-prefix-probe", first.branch)
 
 
 if __name__ == "__main__":

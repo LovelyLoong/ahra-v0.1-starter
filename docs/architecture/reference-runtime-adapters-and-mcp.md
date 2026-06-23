@@ -3,7 +3,7 @@ type: Architecture
 id: ARCH-reference-runtime-adapters-mcp
 schema_version: awkp/0.1
 title: Reference runtime adapters and deprecated MCP entrypoint
-description: Defines the Codex CLI driver adapter, optional Codex SDK driver adapter, local runtime profile, workflow resume contract, and legacy MCP operation surface.
+description: Defines the Codex Python SDK driver adapter, local runtime profile, workflow resume contract, and legacy MCP operation surface.
 status: active
 owner: team:platform
 source_refs:
@@ -33,31 +33,9 @@ profiles are contracts for later adapters.
 
 MCP is no longer a default starter route.
 
-# Codex CLI Driver
-
-The default runnable local driver on the maintainer workstation is
-`CodexCLIDriver`.
-
-It is an adapter, not a workflow module and not AHRA core. It must:
-
-- Implement `src/ahra/ports.py::AgentDriver`.
-- Call the installed `codex exec` command through `driverRef: codex-cli`.
-- Use workspace-write sandboxing for executor role work and read-only
-  sandboxing for reviewer and planner role work.
-- Parse the final Codex CLI response into `WorkReport`, `ReviewResult`,
-  `GoalReviewResult`, or `NextStepDecision`.
-- Fail closed when the Codex CLI binary is missing, returns non-zero, times
-  out, omits the final response file, or returns invalid JSON.
-
-The adapter must not:
-
-- Become the only valid driver path.
-- Bypass `AgentDriverRegistry`.
-- Write credentials into prompts, artifacts, evidence, memory, or snapshots.
-
 # Codex SDK Driver
 
-The first optional concrete driver is `CodexSDKDriver`.
+The first concrete non-fixture local driver is `CodexSDKDriver`.
 
 It is an adapter, not a workflow module and not AHRA core. It must:
 
@@ -65,10 +43,11 @@ It is an adapter, not a workflow module and not AHRA core. It must:
 - Accept role-specific `AgentRunRequest` values.
 - Ask Codex for structured JSON matching the expected reference-runner output
   type.
+- Bind the Codex session to the run-owned execution workspace.
 - Parse JSON into `WorkReport`, `ReviewResult`, `GoalReviewResult`, or
   `NextStepDecision`.
-- Fail closed when the SDK is missing, the response is not JSON, or the JSON
-  does not satisfy the expected output shape.
+- Fail closed when the SDK package, workspace binding, local account setup, or
+  response shape is invalid.
 
 The adapter must not:
 
@@ -78,14 +57,13 @@ The adapter must not:
 - Become the only valid driver path.
 
 User-owned Codex account and login setup stay outside the template. The
-adapter only consumes the SDK available in the user's environment.
+adapter only consumes the SDK available in the user's environment. If the SDK
+is not installed or the user's account is not authenticated, the workflow must
+surface that failure and stop; it must not silently fall back to a different
+driver.
 
-The reference `CodexSDKClient` follows the current local SDK surface used by
-the starter: sandbox and model are passed to Codex, while the process should be
-started from the intended local workspace. `workspace_ref` is still included in
-the driver request and prompt, but this v0.1 adapter does not claim remote or
-cloud workspace attachment. A stronger workspace-aware Codex adapter can be
-added later without changing `AgentDriver`.
+The starter does not provide a separate command-line fallback driver.
+`codex-python-sdk` is the only built-in non-fixture Codex driver reference.
 
 # Runtime Profiles
 

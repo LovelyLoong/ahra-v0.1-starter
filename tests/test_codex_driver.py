@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sys
+import types
 import unittest
 
-from ahra.adapters import CodexDriverConfig, CodexSDKDriver
+from ahra.adapters import CodexDriverConfig, CodexSDKClient, CodexSDKDriver
 from ahra.ports import AgentRole, AgentRunRequest
 from ahra.reference_runner.models import NextStepDecision, PlanAction, WorkReport
 
@@ -111,6 +113,79 @@ class CodexSDKDriverTests(unittest.TestCase):
                 )
             )
 
+    def test_sdk_client_passes_cwd_to_codex_session(self) -> None:
+        captured: dict[str, object] = {}
+
+        class FakeSandbox:
+            workspace_write = "workspace_write"
+            read_only = "read_only"
+            full_access = "full_access"
+
+        class FakeCodexConfig:
+            def __init__(self, **kwargs):
+                captured["config"] = kwargs
+
+        class FakeThread:
+            async def run(self, prompt):
+                captured["prompt"] = prompt
+                return types.SimpleNamespace(
+                    final_response=json.dumps(
+                        {
+                            "summary": "done",
+                            "changed_files": [],
+                            "verification_commands_run": [],
+                        }
+                    )
+                )
+
+        class FakeAsyncCodex:
+            def __init__(self, **kwargs):
+                captured["codex_kwargs"] = kwargs
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc, tb):
+                return None
+
+            async def thread_start(self, **kwargs):
+                captured["thread_kwargs"] = kwargs
+                return FakeThread()
+
+        previous = sys.modules.get("openai_codex")
+        sys.modules["openai_codex"] = types.SimpleNamespace(
+            AsyncCodex=FakeAsyncCodex,
+            CodexConfig=FakeCodexConfig,
+            Sandbox=FakeSandbox,
+        )
+        try:
+            client = CodexSDKClient(CodexDriverConfig(codex_bin="codex-bin"))
+            raw = asyncio.run(
+                client.run(
+                    request=AgentRunRequest(
+                        role=AgentRole.EXECUTOR,
+                        run_id="RUN-codex-test",
+                        expected_output="WorkReport",
+                        workspace_ref="C:/repo",
+                        payload={},
+                    ),
+                    prompt="prompt",
+                    sandbox="workspace_write",
+                    model="gpt-test",
+                    cwd="C:/repo",
+                )
+            )
+        finally:
+            if previous is None:
+                sys.modules.pop("openai_codex", None)
+            else:
+                sys.modules["openai_codex"] = previous
+
+        self.assertIn("done", raw)
+        self.assertEqual(captured["config"], {"codex_bin": "codex-bin", "cwd": "C:/repo"})
+        self.assertEqual(captured["thread_kwargs"]["cwd"], "C:/repo")
+        self.assertEqual(captured["thread_kwargs"]["model"], "gpt-test")
+        self.assertEqual(captured["thread_kwargs"]["sandbox"], "workspace_write")
 
 if __name__ == "__main__":
     unittest.main()

@@ -42,7 +42,7 @@ spec:
   input:
     taskRef: work/tasks/TASK-1234/task.yaml
   workspaceRef: .
-  driverRef: codex-cli
+  driverRef: codex-python-sdk
   storeRef: local-file
   artifactDir: .runtime/ahra-runs/TASK-1234
   approvalMode: manual
@@ -91,10 +91,13 @@ Use these local commands for verification and health checks:
 called with `--enable-fixture-driver`. Do not use it as a runnable default
 driver.
 
-Use `codex-cli` as the maintainer workstation's default non-fixture local
-driver when the installed `codex exec` command is healthy. `codex-python-sdk`
-remains an optional adapter and must fail closed when its Python package is
-not installed.
+Use `codex-python-sdk` as the maintainer workstation's default non-fixture
+local driver. If the optional SDK package or local Codex account setup is
+missing, report the structured failure and ask the user to install or
+authenticate the SDK before rerunning the workflow.
+
+Do not use a separate command-line fallback driver. The starter does not
+provide one.
 
 Do not use the local AHRA MCP server for new workflow operation. MCP is a
 legacy optional adapter surface and is not part of the current default starter

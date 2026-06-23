@@ -26,7 +26,7 @@ spec:
         max_added_lines: 10
         max_deleted_lines: 10
   workspaceRef: .
-  driverRef: codex-cli
+  driverRef: codex-python-sdk
   storeRef: local-file
   artifactDir: .runtime/ahra-runs/runnable/codex-standard-task
   approvalMode: disabled

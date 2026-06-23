@@ -10,7 +10,6 @@ from typing import Any
 
 import yaml
 
-from ahra.adapters.codex_cli import CodexCLIDriver
 from ahra.adapters.codex_sdk import CodexSDKDriver
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
 from ahra.ports import AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
@@ -235,7 +234,6 @@ def _inspect_workflow(artifact_dir: Path) -> dict[str, Any]:
 
 def _driver_registry(*, enable_fixture_driver: bool) -> AgentDriverRegistry:
     registry = AgentDriverRegistry()
-    registry.register("codex-cli", CodexCLIDriver())
     registry.register("codex-python-sdk", CodexSDKDriver())
     if enable_fixture_driver:
         registry.register("fake-reference", FixtureDriver())

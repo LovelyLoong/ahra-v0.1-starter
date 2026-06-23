@@ -1,0 +1,116 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0014",
+  "report_id": "TASK-0014-implementation-report-4",
+  "created_by": "agent:codex-sdk-correction-operator",
+  "created_at": "2026-06-23T17:22:55+08:00",
+  "summary": "Corrected TASK-0014 back to the agreed Codex Python SDK route. The separate command-line Codex adapter and its tests were removed. Active docs, Skill instructions, CLI driver registry, and runnable examples now use driverRef codex-python-sdk. Prior command-line-driver evidence remains historical and is superseded by this correction.",
+  "correction_reason": "The maintainer clarified that the agreed default was Codex SDK Python. Introducing a separate command-line Codex driver without approval was not acceptable.",
+  "implemented_changes": [
+    {
+      "area": "driver registry and adapters",
+      "files": [
+        "src/ahra/cli.py",
+        "src/ahra/adapters/__init__.py",
+        "src/ahra/adapters/codex_sdk.py"
+      ],
+      "details": [
+        "Removed registration of the command-line Codex driver route.",
+        "Deleted the command-line Codex adapter implementation from the active codebase.",
+        "Kept codex-python-sdk as the only built-in non-fixture Codex driver ref.",
+        "Passed cwd into CodexConfig and thread_start so SDK sessions bind to the run-owned execution workspace."
+      ]
+    },
+    {
+      "area": "tests",
+      "files": [
+        "tests/test_codex_driver.py",
+        "tests/test_cli.py",
+        "tests/test_git_ops.py"
+      ],
+      "details": [
+        "Deleted command-line Codex driver tests.",
+        "Added SDK client coverage proving cwd reaches the SDK session.",
+        "Made CLI failure-state testing independent from whether the optional SDK package is installed locally.",
+        "Renamed branch-collision test data so it no longer references the removed route."
+      ]
+    },
+    {
+      "area": "docs, Skill, and examples",
+      "files": [
+        "docs/architecture/agent-drivers-and-workflow-invocation.md",
+        "docs/architecture/reference-runtime-adapters-and-mcp.md",
+        "docs/architecture/index.md",
+        "skills/ahra-workflow-runner/SKILL.md",
+        "examples/workflow_runs/runnable/standard-task-codex.yaml"
+      ],
+      "details": [
+        "Changed active examples to driverRef codex-python-sdk.",
+        "Removed the separate command-line driver route from active docs and Skill guidance.",
+        "Documented that missing SDK package or account setup must fail closed and be resolved by the user."
+      ]
+    }
+  ],
+  "verification_run_by_agent": [
+    {
+      "command": "uv run python -B -m unittest tests.test_codex_driver tests.test_cli tests.test_driver_requests tests.test_git_ops -v",
+      "result": "pass",
+      "notes": "14 targeted tests passed."
+    },
+    {
+      "command": "uv run ahra workflow validate examples\\workflow_runs\\runnable\\standard-task-codex.yaml",
+      "result": "pass",
+      "notes": "Returned ok:true with driver_ref codex-python-sdk."
+    },
+    {
+      "command": "uv run --extra codex python -B -c \"from openai_codex import AsyncCodex, CodexConfig; import inspect; print(inspect.signature(CodexConfig)); print(inspect.signature(AsyncCodex.thread_start))\"",
+      "result": "pass",
+      "notes": "Confirmed the optional SDK package imports and exposes cwd on CodexConfig and thread_start."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "result": "pass",
+      "notes": "AWKP lint passed and 56 unit tests passed."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "result": "pass",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "notes": "Exit code 0."
+    }
+  ],
+  "verification_required_from_user": [
+    {
+      "purpose": "Install optional SDK dependency if missing",
+      "command": "uv sync --extra codex"
+    },
+    {
+      "purpose": "Confirm SDK import locally",
+      "command": "uv run --extra codex python -B -c \"from openai_codex import AsyncCodex; print('openai_codex ok')\""
+    },
+    {
+      "purpose": "Run the real SDK workflow after account setup is ready",
+      "command": "uv run --extra codex ahra workflow start examples\\workflow_runs\\runnable\\standard-task-codex.yaml"
+    },
+    {
+      "purpose": "Inspect the produced artifact directory after a successful run",
+      "command": "uv run ahra workflow inspect .runtime\\ahra-runs\\runnable\\codex-standard-task"
+    }
+  ],
+  "current_status": {
+    "active_default_non_fixture_driver": "codex-python-sdk",
+    "live_sdk_workflow_run_by_agent": false,
+    "reason_live_sdk_run_not_claimed": "The user requested that missing account or authentication setup be handled by the user. The agent verified package/API availability and request validation but did not claim a successful account-backed SDK workflow run.",
+    "still_requires_independent_review": true
+  },
+  "supersedes": [
+    "ART-TASK-0014-0002",
+    "ART-TASK-0014-0003",
+    "EVD-TASK-0014-0002",
+    "EVD-TASK-0014-0003"
+  ]
+}

@@ -22,7 +22,7 @@ tags: [architecture]
 | [Workflow modules](workflow-modules.md) | Concrete workflow implementations plugged into the AHRA template |
 | [Framework entrypoints](framework-entrypoints.md) | Default CLI plus Skill operation path and MCP deprecation |
 | [Agent drivers and workflow invocation](agent-drivers-and-workflow-invocation.md) | Agent-neutral driver adapters and stable workflow launch requests |
-| [Reference runtime adapters and MCP](reference-runtime-adapters-and-mcp.md) | Codex CLI driver, optional Codex SDK driver, resume requests, and MCP entrypoint |
+| [Reference runtime adapters and MCP](reference-runtime-adapters-and-mcp.md) | Codex Python SDK driver, resume requests, and legacy MCP entrypoint |
 | [Framework completion roadmap](framework-completion-roadmap.md) | Current implementation decisions for the reusable AI-operated framework template |
 | [EvidenceGate](evidence-gate.md) | Verifier-side completion gate for acceptance criteria and evidence |
 | [ApprovalService](approval-service.md) | Scoped approval records for risky actions without requiring a human-facing UI |
