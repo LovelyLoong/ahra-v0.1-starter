@@ -1,0 +1,121 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0014",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-verifier",
+  "generated_at": "2026-06-23T13:57:33.918538Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier reviewed TASK-0014 correction evidence, active code, docs, Skill, examples, and reran local checks. The active route is codex-python-sdk; historical codex-cli evidence remains superseded. No account-backed SDK workflow success is claimed in this environment because openai_codex is not installed here.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "CLI commands wrap the existing local APIs without duplicating workflow logic.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0014-0004"
+      ],
+      "notes": "src/ahra/cli.py delegates workflow, task, evidence-gate, and doctor commands to existing Python APIs; no duplicate workflow implementation was found."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "A non-fixture local driver can be selected from CLI without requiring the deprecated MCP route.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0014-0004"
+      ],
+      "notes": "CLI registry registers codex-python-sdk as the built-in non-fixture route. Workflow validate accepts the runnable codex example with driver_ref codex-python-sdk and does not require MCP."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Workflow terminal failure states are surfaced as CLI failures, not reported as successful command execution.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0014-0004"
+      ],
+      "notes": "Unit tests include workflow terminal failure state CLI handling and passed in the full test run."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The local Skill names the CLI commands agents should use.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0014-0004"
+      ],
+      "notes": "skills/ahra-workflow-runner/SKILL.md names the ahra workflow, task, evidence-gate, and doctor CLI commands."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "MCP is removed from the default docs/Skill path or explicitly quarantined as legacy.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0014-0004"
+      ],
+      "notes": "Active docs and Skill describe MCP as a legacy optional adapter surface, not the default operation path."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Runnable examples and test fixtures are clearly separated.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0014-0004"
+      ],
+      "notes": "Runnable examples use examples/workflow_runs/runnable with codex-python-sdk; fixture examples are under examples/workflow_runs/fixtures and require explicit fake-reference enablement."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "`python scripts\\check.py`, `python scripts\\lint_awkp.py`, and `git diff --check` pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0014-0004"
+      ],
+      "notes": "Verifier reran python scripts/check.py, python scripts/lint_awkp.py, and git diff --check successfully."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "AWKP task state, events, artifact manifest, evidence manifest, and handoff exist.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0014-0004"
+      ],
+      "notes": "state.json, events.jsonl, artifact-manifest.json, evidence-manifest.json, and HANDOFF-0004 exist and are referenced by the current task state."
+    }
+  ],
+  "commands": [
+    {
+      "command": "python scripts\\check.py",
+      "status": "passed",
+      "notes": "AWKP/AHRA lint passed and 56 unittest cases passed."
+    },
+    {
+      "command": "python scripts\\lint_awkp.py",
+      "status": "passed",
+      "notes": "AWKP lint: 0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "Exit code 0."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli workflow validate examples\\workflow_runs\\runnable\\standard-task-codex.yaml",
+      "status": "passed",
+      "notes": "Returned ok:true with driver_ref codex-python-sdk."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli task inspect TASK-0014",
+      "status": "passed",
+      "notes": "Returned state review, state_version 12, criteria, events, artifacts, and evidence manifests."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli doctor --dry-run",
+      "status": "passed",
+      "notes": "Returned the expected local check command list."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli workflow start examples\\workflow_runs\\fixtures\\standard-task.yaml",
+      "status": "passed",
+      "notes": "Expected fail-closed probe returned unknown agent driver ref: fake-reference when --enable-fixture-driver was omitted."
+    }
+  ]
+}

@@ -2,19 +2,21 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0003",
   "context_id": "CTX-ahra-workflow-invocation",
-  "state": "review",
-  "state_version": 6,
+  "state": "completed",
+  "state_version": 7,
   "owner": null,
   "attempt": 1,
   "lease": null,
-  "next_action": "Independent verifier should rerun AgentDriver port, module descriptor, module registry fail-closed, invocation schema, approvalMode, and embedded task probes before deciding whether TASK-0003 can move to completed.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "pause_reason": null,
   "blockers": [],
   "artifact_refs": [
-    "ART-TASK-0003-0001"
+    "ART-TASK-0003-0001",
+    "ART-TASK-0003-0002"
   ],
   "evidence_refs": [
-    "EVD-TASK-0003-0001"
+    "EVD-TASK-0003-0001",
+    "EVD-TASK-0003-0002"
   ],
-  "updated_at": "2026-06-22T09:37:04Z"
+  "updated_at": "2026-06-23T14:00:37.094820Z"
 }

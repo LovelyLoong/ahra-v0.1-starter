@@ -1,0 +1,106 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0004",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-verifier",
+  "generated_at": "2026-06-23T14:00:42.495816Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier reviewed TASK-0004 reference adapter, resume, and MCP evidence against the current documentation state. MCP is now a legacy optional operation surface after TASK-0014, but its handlers still validate and dispatch through the same runner APIs and do not own workflow state or trust boundaries.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Docs define Codex SDK driver as an optional adapter behind `AgentDriver`.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0004-0001"
+      ],
+      "notes": "Current docs define codex-python-sdk as an optional AgentDriver adapter outside AHRA core."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Docs define local/cloud/sandbox runtime profile boundaries.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0004-0001"
+      ],
+      "notes": "Current docs and runtime examples distinguish local worktree isolation from stronger future cloud or sandbox runtime profiles."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Docs define MCP as an agent entrypoint, not a workflow engine or trust boundary.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0004-0001"
+      ],
+      "notes": "Current docs define MCP as a legacy optional adapter surface, not a workflow engine or trust boundary."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "`WorkflowResumeRequest` schema and example validate.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0004-0001"
+      ],
+      "notes": "WorkflowResumeRequest schema and example validate in current contract checks."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Manual `loop-engineering` plan approval resumes only when the approved plan SHA-256 matches the stored plan artifact.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0004-0001"
+      ],
+      "notes": "Manual loop-engineering resume requires the approved plan SHA-256 to match the stored plan artifact; regression tests pass."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Codex SDK adapter can be unit-tested with a fake SDK client and does not require Codex in baseline tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0004-0001"
+      ],
+      "notes": "Codex SDK adapter is unit-tested with a fake SDK client and baseline tests do not require a live Codex install."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "MCP tool handlers validate and dispatch through the same runner APIs.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0004-0001"
+      ],
+      "notes": "MCP tool handler tests pass and exercise validation plus dispatch through the same runner APIs."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "AWKP task state, events, artifact manifest, evidence manifest, and handoff exist.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0004-0001"
+      ],
+      "notes": "TASK-0004 state, events, artifact manifest, evidence manifest, and handoff exist."
+    }
+  ],
+  "commands": [
+    {
+      "command": "python scripts\\check.py",
+      "status": "passed",
+      "notes": "AWKP/AHRA lint passed and 56 unittest cases passed."
+    },
+    {
+      "command": "python scripts\\lint_contracts.py",
+      "status": "passed",
+      "notes": "Contract examples and AHRA lint passed."
+    },
+    {
+      "command": "python scripts\\lint_awkp.py",
+      "status": "passed",
+      "notes": "AWKP lint: 0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "Exit code 0 with line-ending normalization warnings only."
+    }
+  ]
+}

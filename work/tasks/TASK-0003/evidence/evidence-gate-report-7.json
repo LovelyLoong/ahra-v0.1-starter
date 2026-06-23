@@ -1,0 +1,97 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0003",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-verifier",
+  "generated_at": "2026-06-23T14:00:37.094820Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier reviewed TASK-0003 agent-neutral workflow invocation evidence and reran current repository checks. The current implementation keeps provider-specific adapters outside AHRA core and resolves driverRef through a fail-closed AgentDriver registry.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Codex has no special architectural path in AHRA core.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0003-0001"
+      ],
+      "notes": "Codex has no special architectural path in AHRA core; provider adapters sit outside core ports and workflow modules."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Workflow modules use an agent-neutral role request contract.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0003-0001"
+      ],
+      "notes": "Workflow modules use AgentRunRequest roles through the AgentDriver port."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "`driverRef` resolves through a fail-closed registry.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0003-0001"
+      ],
+      "notes": "AgentDriverRegistry resolution fails closed for unknown driverRef values."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "`WorkflowRunRequest` examples validate against schema.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0003-0001"
+      ],
+      "notes": "WorkflowRunRequest examples validate against the schema in the current lint and test suite."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "A test can start `standard-harness` through `WorkflowRunRequest` and registry.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0003-0001"
+      ],
+      "notes": "The current test suite starts standard-harness through WorkflowRunRequest and the driver registry."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "A local skill documents how an Agent should start workflow modules.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0003-0001"
+      ],
+      "notes": "The local workflow runner Skill documents how agents should start workflow modules."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "AWKP task state, events, artifact manifest, evidence manifest, and handoff exist.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0003-0001"
+      ],
+      "notes": "TASK-0003 state, events, artifact manifest, evidence manifest, and handoff exist."
+    }
+  ],
+  "commands": [
+    {
+      "command": "python scripts\\check.py",
+      "status": "passed",
+      "notes": "AWKP/AHRA lint passed and 56 unittest cases passed."
+    },
+    {
+      "command": "python scripts\\lint_contracts.py",
+      "status": "passed",
+      "notes": "Contract examples and AHRA lint passed."
+    },
+    {
+      "command": "python scripts\\lint_awkp.py",
+      "status": "passed",
+      "notes": "AWKP lint: 0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "Exit code 0 with line-ending normalization warnings only."
+    }
+  ]
+}

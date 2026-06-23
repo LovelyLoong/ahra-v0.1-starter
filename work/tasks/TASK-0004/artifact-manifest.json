@@ -21,6 +21,27 @@
         "EVD-TASK-0004-0001"
       ],
       "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0004-0002",
+      "task_id": "TASK-0004",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-5.json",
+      "uri": "local://evidence/evidence-gate-report-5.json",
+      "sha256": "6845dfbdbbf27e5328d5d05287fcf4410a24c3a03a99c926a5b079a33a81935a",
+      "media_type": "application/json",
+      "created_by": "agent:codex-independent-verifier",
+      "created_at": "2026-06-23T14:00:42.495816Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0004-0002"
+      ],
+      "supersedes": null
     }
   ]
 }

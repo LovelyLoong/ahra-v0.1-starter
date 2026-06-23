@@ -15,6 +15,21 @@
       "refs": [
         "ART-TASK-0003-0001"
       ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0003-0002",
+      "task_id": "TASK-0003",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-7.json",
+      "uri": "local://evidence/evidence-gate-report-7.json",
+      "sha256": "a99dc9f0972e7ae05ad517705802570ce8368004b9653e13484d076ca1fe1fa2",
+      "media_type": "application/json",
+      "created_by": "agent:codex-independent-verifier",
+      "created_at": "2026-06-23T14:00:37.094820Z",
+      "refs": [
+        "ART-TASK-0003-0002",
+        "EVD-TASK-0003-0001"
+      ]
     }
   ]
 }
