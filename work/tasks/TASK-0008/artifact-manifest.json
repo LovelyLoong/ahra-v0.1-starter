@@ -1,0 +1,117 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0008",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0008-AUDIT-EVENT-acc379db14c5",
+      "task_id": "TASK-0008",
+      "kind": "local_audit_event",
+      "name": "audit-event-acc379db14c509e3.json",
+      "uri": "local://local-records/audit-event-acc379db14c509e3.json",
+      "sha256": "acc379db14c509e3a6267258d00f609cbdda87cb14c41777fe7cdef7a6eb90a3",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-06-23T03:17:56.379282Z",
+      "input_refs": [
+        "task.md",
+        "docs/architecture/observability-and-evaluation.md"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0008-TRACE-SUMMARY-54e0bb3505ed",
+      "task_id": "TASK-0008",
+      "kind": "local_trace_summary",
+      "name": "trace-summary-54e0bb3505edcf31.json",
+      "uri": "local://local-records/trace-summary-54e0bb3505edcf31.json",
+      "sha256": "54e0bb3505edcf317f08706c2a7e7c66a50848b2b1f18d29c9c66b6745aac395",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-06-23T03:17:56.379282Z",
+      "input_refs": [
+        "task.md",
+        "docs/architecture/observability-and-evaluation.md"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0008-USAGE-SUMMARY-5fc70aa84a80",
+      "task_id": "TASK-0008",
+      "kind": "local_usage_summary",
+      "name": "usage-summary-5fc70aa84a80a1fd.json",
+      "uri": "local://local-records/usage-summary-5fc70aa84a80a1fd.json",
+      "sha256": "5fc70aa84a80a1fd25222eb2bdb4111162a7fc5866fca7183721cc8146b30b6c",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-06-23T03:17:56.379282Z",
+      "input_refs": [
+        "task.md",
+        "docs/architecture/observability-and-evaluation.md"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0008-EVAL-RESULT-65b99ef7ca2d",
+      "task_id": "TASK-0008",
+      "kind": "local_eval_result",
+      "name": "eval-result-65b99ef7ca2d4e7b.json",
+      "uri": "local://local-records/eval-result-65b99ef7ca2d4e7b.json",
+      "sha256": "65b99ef7ca2d4e7b32254d0639f242e312aa9dca987ffac81e3ab1cb9ee9f33f",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-06-23T03:17:56.379282Z",
+      "input_refs": [
+        "task.md",
+        "docs/architecture/observability-and-evaluation.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0008-EVAL-RESULT-65b99ef7ca2d"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0008-IMPLEMENTATION-REPORT-f530bdac34bf",
+      "task_id": "TASK-0008",
+      "kind": "verification_report",
+      "name": "implementation-report-f530bdac34bf7740.json",
+      "uri": "local://evidence/implementation-report-f530bdac34bf7740.json",
+      "sha256": "f530bdac34bf7740a61a68ca035b895edb006602329e73092be0521e22dcdef1",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-06-23T03:17:56.379282Z",
+      "input_refs": [
+        "task.md",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0008-IMPLEMENTATION-REPORT-f530bdac34bf"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0008-0001",
+      "task_id": "TASK-0008",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-4.json",
+      "uri": "local://evidence/evidence-gate-report-4.json",
+      "sha256": "8945867534a996414cff9f51d2ae9cf736bd7b56a53d39d0df609fc8f201a8f9",
+      "media_type": "application/json",
+      "created_by": "agent:verifier",
+      "created_at": "2026-06-23T03:27:51.145943Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0008-0001"
+      ],
+      "supersedes": null
+    }
+  ]
+}

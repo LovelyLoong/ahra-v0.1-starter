@@ -1,0 +1,26 @@
+{
+  "schema_version": "ahra/local-observability-record/0.1",
+  "record_type": "audit_event",
+  "record_id": "LREC-audit-TASK-0008-0001",
+  "task_id": "TASK-0008",
+  "run_id": "RUN-local-observability-0001",
+  "context_id": "CTX-ahra-local-observability-eval",
+  "created_at": "2026-06-23T00:00:00Z",
+  "created_by": "agent:codex",
+  "refs": {
+    "events": [
+      "EVT-TASK-0008-0002"
+    ],
+    "tasks": [
+      "TASK-0008"
+    ]
+  },
+  "payload": {
+    "event_type": "local_record_published",
+    "actor": "agent:codex",
+    "action": "publish_local_record",
+    "resource": "local://local-records/",
+    "status": "observed",
+    "reason": "Local record was attached to AWKP manifests for inspection."
+  }
+}

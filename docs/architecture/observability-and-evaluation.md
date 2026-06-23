@@ -37,6 +37,33 @@ The first implementation should keep four concepts separate:
 Telemetry is not the authoritative task state. Task state remains in AWKP, Run
 state remains in RunStore, and artifacts/evidence remain in their manifests.
 
+# Implemented Local Record Shape
+
+The starter defines the first local-only shape in
+`contracts/schemas/local-observability-record.schema.json` with
+`schema_version: ahra/local-observability-record/0.1`.
+
+Each record has a common envelope:
+
+- `record_type`: one of `audit_event`, `trace_summary`, `usage_summary`, or
+  `eval_result`.
+- `record_id`, `task_id`, optional `run_id`, optional `context_id`.
+- `created_at` and `created_by`.
+- `refs` for AWKP artifacts, evidence, events, tasks, or verifier commands.
+- `payload`, whose schema is selected by `record_type`.
+
+Local records are written with deterministic JSON serialization. The helper in
+`src/ahra/local_observability.py` hashes the serialized bytes, writes the file
+under `work/tasks/<TASK-ID>/local-records/`, and attaches content-addressed
+`ART-...` and optional `EVD-...` manifest records. The helper does not update
+`state.json` or `events.jsonl`; those remain the AWKP state and audit
+authorities.
+
+`eval_result` records may be attached as Evidence when a verifier or local
+runner uses them to support an acceptance decision. `audit_event`,
+`trace_summary`, and `usage_summary` records are inspectable artifacts unless a
+task explicitly chooses to promote one as evidence.
+
 # Privacy Defaults
 
 The local default should record metadata first:
@@ -81,4 +108,3 @@ small steps:
 
 This keeps the starter AI-operable without forcing CI, dashboards, or hosted
 observability products.
-

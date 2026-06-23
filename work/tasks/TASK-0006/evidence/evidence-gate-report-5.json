@@ -1,0 +1,89 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0006",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "human:maintainer",
+  "generated_at": "2026-06-23T02:26:06.465927Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Human maintainer stated TASK-0006 acceptance is complete and authorized closure; current local checks were rerun successfully.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Roadmap doc distinguishes immediate, deferred, optional, and pending alignment items.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0006-0001"
+      ],
+      "notes": "Roadmap report records the immediate, deferred, optional, and pending alignment classifications."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Roadmap clarifies durable control plane is not a visual panel and can be operated through MCP by AI.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0006-0001"
+      ],
+      "notes": "Roadmap report records the durable control plane clarification."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "EvidenceGate doc defines verifier inputs, outputs, decisions, and fail-closed rules.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0006-0001"
+      ],
+      "notes": "Roadmap report records the EvidenceGate documentation update."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "ApprovalService doc explains the difference between task completion and scoped action authorization.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0006-0001"
+      ],
+      "notes": "Roadmap report records the ApprovalService documentation update."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Observability/Evaluation doc defines minimal local records without requiring a hosted UI or CI.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0006-0001"
+      ],
+      "notes": "Roadmap report records the Observability/Evaluation documentation update."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Architecture index links all new docs.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0006-0001"
+      ],
+      "notes": "Roadmap report records the architecture index update."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "AWKP task state, events, artifact manifest, evidence manifest, and handoff exist.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0006-0001"
+      ],
+      "notes": "Task state, event ledger, manifests, evidence report, and handoff exist."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ]
+}

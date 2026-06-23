@@ -1,0 +1,37 @@
+{
+  "schema_version": "ahra/local-observability-record/0.1",
+  "record_type": "trace_summary",
+  "record_id": "LREC-trace-TASK-0008-0001",
+  "task_id": "TASK-0008",
+  "run_id": "RUN-local-observability-0001",
+  "context_id": "CTX-ahra-local-observability-eval",
+  "created_at": "2026-06-23T00:00:00Z",
+  "created_by": "agent:codex",
+  "refs": {
+    "tasks": [
+      "TASK-0008"
+    ],
+    "commands": [
+      "python scripts\\check.py"
+    ]
+  },
+  "payload": {
+    "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+    "started_at": "2026-06-23T00:00:00Z",
+    "ended_at": "2026-06-23T00:00:03Z",
+    "duration_ms": 3000,
+    "status": "succeeded",
+    "steps": [
+      {
+        "name": "run local checks",
+        "kind": "check",
+        "status": "succeeded",
+        "duration_ms": 3000,
+        "artifact_refs": [
+          "ART-TASK-0008-LOCAL-AUDIT-EVENT-example"
+        ],
+        "evidence_refs": []
+      }
+    ]
+  }
+}

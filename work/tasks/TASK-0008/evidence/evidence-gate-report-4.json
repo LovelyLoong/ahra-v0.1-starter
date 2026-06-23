@@ -1,0 +1,96 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0008",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:verifier",
+  "generated_at": "2026-06-23T03:27:51.145943Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier mapped every TASK-0008 acceptance criterion to current evidence and reran the required checks using the AGENTS.md workstation Python entrypoint.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Local audit, trace summary, usage/cost summary, and eval result record shapes are defined and documented.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0008-IMPLEMENTATION-REPORT-f530bdac34bf"
+      ],
+      "notes": "Schema, helper, examples, and documentation define local audit, trace summary, usage summary, and eval result records."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Record writing produces content-addressed local artifact/evidence records with deterministic JSON serialization.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0008-IMPLEMENTATION-REPORT-f530bdac34bf",
+        "EVD-TASK-0008-EVAL-RESULT-65b99ef7ca2d"
+      ],
+      "notes": "publish_local_record uses deterministic JSON bytes, SHA-256 content addressing, idempotent manifest attachment, and verifier hash checks matched local files."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "EvidenceGate or reference workflow examples can attach the local records without replacing AWKP state, event, artifact, or evidence authority.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0008-IMPLEMENTATION-REPORT-f530bdac34bf",
+        "EVD-TASK-0008-EVAL-RESULT-65b99ef7ca2d"
+      ],
+      "notes": "Eval result is attachable as Evidence while helper leaves state.json and events.jsonl untouched; AWKP manifests remain the authority."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Tests prove hash stability, schema validity, and no private thought-chain field is persisted.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0008-IMPLEMENTATION-REPORT-f530bdac34bf",
+        "EVD-TASK-0008-EVAL-RESULT-65b99ef7ca2d"
+      ],
+      "notes": "Focused tests cover schema validity, stable/idempotent hashes, evidence attachment without state mutation, and private thought-chain key rejection."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "`python scripts\\check.py`, `python scripts\\lint_awkp.py`, and `git diff --check` pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0008-IMPLEMENTATION-REPORT-f530bdac34bf",
+        "EVD-TASK-0008-EVAL-RESULT-65b99ef7ca2d"
+      ],
+      "notes": "uv run python -B scripts/check.py, uv run python -B scripts/lint_awkp.py, focused unittest, and git diff --check passed. Bare python on this workstation hits the AGENTS.md DocGuard/E-SafeNet launcher issue and is not counted as a project failure."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "AWKP task state, events, artifact manifest, evidence manifest, and handoff exist.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0008-IMPLEMENTATION-REPORT-f530bdac34bf"
+      ],
+      "notes": "TASK-0008 task state, append-only events, artifact manifest, evidence manifest, and handoff are present and parseable."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_local_observability -v",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "command": "validate local TASK-0008 records and examples against contracts/schemas/local-observability-record.schema.json",
+      "status": "passed"
+    },
+    {
+      "command": "verify TASK-0008 local:// manifest SHA-256 values",
+      "status": "passed"
+    }
+  ]
+}

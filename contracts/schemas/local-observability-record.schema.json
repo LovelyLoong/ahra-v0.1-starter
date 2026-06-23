@@ -1,0 +1,462 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/local-observability-record.0.1.json",
+  "title": "AHRA Local Observability and Evaluation Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_type",
+    "record_id",
+    "task_id",
+    "created_at",
+    "created_by",
+    "refs",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ahra/local-observability-record/0.1"
+    },
+    "record_type": {
+      "enum": [
+        "audit_event",
+        "trace_summary",
+        "usage_summary",
+        "eval_result"
+      ]
+    },
+    "record_id": {
+      "type": "string",
+      "pattern": "^LREC-"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^TASK-"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^RUN-"
+    },
+    "context_id": {
+      "type": "string",
+      "pattern": "^CTX-"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "record_type": {
+            "const": "audit_event"
+          }
+        },
+        "required": [
+          "record_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/auditEventPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_type": {
+            "const": "trace_summary"
+          }
+        },
+        "required": [
+          "record_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/traceSummaryPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_type": {
+            "const": "usage_summary"
+          }
+        },
+        "required": [
+          "record_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/usageSummaryPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_type": {
+            "const": "eval_result"
+          }
+        },
+        "required": [
+          "record_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/evalResultPayload"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "status": {
+      "enum": [
+        "passed",
+        "failed",
+        "blocked",
+        "skipped",
+        "succeeded",
+        "denied",
+        "observed"
+      ]
+    },
+    "auditEventPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_type",
+        "actor",
+        "action",
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "event_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "input_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "output_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "traceSummaryPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trace_id",
+        "started_at",
+        "ended_at",
+        "duration_ms",
+        "status",
+        "steps"
+      ],
+      "properties": {
+        "trace_id": {
+          "type": "string",
+          "minLength": 16
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ended_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "kind",
+              "status",
+              "duration_ms"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "workflow",
+                  "model",
+                  "tool",
+                  "runtime",
+                  "check",
+                  "evidence_gate",
+                  "other"
+                ]
+              },
+              "status": {
+                "$ref": "#/$defs/status"
+              },
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "input_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "output_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "artifact_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "evidence_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "usageSummaryPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "currency",
+        "totals",
+        "items"
+      ],
+      "properties": {
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "totals": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cost",
+            "model_calls",
+            "tool_calls",
+            "runtime_seconds"
+          ],
+          "properties": {
+            "cost": {
+              "type": "number",
+              "minimum": 0
+            },
+            "model_calls": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "tool_calls": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "runtime_seconds": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "category",
+              "name",
+              "quantity",
+              "unit",
+              "cost"
+            ],
+            "properties": {
+              "category": {
+                "enum": [
+                  "model",
+                  "tool",
+                  "runtime",
+                  "external"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "quantity": {
+                "type": "number",
+                "minimum": 0
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "cost": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "evalResultPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "suite_ref",
+        "target_ref",
+        "status",
+        "passed",
+        "failed",
+        "cases"
+      ],
+      "properties": {
+        "suite_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "status",
+              "evidence_refs"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "$ref": "#/$defs/status"
+              },
+              "evidence_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "notes": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

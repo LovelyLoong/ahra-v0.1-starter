@@ -46,6 +46,22 @@
 
 ## Commands
 
+Current maintainer workstation temporary entrypoint:
+
+This is a local machine workaround only. On this workstation, the company
+E-SafeNet/DocGuard client can make the bare `python` launcher read encrypted
+`E-SafeNet ... LOCK` bytes for repository `.py` files. That is not an AHRA
+framework requirement and must not be treated as a project test failure.
+
+```bash
+uv run python -B scripts/check.py
+uv run python -B scripts/check.py --lint
+uv run python -B scripts/check.py --test
+uv run python -m ahra.demo
+```
+
+Framework-neutral commands for normal environments:
+
 ```bash
 python scripts/check.py
 make check

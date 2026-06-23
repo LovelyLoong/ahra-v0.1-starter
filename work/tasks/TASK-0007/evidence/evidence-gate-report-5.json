@@ -1,0 +1,106 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0007",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:verifier",
+  "generated_at": "2026-06-23T02:40:09.420149Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent reviewer approved TASK-0007 after rerunning checks and fail-closed probes.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "`python -m ahra.evidence_gate evaluate` validates expected version, manifests, evidence hashes, verifier identity, and criterion evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0007-0001"
+      ],
+      "notes": "Independent reviewer checked implementation, manifests, MCP dispatch, documentation, and fail-closed probes."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Approve transitions a task from `review` to `completed` and writes gate artifact/evidence/event records.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0007-0001"
+      ],
+      "notes": "Independent reviewer checked implementation, manifests, MCP dispatch, documentation, and fail-closed probes."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Request changes transitions a task from `review` to `changes_requested` and records blockers.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0007-0001"
+      ],
+      "notes": "Independent reviewer checked implementation, manifests, MCP dispatch, documentation, and fail-closed probes."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The gate fails closed for stale expected version, producer self-verification, and approve without evidence for every criterion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0007-0001"
+      ],
+      "notes": "Independent reviewer checked implementation, manifests, MCP dispatch, documentation, and fail-closed probes."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "MCP exposes task inspect and EvidenceGate evaluate tools backed by the same Python service.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0007-0001"
+      ],
+      "notes": "Independent reviewer checked implementation, manifests, MCP dispatch, documentation, and fail-closed probes."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Tests cover local service and MCP dispatch.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0007-0001"
+      ],
+      "notes": "Independent reviewer checked implementation, manifests, MCP dispatch, documentation, and fail-closed probes."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Documentation describes the implemented CLI report shape and MCP tools.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0007-0001"
+      ],
+      "notes": "Independent reviewer checked implementation, manifests, MCP dispatch, documentation, and fail-closed probes."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "AWKP task state, events, artifact manifest, evidence manifest, and handoff exist.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0007-0001"
+      ],
+      "notes": "Independent reviewer checked implementation, manifests, MCP dispatch, documentation, and fail-closed probes."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python scripts\\check.py",
+      "status": "passed",
+      "notes": "41 unit tests passed; contract lint passed."
+    },
+    {
+      "command": "uv run python scripts\\lint_awkp.py",
+      "status": "passed",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "Exit 0; CRLF warnings only on unrelated TASK-0006 files."
+    },
+    {
+      "command": "EvidenceGate dry-run approve/stale-version/self-verifier/missing-evidence/MCP probes",
+      "status": "passed",
+      "notes": "Approve dry-run succeeded; stale version, producer self-verification, and missing evidence failed closed; MCP dry-run used same service."
+    }
+  ]
+}

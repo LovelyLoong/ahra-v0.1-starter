@@ -1,0 +1,27 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0008",
+  "context_id": "CTX-ahra-local-observability-eval",
+  "state": "completed",
+  "state_version": 4,
+  "owner": null,
+  "attempt": 1,
+  "lease": null,
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0008-AUDIT-EVENT-acc379db14c5",
+    "ART-TASK-0008-TRACE-SUMMARY-54e0bb3505ed",
+    "ART-TASK-0008-USAGE-SUMMARY-5fc70aa84a80",
+    "ART-TASK-0008-EVAL-RESULT-65b99ef7ca2d",
+    "ART-TASK-0008-IMPLEMENTATION-REPORT-f530bdac34bf",
+    "ART-TASK-0008-0001"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0008-EVAL-RESULT-65b99ef7ca2d",
+    "EVD-TASK-0008-IMPLEMENTATION-REPORT-f530bdac34bf",
+    "EVD-TASK-0008-0001"
+  ],
+  "updated_at": "2026-06-23T03:27:51.145943Z"
+}
