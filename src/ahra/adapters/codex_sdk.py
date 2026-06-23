@@ -4,20 +4,10 @@ import json
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from ahra.ports import AgentDriver, AgentRole, AgentRunRequest, AgentRunResult
-from ahra.reference_runner.models import (
-    ChangePolicy,
-    CheckSpec,
-    CriterionAssessment,
-    GoalReviewResult,
-    NextStepDecision,
-    PlanAction,
-    ReviewResult,
-    ReviewVerdict,
-    TaskSpec,
-    WorkReport,
-    to_jsonable,
-)
+from ahra.agent_contracts import output_contract_prompt, validate_agent_output
+from ahra.ports import AgentDriver, AgentOutputContractError, AgentRole, AgentRunRequest, AgentRunResult
+from ahra.reference_runner.models import to_jsonable
+from ahra.reference_runner.output_contracts import parse_reference_output
 
 
 class CodexClient(Protocol):
@@ -97,7 +87,7 @@ class CodexSDKDriver(AgentDriver):
         self.client = client or CodexSDKClient(self.config)
 
     async def run(self, request: AgentRunRequest) -> AgentRunResult:
-        sandbox = self._sandbox_for_role(request.role)
+        sandbox = self._sandbox_for_request(request)
         raw = await self.client.run(
             request=request,
             prompt=_prompt_for_request(request),
@@ -105,11 +95,24 @@ class CodexSDKDriver(AgentDriver):
             model=self.config.model,
             cwd=request.workspace_ref,
         )
-        data = _load_json_object(raw)
-        output = _parse_expected_output(request.expected_output, data)
+        data = _load_json_object(raw, request.expected_output)
+        if request.output_contract is not None:
+            validate_agent_output(request.output_contract, data, raw_output=raw)
+        try:
+            output = parse_reference_output(request.expected_output, data)
+        except AgentOutputContractError as exc:
+            raise AgentOutputContractError(
+                request.expected_output,
+                exc.message,
+                raw_output=raw,
+                details=exc.details,
+            ) from exc
         return AgentRunResult(output=output, raw_output=raw)
 
-    def _sandbox_for_role(self, role: AgentRole) -> str:
+    def _sandbox_for_request(self, request: AgentRunRequest) -> str:
+        if request.runtime_profile is not None:
+            return request.runtime_profile.sandbox
+        role = request.role
         if role == AgentRole.EXECUTOR:
             return self.config.executor_sandbox
         if role in (AgentRole.TASK_REVIEWER, AgentRole.GOAL_REVIEWER):
@@ -121,6 +124,19 @@ class CodexSDKDriver(AgentDriver):
 
 def _prompt_for_request(request: AgentRunRequest) -> str:
     payload = json.dumps(to_jsonable(request.payload), ensure_ascii=False, indent=2)
+    contract = (
+        output_contract_prompt(request.output_contract)
+        if request.output_contract is not None
+        else "No explicit output contract was supplied. Use the expected output type exactly."
+    )
+    runtime = ""
+    if request.runtime_profile is not None:
+        runtime = (
+            f"Runtime profile ref: {request.runtime_profile.profile_ref}\n"
+            f"Runtime sandbox: {request.runtime_profile.sandbox}\n"
+            "Runtime capabilities: "
+            f"{', '.join(request.runtime_profile.capabilities) or '<none>'}\n"
+        )
     role_instructions = {
         AgentRole.EXECUTOR: (
             "Executor duty: modify only the provided workspace to satisfy the task. "
@@ -149,9 +165,12 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
         f"Run ID: {request.run_id}\n"
         f"Workspace ref: {request.workspace_ref or '<none>'}\n"
         f"Expected output type: {request.expected_output}\n"
+        f"{runtime}"
         f"{role_instructions[request.role]}\n"
         "Return only one JSON object. Do not include markdown or prose.\n"
-        "Use snake_case field names matching the expected output type.\n"
+        "Do not add fields outside the output contract.\n"
+        "Output contract:\n"
+        f"{contract}\n"
         "Payload:\n"
         f"{payload}\n"
     )
@@ -167,7 +186,7 @@ def _sdk_sandbox(sandbox_type: Any, name: str) -> Any:
         raise ValueError(f"unsupported Codex sandbox: {name}") from exc
 
 
-def _load_json_object(raw: str) -> dict[str, Any]:
+def _load_json_object(raw: str, expected_output: str) -> dict[str, Any]:
     text = raw.strip()
     if text.startswith("```"):
         lines = text.splitlines()
@@ -180,102 +199,25 @@ def _load_json_object(raw: str) -> dict[str, Any]:
         start = text.find("{")
         end = text.rfind("}")
         if start == -1 or end == -1 or end <= start:
-            raise ValueError("Codex driver response did not contain a JSON object")
+            raise AgentOutputContractError(
+                expected_output,
+                "Codex driver response did not contain a JSON object",
+                raw_output=raw,
+            )
         text = text[start : end + 1]
-    data = json.loads(text)
-    if not isinstance(data, dict):
-        raise ValueError("Codex driver response JSON must be an object")
-    return data
-
-
-def _parse_expected_output(expected_output: str, data: dict[str, Any]) -> Any:
     try:
-        if expected_output == "WorkReport":
-            return WorkReport(
-                summary=str(data["summary"]),
-                changed_files=_str_tuple(data.get("changed_files", ())),
-                verification_commands_run=_str_tuple(data.get("verification_commands_run", ())),
-                known_risks=_str_tuple(data.get("known_risks", ())),
-                unresolved_items=_str_tuple(data.get("unresolved_items", ())),
-            )
-        if expected_output == "ReviewResult":
-            return ReviewResult(
-                verdict=ReviewVerdict(str(data["verdict"])),
-                summary=str(data["summary"]),
-                criteria=tuple(_criterion(item) for item in data.get("criteria", ())),
-                blocking_issues=_str_tuple(data.get("blocking_issues", ())),
-                non_blocking_issues=_str_tuple(data.get("non_blocking_issues", ())),
-                confidence=float(data.get("confidence", 0.0)),
-            )
-        if expected_output == "GoalReviewResult":
-            return GoalReviewResult(
-                verdict=ReviewVerdict(str(data["verdict"])),
-                summary=str(data["summary"]),
-                satisfied_criteria=_str_tuple(data.get("satisfied_criteria", ())),
-                unsatisfied_criteria=_str_tuple(data.get("unsatisfied_criteria", ())),
-                blocking_issues=_str_tuple(data.get("blocking_issues", ())),
-                confidence=float(data.get("confidence", 0.0)),
-            )
-        if expected_output == "NextStepDecision":
-            return NextStepDecision(
-                action=PlanAction(str(data["action"])),
-                rationale=str(data["rationale"]),
-                proposed_tasks=tuple(_task(item) for item in data.get("proposed_tasks", ())),
-                human_questions=_str_tuple(data.get("human_questions", ())),
-            )
-    except (KeyError, TypeError, ValueError) as exc:
-        raise ValueError(f"Codex driver response did not match {expected_output}") from exc
-    raise ValueError(f"unsupported Codex driver expected output: {expected_output}")
-
-
-def _criterion(data: dict[str, Any]) -> CriterionAssessment:
-    return CriterionAssessment(
-        criterion=str(data["criterion"]),
-        passed=bool(data["passed"]),
-        evidence=str(data["evidence"]),
-        concerns=_str_tuple(data.get("concerns", ())),
-    )
-
-
-def _task(data: dict[str, Any]) -> TaskSpec:
-    return TaskSpec(
-        id=str(data["id"]),
-        title=str(data["title"]),
-        objective=str(data["objective"]),
-        acceptance_criteria=_str_tuple(data["acceptance_criteria"]),
-        scope=_str_tuple(data.get("scope", ())),
-        requirements=_str_tuple(data.get("requirements", ())),
-        non_goals=_str_tuple(data.get("non_goals", ())),
-        checks=tuple(_check(item) for item in data.get("checks", ())),
-        policy=_policy(data.get("policy", {})),
-        max_attempts=int(data.get("max_attempts", 2)),
-        max_turns=int(data.get("max_turns", 25)),
-    )
-
-
-def _check(data: dict[str, Any]) -> CheckSpec:
-    return CheckSpec(
-        name=str(data["name"]),
-        argv=_str_tuple(data["argv"]),
-        cwd=str(data.get("cwd", ".")),
-        timeout_seconds=int(data.get("timeout_seconds", 300)),
-        required=bool(data.get("required", True)),
-        env={str(key): str(value) for key, value in data.get("env", {}).items()},
-    )
-
-
-def _policy(data: dict[str, Any]) -> ChangePolicy:
-    default = ChangePolicy()
-    return ChangePolicy(
-        allowed_globs=_str_tuple(data.get("allowed_globs", default.allowed_globs)),
-        protected_globs=_str_tuple(data.get("protected_globs", default.protected_globs)),
-        sensitive_globs=_str_tuple(data.get("sensitive_globs", default.sensitive_globs)),
-        max_changed_files=int(data.get("max_changed_files", default.max_changed_files)),
-        max_added_lines=int(data.get("max_added_lines", default.max_added_lines)),
-        max_deleted_lines=int(data.get("max_deleted_lines", default.max_deleted_lines)),
-        allow_no_changes=bool(data.get("allow_no_changes", default.allow_no_changes)),
-    )
-
-
-def _str_tuple(value: Any) -> tuple[str, ...]:
-    return tuple(str(item) for item in value)
+        data = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise AgentOutputContractError(
+            expected_output,
+            f"Codex driver response JSON could not be decoded: {exc.msg}",
+            raw_output=raw,
+            details=(exc.msg,),
+        ) from exc
+    if not isinstance(data, dict):
+        raise AgentOutputContractError(
+            expected_output,
+            "Codex driver response JSON must be an object",
+            raw_output=raw,
+        )
+    return data

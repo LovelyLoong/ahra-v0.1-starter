@@ -49,6 +49,7 @@ class WorkflowRunRequest:
     driver_ref: str
     store_ref: str
     approval_mode: str
+    runtime_profile_ref: str | None = None
     task: TaskSpec | None = None
     goal: GoalSpec | None = None
     artifact_dir: str | None = None
@@ -135,6 +136,9 @@ def workflow_run_request_from_document(
         driver_ref=str(spec["driverRef"]),
         store_ref=str(spec["storeRef"]),
         approval_mode=str(spec["approvalMode"]),
+        runtime_profile_ref=(
+            str(spec["runtimeProfileRef"]) if spec.get("runtimeProfileRef") else None
+        ),
         task=task,
         goal=goal,
         artifact_dir=str(spec["artifactDir"]) if spec.get("artifactDir") else None,
@@ -403,6 +407,7 @@ async def resume_workflow(
         driver,
         workspace_provider=workspace_provider,
         runtime_provider=runtime_provider,
+        runtime_profile_ref=stored_request.runtime_profile_ref,
     ).run_goal(
         goal=_apply_approval_mode(stored_request.goal, stored_request.approval_mode),
         workspace_ref=execution_workspace_ref,
@@ -497,6 +502,7 @@ async def _run_standard_harness(
         driver,
         workspace_provider=workspace_provider,
         runtime_provider=runtime_provider,
+        runtime_profile_ref=request.runtime_profile_ref,
     ).run_task(
         task=request.task,
         workspace_ref=execution_workspace_ref,
@@ -525,6 +531,7 @@ async def _run_loop_engineering(
         driver,
         workspace_provider=workspace_provider,
         runtime_provider=runtime_provider,
+        runtime_profile_ref=request.runtime_profile_ref,
     ).run_goal(
         goal=goal,
         workspace_ref=execution_workspace_ref,
@@ -663,6 +670,9 @@ def _workflow_run_request_from_jsonable(data: dict[str, Any]) -> WorkflowRunRequ
         driver_ref=str(data["driver_ref"]),
         store_ref=str(data["store_ref"]),
         approval_mode=str(data["approval_mode"]),
+        runtime_profile_ref=(
+            str(data["runtime_profile_ref"]) if data.get("runtime_profile_ref") else None
+        ),
         task=_task_from_mapping(data["task"]) if data.get("task") else None,
         goal=_goal_from_mapping(data["goal"]) if data.get("goal") else None,
         artifact_dir=str(data["artifact_dir"]) if data.get("artifact_dir") else None,

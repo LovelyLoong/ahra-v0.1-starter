@@ -27,14 +27,23 @@ from .store import ReferenceRunStore
 class LoopEngine:
     module_id = "loop-engineering"
 
-    def __init__(self, driver: AgentDriver, *, workspace_provider=None, runtime_provider=None) -> None:
+    def __init__(
+        self,
+        driver: AgentDriver,
+        *,
+        workspace_provider=None,
+        runtime_provider=None,
+        runtime_profile_ref: str | None = None,
+    ) -> None:
         self.driver = driver
         self.workspace_provider = workspace_provider or LocalGitWorkspaceProvider()
         self.runtime_provider = runtime_provider or LocalRuntimeProvider()
+        self.runtime_profile_ref = runtime_profile_ref
         self.task_harness = TaskHarness(
             driver,
             workspace_provider=self.workspace_provider,
             runtime_provider=self.runtime_provider,
+            runtime_profile_ref=runtime_profile_ref,
         )
 
     def _global_evidence(
@@ -188,6 +197,7 @@ class LoopEngine:
                 patch_text=full_patch,
                 workspace=workspace_path,
                 run_id=run_id,
+                runtime_profile_ref=self.runtime_profile_ref,
             )
             goal_review = enforce_goal_review_contract(goal, goal_review)
             store.write_evidence(
@@ -252,6 +262,7 @@ class LoopEngine:
                 goal_review=goal_review,
                 workspace=workspace_path,
                 run_id=run_id,
+                runtime_profile_ref=self.runtime_profile_ref,
             )
             store.write_artifact(
                 f"cycles/{cycle}/next-step.json",

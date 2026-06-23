@@ -15,6 +15,7 @@ from ahra.domain import RunStatus
 from ahra.ports import (
     AgentDriver,
     AgentDriverRegistry,
+    AgentOutputContractError,
     AgentRole,
     AgentRunRequest,
     AgentRunResult,
@@ -141,6 +142,46 @@ class PlanningDriver(AgentDriver):
                     action=PlanAction.ADD_TASKS,
                     rationale="Set final value to satisfy the global gate.",
                     proposed_tasks=(_task_for_value(3),),
+                )
+            )
+        raise AssertionError(f"unexpected role: {request.role}")
+
+
+class ReviewerContractRetryDriver(AgentDriver):
+    def __init__(self, *, invalid_review_responses: int) -> None:
+        self.invalid_review_responses = invalid_review_responses
+        self.executor_calls = 0
+        self.reviewer_calls = 0
+
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role == AgentRole.EXECUTOR:
+            self.executor_calls += 1
+            workspace = Path(str(request.workspace_ref))
+            (workspace / "value.py").write_text("VALUE = 2\n", encoding="utf-8")
+            return AgentRunResult(output=WorkReport(summary="Updated value", changed_files=("value.py",)))
+        if request.role == AgentRole.TASK_REVIEWER:
+            self.reviewer_calls += 1
+            if self.reviewer_calls <= self.invalid_review_responses:
+                raise AgentOutputContractError(
+                    "ReviewResult",
+                    "<root>: 'verdict' is a required property",
+                    raw_output='{"status":"pass","findings":[]}',
+                    details=("<root>: 'verdict' is a required property",),
+                )
+            task = request.payload["task"]
+            return AgentRunResult(
+                output=ReviewResult(
+                    verdict=ReviewVerdict.PASS,
+                    summary="Criterion is supported after contract retry.",
+                    criteria=tuple(
+                        CriterionAssessment(
+                            criterion=criterion,
+                            passed=True,
+                            evidence="Deterministic check passed.",
+                        )
+                        for criterion in task.acceptance_criteria
+                    ),
+                    confidence=0.99,
                 )
             )
         raise AssertionError(f"unexpected role: {request.role}")
@@ -309,6 +350,52 @@ class StandardHarnessTests(unittest.TestCase):
                 self.assertRegex(record["sha256"], r"^[a-f0-9]{64}$")
                 self.assertTrue(record["uri"].startswith("local://"))
 
+    def test_reviewer_output_contract_retry_does_not_rerun_executor(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            driver = ReviewerContractRetryDriver(invalid_review_responses=1)
+            result = asyncio.run(
+                TaskHarness(driver).run_task(
+                    task=_task(),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-review-contract-retry",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+            self.assertEqual(result.status, WorkflowOutcome.ACCEPTED)
+            self.assertEqual(driver.executor_calls, 1)
+            self.assertEqual(driver.reviewer_calls, 2)
+            artifact_dir = Path(result.artifact_dir)
+            events = [
+                json.loads(line)
+                for line in (artifact_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            event_types = {event["type"] for event in events}
+            self.assertIn("dev.ahra.workflow.reviewer_output_invalid.v1", event_types)
+            manifest = json.loads((artifact_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
+            names = {record["name"] for record in manifest["artifacts"]}
+            self.assertIn("review-output-contract-error-1.json", names)
+
+    def test_reviewer_output_contract_exhaustion_does_not_start_next_attempt(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            driver = ReviewerContractRetryDriver(invalid_review_responses=2)
+            result = asyncio.run(
+                TaskHarness(driver).run_task(
+                    task=_task(),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-review-contract-error",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+            self.assertEqual(result.status, WorkflowOutcome.ERROR)
+            self.assertEqual(driver.executor_calls, 1)
+            self.assertEqual(driver.reviewer_calls, 2)
+            self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 1\n")
+
 
 class WorkflowInvocationTests(unittest.TestCase):
     def test_driver_registry_fails_closed(self) -> None:
@@ -421,12 +508,14 @@ class WorkflowInvocationTests(unittest.TestCase):
                 "workspaceRef": ".",
                 "driverRef": "fake-reference",
                 "storeRef": "local-file",
+                "runtimeProfileRef": "examples/runtimes/local-worktree.yaml",
                 "approvalMode": "manual",
             },
         }
         request = workflow_run_request_from_document(document)
         self.assertIsNotNone(request.task)
         self.assertEqual(request.task.policy, ChangePolicy())
+        self.assertEqual(request.runtime_profile_ref, "examples/runtimes/local-worktree.yaml")
 
     def test_approval_mode_controls_loop_planning_behavior(self) -> None:
         outcomes = {}

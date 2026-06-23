@@ -106,6 +106,22 @@ class DriverRequestTests(unittest.TestCase):
             )
 
             self.assertEqual([request.workspace_ref for request in driver.requests], [str(workspace)] * 3)
+            self.assertEqual(
+                [request.output_contract.name for request in driver.requests],
+                ["ReviewResult", "GoalReviewResult", "NextStepDecision"],
+            )
+            self.assertEqual(
+                [request.runtime_profile.sandbox for request in driver.requests],
+                ["read_only", "read_only", "read_only"],
+            )
+            self.assertEqual(
+                [request.runtime_profile.profile_ref for request in driver.requests],
+                [
+                    "reference-runner/default#reviewer",
+                    "reference-runner/default#reviewer",
+                    "reference-runner/default#planner",
+                ],
+            )
 
 
 if __name__ == "__main__":

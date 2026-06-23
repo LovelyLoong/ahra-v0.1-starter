@@ -7,8 +7,9 @@ import types
 import unittest
 
 from ahra.adapters import CodexDriverConfig, CodexSDKClient, CodexSDKDriver
-from ahra.ports import AgentRole, AgentRunRequest
+from ahra.ports import AgentOutputContractError, AgentRole, AgentRunRequest
 from ahra.reference_runner.models import NextStepDecision, PlanAction, WorkReport
+from ahra.reference_runner.output_contracts import output_contract
 
 
 class FakeCodexClient:
@@ -98,6 +99,34 @@ class CodexSDKDriverTests(unittest.TestCase):
         self.assertEqual(result.output.action, PlanAction.ADD_TASKS)
         self.assertEqual(result.output.proposed_tasks[0].id, "set-value-3")
         self.assertEqual(client.calls[0]["sandbox"], "read_only")
+
+    def test_output_contract_schema_is_prompted_and_validated(self) -> None:
+        client = FakeCodexClient(
+            {
+                "ReviewResult": json.dumps(
+                    {
+                        "status": "pass",
+                        "findings": [],
+                    }
+                )
+            }
+        )
+        driver = CodexSDKDriver(client=client)
+        with self.assertRaisesRegex(AgentOutputContractError, "verdict"):
+            asyncio.run(
+                driver.run(
+                    AgentRunRequest(
+                        role=AgentRole.TASK_REVIEWER,
+                        run_id="RUN-codex-test",
+                        expected_output="ReviewResult",
+                        output_contract=output_contract("ReviewResult"),
+                        payload={"task": {"id": "task-1"}},
+                    )
+                )
+            )
+        self.assertIn("JSON Schema", client.calls[0]["prompt"])
+        self.assertIn('"verdict"', client.calls[0]["prompt"])
+        self.assertIn("Do not add fields outside the output contract", client.calls[0]["prompt"])
 
     def test_invalid_json_fails_closed(self) -> None:
         driver = CodexSDKDriver(client=FakeCodexClient({"WorkReport": "not json"}))

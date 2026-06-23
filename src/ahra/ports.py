@@ -23,6 +23,57 @@ class AgentRole(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
+class AgentOutputContract:
+    """Provider-neutral output contract supplied to any AgentDriver."""
+
+    name: str
+    schema: dict[str, Any]
+    example: dict[str, Any] | None = None
+    instructions: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not self.name:
+            raise ValueError("agent output contract name is required")
+        if not self.schema:
+            raise ValueError("agent output contract schema is required")
+
+
+@dataclass(frozen=True, slots=True)
+class AgentRuntimeProfile:
+    """Provider-neutral runtime and permission profile for an AgentDriver call."""
+
+    profile_ref: str
+    sandbox: str
+    capabilities: tuple[str, ...] = ()
+    timeout_seconds: int | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not self.profile_ref:
+            raise ValueError("agent runtime profile_ref is required")
+        if not self.sandbox:
+            raise ValueError("agent runtime sandbox is required")
+
+
+class AgentOutputContractError(ValueError):
+    """Raised when an AgentDriver response cannot satisfy its output contract."""
+
+    def __init__(
+        self,
+        expected_output: str,
+        message: str,
+        *,
+        raw_output: Any | None = None,
+        details: Iterable[str] = (),
+    ) -> None:
+        self.expected_output = expected_output
+        self.message = message
+        self.raw_output = raw_output
+        self.details = tuple(str(item) for item in details)
+        super().__init__(f"{expected_output} output contract failed: {message}")
+
+
+@dataclass(frozen=True, slots=True)
 class AgentRunRequest:
     role: AgentRole
     run_id: str
@@ -30,6 +81,8 @@ class AgentRunRequest:
     payload: dict[str, Any]
     workspace_ref: str | None = None
     attempt: int | None = None
+    output_contract: AgentOutputContract | None = None
+    runtime_profile: AgentRuntimeProfile | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
