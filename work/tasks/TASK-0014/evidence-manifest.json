@@ -36,6 +36,24 @@
         "EVT-TASK-0014-0008",
         ".runtime/ahra-runs/probes/RUN-codex-cli-probe-163059"
       ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0014-0003",
+      "task_id": "TASK-0014",
+      "kind": "implementation_report",
+      "name": "implementation-report-3.json",
+      "uri": "local://evidence/implementation-report-3.json",
+      "sha256": "3b9b2b2050d086ea577452057826afa261566ed98e759711229c4898ca9328c7",
+      "media_type": "application/json",
+      "created_by": "agent:codex-cli-skill-operator",
+      "created_at": "2026-06-23T16:58:02+08:00",
+      "refs": [
+        "ART-TASK-0014-0003",
+        "ART-TASK-0014-HANDOFF-d18d3c0ae0a8",
+        "EVT-TASK-0014-0012",
+        "EVT-TASK-0014-0013",
+        ".runtime/ahra-runs/probes/RUN-codex-cli-clean-165552"
+      ]
     }
   ]
 }

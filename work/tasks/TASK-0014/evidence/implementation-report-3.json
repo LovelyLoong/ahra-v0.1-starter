@@ -1,0 +1,93 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0014",
+  "report_id": "TASK-0014-implementation-report-3",
+  "created_by": "agent:codex-cli-skill-operator",
+  "created_at": "2026-06-23T16:58:02+08:00",
+  "summary": "A post-commit live codex-cli workflow probe exposed one additional blocker: semantic reviewer and planner requests did not carry workspace_ref, so Codex CLI reviewers could run without --cd and inspect the wrong directory. The driver request boundary was fixed, covered by unit tests, committed, and then verified by a successful standard-harness plus codex-cli live run.",
+  "blocker_found": {
+    "kind": "reviewer_workspace_context_missing",
+    "failed_probe_artifact": ".runtime/ahra-runs/probes/RUN-codex-cli-clean-164519",
+    "symptom": "Attempt 1 deterministic evidence passed, but Codex reviewer reported workflow-live-probe.txt missing because the reviewer process did not run in the isolated workspace.",
+    "root_cause": "review_task, review_goal, and propose_next_steps did not set AgentRunRequest.workspace_ref, so CodexCLIDriver could not pass --cd to codex exec for reviewer and planner roles.",
+    "cleanup": "The timed-out probe worktree and its temporary branch were removed."
+  },
+  "implemented_changes": [
+    {
+      "area": "reviewer and planner workspace context",
+      "files": [
+        "src/ahra/reference_runner/driver.py",
+        "src/ahra/reference_runner/standard_harness.py",
+        "src/ahra/reference_runner/loop_engineering.py"
+      ],
+      "details": [
+        "review_task now requires workspace and sets AgentRunRequest.workspace_ref.",
+        "review_goal now requires workspace and sets AgentRunRequest.workspace_ref.",
+        "propose_next_steps now requires workspace and sets AgentRunRequest.workspace_ref.",
+        "standard-harness and loop-engineering pass their current execution workspace into these calls."
+      ]
+    },
+    {
+      "area": "regression coverage",
+      "files": [
+        "tests/test_driver_requests.py"
+      ],
+      "details": [
+        "Added a boundary test proving task reviewer, goal reviewer, and planner requests include the same workspace_ref."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "command": "uv run python -B -m unittest tests.test_driver_requests tests.test_reference_runner tests.test_codex_cli_driver -v",
+      "result": "pass",
+      "notes": "16 targeted tests passed."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "result": "pass",
+      "notes": "AWKP lint passed and 57 unit tests passed."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "result": "pass",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "notes": "Exit code 0."
+    },
+    {
+      "command": "uv run ahra workflow start C:\\Users\\SkyUser\\AppData\\Local\\Temp\\RUN-codex-cli-clean-165552.yaml",
+      "result": "pass",
+      "notes": "LASTEXITCODE=0. Returned ok:true, module_id standard-harness, driver_ref codex-cli, status accepted. Artifact: .runtime/ahra-runs/probes/RUN-codex-cli-clean-165552. Workflow commit: 6fdb324072d43e8d21ae5ee36d8444244f715a11. Base checkpoint: c6a6e253b086cf0a9b53aabe90293d9fdb112f9c."
+    }
+  ],
+  "current_workflow_usability": {
+    "status": "usable_for_standard_harness_on_a_clean_local_workspace",
+    "required_preconditions": [
+      "Source worktree is clean.",
+      "driverRef is codex-cli for real local runs or fake-reference is explicitly enabled only for fixtures.",
+      "Local codex CLI is installed and authenticated.",
+      "artifactDir is unique or empty."
+    ],
+    "confirmed_by": ".runtime/ahra-runs/probes/RUN-codex-cli-clean-165552"
+  },
+  "remaining_limits": [
+    "TASK-0014 remains in review; the producer has not marked it complete.",
+    "Dirty-source snapshot execution is not implemented. The intended operation is commit or stash before starting a workflow run.",
+    "Repeated example runs still need a fresh artifactDir or manual cleanup.",
+    "Live codex-cli runs can take minutes and depend on local Codex authentication and model availability."
+  ],
+  "commits": [
+    {
+      "sha": "3218e09bc249b4dd5c4eb24545d17cfc79451a1b",
+      "subject": "Implement CLI workflow entrypoint and Codex driver"
+    },
+    {
+      "sha": "c6a6e253b086cf0a9b53aabe90293d9fdb112f9c",
+      "subject": "Pass workflow workspace to reviewers"
+    }
+  ]
+}
