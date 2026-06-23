@@ -57,6 +57,7 @@ async def review_task(
     report: WorkReport,
     evidence: DeterministicEvidence,
     patch_text: str,
+    workspace: Path,
     run_id: str,
 ) -> ReviewResult:
     result = await driver.run(
@@ -64,6 +65,7 @@ async def review_task(
             role=AgentRole.TASK_REVIEWER,
             run_id=run_id,
             expected_output="ReviewResult",
+            workspace_ref=str(workspace),
             payload={
                 "task": task,
                 "report": report,
@@ -82,6 +84,7 @@ async def review_goal(
     task_results: tuple[TaskRunResult, ...],
     evidence: DeterministicEvidence,
     patch_text: str,
+    workspace: Path,
     run_id: str,
 ) -> GoalReviewResult:
     result = await driver.run(
@@ -89,6 +92,7 @@ async def review_goal(
             role=AgentRole.GOAL_REVIEWER,
             run_id=run_id,
             expected_output="GoalReviewResult",
+            workspace_ref=str(workspace),
             payload={
                 "goal": goal,
                 "task_results": task_results,
@@ -107,6 +111,7 @@ async def propose_next_steps(
     task_results: tuple[TaskRunResult, ...],
     evidence: DeterministicEvidence,
     goal_review: GoalReviewResult,
+    workspace: Path,
     run_id: str,
 ) -> NextStepDecision:
     result = await driver.run(
@@ -114,6 +119,7 @@ async def propose_next_steps(
             role=AgentRole.PLANNER,
             run_id=run_id,
             expected_output="NextStepDecision",
+            workspace_ref=str(workspace),
             payload={
                 "goal": goal,
                 "task_results": task_results,

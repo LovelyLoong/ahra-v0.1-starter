@@ -186,6 +186,7 @@ class LoopEngine:
                 task_results=tuple(completed),
                 evidence=evidence,
                 patch_text=full_patch,
+                workspace=workspace_path,
                 run_id=run_id,
             )
             goal_review = enforce_goal_review_contract(goal, goal_review)
@@ -249,6 +250,7 @@ class LoopEngine:
                 task_results=tuple(completed),
                 evidence=evidence,
                 goal_review=goal_review,
+                workspace=workspace_path,
                 run_id=run_id,
             )
             store.write_artifact(

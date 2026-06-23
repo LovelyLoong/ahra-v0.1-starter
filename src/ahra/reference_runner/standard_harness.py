@@ -186,6 +186,7 @@ class TaskHarness:
                         report=report,
                         evidence=evidence,
                         patch_text=full_patch,
+                        workspace=workspace,
                         run_id=run_id,
                     )
                     review = enforce_task_review_contract(task, review)
