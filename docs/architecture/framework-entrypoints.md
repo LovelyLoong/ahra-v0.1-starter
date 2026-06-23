@@ -101,7 +101,12 @@ default entrypoint.
 For the starter's local profile, run-owned Git worktree isolation is sufficient
 as the default boundary.
 
-This protects the source worktree from direct mutation by workflow modules. It
-does not claim process, network, host, or secret isolation. Stronger runtime
-sandboxing remains a future adapter behind existing ports and should not block
-the local template route.
+This protects the source worktree from direct mutation while the module is
+executing. For a formal AWKP task run, the reference runner fast-forwards the
+source workspace only after deterministic and semantic gates pass and after the
+task review evidence has been written. That source update moves the task to
+`review`, not `completed`.
+
+The local profile does not claim process, network, host, or secret isolation.
+Stronger runtime sandboxing remains a future adapter behind existing ports and
+should not block the local template route.

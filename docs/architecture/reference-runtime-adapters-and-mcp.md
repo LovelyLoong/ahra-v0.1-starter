@@ -104,10 +104,20 @@ against the stored start request and reads the effective workspace from the
 stored run result. A resume request must not silently switch to a different
 workspace.
 
-Accepted commits remain on the run-owned branch until a human or authorized
-deployment workflow merges, publishes, or deletes them. The runner should not
-remove the isolated worktree automatically while the run is awaiting review,
-approval, or resume.
+Standalone fixture or exploratory runs may leave accepted commits on the
+run-owned branch until a human or authorized workflow acts on them.
+
+Formal AWKP task runs are different. When `workspaceRef` contains
+`work/tasks/<TASK-ID>` for the requested task, the reference runner must treat
+the run as authoritative local workflow execution: it preflights task state,
+dependency completion, and active lease absence; executes inside a run-owned
+worktree; publishes workflow evidence and a handoff back to the task; moves the
+task to `review`; and fast-forwards the source workspace to the accepted run
+branch. It still must not mark the AWKP task `completed`; completion remains an
+EvidenceGate verifier decision.
+
+The runner should not remove the isolated worktree automatically while the run
+is awaiting review, approval, or resume.
 
 # Resume Contract
 

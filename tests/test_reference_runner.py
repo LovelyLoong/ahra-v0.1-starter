@@ -217,6 +217,115 @@ def _init_repo(root: Path) -> Path:
     return repo
 
 
+def _write_awkp_task(repo: Path, *, state: str = "ready", depends_on: tuple[str, ...] = ()) -> Path:
+    task_id = "TASK-9001"
+    task_dir = repo / "work" / "tasks" / task_id
+    task_dir.mkdir(parents=True)
+    (task_dir / "handoffs").mkdir()
+    depends = "[" + ", ".join(depends_on) + "]"
+    (task_dir / "task.md").write_text(
+        "\n".join(
+            [
+                "---",
+                "type: WorkItem",
+                f"id: {task_id}",
+                "schema_version: awkp/0.1",
+                "title: Set value to 2 through formal workflow",
+                "description: Exercise formal AWKP workflow publication.",
+                "context_id: CTX-test",
+                "priority: P1",
+                "risk_level: R1",
+                "requester: human:test",
+                "reviewer: agent:verifier",
+                "created_at: 2026-06-23T00:00:00Z",
+                f"depends_on: {depends}",
+                "input_refs: []",
+                "output_contract:",
+                "  - kind: code_change",
+                "---",
+                "",
+                "# Goal",
+                "",
+                "Set VALUE to 2.",
+                "",
+                "# Scope",
+                "",
+                "- Update value.py only.",
+                "",
+                "# Non-goals",
+                "",
+                "- Do not complete the task without EvidenceGate.",
+                "",
+                "# Acceptance criteria",
+                "",
+                "- [ ] VALUE equals 2.",
+                "",
+                "# Verification method",
+                "",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (task_dir / "state.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "awkp/0.1",
+                "task_id": task_id,
+                "context_id": "CTX-test",
+                "state": state,
+                "state_version": 1,
+                "owner": None,
+                "attempt": 0,
+                "lease": None,
+                "next_action": "Run formal workflow.",
+                "pause_reason": None,
+                "blockers": [],
+                "artifact_refs": [],
+                "evidence_refs": [],
+                "updated_at": "2026-06-23T00:00:00Z",
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (task_dir / "artifact-manifest.json").write_text(
+        json.dumps({"schema_version": "awkp/0.1", "task_id": task_id, "artifacts": []}, indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
+    (task_dir / "evidence-manifest.json").write_text(
+        json.dumps({"schema_version": "awkp/0.1", "task_id": task_id, "evidence": []}, indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
+    (task_dir / "events.jsonl").write_text(
+        json.dumps(
+            {
+                "schema_version": "awkp/0.1",
+                "event_id": f"EVT-{task_id}-0001",
+                "idempotency_key": f"{task_id}:create",
+                "task_id": task_id,
+                "context_id": "CTX-test",
+                "event_type": "task_created",
+                "actor": "human:test",
+                "occurred_at": "2026-06-23T00:00:00Z",
+                "causation_id": None,
+                "correlation_id": "CTX-test",
+                "from_state": None,
+                "to_state": state,
+                "reason": "Fixture task.",
+                "refs": ["task.md"],
+            },
+            separators=(",", ":"),
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return task_dir
+
+
 def _task() -> TaskSpec:
     return _task_for_value(2)
 
@@ -438,6 +547,103 @@ class WorkflowInvocationTests(unittest.TestCase):
                 (isolated_workspace / "value.py").read_text(encoding="utf-8"),
                 "VALUE = 2\n",
             )
+
+    def test_formal_awkp_task_run_integrates_source_and_moves_task_to_review(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task_dir = _write_awkp_task(repo)
+            _git(repo, "add", ".")
+            _git(
+                repo,
+                "-c",
+                "user.name=Test",
+                "-c",
+                "user.email=test@example.invalid",
+                "commit",
+                "-q",
+                "-m",
+                "add formal task",
+            )
+            registry = AgentDriverRegistry()
+            registry.register("fake-reference", FakeDriver())
+            request = workflow_run_request_from_document(
+                {
+                    "apiVersion": "ahra.dev/v1alpha1",
+                    "kind": "WorkflowRunRequest",
+                    "metadata": {"name": "formal-task-loader"},
+                    "spec": {
+                        "moduleId": "standard-harness",
+                        "input": {"taskRef": str(task_dir / "task.md")},
+                        "workspaceRef": str(repo),
+                        "driverRef": "fake-reference",
+                        "storeRef": "local-file",
+                        "artifactDir": str(Path(temp) / "artifacts"),
+                        "runId": "RUN-formal-awkp",
+                        "approvalMode": "manual",
+                    },
+                }
+            )
+            result = asyncio.run(run_workflow(request, drivers=registry))
+            self.assertEqual(result.status, WorkflowOutcome.ACCEPTED)
+            self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 2\n")
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "review")
+            self.assertIsNone(state["lease"])
+            self.assertTrue(state["artifact_refs"])
+            self.assertTrue(state["evidence_refs"])
+            self.assertTrue(any(path.name.startswith("HANDOFF-") for path in (task_dir / "handoffs").glob("*.md")))
+            source_events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertEqual(source_events[-1]["event_type"], "review_requested")
+            run_events = [
+                json.loads(line)
+                for line in (Path(result.artifact_dir) / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertTrue(
+                any(event["type"] == "dev.ahra.workflow.source_workspace_integrated.v1" for event in run_events)
+            )
+
+    def test_formal_awkp_task_requires_ready_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task_dir = _write_awkp_task(repo, state="queued")
+            _git(repo, "add", ".")
+            _git(
+                repo,
+                "-c",
+                "user.name=Test",
+                "-c",
+                "user.email=test@example.invalid",
+                "commit",
+                "-q",
+                "-m",
+                "add queued task",
+            )
+            registry = AgentDriverRegistry()
+            registry.register("fake-reference", FakeDriver())
+            request = workflow_run_request_from_document(
+                {
+                    "apiVersion": "ahra.dev/v1alpha1",
+                    "kind": "WorkflowRunRequest",
+                    "metadata": {"name": "queued-task"},
+                    "spec": {
+                        "moduleId": "standard-harness",
+                        "input": {"taskRef": str(task_dir / "task.md")},
+                        "workspaceRef": str(repo),
+                        "driverRef": "fake-reference",
+                        "storeRef": "local-file",
+                        "artifactDir": str(Path(temp) / "artifacts"),
+                        "approvalMode": "manual",
+                    },
+                }
+            )
+            with self.assertRaisesRegex(ValueError, "requires AWKP task state 'ready'"):
+                asyncio.run(run_workflow(request, drivers=registry))
+            self.assertFalse((Path(temp) / "artifacts").exists())
 
     def test_run_workflow_rejects_invalid_direct_request_before_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

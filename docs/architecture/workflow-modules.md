@@ -69,8 +69,10 @@ contracts and ports.
   Evidence gates.
 - A reviewer PASS is not enough unless the host code verifies criterion
   coverage and internal consistency.
-- Accepted changes stay in isolated artifacts or branches until a human or
-  authorized deployment workflow acts on them.
+- Formal AWKP task runs must publish accepted changes and review evidence back
+  to the source workspace after gates pass, then leave completion to
+  EvidenceGate. Standalone fixture or exploratory runs may keep accepted
+  changes in isolated artifacts or branches.
 - The reference runner must treat `workspaceRef` as a source workspace and run
   module mutations only inside a run-owned isolated workspace.
 

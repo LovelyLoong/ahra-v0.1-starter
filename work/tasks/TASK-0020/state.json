@@ -1,0 +1,16 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0020",
+  "context_id": "CTX-ahra-workflow-retention-cleanup",
+  "state": "queued",
+  "state_version": 1,
+  "owner": null,
+  "attempt": 0,
+  "lease": null,
+  "next_action": "Wait for TASK-0019 to complete, then define workflow retention and cleanup.",
+  "pause_reason": "dependency",
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-06-24T00:17:00+08:00"
+}

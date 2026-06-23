@@ -15,6 +15,13 @@ from ahra.ports import AgentDriver, AgentDriverRegistry
 from ahra.workflow_modules import WorkflowModuleRegistry, load_workflow_module_registry
 
 from .git_ops import LocalGitWorkspaceProvider, WorktreeManager
+from .awkp_task import (
+    assert_awkp_task_ready,
+    claim_awkp_task_in_workspace,
+    find_awkp_task_binding,
+    publish_awkp_review_in_workspace,
+    task_from_awkp_markdown,
+)
 from .loop_engineering import LoopEngine
 from .models import (
     ChangePolicy,
@@ -200,6 +207,9 @@ async def run_workflow(
     should_isolate_workspace = workspace_provider is None
     workspace_provider = workspace_provider or LocalGitWorkspaceProvider()
     runtime_provider = runtime_provider or LocalRuntimeProvider()
+    awkp_binding = find_awkp_task_binding(request.workspace_ref, request.task)
+    if awkp_binding is not None:
+        assert_awkp_task_ready(awkp_binding)
     run_id = request.run_id or f"RUN-{uuid4().hex}"
     artifact_dir = Path(request.artifact_dir or f".runtime/ahra-runs/{run_id}")
     store = FileRunStore(artifact_dir)
@@ -218,6 +228,18 @@ async def run_workflow(
         execution_workspace_ref = str(workspace_record["effective_workspace_ref"])
         branch = str(workspace_record["branch"])
         base_commit = str(workspace_record["base_commit"])
+    if awkp_binding is not None:
+        claim_awkp_task_in_workspace(execution_workspace_ref, awkp_binding.task_id, run_id)
+        claim_commit = workspace_provider.commit_all(
+            execution_workspace_ref,
+            f"ahra({awkp_binding.task_id}): claim formal workflow run",
+        )
+        store.event(
+            "awkp_task_claimed",
+            task_id=awkp_binding.task_id,
+            run_id=run_id,
+            commit=claim_commit,
+        )
     effective_request = replace(
         request,
         run_id=run_id,
@@ -258,6 +280,35 @@ async def run_workflow(
         run_id=run_id,
         store=store,
     )
+    if awkp_binding is not None and isinstance(result, TaskRunResult):
+        if result.status == WorkflowOutcome.ACCEPTED:
+            publish_awkp_review_in_workspace(execution_workspace_ref, result=result)
+            final_commit = workspace_provider.commit_all(
+                execution_workspace_ref,
+                f"ahra({result.task_id}): publish workflow review evidence",
+            )
+            result = replace(result, commit=final_commit)
+            if workspace_record is not None:
+                integrated_head = _fast_forward_source_workspace(
+                    workspace_provider,
+                    request.workspace_ref,
+                    branch,
+                )
+                store.event(
+                    "source_workspace_integrated",
+                    task_id=result.task_id,
+                    run_id=run_id,
+                    branch=branch,
+                    source_workspace_ref=request.workspace_ref,
+                    commit=integrated_head,
+                )
+        else:
+            store.event(
+                "awkp_task_not_integrated",
+                task_id=awkp_binding.task_id,
+                run_id=run_id,
+                status=str(result.status),
+            )
 
     store.write_artifact(
         "workflow-run-result.json",
@@ -592,6 +643,8 @@ def _load_ref(ref: Any, base_dir: Path | None, key: str) -> dict[str, Any]:
     path = Path(str(ref))
     if not path.is_absolute() and base_dir is not None:
         path = base_dir / path
+    if key == "task" and path.suffix.lower() == ".md":
+        return to_jsonable(task_from_awkp_markdown(path))
     document = yaml.safe_load(path.read_text(encoding="utf-8"))
     return _unwrap_named(document, key)
 
@@ -751,6 +804,13 @@ def _create_isolated_workspace(
         "branch": workspace.branch,
         "base_commit": workspace.base_commit,
     }
+
+
+def _fast_forward_source_workspace(workspace_provider: Any, workspace_ref: str, branch: str) -> str:
+    fast_forward = getattr(workspace_provider, "fast_forward", None)
+    if fast_forward is None:
+        return LocalGitWorkspaceProvider().fast_forward(workspace_ref, branch)
+    return str(fast_forward(workspace_ref, branch))
 
 
 def _stored_execution_workspace_ref(stored_result: dict[str, Any]) -> str:

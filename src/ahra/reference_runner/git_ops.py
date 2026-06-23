@@ -206,6 +206,12 @@ def commit_all(repo: Path, message: str) -> str:
     return current_head(repo)
 
 
+def fast_forward(repo: Path, ref: str) -> str:
+    ensure_clean_worktree(repo)
+    run_git(repo, "merge", "--ff-only", ref)
+    return current_head(repo)
+
+
 class LocalGitWorkspaceProvider:
     """Reference WorkspaceProvider backed by a local Git worktree."""
 
@@ -232,3 +238,6 @@ class LocalGitWorkspaceProvider:
 
     def commit_all(self, workspace_ref: str, message: str) -> str:
         return commit_all(Path(workspace_ref), message)
+
+    def fast_forward(self, workspace_ref: str, ref: str) -> str:
+        return fast_forward(Path(workspace_ref), ref)

@@ -1,0 +1,16 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0015",
+  "context_id": "CTX-ahra-workflow-max-attempts",
+  "state": "ready",
+  "state_version": 1,
+  "owner": null,
+  "attempt": 0,
+  "lease": null,
+  "next_action": "Claim with CAS and implement bounded workflow failure attempts.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-06-24T00:17:00+08:00"
+}

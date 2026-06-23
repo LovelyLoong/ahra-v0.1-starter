@@ -1,0 +1,16 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0018",
+  "context_id": "CTX-ahra-runtime-profile-capabilities",
+  "state": "queued",
+  "state_version": 1,
+  "owner": null,
+  "attempt": 0,
+  "lease": null,
+  "next_action": "Wait for TASK-0017 to complete, then implement the runtime profile capability skeleton.",
+  "pause_reason": "dependency",
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-06-24T00:17:00+08:00"
+}

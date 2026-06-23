@@ -224,11 +224,13 @@ def _inspect_workflow(artifact_dir: Path) -> dict[str, Any]:
         result[name] = _load_json(path) if path.exists() else None
     events_path = artifact_dir / "events.jsonl"
     if events_path.exists():
-        result["events"] = [
+        events = [
             json.loads(line)
             for line in events_path.read_text(encoding="utf-8").splitlines()
             if line.strip()
         ]
+        result["events"] = events
+        result["timeline"] = _workflow_timeline(events)
     return result
 
 
@@ -262,6 +264,47 @@ def _envelope_summary(envelope: Any) -> dict[str, Any]:
 
 def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _workflow_timeline(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    timeline = []
+    for event in events:
+        event_type = str(event.get("type") or "").removeprefix("dev.ahra.workflow.")
+        if event_type.endswith(".v1"):
+            event_type = event_type[:-3]
+        data = event.get("data") if isinstance(event.get("data"), dict) else {}
+        if event_type in {
+            "task_started",
+            "attempt_started",
+            "executor_started",
+            "executor_finished",
+            "deterministic_gate_started",
+            "deterministic_gate_finished",
+            "checks_started",
+            "checks_finished",
+            "reviewer_started",
+            "reviewer_output_invalid",
+            "reviewer_finished",
+            "commit_started",
+            "commit_finished",
+            "awkp_task_claimed",
+            "source_workspace_integrated",
+            "task_accepted",
+            "task_rejected",
+            "attempt_error",
+        }:
+            timeline.append(
+                {
+                    "time": event.get("time"),
+                    "step": event_type,
+                    "task_id": data.get("task_id"),
+                    "attempt": data.get("attempt"),
+                    "review_attempt": data.get("review_attempt"),
+                    "status": data.get("status") or data.get("review_verdict") or data.get("verdict"),
+                    "retryable": data.get("retryable"),
+                }
+            )
+    return timeline
 
 
 def _requested_value(task: Any) -> int | None:

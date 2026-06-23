@@ -27,6 +27,10 @@ workflow module such as `standard-harness` or `loop-engineering`.
 - Record run id, status, artifact directory, and evidence refs.
 - Do not declare an AWKP Task completed. Completion is decided by the evidence
   gate and independent verifier.
+- When a request targets an existing AWKP task under `workspaceRef`, treat it
+  as a formal run: the task must be `ready`, dependencies must be completed,
+  no active lease may exist, and an accepted run should update the source
+  workspace task to `review` with workflow evidence and a handoff.
 - If the request is ambiguous, ask for the missing request file, module id,
   workspace ref, or driver ref.
 
@@ -56,7 +60,9 @@ spec:
 4. Resolve `driverRef` through `AgentDriverRegistry`.
 5. Call `uv run ahra workflow start <request>`.
 6. Inspect generated artifact and evidence manifests.
-7. Report factual status and blockers.
+7. For formal AWKP task runs, inspect the source task state and confirm it is
+   `review`, not `completed`, before reporting status.
+8. Report factual status and blockers.
 
 ## Resume Procedure
 
