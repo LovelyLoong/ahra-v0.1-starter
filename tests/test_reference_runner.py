@@ -100,6 +100,16 @@ class FakeDriver(AgentDriver):
         raise AssertionError(f"unexpected role: {request.role}")
 
 
+class PrepublishingAwkpDriver(FakeDriver):
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        result = await super().run(request)
+        if request.role == AgentRole.EXECUTOR:
+            workspace = Path(str(request.workspace_ref))
+            task = request.payload["task"]
+            _publish_fixture_awkp_review(workspace, task.id, str(request.run_id))
+        return result
+
+
 class PlanningDriver(AgentDriver):
     def __init__(self) -> None:
         self.planner_calls = 0
@@ -411,6 +421,132 @@ def _write_awkp_task(
         encoding="utf-8",
     )
     return task_dir
+
+
+def _publish_fixture_awkp_review(workspace: Path, task_id: str, run_id: str) -> None:
+    task_dir = workspace / "work" / "tasks" / task_id
+    now = "2026-06-23T00:01:00Z"
+    report_name = "implementation-report.json"
+    report_path = task_dir / "evidence" / report_name
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_bytes = (
+        json.dumps(
+            {
+                "schema_version": "ahra/test-implementation-report/0.1",
+                "task_id": task_id,
+                "run_id": run_id,
+                "summary": "Executor prepublished task-local review evidence.",
+            },
+            indent=2,
+        )
+        + "\n"
+    ).encode("utf-8")
+    report_path.write_bytes(report_bytes)
+    report_digest = hashlib.sha256(report_bytes).hexdigest()
+
+    artifact_id = f"ART-{task_id}-0001"
+    evidence_id = f"EVD-{task_id}-0001"
+    artifact_manifest_path = task_dir / "artifact-manifest.json"
+    evidence_manifest_path = task_dir / "evidence-manifest.json"
+    artifact_manifest = json.loads(artifact_manifest_path.read_text(encoding="utf-8"))
+    evidence_manifest = json.loads(evidence_manifest_path.read_text(encoding="utf-8"))
+    artifact_manifest["artifacts"].append(
+        {
+            "artifact_id": artifact_id,
+            "task_id": task_id,
+            "kind": "implementation_report",
+            "name": report_name,
+            "uri": f"local://evidence/{report_name}",
+            "sha256": report_digest,
+            "media_type": "application/json",
+            "created_by": f"agent:executor:{run_id}",
+            "created_at": now,
+            "input_refs": ["task.md"],
+            "evidence_refs": [evidence_id],
+            "supersedes": None,
+        }
+    )
+    evidence_manifest["evidence"].append(
+        {
+            "evidence_id": evidence_id,
+            "task_id": task_id,
+            "kind": "implementation_report",
+            "name": report_name,
+            "uri": f"local://evidence/{report_name}",
+            "sha256": report_digest,
+            "media_type": "application/json",
+            "created_by": f"agent:executor:{run_id}",
+            "created_at": now,
+            "refs": [artifact_id],
+        }
+    )
+    artifact_manifest_path.write_text(json.dumps(artifact_manifest, indent=2) + "\n", encoding="utf-8")
+    evidence_manifest_path.write_text(json.dumps(evidence_manifest, indent=2) + "\n", encoding="utf-8")
+
+    handoff_path = task_dir / "handoffs" / "HANDOFF-0001.md"
+    handoff_path.parent.mkdir(parents=True, exist_ok=True)
+    handoff_path.write_text(
+        "\n".join(
+            [
+                "---",
+                "type: Handoff",
+                f"id: HANDOFF-{task_id}-0001",
+                "schema_version: awkp/0.1",
+                "title: Fixture prepublished review",
+                f"created_at: {now}",
+                f"source_refs: [../task.md, ../state.json, ../evidence/{report_name}]",
+                "---",
+                "",
+                "# Status",
+                "",
+                "Executor prepublished review evidence before the harness finalizer.",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    event_path = task_dir / "events.jsonl"
+    for index, event_type in enumerate(("artifact_published", "review_requested"), start=3):
+        with event_path.open("a", encoding="utf-8") as handle:
+            handle.write(
+                json.dumps(
+                    {
+                        "schema_version": "awkp/0.1",
+                        "event_id": f"EVT-{task_id}-{index:04d}",
+                        "idempotency_key": f"{task_id}:fixture:{event_type}:{run_id}",
+                        "task_id": task_id,
+                        "context_id": "CTX-test",
+                        "event_type": event_type,
+                        "actor": f"agent:executor:{run_id}",
+                        "occurred_at": now,
+                        "causation_id": f"EVT-{task_id}-0002" if index == 3 else f"EVT-{task_id}-0003",
+                        "correlation_id": "CTX-test",
+                        "from_state": "working" if index == 3 else "working",
+                        "to_state": "working" if index == 3 else "review",
+                        "reason": "Fixture executor prepublished review evidence.",
+                        "refs": ["state.json", f"evidence/{report_name}"],
+                    },
+                    separators=(",", ":"),
+                )
+                + "\n"
+            )
+
+    state_path = task_dir / "state.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state.update(
+        {
+            "state": "review",
+            "state_version": int(state["state_version"]) + 1,
+            "owner": None,
+            "lease": None,
+            "next_action": "Run independent EvidenceGate review.",
+            "artifact_refs": [artifact_id],
+            "evidence_refs": [evidence_id],
+            "updated_at": now,
+        }
+    )
+    state_path.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
 
 
 def _task() -> TaskSpec:
@@ -826,6 +962,70 @@ class WorkflowInvocationTests(unittest.TestCase):
                 if line.strip()
             ]
             self.assertEqual(source_events[-1]["event_type"], "review_requested")
+            run_events = [
+                json.loads(line)
+                for line in (Path(result.artifact_dir) / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertTrue(
+                any(event["type"] == "dev.ahra.workflow.source_workspace_integrated.v1" for event in run_events)
+            )
+
+    def test_formal_awkp_task_accepts_agent_prepublished_review_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task_dir = _write_awkp_task(repo)
+            _git(repo, "add", ".")
+            _git(
+                repo,
+                "-c",
+                "user.name=Test",
+                "-c",
+                "user.email=test@example.invalid",
+                "commit",
+                "-q",
+                "-m",
+                "add formal task",
+            )
+            registry = AgentDriverRegistry()
+            registry.register("prepublishing-reference", PrepublishingAwkpDriver())
+            request = workflow_run_request_from_document(
+                {
+                    "apiVersion": "ahra.dev/v1alpha1",
+                    "kind": "WorkflowRunRequest",
+                    "metadata": {"name": "formal-task-prepublished-review"},
+                    "spec": {
+                        "moduleId": "standard-harness",
+                        "input": {"taskRef": str(task_dir / "task.md")},
+                        "workspaceRef": str(repo),
+                        "driverRef": "prepublishing-reference",
+                        "storeRef": "local-file",
+                        "artifactDir": str(Path(temp) / "artifacts"),
+                        "runId": "RUN-formal-awkp-prepublished-review",
+                        "approvalMode": "manual",
+                    },
+                }
+            )
+            result = asyncio.run(run_workflow(request, drivers=registry))
+            self.assertEqual(result.status, WorkflowOutcome.ACCEPTED)
+            self.assertTrue((Path(result.artifact_dir) / "workflow-run-result.json").exists())
+            self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 2\n")
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "review")
+            self.assertIsNone(state["lease"])
+            artifact_manifest = json.loads((task_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
+            artifact_names = {record["name"] for record in artifact_manifest["artifacts"]}
+            self.assertIn("implementation-report.json", artifact_names)
+            self.assertIn("workflow-run-RUN-formal-awkp-prepublished-review.json", artifact_names)
+            handoff_names = {path.name for path in (task_dir / "handoffs").glob("HANDOFF-*.md")}
+            self.assertGreaterEqual(len(handoff_names), 2)
+            source_events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertEqual(source_events[-1]["event_type"], "review_requested")
+            self.assertEqual(source_events[-1]["from_state"], "review")
             run_events = [
                 json.loads(line)
                 for line in (Path(result.artifact_dir) / "events.jsonl").read_text(encoding="utf-8").splitlines()

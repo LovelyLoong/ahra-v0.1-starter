@@ -141,8 +141,7 @@ def publish_awkp_review_in_workspace(
     state_path = task_dir / "state.json"
     event_path = task_dir / "events.jsonl"
     state = _load_json(state_path)
-    if state.get("state") != "working":
-        raise AwkpTaskError(f"cannot publish review for {result.task_id}; state is {state.get('state')!r}")
+    from_state = _publishable_state(result.task_id, state, "review")
 
     now = _now()
     report_name = f"workflow-run-{result.run_id}.json"
@@ -169,8 +168,8 @@ def publish_awkp_review_in_workspace(
             "occurred_at": now,
             "causation_id": _last_event_id(event_path),
             "correlation_id": state.get("context_id"),
-            "from_state": "working",
-            "to_state": "working",
+            "from_state": from_state,
+            "to_state": from_state,
             "reason": f"Published workflow run report for {result.run_id}.",
             "refs": ["artifact-manifest.json", "evidence-manifest.json", f"evidence/{report_name}"],
         },
@@ -189,7 +188,7 @@ def publish_awkp_review_in_workspace(
             "occurred_at": now,
             "causation_id": artifact_event_id,
             "correlation_id": state.get("context_id"),
-            "from_state": "working",
+            "from_state": from_state,
             "to_state": "review",
             "reason": "Workflow run passed deterministic and semantic gates; EvidenceGate review remains required.",
             "refs": ["state.json", handoff_ref, f"evidence/{report_name}"],
@@ -224,8 +223,7 @@ def publish_awkp_failure_in_workspace(
     state_path = task_dir / "state.json"
     event_path = task_dir / "events.jsonl"
     state = _load_json(state_path)
-    if state.get("state") != "working":
-        raise AwkpTaskError(f"cannot publish failure for {result.task_id}; state is {state.get('state')!r}")
+    from_state = _publishable_state(result.task_id, state, "failure")
 
     now = _now()
     report_name = f"workflow-run-{result.run_id}-failure.json"
@@ -259,8 +257,8 @@ def publish_awkp_failure_in_workspace(
             "occurred_at": now,
             "causation_id": _last_event_id(event_path),
             "correlation_id": state.get("context_id"),
-            "from_state": "working",
-            "to_state": "working",
+            "from_state": from_state,
+            "to_state": from_state,
             "reason": f"Published terminal workflow failure evidence for {result.run_id}.",
             "refs": ["artifact-manifest.json", "evidence-manifest.json", f"evidence/{report_name}"],
         },
@@ -279,7 +277,7 @@ def publish_awkp_failure_in_workspace(
             "occurred_at": now,
             "causation_id": artifact_event_id,
             "correlation_id": state.get("context_id"),
-            "from_state": "working",
+            "from_state": from_state,
             "to_state": "review",
             "reason": "Workflow run ended in terminal failure; user or verifier judgment is required.",
             "refs": ["state.json", handoff_ref, f"evidence/{report_name}"],
@@ -302,6 +300,15 @@ def publish_awkp_failure_in_workspace(
         }
     )
     _write_json(state_path, updated)
+
+
+def _publishable_state(task_id: str, state: dict[str, Any], action: str) -> str:
+    state_name = str(state.get("state"))
+    if state_name == "working":
+        return state_name
+    if state_name == "review" and not state.get("lease"):
+        return state_name
+    raise AwkpTaskError(f"cannot publish {action} for {task_id}; state is {state.get('state')!r}")
 
 
 def _write_report_records(
