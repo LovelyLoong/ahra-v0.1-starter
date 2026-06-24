@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import re
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -26,10 +26,14 @@ from .loop_engineering import LoopEngine
 from .models import (
     ChangePolicy,
     CheckSpec,
+    DEFAULT_MAX_ATTEMPTS,
+    ExecutionPolicy,
     GoalRunResult,
     GoalSpec,
+    MAX_MAX_ATTEMPTS,
     NextStepDecision,
     PlanAction,
+    SchedulerDecision,
     TaskRunResult,
     TaskSpec,
     WorkflowOutcome,
@@ -56,6 +60,7 @@ class WorkflowRunRequest:
     driver_ref: str
     store_ref: str
     approval_mode: str
+    scheduler_decision: SchedulerDecision = field(default_factory=SchedulerDecision)
     runtime_profile_ref: str | None = None
     task: TaskSpec | None = None
     goal: GoalSpec | None = None
@@ -143,6 +148,7 @@ def workflow_run_request_from_document(
         driver_ref=str(spec["driverRef"]),
         store_ref=str(spec["storeRef"]),
         approval_mode=str(spec["approvalMode"]),
+        scheduler_decision=_scheduler_decision_from_mapping(spec.get("schedulerDecision")),
         runtime_profile_ref=(
             str(spec["runtimeProfileRef"]) if spec.get("runtimeProfileRef") else None
         ),
@@ -196,6 +202,7 @@ async def run_workflow(
     runtime_provider=None,
 ) -> WorkflowRunEnvelope:
     validate_workflow_run_request(request)
+    request = _request_with_execution_policy(request)
     module_registry = module_registry or load_reference_workflow_module_registry()
     module = module_registry.get(request.module_id)
     handler = _REFERENCE_WORKFLOW_HANDLERS.get(module.module_id)
@@ -268,6 +275,27 @@ async def run_workflow(
             created_by="workflow-runner:reference",
             input_refs=[run_id, effective_request.workspace_ref, base_commit],
         )
+    scheduler_record = store.write_artifact(
+        "scheduler-decision.json",
+        effective_request.scheduler_decision,
+        task_id=subject_id,
+        kind="scheduler_decision",
+        media_type="application/json",
+        created_by="workflow-runner:reference",
+        input_refs=[run_id, effective_request.module_id],
+    )
+    store.event(
+        "scheduler_decision_recorded",
+        run_id=run_id,
+        task_id=subject_id,
+        scheduler=effective_request.scheduler_decision.scheduler,
+        artifact_id=scheduler_record["artifact_id"],
+        max_attempts=effective_request.scheduler_decision.execution_policy.max_attempts,
+        attempt_wall_timeout_seconds=(
+            effective_request.scheduler_decision.execution_policy.attempt_wall_timeout_seconds
+        ),
+        idle_timeout_seconds=effective_request.scheduler_decision.execution_policy.idle_timeout_seconds,
+    )
 
     result = await handler(
         request=effective_request,
@@ -459,6 +487,7 @@ async def resume_workflow(
         workspace_provider=workspace_provider,
         runtime_provider=runtime_provider,
         runtime_profile_ref=stored_request.runtime_profile_ref,
+        execution_policy=stored_request.scheduler_decision.execution_policy,
     ).run_goal(
         goal=_apply_approval_mode(stored_request.goal, stored_request.approval_mode),
         workspace_ref=execution_workspace_ref,
@@ -500,6 +529,7 @@ def validate_workflow_run_request(request: WorkflowRunRequest) -> None:
             "workflow run request approvalMode must be one of: "
             + ", ".join(sorted(ALLOWED_APPROVAL_MODES))
         )
+    _validate_execution_policy(request.scheduler_decision.execution_policy)
     if request.task and request.goal:
         raise ValueError("workflow run request cannot include both task and goal input")
     if request.module_id == "standard-harness":
@@ -554,6 +584,7 @@ async def _run_standard_harness(
         workspace_provider=workspace_provider,
         runtime_provider=runtime_provider,
         runtime_profile_ref=request.runtime_profile_ref,
+        execution_policy=request.scheduler_decision.execution_policy,
     ).run_task(
         task=request.task,
         workspace_ref=execution_workspace_ref,
@@ -583,6 +614,7 @@ async def _run_loop_engineering(
         workspace_provider=workspace_provider,
         runtime_provider=runtime_provider,
         runtime_profile_ref=request.runtime_profile_ref,
+        execution_policy=request.scheduler_decision.execution_policy,
     ).run_goal(
         goal=goal,
         workspace_ref=execution_workspace_ref,
@@ -621,6 +653,65 @@ def _apply_approval_mode(goal: GoalSpec, approval_mode: str) -> GoalSpec:
     if approval_mode == "disabled":
         return replace(goal, dynamic_planning=False, auto_execute_proposed_tasks=False)
     raise ValueError(f"unsupported approvalMode: {approval_mode}")
+
+
+def _request_with_execution_policy(request: WorkflowRunRequest) -> WorkflowRunRequest:
+    policy = request.scheduler_decision.execution_policy
+    task = _task_with_execution_policy(request.task, policy)
+    goal = _goal_with_execution_policy(request.goal, policy)
+    return replace(request, task=task, goal=goal)
+
+
+def _goal_with_execution_policy(goal: GoalSpec | None, policy: ExecutionPolicy) -> GoalSpec | None:
+    if goal is None:
+        return None
+    return replace(
+        goal,
+        tasks=tuple(_task_with_execution_policy(task, policy) for task in goal.tasks),
+    )
+
+
+def _task_with_execution_policy(task: TaskSpec | None, policy: ExecutionPolicy) -> TaskSpec | None:
+    if task is None:
+        return None
+    return replace(task, max_attempts=policy.max_attempts)
+
+
+def _validate_execution_policy(policy: ExecutionPolicy) -> None:
+    if not 1 <= policy.max_attempts <= MAX_MAX_ATTEMPTS:
+        raise ValueError(
+            f"workflow execution policy maxAttempts must be between 1 and {MAX_MAX_ATTEMPTS}"
+        )
+
+
+def _scheduler_decision_from_mapping(data: Any) -> SchedulerDecision:
+    if data is None:
+        return SchedulerDecision()
+    if not isinstance(data, dict):
+        raise ValueError("workflow run request schedulerDecision must be an object")
+    return SchedulerDecision(
+        scheduler=str(data.get("scheduler", "agent:current-user-agent")),
+        rationale=str(data.get("rationale", "Use default bounded local workflow execution policy.")),
+        escalation_policy=str(
+            data.get("escalationPolicy", "ask_user_on_idle_timeout_or_policy_violation")
+        ),
+        execution_policy=_execution_policy_from_mapping(data.get("executionPolicy")),
+    )
+
+
+def _execution_policy_from_mapping(data: Any) -> ExecutionPolicy:
+    if data is None:
+        return ExecutionPolicy()
+    if not isinstance(data, dict):
+        raise ValueError("workflow run request executionPolicy must be an object")
+    return ExecutionPolicy(
+        max_attempts=int(data.get("maxAttempts", DEFAULT_MAX_ATTEMPTS)),
+        startup_timeout_seconds=int(data.get("startupTimeoutSeconds", 120)),
+        idle_timeout_seconds=int(data.get("idleTimeoutSeconds", 900)),
+        heartbeat_interval_seconds=int(data.get("heartbeatIntervalSeconds", 60)),
+        attempt_wall_timeout_seconds=int(data.get("attemptWallTimeoutSeconds", 3600)),
+        run_deadline_seconds=int(data.get("runDeadlineSeconds", 7200)),
+    )
 
 
 def _load_task_input(input_spec: dict[str, Any], base_dir: Path | None) -> TaskSpec | None:
@@ -669,7 +760,7 @@ def _task_from_mapping(data: dict[str, Any]) -> TaskSpec:
         non_goals=tuple(data.get("non_goals", ())),
         checks=tuple(_check_from_mapping(item) for item in data.get("checks", ())),
         policy=_policy_from_mapping(data.get("policy", {})),
-        max_attempts=int(data.get("max_attempts", 2)),
+        max_attempts=int(data.get("max_attempts", DEFAULT_MAX_ATTEMPTS)),
         max_turns=int(data.get("max_turns", 25)),
     )
 
@@ -723,6 +814,11 @@ def _workflow_run_request_from_jsonable(data: dict[str, Any]) -> WorkflowRunRequ
         driver_ref=str(data["driver_ref"]),
         store_ref=str(data["store_ref"]),
         approval_mode=str(data["approval_mode"]),
+        scheduler_decision=(
+            _scheduler_decision_from_jsonable(data["scheduler_decision"])
+            if data.get("scheduler_decision")
+            else SchedulerDecision()
+        ),
         runtime_profile_ref=(
             str(data["runtime_profile_ref"]) if data.get("runtime_profile_ref") else None
         ),
@@ -732,6 +828,25 @@ def _workflow_run_request_from_jsonable(data: dict[str, Any]) -> WorkflowRunRequ
         run_id=str(data["run_id"]) if data.get("run_id") else None,
         branch=str(data["branch"]) if data.get("branch") else None,
         base_commit=str(data["base_commit"]) if data.get("base_commit") else None,
+    )
+
+
+def _scheduler_decision_from_jsonable(data: dict[str, Any]) -> SchedulerDecision:
+    policy = data.get("execution_policy", {})
+    return SchedulerDecision(
+        scheduler=str(data.get("scheduler", "agent:current-user-agent")),
+        rationale=str(data.get("rationale", "Use default bounded local workflow execution policy.")),
+        escalation_policy=str(
+            data.get("escalation_policy", "ask_user_on_idle_timeout_or_policy_violation")
+        ),
+        execution_policy=ExecutionPolicy(
+            max_attempts=int(policy.get("max_attempts", DEFAULT_MAX_ATTEMPTS)),
+            startup_timeout_seconds=int(policy.get("startup_timeout_seconds", 120)),
+            idle_timeout_seconds=int(policy.get("idle_timeout_seconds", 900)),
+            heartbeat_interval_seconds=int(policy.get("heartbeat_interval_seconds", 60)),
+            attempt_wall_timeout_seconds=int(policy.get("attempt_wall_timeout_seconds", 3600)),
+            run_deadline_seconds=int(policy.get("run_deadline_seconds", 7200)),
+        ),
     )
 
 

@@ -27,6 +27,10 @@ workflow module such as `standard-harness` or `loop-engineering`.
 - Record run id, status, artifact directory, and evidence refs.
 - Do not declare an AWKP Task completed. Completion is decided by the evidence
   gate and independent verifier.
+- When the current Agent starts a workflow, treat that Agent as the scheduling
+  Agent. It may set `schedulerDecision.executionPolicy` within the contract,
+  but it must not lower acceptance criteria, bypass evidence, or self-approve
+  completion.
 - When a request targets an existing AWKP task under `workspaceRef`, treat it
   as a formal run: the task must be `ready`, dependencies must be completed,
   no active lease may exist, and an accepted run should update the source
@@ -49,6 +53,17 @@ spec:
   driverRef: codex-python-sdk
   storeRef: local-file
   artifactDir: .runtime/ahra-runs/TASK-1234
+  schedulerDecision:
+    scheduler: agent:current-user-agent
+    rationale: Current Agent selected bounded local execution defaults.
+    escalationPolicy: ask_user_on_idle_timeout_or_policy_violation
+    executionPolicy:
+      maxAttempts: 2
+      startupTimeoutSeconds: 120
+      idleTimeoutSeconds: 900
+      heartbeatIntervalSeconds: 60
+      attemptWallTimeoutSeconds: 3600
+      runDeadlineSeconds: 7200
   approvalMode: manual
 ```
 

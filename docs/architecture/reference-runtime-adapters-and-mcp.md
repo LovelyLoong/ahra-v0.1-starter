@@ -98,6 +98,19 @@ the source workspace, base commit, branch, and effective isolated workspace in
 the run artifacts. It must fail closed if it cannot create or recover that
 workspace.
 
+The caller may include `schedulerDecision` in the run request. The reference
+runner stores that decision as `scheduler-decision.json` and applies its
+execution policy to bounded Agent phases. Long-running Agent work is allowed,
+but the runner emits heartbeat events and converts idle, attempt-wall-timeout,
+or run-deadline exhaustion into terminal failed results with failure evidence.
+
+Creating the isolated worktree does not require the source checkout to be
+clean. The isolated workspace is created from the selected base commit, so
+uncommitted source checkout changes are not part of the execution input.
+Fast-forwarding accepted results back into the source checkout still requires
+the source checkout to be clean; otherwise integration must fail closed instead
+of overwriting local work.
+
 Manual resume continues the same isolated worktree that the paused run used.
 The caller still provides the original `workspaceRef`; the runner verifies it
 against the stored start request and reads the effective workspace from the

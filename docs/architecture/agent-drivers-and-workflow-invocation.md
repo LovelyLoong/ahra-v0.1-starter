@@ -39,6 +39,7 @@ No workflow module may know which product implements the driver.
 - Which agent driver should perform role work.
 - Which artifact/evidence store receives outputs.
 - Whether planner output needs human approval.
+- Which scheduling decision and execution policy the calling Agent chose.
 
 `AgentDriver` is the stable execution port. It answers:
 
@@ -117,6 +118,19 @@ When a user asks an agent to start a workflow, the agent should:
 
 The launch agent is not the workflow implementation. It is only a caller of the
 runner API unless it is explicitly registered as a driver adapter.
+
+# Scheduling Boundary
+
+The Agent that starts a workflow is the scheduling Agent for that run. It may
+choose bounded execution parameters through `schedulerDecision`, including
+attempt count, heartbeat cadence, idle timeout, per-attempt wall timeout, and
+the overall run deadline. That decision is recorded as a run artifact so later
+inspection can distinguish policy from implementation behavior.
+
+The scheduling Agent does not own task state transitions or acceptance. The
+reference runner still owns the workflow state machine, lease-aware execution,
+artifacts, evidence, rollback, and terminal result records. AWKP completion
+still belongs to EvidenceGate and an independent verifier.
 
 # Adapter Rules
 

@@ -9,6 +9,7 @@ from .driver import propose_next_steps, review_goal
 from .git_ops import LocalGitWorkspaceProvider
 from .models import (
     DeterministicEvidence,
+    ExecutionPolicy,
     GoalRunResult,
     GoalSpec,
     PlanAction,
@@ -34,16 +35,19 @@ class LoopEngine:
         workspace_provider=None,
         runtime_provider=None,
         runtime_profile_ref: str | None = None,
+        execution_policy: ExecutionPolicy | None = None,
     ) -> None:
         self.driver = driver
         self.workspace_provider = workspace_provider or LocalGitWorkspaceProvider()
         self.runtime_provider = runtime_provider or LocalRuntimeProvider()
         self.runtime_profile_ref = runtime_profile_ref
+        self.execution_policy = execution_policy or ExecutionPolicy()
         self.task_harness = TaskHarness(
             driver,
             workspace_provider=self.workspace_provider,
             runtime_provider=self.runtime_provider,
             runtime_profile_ref=runtime_profile_ref,
+            execution_policy=self.execution_policy,
         )
 
     def _global_evidence(

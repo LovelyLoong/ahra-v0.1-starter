@@ -1,5 +1,66 @@
 {
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0001",
-  "artifacts": []
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0001-0001",
+      "task_id": "TASK-0001",
+      "kind": "verification_report",
+      "name": "verification-report.json",
+      "uri": "local://evidence/verification-report.json",
+      "sha256": "95d743c8c213ba35f7d556efe9db6da52b77234c6f82e64ce336551360301344",
+      "media_type": "application/json",
+      "created_by": "agent:codex-awkp-operator",
+      "created_at": "2026-06-24T10:25:00+08:00",
+      "input_refs": [
+        "task.md",
+        "../../../SPEC.md",
+        "../../../docs/policies/document-governance.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0001-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0001-HANDOFF-8a44abd49e23",
+      "task_id": "TASK-0001",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "8a44abd49e239020b734a127c372510661750aac3cdb89c417bcb4fc3f143d95",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-awkp-operator",
+      "created_at": "2026-06-24T10:25:00+08:00",
+      "input_refs": [
+        "task.md",
+        "evidence/verification-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0001-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0001-0002",
+      "task_id": "TASK-0001",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-6.json",
+      "uri": "local://evidence/evidence-gate-report-6.json",
+      "sha256": "c0fef542486e37a376dba8c341096b505d58b05e28d0bf9953d7dc2506415934",
+      "media_type": "application/json",
+      "created_by": "agent:codex-independent-verifier",
+      "created_at": "2026-06-24T02:27:13.524553Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0001-0002"
+      ],
+      "supersedes": null
+    }
+  ]
 }

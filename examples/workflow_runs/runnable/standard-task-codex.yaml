@@ -29,4 +29,15 @@ spec:
   driverRef: codex-python-sdk
   storeRef: local-file
   artifactDir: .runtime/ahra-runs/runnable/codex-standard-task
+  schedulerDecision:
+    scheduler: agent:current-user-agent
+    rationale: README-only update is small, but Codex startup can take longer on local workstations.
+    escalationPolicy: ask_user_on_idle_timeout_or_policy_violation
+    executionPolicy:
+      maxAttempts: 2
+      startupTimeoutSeconds: 120
+      idleTimeoutSeconds: 900
+      heartbeatIntervalSeconds: 60
+      attemptWallTimeoutSeconds: 3600
+      runDeadlineSeconds: 7200
   approvalMode: disabled

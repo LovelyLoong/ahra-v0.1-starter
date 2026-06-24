@@ -1,5 +1,70 @@
 {
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0010",
-  "artifacts": []
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0010-0001",
+      "task_id": "TASK-0010",
+      "kind": "approval_trigger_decision",
+      "name": "approval-trigger-decision.json",
+      "uri": "local://evidence/approval-trigger-decision.json",
+      "sha256": "97b989e7ee14600e3e500d3b4db21de04c435142a0728a8c1db1e0090893bf7f",
+      "media_type": "application/json",
+      "created_by": "agent:codex-approval-decision-operator",
+      "created_at": "2026-06-24T10:25:00+08:00",
+      "input_refs": [
+        "task.md",
+        "../../../docs/architecture/framework-completion-roadmap.md",
+        "../../../docs/architecture/framework-entrypoints.md",
+        "../../../docs/architecture/approval-service.md",
+        "../../../WORKFLOW.md",
+        "../../../src/ahra/ports.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0010-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0010-HANDOFF-740d81e3d80e",
+      "task_id": "TASK-0010",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "740d81e3d80e1f093d26ff6ee1051a947886fa08d388dea6b07658bc24a9fd0d",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-approval-decision-operator",
+      "created_at": "2026-06-24T10:25:00+08:00",
+      "input_refs": [
+        "task.md",
+        "evidence/approval-trigger-decision.json",
+        "../../../docs/architecture/approval-service.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0010-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0010-0002",
+      "task_id": "TASK-0010",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-8.json",
+      "uri": "local://evidence/evidence-gate-report-8.json",
+      "sha256": "e158b20463b79ab492244f38dead220c4e5e9313ab74a59af159a0d46def179d",
+      "media_type": "application/json",
+      "created_by": "agent:codex-independent-verifier",
+      "created_at": "2026-06-24T02:27:20.516879Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0010-0002"
+      ],
+      "supersedes": null
+    }
+  ]
 }

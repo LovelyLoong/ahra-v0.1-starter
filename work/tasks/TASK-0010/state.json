@@ -2,15 +2,22 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0010",
   "context_id": "CTX-ahra-approval-service-trigger",
-  "state": "queued",
-  "state_version": 2,
+  "state": "completed",
+  "state_version": 8,
   "owner": null,
-  "attempt": 0,
+  "attempt": 1,
   "lease": null,
-  "next_action": "Wait for TASK-0014 to complete, then select the first concrete ApprovalService trigger or explicitly defer implementation.",
-  "pause_reason": "dependency",
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "pause_reason": null,
   "blockers": [],
-  "artifact_refs": [],
-  "evidence_refs": [],
-  "updated_at": "2026-06-23T14:32:49+08:00"
+  "artifact_refs": [
+    "ART-TASK-0010-0001",
+    "ART-TASK-0010-HANDOFF-740d81e3d80e",
+    "ART-TASK-0010-0002"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0010-0001",
+    "EVD-TASK-0010-0002"
+  ],
+  "updated_at": "2026-06-24T02:27:20.516879Z"
 }

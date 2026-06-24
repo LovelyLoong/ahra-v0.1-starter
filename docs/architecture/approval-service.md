@@ -7,9 +7,9 @@ description: Defines first-class approval records for scoped risky actions witho
 status: active
 owner: team:platform
 source_refs: [../../architecture/SPEC.md, ../../contracts/schemas/approval.schema.json, ../../src/ahra/ports.py]
-evidence_refs: []
+evidence_refs: [EVD-TASK-0010-0001]
 confidence: reviewed
-last_verified_at: 2026-06-22T00:00:00Z
+last_verified_at: 2026-06-24T10:25:00+08:00
 review_after: 2026-09-22T00:00:00Z
 tags: [architecture, approval, policy]
 ---
@@ -111,3 +111,15 @@ Implement ApprovalService when at least one of these becomes real scope:
 Until then, keep it documented and do not add a partial service that duplicates
 the current `WorkflowResumeRequest` path without stronger semantics.
 
+## TASK-0010 Decision
+
+TASK-0010 explicitly defers ApprovalService implementation. The current starter
+does not yet have a unique concrete non-plan R2/R3 action that needs a scoped
+authorization object. EvidenceGate completion and task-level human review are
+separate governance mechanisms, not ApprovalService triggers by themselves.
+
+The missing trigger is a real action such as high-risk tool execution,
+deployment, publishing, deletion, spending, external service calls, writing
+outside the normal workspace, approval beyond the current file-backed resume
+contract, multi-run or delayed approvals, or a concrete audit requirement for
+who authorized one specific action.

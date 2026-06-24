@@ -110,6 +110,9 @@
           "type": "string",
           "minLength": 1
         },
+        "schedulerDecision": {
+          "$ref": "#/$defs/schedulerDecision"
+        },
         "approvalMode": {
           "enum": [
             "manual",
@@ -155,6 +158,64 @@
     }
   },
   "$defs": {
+    "executionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "startupTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "idleTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "heartbeatIntervalSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "attemptWallTimeoutSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "runDeadlineSeconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "schedulerDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheduler",
+        "rationale",
+        "escalationPolicy",
+        "executionPolicy"
+      ],
+      "properties": {
+        "scheduler": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "escalationPolicy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executionPolicy": {
+          "$ref": "#/$defs/executionPolicy"
+        }
+      }
+    },
     "stringList": {
       "type": "array",
       "items": {

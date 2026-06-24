@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ahra.reference_runner.git_ops import GitError, WorktreeManager
+from ahra.reference_runner.git_ops import GitError, WorktreeManager, fast_forward
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -39,7 +39,7 @@ def _init_repo(root: Path) -> Path:
 
 
 class WorktreeManagerTests(unittest.TestCase):
-    def test_create_rejects_dirty_source_worktree(self) -> None:
+    def test_create_allows_dirty_source_worktree_but_integration_rejects_it(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             repo = _init_repo(root)
@@ -47,13 +47,17 @@ class WorktreeManagerTests(unittest.TestCase):
             manager = WorktreeManager(repo)
             base = _git(repo, "rev-parse", "HEAD")
 
+            workspace = manager.create(
+                run_id="RUN-dirty-source",
+                label="ahra/reference-runner",
+                base_ref=base,
+                destination=root / "worktree",
+            )
+
+            self.assertEqual((workspace.path / "value.txt").read_text(encoding="utf-8"), "1\n")
+            self.assertEqual((repo / "value.txt").read_text(encoding="utf-8"), "2\n")
             with self.assertRaisesRegex(GitError, "uncommitted changes"):
-                manager.create(
-                    run_id="RUN-dirty-source",
-                    label="ahra/reference-runner",
-                    base_ref=base,
-                    destination=root / "worktree",
-                )
+                fast_forward(repo, workspace.branch)
 
     def test_generated_branch_names_do_not_collide_on_shared_prefix(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

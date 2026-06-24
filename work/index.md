@@ -9,7 +9,7 @@ owner: harness:dispatcher
 source_refs: [tasks/TASK-0001/state.json, tasks/TASK-0002/state.json, tasks/TASK-0003/state.json, tasks/TASK-0004/state.json, tasks/TASK-0005/state.json, tasks/TASK-0006/state.json, tasks/TASK-0007/state.json, tasks/TASK-0008/state.json, tasks/TASK-0009/state.json, tasks/TASK-0010/state.json, tasks/TASK-0011/state.json, tasks/TASK-0012/state.json, tasks/TASK-0013/state.json, tasks/TASK-0014/state.json, tasks/TASK-0015/state.json, tasks/TASK-0016/state.json, tasks/TASK-0017/state.json, tasks/TASK-0018/state.json, tasks/TASK-0019/state.json, tasks/TASK-0020/state.json]
 evidence_refs: []
 confidence: verified
-last_verified_at: 2026-06-24T00:17:00+08:00
+last_verified_at: 2026-06-24T10:27:20+08:00
 review_after: 2026-09-22T00:00:00Z
 tags: [work, index]
 ---
@@ -18,7 +18,7 @@ tags: [work, index]
 
 | Task | State | Owner | Next action |
 |---|---|---|---|
-| [TASK-0001](tasks/TASK-0001/task.md) | ready | unassigned | Claim with CAS and run baseline lint |
+| [TASK-0001](tasks/TASK-0001/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval |
 | [TASK-0002](tasks/TASK-0002/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval |
 | [TASK-0003](tasks/TASK-0003/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval |
 | [TASK-0004](tasks/TASK-0004/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval |
@@ -28,7 +28,7 @@ tags: [work, index]
 | [TASK-0008](tasks/TASK-0008/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval. |
 | [TASK-0009](tasks/TASK-0009/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval |
 | [TASK-0014](tasks/TASK-0014/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval |
-| [TASK-0010](tasks/TASK-0010/task.md) | queued | unassigned | Wait for TASK-0014 to complete, then select the first concrete ApprovalService trigger or explicitly defer |
+| [TASK-0010](tasks/TASK-0010/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval |
 | [TASK-0011](tasks/TASK-0011/task.md) | queued | unassigned | Wait for TASK-0010 to complete, then define the durable control plane boundary or defer trigger |
 | [TASK-0012](tasks/TASK-0012/task.md) | queued | unassigned | Wait for TASK-0010 to complete, then decide whether scaffold helper has unique value |
 | [TASK-0013](tasks/TASK-0013/task.md) | queued | unassigned | Wait for TASK-0010 to complete, then decide whether optional CI gates have one concrete wrapper target |

@@ -6,6 +6,9 @@ from typing import Any
 
 from ahra.domain import RunStatus
 
+DEFAULT_MAX_ATTEMPTS = 2
+MAX_MAX_ATTEMPTS = 5
+
 
 class WorkflowOutcome(StrEnum):
     ACCEPTED = "accepted"
@@ -37,6 +40,51 @@ class ReviewVerdict(StrEnum):
 class PlanAction(StrEnum):
     ADD_TASKS = "add_tasks"
     ESCALATE = "escalate"
+
+
+@dataclass(frozen=True, slots=True)
+class ExecutionPolicy:
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS
+    startup_timeout_seconds: int = 120
+    idle_timeout_seconds: int = 900
+    heartbeat_interval_seconds: int = 60
+    attempt_wall_timeout_seconds: int = 3600
+    run_deadline_seconds: int = 7200
+
+    def __post_init__(self) -> None:
+        if not 1 <= self.max_attempts <= MAX_MAX_ATTEMPTS:
+            raise ValueError(f"execution policy max_attempts must be between 1 and {MAX_MAX_ATTEMPTS}")
+        for field_name in (
+            "startup_timeout_seconds",
+            "idle_timeout_seconds",
+            "heartbeat_interval_seconds",
+            "attempt_wall_timeout_seconds",
+            "run_deadline_seconds",
+        ):
+            if getattr(self, field_name) < 1:
+                raise ValueError(f"execution policy {field_name} must be positive")
+        if self.heartbeat_interval_seconds > self.idle_timeout_seconds:
+            raise ValueError("execution policy heartbeat_interval_seconds cannot exceed idle_timeout_seconds")
+        if self.idle_timeout_seconds > self.attempt_wall_timeout_seconds:
+            raise ValueError("execution policy idle_timeout_seconds cannot exceed attempt_wall_timeout_seconds")
+        if self.attempt_wall_timeout_seconds > self.run_deadline_seconds:
+            raise ValueError("execution policy attempt_wall_timeout_seconds cannot exceed run_deadline_seconds")
+
+
+@dataclass(frozen=True, slots=True)
+class SchedulerDecision:
+    scheduler: str = "agent:current-user-agent"
+    rationale: str = "Use default bounded local workflow execution policy."
+    escalation_policy: str = "ask_user_on_idle_timeout_or_policy_violation"
+    execution_policy: ExecutionPolicy = field(default_factory=ExecutionPolicy)
+
+    def __post_init__(self) -> None:
+        if not self.scheduler:
+            raise ValueError("scheduler decision scheduler is required")
+        if not self.rationale:
+            raise ValueError("scheduler decision rationale is required")
+        if not self.escalation_policy:
+            raise ValueError("scheduler decision escalation_policy is required")
 
 
 @dataclass(frozen=True, slots=True)
@@ -91,7 +139,7 @@ class TaskSpec:
     non_goals: tuple[str, ...] = ()
     checks: tuple[CheckSpec, ...] = ()
     policy: ChangePolicy = field(default_factory=ChangePolicy)
-    max_attempts: int = 2
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS
     max_turns: int = 25
 
     def __post_init__(self) -> None:
@@ -101,8 +149,8 @@ class TaskSpec:
             raise ValueError("task acceptance_criteria are required")
         if len(set(self.acceptance_criteria)) != len(self.acceptance_criteria):
             raise ValueError("task acceptance_criteria must be unique")
-        if not 1 <= self.max_attempts <= 5:
-            raise ValueError("task max_attempts must be between 1 and 5")
+        if not 1 <= self.max_attempts <= MAX_MAX_ATTEMPTS:
+            raise ValueError(f"task max_attempts must be between 1 and {MAX_MAX_ATTEMPTS}")
         if not 1 <= self.max_turns <= 100:
             raise ValueError("task max_turns must be between 1 and 100")
 

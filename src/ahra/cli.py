@@ -231,6 +231,7 @@ def _inspect_workflow(artifact_dir: Path) -> dict[str, Any]:
         ]
         result["events"] = events
         result["timeline"] = _workflow_timeline(events)
+        result["runtime_status"] = _workflow_runtime_status(result, events)
     return result
 
 
@@ -277,6 +278,7 @@ def _workflow_timeline(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "task_started",
             "attempt_started",
             "executor_started",
+            "agent_heartbeat",
             "executor_finished",
             "deterministic_gate_started",
             "deterministic_gate_finished",
@@ -292,6 +294,8 @@ def _workflow_timeline(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "task_accepted",
             "task_rejected",
             "attempt_error",
+            "scheduler_decision_recorded",
+            "terminal_failure_recorded",
         }:
             timeline.append(
                 {
@@ -302,9 +306,37 @@ def _workflow_timeline(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "review_attempt": data.get("review_attempt"),
                     "status": data.get("status") or data.get("review_verdict") or data.get("verdict"),
                     "retryable": data.get("retryable"),
+                    "phase": data.get("phase"),
+                    "idle_seconds": data.get("idle_seconds"),
                 }
             )
     return timeline
+
+
+def _workflow_runtime_status(result: dict[str, Any], events: list[dict[str, Any]]) -> dict[str, Any]:
+    run_result = result.get("workflow-run-result.json")
+    if isinstance(run_result, dict):
+        return {"state": str(run_result.get("status") or "finished")}
+    if not events:
+        return {"state": "empty"}
+    last = events[-1]
+    event_type = str(last.get("type") or "").removeprefix("dev.ahra.workflow.")
+    if event_type.endswith(".v1"):
+        event_type = event_type[:-3]
+    data = last.get("data") if isinstance(last.get("data"), dict) else {}
+    state = "incomplete"
+    if event_type in {"executor_started", "agent_heartbeat", "attempt_started"}:
+        state = "running_or_interrupted"
+    if event_type in {"attempt_error", "terminal_failure_recorded", "task_rejected"}:
+        state = "failed_without_result_artifact"
+    return {
+        "state": state,
+        "last_event": event_type,
+        "last_event_time": last.get("time"),
+        "phase": data.get("phase"),
+        "attempt": data.get("attempt"),
+        "idle_seconds": data.get("idle_seconds"),
+    }
 
 
 def _requested_value(task: Any) -> int | None:

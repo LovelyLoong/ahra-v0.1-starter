@@ -70,7 +70,7 @@ def ensure_clean_worktree(repo: Path) -> None:
     if output:
         raise GitError(
             "source worktree has uncommitted changes; commit or stash them before "
-            "starting an isolated workflow run"
+            "integrating workflow results"
         )
 
 
@@ -106,7 +106,6 @@ class WorktreeManager:
         destination.parent.mkdir(parents=True, exist_ok=True)
         if destination.exists():
             raise GitError(f"worktree destination already exists: {destination}")
-        ensure_clean_worktree(self.source_repo)
         base_commit = run_git(self.source_repo, "rev-parse", base_ref).stdout.strip()
         run_slug = slug(run_id)
         run_hash = hashlib.sha1(run_id.encode("utf-8")).hexdigest()[:8]

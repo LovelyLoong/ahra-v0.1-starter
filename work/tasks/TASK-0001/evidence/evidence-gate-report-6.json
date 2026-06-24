@@ -1,0 +1,47 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0001",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-verifier",
+  "generated_at": "2026-06-24T02:27:13.524553Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier mapped all TASK-0001 acceptance criteria to the linter verification report and reran the required checks.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "The linter exits with status 0.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0001-0001"
+      ],
+      "notes": "The report records the AWKP linter command with exit code 0 and passed status."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "The report records command, environment, timestamp, and result.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0001-0001"
+      ],
+      "notes": "The report records command, environment, timestamp, git head, stdout, and result."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The report is referenced by `artifact-manifest.json` with a SHA-256 hash.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0001-0001"
+      ],
+      "notes": "artifact-manifest.json references verification-report.json with a SHA-256 hash."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 error(s), 0 warning(s)"
+    }
+  ]
+}

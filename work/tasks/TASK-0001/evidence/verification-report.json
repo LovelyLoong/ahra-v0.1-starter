@@ -1,0 +1,24 @@
+{
+  "schema_version": "ahra/verification-report/0.1",
+  "task_id": "TASK-0001",
+  "title": "Validate the AWKP starter repository",
+  "created_by": "agent:codex-awkp-operator",
+  "created_at": "2026-06-24T10:25:00+08:00",
+  "environment": {
+    "cwd": "E:\\ahra-v0.1-starter",
+    "shell": "Windows PowerShell 5.1.19041.5848",
+    "python": "Python 3.12.13 via uv run python -B",
+    "git_head": "ac5c4b7b39bd71a3142ba269171939a9e2f70c88"
+  },
+  "commands": [
+    {
+      "contract_command": "python3 scripts/lint_awkp.py",
+      "executed_command": "uv run python -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "status": "passed",
+      "stdout": "AWKP lint: 0 error(s), 0 warning(s)",
+      "notes": "Used the documented local maintainer workaround because the workstation can expose protected E-SafeNet bytes through bare python."
+    }
+  ],
+  "result": "passed"
+}

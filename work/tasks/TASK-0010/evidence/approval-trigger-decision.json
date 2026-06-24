@@ -1,0 +1,49 @@
+{
+  "schema_version": "ahra/approval-trigger-decision/0.1",
+  "task_id": "TASK-0010",
+  "created_by": "agent:codex-approval-decision-operator",
+  "created_at": "2026-06-24T10:25:00+08:00",
+  "decision": "defer",
+  "selected_trigger": null,
+  "missing_trigger": "A concrete non-plan R2/R3 action in current starter scope, such as high-risk tool execution, deployment, publishing, deletion, spending, external service calls, writes outside the normal workspace, approval beyond the current file-backed resume contract, multi-run or delayed approvals, or audit requirements for a specific authorization.",
+  "candidate_inventory": [
+    {
+      "candidate": "EvidenceGate task completion",
+      "assessment": "Not an ApprovalService trigger. EvidenceGate answers whether a task may move to completed; ApprovalService authorizes a specific risky action before or during a run."
+    },
+    {
+      "candidate": "WorkflowResumeRequest plan approval by artifact digest",
+      "assessment": "Existing narrow file-backed resume contract. It does not justify a new ApprovalStore without broader lifecycle, expiry, consumption, and audit requirements."
+    },
+    {
+      "candidate": "High-risk tool execution",
+      "assessment": "Documented architecture trigger, but no unique current starter implementation target is selected."
+    },
+    {
+      "candidate": "Deployment, publishing, deletion, spending, external service calls, or writes outside a normal workspace",
+      "assessment": "Documented architecture triggers, but these remain out of current starter implementation scope."
+    },
+    {
+      "candidate": "R2/R3 task governance",
+      "assessment": "Task-level human preapproval and review are workflow governance requirements, not by themselves a scoped action authorization object."
+    }
+  ],
+  "approval_record_fields_for_future_trigger": [
+    "approval_id",
+    "task_id",
+    "run_id",
+    "requested_actor",
+    "approving_actor",
+    "action",
+    "resource",
+    "parameter_digest",
+    "preview_ref",
+    "risk_level",
+    "scope",
+    "expires_at",
+    "decision",
+    "reason"
+  ],
+  "follow_up_implementation_task_created": false,
+  "rationale": "The unique minimal implementation today is no implementation: keep ApprovalService documented, record the defer decision, and wait until a real scoped risky action exists. Creating a partial service now would duplicate the current resume path without stronger semantics."
+}

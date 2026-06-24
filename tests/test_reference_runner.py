@@ -36,12 +36,14 @@ from ahra.reference_runner.models import (
     CheckSpec,
     CriterionAssessment,
     DeterministicEvidence,
+    ExecutionPolicy,
     GoalReviewResult,
     GoalSpec,
     NextStepDecision,
     PlanAction,
     ReviewResult,
     ReviewVerdict,
+    SchedulerDecision,
     TaskRunResult,
     TaskSpec,
     WorkReport,
@@ -182,6 +184,22 @@ class ReviewerContractRetryDriver(AgentDriver):
                         for criterion in task.acceptance_criteria
                     ),
                     confidence=0.99,
+                )
+            )
+        raise AssertionError(f"unexpected role: {request.role}")
+
+
+class SlowExecutorDriver(AgentDriver):
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role == AgentRole.EXECUTOR:
+            await asyncio.sleep(2)
+            return AgentRunResult(output=WorkReport(summary="too late"))
+        if request.role == AgentRole.TASK_REVIEWER:
+            return AgentRunResult(
+                output=ReviewResult(
+                    verdict=ReviewVerdict.PASS,
+                    summary="not reached",
+                    confidence=1.0,
                 )
             )
         raise AssertionError(f"unexpected role: {request.role}")
@@ -505,6 +523,43 @@ class StandardHarnessTests(unittest.TestCase):
             self.assertEqual(driver.reviewer_calls, 2)
             self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 1\n")
 
+    def test_executor_timeout_records_terminal_failure_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            result = asyncio.run(
+                TaskHarness(
+                    SlowExecutorDriver(),
+                    execution_policy=ExecutionPolicy(
+                        max_attempts=1,
+                        idle_timeout_seconds=1,
+                        heartbeat_interval_seconds=1,
+                        attempt_wall_timeout_seconds=1,
+                        run_deadline_seconds=5,
+                    ),
+                ).run_task(
+                    task=_task(),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-timeout",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+            self.assertEqual(result.status, WorkflowOutcome.ERROR)
+            artifact_dir = Path(result.artifact_dir)
+            self.assertTrue((artifact_dir / "tasks/set-value/terminal-failure.json").exists())
+            events = [
+                json.loads(line)
+                for line in (artifact_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            event_types = {event["type"] for event in events}
+            self.assertIn("dev.ahra.workflow.agent_heartbeat.v1", event_types)
+            self.assertIn("dev.ahra.workflow.terminal_failure_recorded.v1", event_types)
+            evidence_manifest = json.loads((artifact_dir / "evidence-manifest.json").read_text(encoding="utf-8"))
+            self.assertTrue(
+                any(record["kind"] == "terminal_failure" for record in evidence_manifest["evidence"])
+            )
+
 
 class WorkflowInvocationTests(unittest.TestCase):
     def test_driver_registry_fails_closed(self) -> None:
@@ -528,6 +583,18 @@ class WorkflowInvocationTests(unittest.TestCase):
                 store_ref="local-file",
                 approval_mode="manual",
                 task=_task(),
+                scheduler_decision=SchedulerDecision(
+                    scheduler="agent:test-scheduler",
+                    rationale="Fixture task should use a short bounded policy.",
+                    escalation_policy="fail_closed",
+                    execution_policy=ExecutionPolicy(
+                        max_attempts=1,
+                        idle_timeout_seconds=30,
+                        heartbeat_interval_seconds=5,
+                        attempt_wall_timeout_seconds=60,
+                        run_deadline_seconds=120,
+                    ),
+                ),
                 artifact_dir=str(Path(temp) / "artifacts"),
                 run_id="RUN-invocation",
             )
@@ -535,6 +602,7 @@ class WorkflowInvocationTests(unittest.TestCase):
             self.assertEqual(result.status, WorkflowOutcome.ACCEPTED)
             artifact_dir = Path(result.artifact_dir)
             self.assertTrue((artifact_dir / "workflow-run-request.json").exists())
+            self.assertTrue((artifact_dir / "scheduler-decision.json").exists())
             self.assertTrue((artifact_dir / "workflow-run-result.json").exists())
             self.assertTrue((artifact_dir / "workspace.json").exists())
             self.assertTrue((artifact_dir / "artifact-manifest.json").exists())
@@ -547,6 +615,10 @@ class WorkflowInvocationTests(unittest.TestCase):
                 (isolated_workspace / "value.py").read_text(encoding="utf-8"),
                 "VALUE = 2\n",
             )
+            scheduler = json.loads((artifact_dir / "scheduler-decision.json").read_text(encoding="utf-8"))
+            self.assertEqual(scheduler["scheduler"], "agent:test-scheduler")
+            request_artifact = json.loads((artifact_dir / "workflow-run-request.json").read_text(encoding="utf-8"))
+            self.assertEqual(request_artifact["task"]["max_attempts"], 1)
 
     def test_formal_awkp_task_run_integrates_source_and_moves_task_to_review(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -722,6 +794,66 @@ class WorkflowInvocationTests(unittest.TestCase):
         self.assertIsNotNone(request.task)
         self.assertEqual(request.task.policy, ChangePolicy())
         self.assertEqual(request.runtime_profile_ref, "examples/runtimes/local-worktree.yaml")
+
+    def test_scheduler_decision_policy_loads_from_request_surface(self) -> None:
+        document = {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "WorkflowRunRequest",
+            "metadata": {"name": "scheduled-task"},
+            "spec": {
+                "moduleId": "standard-harness",
+                "input": {"task": _minimal_task_mapping()},
+                "workspaceRef": ".",
+                "driverRef": "fake-reference",
+                "storeRef": "local-file",
+                "schedulerDecision": {
+                    "scheduler": "agent:codex",
+                    "rationale": "Small task, use one attempt for fixture coverage.",
+                    "escalationPolicy": "fail_closed",
+                    "executionPolicy": {
+                        "maxAttempts": 1,
+                        "startupTimeoutSeconds": 10,
+                        "idleTimeoutSeconds": 20,
+                        "heartbeatIntervalSeconds": 5,
+                        "attemptWallTimeoutSeconds": 30,
+                        "runDeadlineSeconds": 60,
+                    },
+                },
+                "approvalMode": "manual",
+            },
+        }
+        request = workflow_run_request_from_document(document)
+        self.assertEqual(request.scheduler_decision.scheduler, "agent:codex")
+        self.assertEqual(request.scheduler_decision.execution_policy.max_attempts, 1)
+
+    def test_invalid_scheduler_policy_fails_before_execution(self) -> None:
+        document = {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "WorkflowRunRequest",
+            "metadata": {"name": "invalid-scheduler-policy"},
+            "spec": {
+                "moduleId": "standard-harness",
+                "input": {"task": _minimal_task_mapping()},
+                "workspaceRef": ".",
+                "driverRef": "fake-reference",
+                "storeRef": "local-file",
+                "schedulerDecision": {
+                    "scheduler": "agent:codex",
+                    "rationale": "Invalid policy should fail closed.",
+                    "escalationPolicy": "fail_closed",
+                    "executionPolicy": {
+                        "maxAttempts": 1,
+                        "idleTimeoutSeconds": 60,
+                        "heartbeatIntervalSeconds": 120,
+                        "attemptWallTimeoutSeconds": 60,
+                        "runDeadlineSeconds": 120,
+                    },
+                },
+                "approvalMode": "manual",
+            },
+        }
+        with self.assertRaisesRegex(ValueError, "heartbeat_interval_seconds"):
+            workflow_run_request_from_document(document)
 
     def test_approval_mode_controls_loop_planning_behavior(self) -> None:
         outcomes = {}
