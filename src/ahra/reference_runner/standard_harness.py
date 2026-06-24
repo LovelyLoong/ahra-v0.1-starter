@@ -31,7 +31,6 @@ from .store import ReferenceRunStore
 
 PATCH_EXCERPT_CHARS = 60_000
 CONTRACT_ERROR_EXCERPT_CHARS = 20_000
-REVIEW_CONTRACT_MAX_ATTEMPTS = 2
 T = TypeVar("T")
 
 
@@ -213,8 +212,9 @@ class TaskHarness:
         feedback: str | None = None
         self._run_started_monotonic = time.monotonic()
         store.event("task_started", module_id=self.module_id, task_id=task.id, checkpoint=checkpoint)
+        max_attempts = min(task.max_attempts, self.execution_policy.max_attempts)
 
-        for attempt_number in range(1, task.max_attempts + 1):
+        for attempt_number in range(1, max_attempts + 1):
             store.event("attempt_started", task_id=task.id, attempt=attempt_number)
             try:
                 store.event("executor_started", task_id=task.id, attempt=attempt_number)
@@ -427,7 +427,7 @@ class TaskHarness:
                     store.event("task_needs_human", task_id=task.id)
                     return result
 
-                if attempt_number < task.max_attempts:
+                if attempt_number < max_attempts:
                     feedback = "; ".join(review.blocking_issues) or review.summary
                     if evidence.verification_mutated_workspace:
                         self.workspace_provider.restore_patch(
@@ -482,10 +482,10 @@ class TaskHarness:
                     task_id=task.id,
                     attempt=attempt_number,
                     phase="task_attempt",
-                    retryable=attempt_number < task.max_attempts,
+                    retryable=attempt_number < max_attempts,
                     error=repr(exc),
                 )
-                if attempt_number < task.max_attempts:
+                if attempt_number < max_attempts:
                     feedback = f"The harness raised an execution error: {exc!r}. Recover safely."
                     continue
                 self.workspace_provider.rollback(workspace_ref, checkpoint)
@@ -607,7 +607,8 @@ class TaskHarness:
         store: ReferenceRunStore,
     ) -> ReviewResult:
         contract_feedback: str | None = None
-        for review_attempt in range(1, REVIEW_CONTRACT_MAX_ATTEMPTS + 1):
+        max_review_attempts = self.execution_policy.max_attempts
+        for review_attempt in range(1, max_review_attempts + 1):
             store.event(
                 "reviewer_started",
                 task_id=task.id,
@@ -666,9 +667,9 @@ class TaskHarness:
                     expected_output=exc.expected_output,
                     details=list(exc.details),
                     artifact_id=error_record["artifact_id"],
-                    retryable=review_attempt < REVIEW_CONTRACT_MAX_ATTEMPTS,
+                    retryable=review_attempt < max_review_attempts,
                 )
-                if review_attempt >= REVIEW_CONTRACT_MAX_ATTEMPTS:
+                if review_attempt >= max_review_attempts:
                     raise
                 contract_feedback = _contract_feedback(exc)
         raise AssertionError("unreachable")

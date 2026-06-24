@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -21,6 +22,8 @@ from ahra.ports import (
     AgentRunResult,
 )
 from ahra.workflow_modules import WorkflowModuleError
+from ahra.reference_runner.awkp_task import task_from_awkp_markdown
+from ahra.reference_runner.checks import run_check
 from ahra.reference_runner.invocation import (
     PlanApprovalDecision,
     WorkflowRunRequest,
@@ -205,6 +208,65 @@ class SlowExecutorDriver(AgentDriver):
         raise AssertionError(f"unexpected role: {request.role}")
 
 
+class FlakyExecutorDriver(FakeDriver):
+    def __init__(self) -> None:
+        self.executor_calls = 0
+
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role == AgentRole.EXECUTOR:
+            self.executor_calls += 1
+            if self.executor_calls == 1:
+                raise RuntimeError("transient executor failure")
+        return await super().run(request)
+
+
+class RejectingReviewerDriver(FakeDriver):
+    def __init__(self) -> None:
+        self.executor_calls = 0
+        self.reviewer_calls = 0
+
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role == AgentRole.EXECUTOR:
+            self.executor_calls += 1
+            return await super().run(request)
+        if request.role == AgentRole.TASK_REVIEWER:
+            self.reviewer_calls += 1
+            task = request.payload["task"]
+            return AgentRunResult(
+                output=ReviewResult(
+                    verdict=ReviewVerdict.FAIL,
+                    summary="Reviewer rejected the attempted change.",
+                    criteria=tuple(
+                        CriterionAssessment(
+                            criterion=criterion,
+                            passed=False,
+                            evidence="Reviewer found the criterion unsupported.",
+                            concerns=("Reviewer rejected",),
+                        )
+                        for criterion in task.acceptance_criteria
+                    ),
+                    blocking_issues=("Reviewer rejected",),
+                    confidence=0.9,
+                )
+            )
+        return await super().run(request)
+
+
+class RecordingRuntime:
+    def __init__(self) -> None:
+        self.command: tuple[str, ...] | None = None
+
+    def provision(self, profile_ref: str, workspace_ref: str, identity: str) -> str:
+        return workspace_ref
+
+    def exec(self, handle: str, command: list[str], env: dict[str, str], deadline) -> dict[str, object]:
+        self.command = tuple(command)
+        return {"exit_code": 0, "timed_out": False, "stdout": "ok", "stderr": ""}
+
+    def destroy(self, handle: str) -> None:
+        return None
+
+
 def _git(repo: Path, *args: str) -> str:
     result = subprocess.run(
         ["git", "-C", str(repo), *args],
@@ -235,7 +297,13 @@ def _init_repo(root: Path) -> Path:
     return repo
 
 
-def _write_awkp_task(repo: Path, *, state: str = "ready", depends_on: tuple[str, ...] = ()) -> Path:
+def _write_awkp_task(
+    repo: Path,
+    *,
+    state: str = "ready",
+    depends_on: tuple[str, ...] = (),
+    verification_lines: tuple[str, ...] = (),
+) -> Path:
     task_id = "TASK-9001"
     task_dir = repo / "work" / "tasks" / task_id
     task_dir.mkdir(parents=True)
@@ -280,6 +348,7 @@ def _write_awkp_task(repo: Path, *, state: str = "ready", depends_on: tuple[str,
                 "",
                 "# Verification method",
                 "",
+                *verification_lines,
                 "",
             ]
         ),
@@ -477,6 +546,51 @@ class StandardHarnessTests(unittest.TestCase):
                 self.assertRegex(record["sha256"], r"^[a-f0-9]{64}$")
                 self.assertTrue(record["uri"].startswith("local://"))
 
+    def test_retryable_executor_failure_uses_bounded_next_attempt(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            driver = FlakyExecutorDriver()
+            result = asyncio.run(
+                TaskHarness(driver).run_task(
+                    task=_task(),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-flaky-executor",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+            self.assertEqual(result.status, WorkflowOutcome.ACCEPTED)
+            self.assertEqual(driver.executor_calls, 2)
+            self.assertEqual([attempt.attempt for attempt in result.attempts], [1, 2])
+            artifact_dir = Path(result.artifact_dir)
+            events = [
+                json.loads(line)
+                for line in (artifact_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            first_error = next(
+                event for event in events if event["type"] == "dev.ahra.workflow.attempt_error.v1"
+            )
+            self.assertTrue(first_error["data"]["retryable"])
+
+    def test_local_project_python_check_uses_uv_environment(self) -> None:
+        if shutil.which("uv") is None:
+            self.skipTest("uv is not available")
+        with tempfile.TemporaryDirectory() as temp:
+            workspace = Path(temp)
+            (workspace / "pyproject.toml").write_text(
+                "[project]\nname='test'\nversion='0.0.0'\n",
+                encoding="utf-8",
+            )
+            runtime = RecordingRuntime()
+            evidence = run_check(
+                workspace,
+                CheckSpec(name="check", argv=("python", "scripts\\check.py")),
+                runtime=runtime,
+            )
+            self.assertEqual(runtime.command, ("uv", "run", "python", "-B", "scripts\\check.py"))
+            self.assertEqual(evidence.argv, ("uv", "run", "python", "-B", "scripts\\check.py"))
+
     def test_reviewer_output_contract_retry_does_not_rerun_executor(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             repo = _init_repo(Path(temp))
@@ -522,6 +636,31 @@ class StandardHarnessTests(unittest.TestCase):
             self.assertEqual(driver.executor_calls, 1)
             self.assertEqual(driver.reviewer_calls, 2)
             self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 1\n")
+
+    def test_reviewer_output_contract_retry_honors_max_attempts_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            driver = ReviewerContractRetryDriver(invalid_review_responses=2)
+            result = asyncio.run(
+                TaskHarness(
+                    driver,
+                    execution_policy=ExecutionPolicy(max_attempts=1),
+                ).run_task(
+                    task=_task(),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-review-policy-limit",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+            self.assertEqual(result.status, WorkflowOutcome.ERROR)
+            self.assertEqual(driver.executor_calls, 1)
+            self.assertEqual(driver.reviewer_calls, 1)
+            artifact_dir = Path(result.artifact_dir)
+            manifest = json.loads((artifact_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
+            names = {record["name"] for record in manifest["artifacts"]}
+            self.assertIn("review-output-contract-error-1.json", names)
+            self.assertNotIn("review-output-contract-error-2.json", names)
 
     def test_executor_timeout_records_terminal_failure_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -620,6 +759,23 @@ class WorkflowInvocationTests(unittest.TestCase):
             request_artifact = json.loads((artifact_dir / "workflow-run-request.json").read_text(encoding="utf-8"))
             self.assertEqual(request_artifact["task"]["max_attempts"], 1)
 
+    def test_awkp_verification_parser_skips_non_command_notes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task_dir = _write_awkp_task(
+                repo,
+                verification_lines=(
+                    "- `python scripts\\check.py`",
+                    "- `git diff --check`",
+                    "- A failing workflow fixture that reaches the configured attempt limit.",
+                ),
+            )
+            task = task_from_awkp_markdown(task_dir / "task.md")
+            self.assertEqual(
+                [check.argv for check in task.checks],
+                [("python", "scripts\\check.py"), ("git", "diff", "--check")],
+            )
+
     def test_formal_awkp_task_run_integrates_source_and_moves_task_to_review(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             repo = _init_repo(Path(temp))
@@ -670,6 +826,92 @@ class WorkflowInvocationTests(unittest.TestCase):
                 if line.strip()
             ]
             self.assertEqual(source_events[-1]["event_type"], "review_requested")
+            run_events = [
+                json.loads(line)
+                for line in (Path(result.artifact_dir) / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertTrue(
+                any(event["type"] == "dev.ahra.workflow.source_workspace_integrated.v1" for event in run_events)
+            )
+
+    def test_formal_awkp_task_exhausted_failure_publishes_failure_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task_dir = _write_awkp_task(repo)
+            _git(repo, "add", ".")
+            _git(
+                repo,
+                "-c",
+                "user.name=Test",
+                "-c",
+                "user.email=test@example.invalid",
+                "commit",
+                "-q",
+                "-m",
+                "add formal task",
+            )
+            registry = AgentDriverRegistry()
+            registry.register("rejecting-reference", RejectingReviewerDriver())
+            request = workflow_run_request_from_document(
+                {
+                    "apiVersion": "ahra.dev/v1alpha1",
+                    "kind": "WorkflowRunRequest",
+                    "metadata": {"name": "formal-task-failure"},
+                    "spec": {
+                        "moduleId": "standard-harness",
+                        "input": {"taskRef": str(task_dir / "task.md")},
+                        "workspaceRef": str(repo),
+                        "driverRef": "rejecting-reference",
+                        "storeRef": "local-file",
+                        "artifactDir": str(Path(temp) / "artifacts"),
+                        "runId": "RUN-formal-awkp-failure",
+                        "schedulerDecision": {
+                            "scheduler": "agent:test-scheduler",
+                            "rationale": "Exercise exhausted formal failure publication.",
+                            "escalationPolicy": "fail_closed",
+                            "executionPolicy": {"maxAttempts": 2},
+                        },
+                        "approvalMode": "manual",
+                    },
+                }
+            )
+            result = asyncio.run(run_workflow(request, drivers=registry))
+            self.assertEqual(result.status, WorkflowOutcome.REJECTED)
+            self.assertEqual((repo / "value.py").read_text(encoding="utf-8"), "VALUE = 1\n")
+
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "review")
+            self.assertNotEqual(state["state"], "completed")
+            self.assertIsNone(state["lease"])
+            self.assertEqual(state["attempt"], 1)
+            self.assertTrue(state["artifact_refs"])
+            self.assertTrue(state["evidence_refs"])
+            self.assertTrue(state["blockers"])
+
+            artifact_manifest = json.loads((task_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
+            evidence_manifest = json.loads((task_dir / "evidence-manifest.json").read_text(encoding="utf-8"))
+            self.assertTrue(
+                any(record["kind"] == "workflow_failure_report" for record in artifact_manifest["artifacts"])
+            )
+            self.assertTrue(
+                any(record["kind"] == "workflow_failure_report" for record in evidence_manifest["evidence"])
+            )
+            failure_report = task_dir / "evidence" / "workflow-run-RUN-formal-awkp-failure-failure.json"
+            self.assertTrue(failure_report.exists())
+            report = json.loads(failure_report.read_text(encoding="utf-8"))
+            self.assertEqual(report["status"], "rejected")
+            self.assertEqual(report["attempt_count"], 2)
+            self.assertEqual(report["last_error"], "Reviewer rejected")
+            self.assertTrue(report["terminal_failure_record"].endswith("terminal-failure.json"))
+            self.assertTrue(any(path.name.startswith("HANDOFF-") for path in (task_dir / "handoffs").glob("*.md")))
+            source_events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertEqual(source_events[-1]["event_type"], "review_requested")
+            self.assertIn("terminal failure", source_events[-1]["reason"])
             run_events = [
                 json.loads(line)
                 for line in (Path(result.artifact_dir) / "events.jsonl").read_text(encoding="utf-8").splitlines()

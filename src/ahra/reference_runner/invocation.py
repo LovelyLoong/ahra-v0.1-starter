@@ -19,6 +19,7 @@ from .awkp_task import (
     assert_awkp_task_ready,
     claim_awkp_task_in_workspace,
     find_awkp_task_binding,
+    publish_awkp_failure_in_workspace,
     publish_awkp_review_in_workspace,
     task_from_awkp_markdown,
 )
@@ -329,6 +330,28 @@ async def run_workflow(
                     branch=branch,
                     source_workspace_ref=request.workspace_ref,
                     commit=integrated_head,
+                )
+        elif result.status in {WorkflowOutcome.REJECTED, WorkflowOutcome.ERROR, WorkflowOutcome.BLOCKED}:
+            publish_awkp_failure_in_workspace(execution_workspace_ref, result=result)
+            final_commit = workspace_provider.commit_all(
+                execution_workspace_ref,
+                f"ahra({result.task_id}): publish workflow failure evidence",
+            )
+            result = replace(result, commit=final_commit)
+            if workspace_record is not None:
+                integrated_head = _fast_forward_source_workspace(
+                    workspace_provider,
+                    request.workspace_ref,
+                    branch,
+                )
+                store.event(
+                    "source_workspace_integrated",
+                    task_id=result.task_id,
+                    run_id=run_id,
+                    branch=branch,
+                    source_workspace_ref=request.workspace_ref,
+                    commit=integrated_head,
+                    status=str(result.status),
                 )
         else:
             store.event(

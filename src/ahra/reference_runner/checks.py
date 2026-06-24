@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import tempfile
 import time
 from datetime import datetime, timedelta, timezone
@@ -48,7 +49,8 @@ def run_check(workspace: Path, check: CheckSpec, runtime=None) -> CheckEvidence:
         env.setdefault("MYPY_CACHE_DIR", str(scratch_path / "mypy-cache"))
         env.setdefault("PIP_CACHE_DIR", str(scratch_path / "pip-cache"))
         env.setdefault("npm_config_cache", str(scratch_path / "npm-cache"))
-        if any(part == "pytest" or part.endswith("/pytest") for part in check.argv):
+        argv = _effective_check_argv(workspace, check.argv)
+        if any(part == "pytest" or part.endswith("/pytest") for part in argv):
             existing = env.get("PYTEST_ADDOPTS", "").strip()
             env["PYTEST_ADDOPTS"] = f"{existing} -p no:cacheprovider".strip()
         env.update(check.env)
@@ -60,13 +62,13 @@ def run_check(workspace: Path, check: CheckSpec, runtime=None) -> CheckEvidence:
         try:
             result = runtime.exec(
                 handle,
-                list(check.argv),
+                list(argv),
                 env,
                 datetime.now(timezone.utc) + timedelta(seconds=check.timeout_seconds),
             )
             return CheckEvidence(
                 name=check.name,
-                argv=check.argv,
+                argv=argv,
                 required=check.required,
                 exit_code=result.get("exit_code"),
                 timed_out=bool(result.get("timed_out")),
@@ -80,3 +82,13 @@ def run_check(workspace: Path, check: CheckSpec, runtime=None) -> CheckEvidence:
 
 def run_checks(workspace: Path, checks: tuple[CheckSpec, ...], runtime=None) -> tuple[CheckEvidence, ...]:
     return tuple(run_check(workspace, check, runtime) for check in checks)
+
+
+def _effective_check_argv(workspace: Path, argv: tuple[str, ...]) -> tuple[str, ...]:
+    if not argv:
+        return argv
+    command = Path(argv[0]).name.lower()
+    has_project_env = (workspace / "pyproject.toml").exists()
+    if command in {"python", "python.exe"} and has_project_env and shutil.which("uv"):
+        return ("uv", "run", "python", "-B", *argv[1:])
+    return argv

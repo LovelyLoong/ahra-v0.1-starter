@@ -127,6 +127,11 @@ attempt count, heartbeat cadence, idle timeout, per-attempt wall timeout, and
 the overall run deadline. That decision is recorded as a run artifact so later
 inspection can distinguish policy from implementation behavior.
 
+`schedulerDecision.executionPolicy.maxAttempts` is the generic attempt limit.
+When omitted it defaults to `2`. The same limit bounds executor attempts and
+reviewer output-contract retries; invalid values fail request validation before
+any Agent role is started.
+
 The scheduling Agent does not own task state transitions or acceptance. The
 reference runner still owns the workflow state machine, lease-aware execution,
 artifacts, evidence, rollback, and terminal result records. AWKP completion

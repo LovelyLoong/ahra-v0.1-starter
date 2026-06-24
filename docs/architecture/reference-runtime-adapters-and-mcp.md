@@ -103,6 +103,15 @@ runner stores that decision as `scheduler-decision.json` and applies its
 execution policy to bounded Agent phases. Long-running Agent work is allowed,
 but the runner emits heartbeat events and converts idle, attempt-wall-timeout,
 or run-deadline exhaustion into terminal failed results with failure evidence.
+For formal AWKP task runs, exhausted terminal failures are also published back
+to the task-local artifact/evidence manifests with a handoff and a `review`
+state, leaving completion or retry judgment to the user or an independent
+verifier.
+
+For the local profile, check execution may adapt bare `python ...` verification
+commands to the project environment with `uv run python -B ...` when the
+workspace has a `pyproject.toml` and `uv` is available. This preserves the
+task's verification intent while avoiding host-level Python launcher drift.
 
 Creating the isolated worktree does not require the source checkout to be
 clean. The isolated workspace is created from the selected base commit, so

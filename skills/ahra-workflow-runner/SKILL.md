@@ -132,6 +132,15 @@ route.
 
 ## Failure Policy
 
+`schedulerDecision.executionPolicy.maxAttempts` defaults to `2`. It is the
+single generic attempt limit for executor attempts and reviewer output-contract
+retries. Invalid values fail validation before any Agent execution starts.
+
+When a formal AWKP task run exhausts attempts, the reference runner publishes a
+task-local failure report, evidence manifest entry, and handoff, then leaves the
+task in `review` for user or independent verifier judgment. Do not mark it
+`completed` from failure evidence alone.
+
 Fail closed when:
 
 - The module id is unknown.
