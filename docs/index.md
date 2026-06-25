@@ -21,5 +21,6 @@ tags: [index]
 | [Architecture](architecture/index.md) | System boundaries and invariants |
 | [Decisions](decisions/index.md) | Accepted and superseded decisions |
 | [Policies](policies/index.md) | Governance and non-negotiable rules |
+| [Roadmaps](roadmaps/index.md) | Stage gates and implementation sequence |
 | [Runbooks](runbooks/index.md) | Repeatable operational procedures |
 | [Glossary](glossary/index.md) | Stable project vocabulary |

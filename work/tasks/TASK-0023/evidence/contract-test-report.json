@@ -1,0 +1,28 @@
+{
+  "schema_version": "ahra/task-evidence/0.1",
+  "task_id": "TASK-0023",
+  "evidence_id": "EVD-TASK-0023-0003",
+  "kind": "contract_test_report",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T15:34:46+08:00",
+  "test_file": "tests/test_acceptance_contracts.py",
+  "covered_cases": [
+    "valid_examples_pass_contract_validation",
+    "uncovered_criterion_fails_contract_validation",
+    "cyclic_claim_dependency_fails_contract_validation",
+    "duplicate_claim_id_fails_contract_validation",
+    "security_extension_downgrade_fails_contract_validation",
+    "required_claim_needs_gate_or_approval",
+    "missing_claim_dependency_fails_contract_validation",
+    "unregistered_gate_fails_contract_validation",
+    "schema_rejects_unknown_major_version",
+    "schema_rejects_malformed_ids",
+    "schema_allows_compatible_extension_fields",
+    "domain_validation_layer_does_not_import_provider_sdks"
+  ],
+  "command_summary": {
+    "command": "uv run python -B -m unittest tests.test_acceptance_contracts tests.test_schemas -v",
+    "exit_code": 0,
+    "result": "13 tests ran successfully."
+  }
+}

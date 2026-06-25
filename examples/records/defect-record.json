@@ -1,0 +1,19 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "DefectRecord",
+  "metadata": {
+    "defectId": "DEF-doc-staleness-cli",
+    "createdAt": "2026-06-25T00:10:06Z"
+  },
+  "spec": {
+    "claimRef": "CLAIM-cli-detects-stale-docs",
+    "gateRef": "GATE-node-cli-unit",
+    "expected": "CLI exits non-zero for active documents past review_after.",
+    "actual": "CLI returned zero for an expired active document fixture.",
+    "refs": [
+      "ART-test-log"
+    ],
+    "repairBoundary": "Repair the CLI staleness detection path only; do not rewrite the GoalContract or ClaimGraph.",
+    "status": "open"
+  }
+}

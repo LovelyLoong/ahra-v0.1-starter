@@ -1,0 +1,100 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0022",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-25T07:06:59.435397Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Verifier reviewed TASK-0022 at state_version 3. ADR-0007 is accepted, authority-map ownership is unique and active, entry docs separate current implementation from target architecture, superseded docs remain traceable, authority lint is in place, and baseline checks pass.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "ADR-0007 is accepted or explicitly rejected with a replacement decision.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0022-0001"
+      ],
+      "notes": "architecture/decisions/ADR-0007-governed-dynamic-agent-kernel.md has status line '- Status: accepted'."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Exactly one active document owns the dynamic execution architecture, verification model, PlanIR, and component lifecycle concepts.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0022-0002"
+      ],
+      "notes": "docs/architecture/authority-map.md defines one active owner for each listed authority. Verifier parsed 9 AUTH rows, found no duplicate authority IDs, and every active owner target has status: active."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "README and AGENTS distinguish implemented current paths from proposed target paths.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0022-0001",
+        "EVD-TASK-0022-0004"
+      ],
+      "notes": "README.md states current implemented paths are CLI, local Skill, fixed workflow compatibility, and task-level EvidenceGate; it explicitly says GoalContract, ClaimGraph, GatePlan, PlanIR, Capability Admission, Node Scheduler, Defect repair, and selective reverification are not implemented yet. AGENTS.md carries the same non-claim rule."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Superseded documents remain traceable but are excluded from default read order.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0022-0001"
+      ],
+      "notes": "docs/architecture/framework-completion-roadmap.md is status: superseded and retained for traceability; AHRA-DYNAMIC-KERNEL-MASTER-PLAN.md is status: archived and points to AHRA_dynamic_kernel_master_plan_2026-06-25.md as the active master plan. Default AGENTS read order and architecture authority map do not use the superseded/archived files as active owners."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Documentation lint detects duplicate active authority IDs or broken index links.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0022-0002",
+        "EVD-TASK-0022-0003"
+      ],
+      "notes": "scripts/lint_awkp.py now runs lint_authority_map, which rejects duplicate AUTH rows, missing/broken active owner links, owner links escaping the repo, and active owners without status: active. Existing lint_relative_links continues to catch broken index links. Verifier reran lint successfully."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "All existing repository checks pass or preserved baseline blockers remain unchanged and documented.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0022-0003"
+      ],
+      "notes": "Verifier reran uv run python -B scripts/check.py, uv run python -B scripts/lint_awkp.py, and git diff --check. All passed."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "notes": "Verifier rerun passed: lint_contracts OK and unittest discovery ran 70 tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "notes": "Verifier rerun returned AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "Verifier rerun returned no output."
+    },
+    {
+      "command": "TASK-0022 manifest SHA-256 audit",
+      "status": "passed",
+      "notes": "All 9 TASK-0022 artifact/evidence manifest records matched file content."
+    },
+    {
+      "command": "authority map active-owner audit",
+      "status": "passed",
+      "notes": "Verifier parsed 9 AUTH rows; duplicate_ids and bad_status were empty."
+    },
+    {
+      "command": "deleted-file scan",
+      "status": "passed",
+      "notes": "git ls-files --deleted returned no paths."
+    }
+  ]
+}

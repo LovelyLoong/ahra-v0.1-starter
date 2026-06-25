@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/claim-graph.v1alpha1.json",
+  "title": "AHRA ClaimGraph",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[A-Za-z0-9_.-]+$": {}
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "ClaimGraph"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "name",
+        "goalId",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,62}$"
+        },
+        "goalId": {
+          "$ref": "#/$defs/goalId"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "goalRef",
+        "claims"
+      ],
+      "properties": {
+        "goalRef": {
+          "$ref": "#/$defs/goalId"
+        },
+        "claims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/claim"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "id",
+        "type",
+        "statement",
+        "criterionRefs",
+        "riskLevel",
+        "requiredEvidenceKinds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/claimId"
+        },
+        "type": {
+          "$ref": "#/$defs/claimType"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "criterionRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/criterionId"
+          }
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/claimId"
+          }
+        },
+        "riskLevel": {
+          "$ref": "#/$defs/riskLevel"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "requiredEvidenceKinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._-]{1,63}$"
+          }
+        },
+        "gateRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gateId"
+          }
+        },
+        "approvalRequired": {
+          "type": "boolean"
+        }
+      }
+    },
+    "claimId": {
+      "type": "string",
+      "pattern": "^CLAIM-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "claimType": {
+      "enum": [
+        "functional",
+        "structural",
+        "quality",
+        "security",
+        "operational",
+        "governance"
+      ]
+    },
+    "criterionId": {
+      "type": "string",
+      "pattern": "^CRIT-[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "gateId": {
+      "type": "string",
+      "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "goalId": {
+      "type": "string",
+      "pattern": "^GOAL-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "riskLevel": {
+      "enum": [
+        "R0",
+        "R1",
+        "R2",
+        "R3"
+      ]
+    }
+  }
+}

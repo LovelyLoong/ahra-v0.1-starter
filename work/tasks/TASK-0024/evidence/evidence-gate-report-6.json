@@ -1,0 +1,120 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0024",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-25T08:16:38.168717Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier inspected Evidence v2 schemas, records, invalidation implementation, legacy adapter, GateRun v2 bindings, tests, evidence manifests, and reran the current validation commands. Every acceptance criterion is mapped to registered evidence.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Identical canonical inputs produce the same fingerprint regardless of map ordering.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0024-0002",
+        "EVD-TASK-0024-0004"
+      ],
+      "notes": "canonical_fingerprint uses sorted JSON map keys; EvidenceV2 and GateRunV2 fingerprint payloads sort claim, subject, and dependency bindings before hashing."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Changing any bound digest makes dependent Evidence stale.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0024-0002",
+        "EVD-TASK-0024-0004"
+      ],
+      "notes": "Subject, dependency, policy, gate, runtime, test, and verifier release changes all mark dependent evidence stale; an independent dependency-digest probe also passed."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Unrelated Artifact changes do not invalidate Evidence when the graph proves no dependency.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0024-0002",
+        "EVD-TASK-0024-0004"
+      ],
+      "notes": "Complete dependency scope leaves evidence current for unrelated artifact changes."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Unknown or incomplete dependency information causes conservative invalidation.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0024-0002",
+        "EVD-TASK-0024-0004"
+      ],
+      "notes": "Incomplete dependency scope conservatively invalidates on otherwise unrelated changed refs."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "TTL, revocation and contradiction are represented distinctly and audibly.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0024-0001",
+        "EVD-TASK-0024-0002",
+        "EVD-TASK-0024-0004"
+      ],
+      "notes": "EvidenceValidityState and EvidenceStatusEvent distinguish expired, revoked, contradicted, stale, and supersession reasons."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Existing Evidence can be read through a clearly labeled legacy adapter but is not silently treated as fully fingerprinted.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0024-0003",
+        "EVD-TASK-0024-0004"
+      ],
+      "notes": "Legacy AWKP evidence manifests are adapted as legacy_partial records and are not silently promoted to full v2 fingerprinted evidence."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Tests cover direct, transitive, unrelated, policy, gate, TTL and contradiction cases.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0024-0002",
+        "EVD-TASK-0024-0004"
+      ],
+      "notes": "tests.test_evidence_v2 covers direct, transitive, unrelated, incomplete, policy, gate, runtime, test, verifier, TTL, revocation, contradiction, legacy adapter, and GateRun v2 binding cases."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_evidence_v2 tests.test_schemas -v",
+      "status": "passed",
+      "notes": "12 tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "status": "passed",
+      "notes": "AWKP lint 0 errors, 0 warnings; AHRA lint 0 failures; Evidence v2, GateRun v2, and EvidenceStatusEvent examples validated."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "notes": "93 tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "No whitespace errors reported."
+    },
+    {
+      "command": "TASK-0024 manifest SHA256 audit",
+      "status": "passed",
+      "notes": "All artifact-manifest and evidence-manifest local hashes matched."
+    },
+    {
+      "command": "dependency digest invalidation probe",
+      "status": "passed",
+      "notes": "Changing ART-dep digest returned stale with reason digest_changed:ART-dep."
+    }
+  ]
+}

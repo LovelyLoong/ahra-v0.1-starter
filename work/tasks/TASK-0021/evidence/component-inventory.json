@@ -1,0 +1,1461 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0021",
+  "generated_at": "2026-06-25T12:31:28+08:00",
+  "base_commit": "a422398710ff04ea2f80c38b39ce95d6816e2d6d",
+  "branch": "main",
+  "coverage_note": "Covers default-visible package scripts, CLI groups, local Skills, adapters, contract families, architecture/policy/ADR documents, core-like components, and all authoritative task records.",
+  "entries": [
+    {
+      "id": "package:ahra-reference",
+      "kind": "package",
+      "owner": "human:maintainer",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "ahra",
+        "ahra-demo",
+        "ahra-evidence-gate",
+        "ahra-lint",
+        "ahra-mcp"
+      ],
+      "consumers": [
+        "local CLI",
+        "tests",
+        "examples"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Task",
+        "Run",
+        "Artifact",
+        "Evidence",
+        "Policy",
+        "Context"
+      ],
+      "replacement_or_removal": "Reclassified through TASK-0022/TASK-0032; current package remains the local reference implementation."
+    },
+    {
+      "id": "command:ahra",
+      "kind": "command",
+      "owner": "human:maintainer",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "ahra.cli:main"
+      ],
+      "consumers": [
+        "pyproject.scripts",
+        "local operator"
+      ],
+      "tests": [
+        "tests/test_cli.py"
+      ],
+      "served_core_objects": [
+        "Task",
+        "Run",
+        "Evidence"
+      ],
+      "replacement_or_removal": "Retain unless TASK-0032 reclassifies."
+    },
+    {
+      "id": "command:ahra-demo",
+      "kind": "command",
+      "owner": "human:maintainer",
+      "lifecycle_class": "experimental",
+      "entrypoints": [
+        "ahra.demo:main"
+      ],
+      "consumers": [
+        "pyproject.scripts",
+        "local operator"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Run",
+        "Memory",
+        "Policy"
+      ],
+      "replacement_or_removal": "Retain unless TASK-0032 reclassifies."
+    },
+    {
+      "id": "command:ahra-evidence-gate",
+      "kind": "command",
+      "owner": "human:maintainer",
+      "lifecycle_class": "core",
+      "entrypoints": [
+        "ahra.evidence_gate:main"
+      ],
+      "consumers": [
+        "pyproject.scripts",
+        "local operator"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Task",
+        "Evidence"
+      ],
+      "replacement_or_removal": "Retain unless TASK-0032 reclassifies."
+    },
+    {
+      "id": "command:ahra-lint",
+      "kind": "command",
+      "owner": "human:maintainer",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "ahra.validation:main"
+      ],
+      "consumers": [
+        "pyproject.scripts",
+        "local operator"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Contract"
+      ],
+      "replacement_or_removal": "Retain unless TASK-0032 reclassifies."
+    },
+    {
+      "id": "command:ahra-mcp",
+      "kind": "command",
+      "owner": "human:maintainer",
+      "lifecycle_class": "legacy",
+      "entrypoints": [
+        "ahra.mcp_server:main"
+      ],
+      "consumers": [
+        "pyproject.scripts",
+        "local operator"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Tool",
+        "Run",
+        "Evidence"
+      ],
+      "replacement_or_removal": "MCP is a legacy candidate; default path to be decided by TASK-0032."
+    },
+    {
+      "id": "skill:ahra-workflow-runner",
+      "kind": "skill",
+      "owner": "human:maintainer",
+      "lifecycle_class": "legacy_adapter",
+      "entrypoints": [
+        "skills/ahra-workflow-runner/SKILL.md"
+      ],
+      "consumers": [
+        "AGENTS.md local skills index"
+      ],
+      "tests": [],
+      "served_core_objects": [
+        "Run",
+        "Task"
+      ],
+      "replacement_or_removal": "Keep as compatibility until dynamic-kernel default operation path exists."
+    },
+    {
+      "id": "skill:doc-gardening",
+      "kind": "skill",
+      "owner": "human:maintainer",
+      "lifecycle_class": "experimental",
+      "entrypoints": [
+        "skills/doc-gardening/SKILL.md"
+      ],
+      "consumers": [],
+      "tests": [],
+      "served_core_objects": [],
+      "replacement_or_removal": "Classify during lifecycle cleanup."
+    },
+    {
+      "id": "adapter:codex_sdk",
+      "kind": "adapter",
+      "owner": "human:maintainer",
+      "lifecycle_class": "adapter",
+      "entrypoints": [
+        "src/ahra/adapters/codex_sdk.py"
+      ],
+      "consumers": [
+        "AgentDriverRegistry",
+        "workflow requests"
+      ],
+      "tests": [
+        "tests/test_codex_driver.py"
+      ],
+      "served_core_objects": [
+        "AgentDriver",
+        "Run"
+      ],
+      "replacement_or_removal": "Retain behind ports; no provider SDK in domain layer."
+    },
+    {
+      "id": "component:standard-harness",
+      "kind": "component",
+      "owner": "human:maintainer",
+      "lifecycle_class": "legacy_refactor_candidate",
+      "entrypoints": [
+        "src/ahra/reference_runner/standard_harness.py"
+      ],
+      "consumers": [
+        "src/ahra/cli.py",
+        "tests"
+      ],
+      "tests": [
+        "tests/test_reference_runner.py"
+      ],
+      "served_core_objects": [
+        "Run",
+        "Artifact",
+        "Evidence"
+      ],
+      "replacement_or_removal": "Dynamic-kernel roadmap decides refactor/removal; no deletion before TASK-0031/0032."
+    },
+    {
+      "id": "component:loop-engineering",
+      "kind": "component",
+      "owner": "human:maintainer",
+      "lifecycle_class": "legacy_frozen",
+      "entrypoints": [
+        "src/ahra/reference_runner/loop_engineering.py"
+      ],
+      "consumers": [
+        "src/ahra/cli.py",
+        "tests"
+      ],
+      "tests": [
+        "tests/test_reference_runner.py"
+      ],
+      "served_core_objects": [
+        "Run",
+        "Task"
+      ],
+      "replacement_or_removal": "Dynamic-kernel roadmap decides refactor/removal; no deletion before TASK-0031/0032."
+    },
+    {
+      "id": "component:EvidenceGate",
+      "kind": "component",
+      "owner": "human:maintainer",
+      "lifecycle_class": "core_refactor_candidate",
+      "entrypoints": [
+        "src/ahra/evidence_gate.py"
+      ],
+      "consumers": [
+        "src/ahra/cli.py",
+        "tests"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Task",
+        "Evidence"
+      ],
+      "replacement_or_removal": "Dynamic-kernel roadmap decides refactor/removal; no deletion before TASK-0031/0032."
+    },
+    {
+      "id": "component:ContextBuilder",
+      "kind": "component",
+      "owner": "human:maintainer",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "src/ahra/context.py"
+      ],
+      "consumers": [
+        "tests"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Context"
+      ],
+      "replacement_or_removal": "Dynamic-kernel roadmap decides refactor/removal; no deletion before TASK-0031/0032."
+    },
+    {
+      "id": "component:ReferencePolicyEngine",
+      "kind": "component",
+      "owner": "human:maintainer",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "src/ahra/policy.py"
+      ],
+      "consumers": [
+        "tests"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Policy"
+      ],
+      "replacement_or_removal": "Dynamic-kernel roadmap decides refactor/removal; no deletion before TASK-0031/0032."
+    },
+    {
+      "id": "component:MemoryService",
+      "kind": "component",
+      "owner": "human:maintainer",
+      "lifecycle_class": "experimental",
+      "entrypoints": [
+        "src/ahra/memory.py"
+      ],
+      "consumers": [
+        "tests"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Memory"
+      ],
+      "replacement_or_removal": "Dynamic-kernel roadmap decides refactor/removal; no deletion before TASK-0031/0032."
+    },
+    {
+      "id": "component:RunService",
+      "kind": "component",
+      "owner": "human:maintainer",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "src/ahra/orchestrator.py"
+      ],
+      "consumers": [
+        "tests"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Run"
+      ],
+      "replacement_or_removal": "Dynamic-kernel roadmap decides refactor/removal; no deletion before TASK-0031/0032."
+    },
+    {
+      "id": "component:MCP server",
+      "kind": "component",
+      "owner": "human:maintainer",
+      "lifecycle_class": "legacy",
+      "entrypoints": [
+        "src/ahra/mcp_server.py"
+      ],
+      "consumers": [
+        "tests"
+      ],
+      "tests": [
+        "tests/"
+      ],
+      "served_core_objects": [
+        "Tool",
+        "Run",
+        "Evidence"
+      ],
+      "replacement_or_removal": "Dynamic-kernel roadmap decides refactor/removal; no deletion before TASK-0031/0032."
+    },
+    {
+      "id": "contracts:contracts-schemas",
+      "kind": "contract_family",
+      "owner": "human:maintainer",
+      "lifecycle_class": "core",
+      "entrypoints": [
+        "contracts/schemas/agent.schema.json",
+        "contracts/schemas/approval.schema.json",
+        "contracts/schemas/context-manifest.schema.json",
+        "contracts/schemas/event.schema.json",
+        "contracts/schemas/local-observability-record.schema.json",
+        "contracts/schemas/memory-record.schema.json",
+        "contracts/schemas/policy-decision.schema.json",
+        "contracts/schemas/run.schema.json",
+        "contracts/schemas/runtime-profile.schema.json",
+        "contracts/schemas/tool.schema.json",
+        "contracts/schemas/workflow-module.schema.json",
+        "contracts/schemas/workflow-resume-request.schema.json",
+        "contracts/schemas/workflow-run-request.schema.json",
+        "contracts/schemas/workflow.schema.json"
+      ],
+      "consumers": [
+        "scripts/lint_contracts.py",
+        "tests/test_schemas.py"
+      ],
+      "tests": [
+        "tests/test_schemas.py"
+      ],
+      "served_core_objects": [
+        "Agent",
+        "Approval",
+        "Context",
+        "Event",
+        "Memory",
+        "Policy",
+        "Run",
+        "RuntimeProfile",
+        "Tool",
+        "Workflow"
+      ],
+      "replacement_or_removal": "Extend with new Goal/Claim/Gate/PlanIR schemas in TASK-0023..0026."
+    },
+    {
+      "id": "contracts:awkp-schemas",
+      "kind": "contract_family",
+      "owner": "human:maintainer",
+      "lifecycle_class": "core",
+      "entrypoints": [
+        "schemas/artifact-manifest.schema.json",
+        "schemas/event.schema.json",
+        "schemas/state-machine.json",
+        "schemas/task-state.schema.json"
+      ],
+      "consumers": [
+        "AWKP task/state tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task",
+        "Event",
+        "ArtifactManifest"
+      ],
+      "replacement_or_removal": "Retain; reconcile with dynamic Goal/Claim objects in later tasks."
+    },
+    {
+      "id": "doc:docs/architecture/agent-drivers-and-workflow-invocation.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "active_legacy",
+      "entrypoints": [
+        "docs/architecture/agent-drivers-and-workflow-invocation.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/agent-workflow-foundation.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "active_legacy",
+      "entrypoints": [
+        "docs/architecture/agent-workflow-foundation.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/approval-service.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "active_legacy",
+      "entrypoints": [
+        "docs/architecture/approval-service.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/dynamic-agent-kernel.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "docs/architecture/dynamic-agent-kernel.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/evidence-gate.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "active_legacy",
+      "entrypoints": [
+        "docs/architecture/evidence-gate.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/framework-completion-roadmap.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "active_legacy",
+      "entrypoints": [
+        "docs/architecture/framework-completion-roadmap.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/framework-entrypoints.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "active_legacy",
+      "entrypoints": [
+        "docs/architecture/framework-entrypoints.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/observability-and-evaluation.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "active_legacy",
+      "entrypoints": [
+        "docs/architecture/observability-and-evaluation.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/plan-ir.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "docs/architecture/plan-ir.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/reference-runtime-adapters-and-mcp.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "active_legacy",
+      "entrypoints": [
+        "docs/architecture/reference-runtime-adapters-and-mcp.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/repository-consolidation.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "docs/architecture/repository-consolidation.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/verification-system.md",
+      "kind": "architecture_document",
+      "owner": "team:quality",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "docs/architecture/verification-system.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/architecture/workflow-modules.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "active_legacy",
+      "entrypoints": [
+        "docs/architecture/workflow-modules.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/policies/agent-authority-boundaries.md",
+      "kind": "architecture_document",
+      "owner": "team:security",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "docs/policies/agent-authority-boundaries.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/policies/component-lifecycle.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "docs/policies/component-lifecycle.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:docs/policies/document-governance.md",
+      "kind": "architecture_document",
+      "owner": "team:platform",
+      "lifecycle_class": "active_legacy",
+      "entrypoints": [
+        "docs/policies/document-governance.md"
+      ],
+      "consumers": [
+        "AGENTS.md read order",
+        "docs indexes",
+        "tasks"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:architecture/decisions/ADR-0001-separate-task-run-session-memory.md",
+      "kind": "architecture_document",
+      "owner": "unknown",
+      "lifecycle_class": "legacy",
+      "entrypoints": [
+        "architecture/decisions/ADR-0001-separate-task-run-session-memory.md"
+      ],
+      "consumers": [],
+      "tests": [],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:architecture/decisions/ADR-0002-explicit-workflow-bounds-agent-autonomy.md",
+      "kind": "architecture_document",
+      "owner": "unknown",
+      "lifecycle_class": "legacy",
+      "entrypoints": [
+        "architecture/decisions/ADR-0002-explicit-workflow-bounds-agent-autonomy.md"
+      ],
+      "consumers": [],
+      "tests": [],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:architecture/decisions/ADR-0003-ports-and-adapters.md",
+      "kind": "architecture_document",
+      "owner": "unknown",
+      "lifecycle_class": "legacy",
+      "entrypoints": [
+        "architecture/decisions/ADR-0003-ports-and-adapters.md"
+      ],
+      "consumers": [],
+      "tests": [],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:architecture/decisions/ADR-0004-pluggable-workflow-modules.md",
+      "kind": "architecture_document",
+      "owner": "unknown",
+      "lifecycle_class": "legacy",
+      "entrypoints": [
+        "architecture/decisions/ADR-0004-pluggable-workflow-modules.md"
+      ],
+      "consumers": [],
+      "tests": [],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:architecture/decisions/ADR-0005-agent-neutral-workflow-invocation.md",
+      "kind": "architecture_document",
+      "owner": "unknown",
+      "lifecycle_class": "legacy",
+      "entrypoints": [
+        "architecture/decisions/ADR-0005-agent-neutral-workflow-invocation.md"
+      ],
+      "consumers": [],
+      "tests": [],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:architecture/decisions/ADR-0006-reference-runtime-adapters-mcp-and-resume.md",
+      "kind": "architecture_document",
+      "owner": "unknown",
+      "lifecycle_class": "legacy",
+      "entrypoints": [
+        "architecture/decisions/ADR-0006-reference-runtime-adapters-mcp-and-resume.md"
+      ],
+      "consumers": [],
+      "tests": [],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "doc:architecture/decisions/ADR-0007-governed-dynamic-agent-kernel.md",
+      "kind": "architecture_document",
+      "owner": "unknown",
+      "lifecycle_class": "core_candidate",
+      "entrypoints": [
+        "architecture/decisions/ADR-0007-governed-dynamic-agent-kernel.md"
+      ],
+      "consumers": [],
+      "tests": [],
+      "served_core_objects": [],
+      "replacement_or_removal": "TASK-0022 must create the authoritative map and mark superseded docs explicitly."
+    },
+    {
+      "id": "task:TASK-0001",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0001/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Completed by EvidenceGate verifier approval."
+    },
+    {
+      "id": "task:TASK-0002",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0002/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Completed by EvidenceGate verifier approval."
+    },
+    {
+      "id": "task:TASK-0003",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0003/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Completed by EvidenceGate verifier approval."
+    },
+    {
+      "id": "task:TASK-0004",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0004/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Completed by EvidenceGate verifier approval."
+    },
+    {
+      "id": "task:TASK-0005",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0005/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Completed by independent verification; no further action for TASK-0005."
+    },
+    {
+      "id": "task:TASK-0006",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0006/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Completed by EvidenceGate verifier approval."
+    },
+    {
+      "id": "task:TASK-0007",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0007/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Completed by EvidenceGate verifier approval."
+    },
+    {
+      "id": "task:TASK-0008",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0008/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Completed by EvidenceGate verifier approval."
+    },
+    {
+      "id": "task:TASK-0009",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0009/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Completed by EvidenceGate verifier approval."
+    },
+    {
+      "id": "task:TASK-0010",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0010/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Completed by EvidenceGate verifier approval."
+    },
+    {
+      "id": "task:TASK-0011",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0011/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "No action under the old backlog; see CTX-ahra-dynamic-kernel and TASK-0021 reconciliation."
+    },
+    {
+      "id": "task:TASK-0012",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0012/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "No action under the old backlog; see CTX-ahra-dynamic-kernel and TASK-0021 reconciliation."
+    },
+    {
+      "id": "task:TASK-0013",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0013/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "No action under the old backlog; see CTX-ahra-dynamic-kernel and TASK-0021 reconciliation."
+    },
+    {
+      "id": "task:TASK-0014",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0014/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Retained as completed compatibility evidence; future default-path changes are governed by CTX-ahra-dynamic-kernel."
+    },
+    {
+      "id": "task:TASK-0015",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0015/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "No action under the old backlog; see CTX-ahra-dynamic-kernel and TASK-0021 reconciliation."
+    },
+    {
+      "id": "task:TASK-0016",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0016/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "No action under the old backlog; see CTX-ahra-dynamic-kernel and TASK-0021 reconciliation."
+    },
+    {
+      "id": "task:TASK-0017",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0017/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "No action under the old backlog; see CTX-ahra-dynamic-kernel and TASK-0021 reconciliation."
+    },
+    {
+      "id": "task:TASK-0018",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0018/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "No action under the old backlog; see CTX-ahra-dynamic-kernel and TASK-0021 reconciliation."
+    },
+    {
+      "id": "task:TASK-0019",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0019/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "No action under the old backlog; see CTX-ahra-dynamic-kernel and TASK-0021 reconciliation."
+    },
+    {
+      "id": "task:TASK-0020",
+      "kind": "task_record",
+      "owner": "unassigned",
+      "lifecycle_class": "archived",
+      "entrypoints": [
+        "work/tasks/TASK-0020/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "No action under the old backlog; see CTX-ahra-dynamic-kernel and TASK-0021 reconciliation."
+    },
+    {
+      "id": "task:TASK-0021",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0021/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Publish baseline inventory, drift report, backlog reconciliation, and handoff for independent review."
+    },
+    {
+      "id": "task:TASK-0022",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0022/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0021 to complete, then claim with CAS."
+    },
+    {
+      "id": "task:TASK-0023",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0023/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0022 to complete, then claim with CAS."
+    },
+    {
+      "id": "task:TASK-0024",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0024/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0023 to complete, then claim with CAS."
+    },
+    {
+      "id": "task:TASK-0025",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0025/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0024 to complete, then claim with CAS."
+    },
+    {
+      "id": "task:TASK-0026",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0026/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0025 to complete, then claim with CAS."
+    },
+    {
+      "id": "task:TASK-0027",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0027/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0026 to complete, then claim with CAS."
+    },
+    {
+      "id": "task:TASK-0028",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0028/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0027 to complete, then claim with CAS."
+    },
+    {
+      "id": "task:TASK-0029",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0029/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0028 to complete, then claim with CAS."
+    },
+    {
+      "id": "task:TASK-0030",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0030/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0029 to complete, then claim with CAS."
+    },
+    {
+      "id": "task:TASK-0031",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0031/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0030 to complete, then claim with CAS."
+    },
+    {
+      "id": "task:TASK-0032",
+      "kind": "active_task",
+      "owner": "unassigned",
+      "lifecycle_class": "active",
+      "entrypoints": [
+        "work/tasks/TASK-0032/task.md"
+      ],
+      "consumers": [
+        "work/index.md",
+        "AWKP task tooling"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
+      "served_core_objects": [
+        "Task"
+      ],
+      "replacement_or_removal": "Wait for TASK-0031 to complete, then claim with CAS."
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0021",
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "generated_at": "2026-06-25T14:26:31+08:00",
+  "producer": "agent:codex-dynamic-kernel-operator",
+  "summary": "Addressed EvidenceGate request_changes by publishing a corrected drift report with distinct implemented, partially_implemented, documented_only, duplicate, and dead_path categories.",
+  "changed_files": [
+    "work/tasks/TASK-0021/evidence/task-drift-report-2.json",
+    "work/tasks/TASK-0021/evidence/correction-verification.json",
+    "work/tasks/TASK-0021/evidence/implementation-report-2.json",
+    "work/tasks/TASK-0021/artifact-manifest.json",
+    "work/tasks/TASK-0021/evidence-manifest.json",
+    "work/tasks/TASK-0021/handoffs/HANDOFF-0002.md",
+    "work/tasks/TASK-0021/events.jsonl",
+    "work/tasks/TASK-0021/state.json",
+    "work/index.md"
+  ],
+  "acceptance_criteria": [
+    {
+      "criterion_index": 1,
+      "status": "unchanged_from_prior_review",
+      "evidence_refs": [
+        "EVD-TASK-0021-0002"
+      ]
+    },
+    {
+      "criterion_index": 2,
+      "status": "unchanged_from_prior_review",
+      "evidence_refs": [
+        "EVD-TASK-0021-0002"
+      ]
+    },
+    {
+      "criterion_index": 3,
+      "status": "producer_reran_checks",
+      "evidence_refs": [
+        "EVD-TASK-0021-0001",
+        "EVD-TASK-0021-0008"
+      ]
+    },
+    {
+      "criterion_index": 4,
+      "status": "corrected",
+      "evidence_refs": [
+        "EVD-TASK-0021-0007"
+      ],
+      "notes": "task-drift-report-2.json now has distinct implemented, partially_implemented, documented_only, duplicate, and dead_path categories."
+    },
+    {
+      "criterion_index": 5,
+      "status": "unchanged_from_prior_review",
+      "evidence_refs": [
+        "EVD-TASK-0021-0004"
+      ]
+    },
+    {
+      "criterion_index": 6,
+      "status": "producer_reran_checks",
+      "evidence_refs": [
+        "EVD-TASK-0021-0008",
+        "EVD-TASK-0021-0009"
+      ]
+    },
+    {
+      "criterion_index": 7,
+      "status": "unchanged_from_prior_review",
+      "evidence_refs": [
+        "EVD-TASK-0021-0004",
+        "EVD-TASK-0021-0005"
+      ]
+    }
+  ],
+  "known_limitations": [
+    "The original failed task-drift-report.json remains as historical evidence for EVD-TASK-0021-0003.",
+    "The corrected drift report is task-drift-report-2.json and supersedes the failed report for criterion 4 review.",
+    "No dynamic-kernel runtime implementation is claimed by this correction."
+  ],
+  "verification": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "exit_code": 0,
+      "output_sha256": "2bdd7cdd82d4ede43404c92ca5f42644231eebd42d86de147ca47b939815f85a",
+      "summary": "Passed: lint_contracts OK and unittest discovery ran 70 tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "exit_code": 0,
+      "output_sha256": "a89f30eca0b735b659afa4e650cb171ebdb433fe47b911b7d8f79ea7707a09ef",
+      "summary": "Passed: AWKP lint returned 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "Passed: no whitespace errors reported."
+    }
+  ]
+}

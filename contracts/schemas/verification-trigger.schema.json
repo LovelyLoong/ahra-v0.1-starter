@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/verification-trigger.v1alpha1.json",
+  "title": "AHRA VerificationTrigger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "ahra.dev/v1alpha1" },
+    "kind": { "const": "VerificationTrigger" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["triggerId", "createdAt"],
+      "properties": {
+        "triggerId": { "type": "string", "pattern": "^VTRIG-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "changedRefs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/digestRef" }
+        },
+        "failedGateRefs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/gateId" }
+        },
+        "changedClaimRefs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/claimId" }
+        },
+        "changedGateRefs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/gateId" }
+        },
+        "policyDigest": { "$ref": "#/$defs/sha256Digest" },
+        "runtimeProfileDigest": { "$ref": "#/$defs/sha256Digest" },
+        "testDefinitionDigest": { "$ref": "#/$defs/sha256Digest" },
+        "verifierReleaseDigest": { "$ref": "#/$defs/sha256Digest" }
+      }
+    }
+  },
+  "$defs": {
+    "claimId": { "type": "string", "pattern": "^CLAIM-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+    "digestRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "digest"],
+      "properties": {
+        "ref": { "type": "string", "minLength": 1 },
+        "digest": { "$ref": "#/$defs/sha256Digest" }
+      }
+    },
+    "gateId": { "type": "string", "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+    "sha256Digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+  }
+}

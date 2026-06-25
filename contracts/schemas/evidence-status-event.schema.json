@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/evidence-status-event.v1alpha1.json",
+  "title": "AHRA Evidence Status Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "EvidenceStatusEvent"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "occurredAt"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "pattern": "^EVT-EVD-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceRef",
+        "fromState",
+        "toState",
+        "reason"
+      ],
+      "properties": {
+        "evidenceRef": {
+          "type": "string",
+          "pattern": "^EVD-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+        },
+        "fromState": {
+          "$ref": "#/$defs/state"
+        },
+        "toState": {
+          "$ref": "#/$defs/state"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supersededBy": {
+          "type": "string",
+          "pattern": "^EVD-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "state": {
+      "enum": [
+        "current",
+        "stale",
+        "expired",
+        "revoked",
+        "contradicted"
+      ]
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "VerificationTrigger",
+  "metadata": {
+    "triggerId": "VTRIG-doc-staleness-local-change",
+    "createdAt": "2026-06-25T00:10:00Z"
+  },
+  "spec": {
+    "changedRefs": [
+      {
+        "ref": "ART-doc-cli",
+        "digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+      }
+    ],
+    "failedGateRefs": [
+      "GATE-node-cli-unit"
+    ],
+    "changedClaimRefs": [
+      "CLAIM-cli-detects-stale-docs"
+    ],
+    "changedGateRefs": [],
+    "policyDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+  }
+}

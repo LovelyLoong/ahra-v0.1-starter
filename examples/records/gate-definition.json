@@ -1,0 +1,26 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateDefinition",
+  "metadata": {
+    "name": "acceptance-contract-suite",
+    "gateId": "GATE-acceptance-contract-suite",
+    "version": 1
+  },
+  "spec": {
+    "level": "L1",
+    "evidenceKind": "contract_test",
+    "verifierMode": "deterministic",
+    "riskLevel": "R1",
+    "subjectKinds": [
+      "schema",
+      "domain_validator",
+      "contract_tests"
+    ],
+    "command": [
+      "python",
+      "-m",
+      "unittest",
+      "tests.test_acceptance_contracts"
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/defect-record.v1alpha1.json",
+  "title": "AHRA DefectRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "ahra.dev/v1alpha1" },
+    "kind": { "const": "DefectRecord" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defectId", "createdAt"],
+      "properties": {
+        "defectId": { "$ref": "#/$defs/defectId" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claimRef", "gateRef", "expected", "actual", "refs", "repairBoundary", "status"],
+      "properties": {
+        "claimRef": { "$ref": "#/$defs/claimId" },
+        "gateRef": { "$ref": "#/$defs/gateId" },
+        "expected": { "type": "string", "minLength": 1 },
+        "actual": { "type": "string", "minLength": 1 },
+        "refs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "repairBoundary": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": ["open", "triaged", "repair_planned", "repairing", "reverifying", "resolved", "escalated", "rejected"]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "claimId": { "type": "string", "pattern": "^CLAIM-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+    "defectId": { "type": "string", "pattern": "^DEF-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+    "gateId": { "type": "string", "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" }
+  }
+}

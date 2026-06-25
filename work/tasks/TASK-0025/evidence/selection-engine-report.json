@@ -1,0 +1,52 @@
+{
+    "schema_version":  "ahra/verification-selection-engine-report/0.1",
+    "task_id":  "TASK-0025",
+    "evidence_id":  "EVD-TASK-0025-0002",
+    "created_by":  "agent:codex-dynamic-kernel-operator",
+    "created_at":  "2026-06-25T16:30:05+08:00",
+    "implementation_refs":  [
+                                "src/ahra/verification.py",
+                                "tests/test_verification.py"
+                            ],
+    "algorithms":  [
+                       {
+                           "name":  "reverse_dependency_closure",
+                           "result":  "Starts from directly affected claims and stale evidence claimRefs, then deterministically walks downstream claim dependencies."
+                       },
+                       {
+                           "name":  "gate_selection",
+                           "result":  "Selects gates for affected claims, explicitly failed gates, L1 integration boundaries touching affected claims, policy mandatory gates, and required security/governance safety claims."
+                       },
+                       {
+                           "name":  "evidence_reuse",
+                           "result":  "Uses EvidenceRegistry inspection and reuses only current passed evidence with matching stored fingerprint when present."
+                       }
+                   ],
+    "acceptance_links":  [
+                             {
+                                 "criterion_index":  1,
+                                 "tests":  [
+                                               "test_selection_is_deterministic_for_same_inputs"
+                                           ]
+                             },
+                             {
+                                 "criterion_index":  2,
+                                 "tests":  [
+                                               "test_selects_failed_affected_integration_and_mandatory_safety_gates"
+                                           ]
+                             },
+                             {
+                                 "criterion_index":  3,
+                                 "tests":  [
+                                               "test_reuse_requires_current_evidence_and_matching_fingerprint"
+                                           ]
+                             },
+                             {
+                                 "criterion_index":  6,
+                                 "tests":  [
+                                               "test_selective_fixture_keeps_final_logical_coverage_complete"
+                                           ]
+                             }
+                         ],
+    "selective_fixture_summary":  "The fixture declares four full gates and selects three gates for a local CLI change while reusing current frontmatter evidence and preserving final logical completion coverage."
+}

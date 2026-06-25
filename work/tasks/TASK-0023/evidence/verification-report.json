@@ -1,0 +1,29 @@
+{
+  "schema_version": "ahra/task-evidence/0.1",
+  "task_id": "TASK-0023",
+  "evidence_id": "EVD-TASK-0023-0004",
+  "kind": "verification_report",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T15:34:46+08:00",
+  "command_results": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "exit_code": 0,
+      "summary": "AHRA lint reported 0 failures and unittest discover ran 82 tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors after LF normalization for touched Python files."
+    }
+  ],
+  "notes": [
+    "The full check was run after contract implementation and again after evidence, manifest, state, and handoff publication.",
+    "Final post-publication checks passed with AWKP lint 0/0 and git diff --check producing no output."
+  ]
+}

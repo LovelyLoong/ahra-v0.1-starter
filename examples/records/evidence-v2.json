@@ -1,0 +1,46 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "Evidence",
+  "metadata": {
+    "evidenceId": "EVD-doc-staleness-unit",
+    "createdAt": "2026-06-25T00:00:00Z"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLAIM-cli-detects-stale-docs"
+    ],
+    "gateRef": "GATE-acceptance-contract-suite@sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "gateDefinitionDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "gateRunId": "GATERUN-doc-staleness-unit",
+    "result": "passed",
+    "confidence": "verified",
+    "subjects": [
+      {
+        "ref": "ART-doc-staleness-cli",
+        "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      }
+    ],
+    "dependencies": [
+      {
+        "ref": "ART-doc-schema",
+        "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    ],
+    "environment": {
+      "runtimeProfileDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "policyDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "verifierReleaseDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "testDefinitionDigest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "relevantEnvironmentDigest": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+    },
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    },
+    "dependencyScope": "complete",
+    "refs": [
+      "ART-test-log"
+    ],
+    "supersedes": []
+  }
+}

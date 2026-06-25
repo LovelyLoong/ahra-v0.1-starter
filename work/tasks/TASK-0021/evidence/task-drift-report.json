@@ -1,0 +1,53 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0021",
+  "generated_at": "2026-06-25T12:31:28+08:00",
+  "items": [
+    {
+      "subject": "TASK-0015 vs current code",
+      "classification": "partially_implemented_or_implemented_before_task_state",
+      "evidence": [
+        "tests/test_reference_runner.py contains max_attempts policy coverage",
+        "src/ahra/reference_runner/models.py defines ExecutionPolicy",
+        "task state was ready before reconciliation"
+      ],
+      "decision": "reconcile old task into dynamic-kernel budget/defect/scheduler work and cancel old standalone record"
+    },
+    {
+      "subject": "MCP default script vs new master plan",
+      "classification": "legacy_default_visible_path",
+      "evidence": [
+        "pyproject.toml exposes ahra-mcp",
+        "master plan freezes MCP-only expansion"
+      ],
+      "decision": "retain until TASK-0032, no new MCP-only capability"
+    },
+    {
+      "subject": "loop-engineering",
+      "classification": "legacy_frozen_runtime_path",
+      "evidence": [
+        "src/ahra/reference_runner/loop_engineering.py exists and tests pass",
+        "master plan says do not auto-generate roadmap through loop-engineering"
+      ],
+      "decision": "freeze feature growth; keep compatibility until SG-3/SG-4"
+    },
+    {
+      "subject": "dynamic kernel docs vs runtime",
+      "classification": "documented_only_target",
+      "evidence": [
+        "docs/architecture/dynamic-agent-kernel.md and plan-ir.md imported",
+        "no GoalContract/ClaimGraph/PlanIR runtime schemas exist yet"
+      ],
+      "decision": "implement only through TASK-0023 onward"
+    },
+    {
+      "subject": "work/proposed task drafts",
+      "classification": "proposal_promoted_with_non_authoritative_drafts_retained",
+      "evidence": [
+        "work/tasks/TASK-0021..TASK-0032 created",
+        "scripts/lint_awkp.py skips proposed task drafts for authority ID uniqueness"
+      ],
+      "decision": "authoritative state lives under work/tasks; proposed drafts remain source references"
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0024",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0024-0001",
+      "task_id": "TASK-0024",
+      "kind": "evidence_v2_design_report",
+      "name": "evidence-v2-design-report.json",
+      "uri": "local://evidence/evidence-v2-design-report.json",
+      "sha256": "d52fbf891586ecd98b42a84cb64a15963e784e1aa124dead8890f6df9880a095",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T16:08:52+08:00",
+      "input_refs": [
+        "task.md",
+        "docs/architecture/verification-system.md",
+        "src/ahra/evidence_gate.py",
+        "work/tasks/TASK-0023/evidence-manifest.json"
+      ],
+      "evidence_refs": "EVD-TASK-0024-0001",
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0024-0002",
+      "task_id": "TASK-0024",
+      "kind": "fingerprint_invalidation_report",
+      "name": "fingerprint-invalidation-report.json",
+      "uri": "local://evidence/fingerprint-invalidation-report.json",
+      "sha256": "3a54f577a82de9b0a8acc2d8ee5f8984401e83649b2fa1ff490ade2cf4b22ae9",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T16:08:52+08:00",
+      "input_refs": [
+        "src/ahra/evidence_v2.py",
+        "tests/test_evidence_v2.py"
+      ],
+      "evidence_refs": "EVD-TASK-0024-0002",
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0024-0003",
+      "task_id": "TASK-0024",
+      "kind": "legacy_adapter_report",
+      "name": "legacy-adapter-report.json",
+      "uri": "local://evidence/legacy-adapter-report.json",
+      "sha256": "0c364df53dee692433534d2701a72ec8920c31abfb199d05c7f19a5fd4156d59",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T16:08:52+08:00",
+      "input_refs": [
+        "src/ahra/evidence_v2.py",
+        "work/tasks/TASK-0023/evidence-manifest.json"
+      ],
+      "evidence_refs": "EVD-TASK-0024-0003",
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0024-0004",
+      "task_id": "TASK-0024",
+      "kind": "verification_report",
+      "name": "verification-report.json",
+      "uri": "local://evidence/verification-report.json",
+      "sha256": "85f379b16b711f031a542d4559da891ad772934fffc78516da41f6a734cb46f7",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T16:08:52+08:00",
+      "input_refs": [
+        "scripts/check.py",
+        "scripts/lint_awkp.py",
+        "scripts/lint_contracts.py",
+        "tests/test_evidence_v2.py",
+        "tests/test_schemas.py"
+      ],
+      "evidence_refs": "EVD-TASK-0024-0004",
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0024-0005",
+      "task_id": "TASK-0024",
+      "kind": "implementation_report",
+      "name": "implementation-report.json",
+      "uri": "local://evidence/implementation-report.json",
+      "sha256": "2693c0c655a6ef474c5501bd5f88f13757c8a58b0754f97620f8240271f3b9c1",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T16:08:52+08:00",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "evidence/evidence-v2-design-report.json",
+        "evidence/fingerprint-invalidation-report.json",
+        "evidence/legacy-adapter-report.json",
+        "evidence/verification-report.json"
+      ],
+      "evidence_refs": "EVD-TASK-0024-0005",
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0024-HANDOFF-0001",
+      "task_id": "TASK-0024",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "52547dbc1c51605aaee1142038f83f11fac11da34f3f426510d30ed7a07ed177",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T16:08:52+08:00",
+      "input_refs": [
+        "task.md",
+        "evidence/implementation-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0024-0001",
+        "EVD-TASK-0024-0002",
+        "EVD-TASK-0024-0003",
+        "EVD-TASK-0024-0004",
+        "EVD-TASK-0024-0005"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0024-0006",
+      "task_id": "TASK-0024",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-6.json",
+      "uri": "local://evidence/evidence-gate-report-6.json",
+      "sha256": "c3f1ea25beb01fc1c067bc553bc65d6a2f25c730ebd488ae88961f5c05a7a2f7",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-25T08:16:38.168717Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0024-0006"
+      ],
+      "supersedes": null
+    }
+  ]
+}

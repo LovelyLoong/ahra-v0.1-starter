@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/gate-run-v2.v1alpha1.json",
+  "title": "AHRA GateRun v2",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[A-Za-z0-9_.-]+$": {}
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "GateRun"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gateRunId",
+        "createdAt"
+      ],
+      "properties": {
+        "gateRunId": {
+          "type": "string",
+          "pattern": "^GATERUN-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gateRef",
+        "gateDefinitionDigest",
+        "claimRefs",
+        "result",
+        "startedAt",
+        "completedAt",
+        "subjects",
+        "dependencies",
+        "environment",
+        "validity"
+      ],
+      "properties": {
+        "gateRef": {
+          "type": "string",
+          "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}(@sha256:[a-f0-9]{64})?$"
+        },
+        "gateDefinitionDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "claimRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^CLAIM-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+          }
+        },
+        "fingerprint": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "subjects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/digestRef"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/digestRef"
+          }
+        },
+        "environment": {
+          "$ref": "#/$defs/environment"
+        },
+        "validity": {
+          "$ref": "#/$defs/validity"
+        },
+        "result": {
+          "enum": [
+            "passed",
+            "failed",
+            "blocked"
+          ]
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidenceRef": {
+          "type": "string",
+          "pattern": "^EVD-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "digestRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "digest"
+      ],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "$ref": "#/$defs/sha256Digest"
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtimeProfileDigest",
+        "policyDigest",
+        "verifierReleaseDigest",
+        "testDefinitionDigest"
+      ],
+      "properties": {
+        "runtimeProfileDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "policyDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "verifierReleaseDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "testDefinitionDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "relevantEnvironmentDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        }
+      }
+    },
+    "sha256Digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "validity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "current",
+            "stale",
+            "expired",
+            "revoked",
+            "contradicted"
+          ]
+        },
+        "validUntil": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

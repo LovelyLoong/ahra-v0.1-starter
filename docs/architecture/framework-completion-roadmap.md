@@ -4,7 +4,7 @@ id: DOCS-architecture-framework-completion-roadmap
 schema_version: awkp/0.1
 title: Framework completion roadmap
 description: Implementation-facing roadmap for turning the starter into an Agent workflow foundation.
-status: active
+status: superseded
 owner: team:platform
 source_refs: [../../architecture/SPEC.md, ../../README.md]
 evidence_refs: []
@@ -13,6 +13,8 @@ last_verified_at: 2026-06-22T00:00:00Z
 review_after: 2026-09-22T00:00:00Z
 tags: [architecture, roadmap, framework]
 ---
+
+> Superseded by the dynamic-kernel roadmap and authority map. Retained for traceability; do not use as default execution order.
 
 # Purpose
 

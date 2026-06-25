@@ -1,0 +1,50 @@
+{
+    "schema_version":  "ahra/verification-report/0.1",
+    "task_id":  "TASK-0024",
+    "evidence_id":  "EVD-TASK-0024-0004",
+    "created_by":  "agent:codex-dynamic-kernel-operator",
+    "created_at":  "2026-06-25T16:08:52+08:00",
+    "commands":  [
+                     {
+                         "command":  "uv run python -B -m unittest tests.test_evidence_v2 tests.test_schemas -v",
+                         "status":  "passed",
+                         "summary":  "12 tests OK after GateRun v2 digest/validity hardening."
+                     },
+                     {
+                         "command":  "uv run python -B scripts/lint_contracts.py",
+                         "status":  "passed",
+                         "summary":  "AWKP lint 0 errors, 0 warnings; all contract examples including Evidence v2, GateRun v2, and EvidenceStatusEvent validated; AHRA lint 0 failures."
+                     },
+                     {
+                         "command":  "uv run python -B scripts/check.py",
+                         "status":  "passed",
+                         "summary":  "Full repository check passed; 93 unittest cases OK."
+                     },
+                     {
+                         "command":  "uv run python -B scripts/lint_awkp.py",
+                         "status":  "passed",
+                         "summary":  "AWKP lint 0 errors, 0 warnings."
+                     },
+                     {
+                         "command":  "git diff --check",
+                         "status":  "passed",
+                         "summary":  "No output."
+                     }
+                 ],
+    "focused_test_coverage":  [
+                                  "direct digest change",
+                                  "transitive dependency staleness",
+                                  "unrelated artifact current path",
+                                  "incomplete dependency conservative invalidation",
+                                  "policy change",
+                                  "gate change",
+                                  "runtime change",
+                                  "test definition change",
+                                  "verifier release change",
+                                  "TTL expiry",
+                                  "revocation",
+                                  "contradiction",
+                                  "legacy manifest compatibility",
+                                  "GateRun v2 digest and validity bindings"
+                              ]
+}

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/gate-definition.v1alpha1.json",
+  "title": "AHRA GateDefinition",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[A-Za-z0-9_.-]+$": {}
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "GateDefinition"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "name",
+        "gateId",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,62}$"
+        },
+        "gateId": {
+          "$ref": "#/$defs/gateId"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "level",
+        "evidenceKind",
+        "verifierMode",
+        "riskLevel"
+      ],
+      "properties": {
+        "level": {
+          "enum": [
+            "L0",
+            "L1",
+            "L2"
+          ]
+        },
+        "evidenceKind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]{1,63}$"
+        },
+        "verifierMode": {
+          "enum": [
+            "deterministic",
+            "semantic_review",
+            "human_approval"
+          ]
+        },
+        "riskLevel": {
+          "$ref": "#/$defs/riskLevel"
+        },
+        "subjectKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "gateId": {
+      "type": "string",
+      "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "riskLevel": {
+      "enum": [
+        "R0",
+        "R1",
+        "R2",
+        "R3"
+      ]
+    }
+  }
+}

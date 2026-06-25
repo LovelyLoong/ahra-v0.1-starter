@@ -3,11 +3,11 @@
   "task_id": "TASK-0014",
   "context_id": "CTX-ahra-cli-skill-entrypoint",
   "state": "completed",
-  "state_version": 13,
+  "state_version": 14,
   "owner": null,
   "attempt": 5,
   "lease": null,
-  "next_action": "Completed by EvidenceGate verifier approval.",
+  "next_action": "Retained as completed compatibility evidence; future default-path changes are governed by CTX-ahra-dynamic-kernel.",
   "pause_reason": null,
   "blockers": [],
   "artifact_refs": [
@@ -28,5 +28,5 @@
     "EVD-TASK-0014-0004",
     "EVD-TASK-0014-0005"
   ],
-  "updated_at": "2026-06-23T13:57:33.918538Z"
+  "updated_at": "2026-06-25T12:31:28+08:00"
 }

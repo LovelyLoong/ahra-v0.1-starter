@@ -1,0 +1,101 @@
+{
+  "schema_version": "ahra/task-implementation-report/0.1",
+  "task_id": "TASK-0023",
+  "evidence_id": "EVD-TASK-0023-0005",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T15:34:46+08:00",
+  "producer_agent_release": "agent:codex-dynamic-kernel-operator@codex-session",
+  "context_manifest": {
+    "workspace": "E:/ahra-v0.1-starter",
+    "branch": "working-tree",
+    "base_commit": "a422398710ff04ea2f80c38b39ce95d6816e2d6d",
+    "final_commit": null,
+    "patch_state": "uncommitted working tree changes prepared for verifier review"
+  },
+  "implemented_files": [
+    "contracts/schemas/goal-contract.schema.json",
+    "contracts/schemas/claim-graph.schema.json",
+    "contracts/schemas/gate-definition.schema.json",
+    "contracts/schemas/gate-plan.schema.json",
+    "contracts/compatibility/acceptance-contracts.md",
+    "src/ahra/acceptance_contracts.py",
+    "src/ahra/__init__.py",
+    "examples/records/goal-contract.json",
+    "examples/records/claim-graph.json",
+    "examples/records/gate-definition.json",
+    "examples/records/gate-plan.json",
+    "examples/records/invalid/claim-graph-uncovered.json",
+    "examples/records/invalid/claim-graph-cyclic.json",
+    "examples/records/invalid/claim-graph-duplicate.json",
+    "examples/records/invalid/claim-graph-forbidden-downgrade.json",
+    "tests/test_acceptance_contracts.py",
+    "tests/test_schemas.py",
+    "scripts/lint_contracts.py"
+  ],
+  "metadata_corrections": [
+    {
+      "task_id": "TASK-0022",
+      "change": "Corrected task.md input_refs from stale component-inventory.yaml to ../TASK-0021/evidence/component-inventory.json.",
+      "event": "EVT-TASK-0022-0005",
+      "state_version": 5,
+      "acceptance_impact": "No acceptance criteria were lowered and TASK-0022 EvidenceGate approval remains historical."
+    }
+  ],
+  "acceptance_map": [
+    {
+      "criterion": "Every Goal criterion must map to at least one Claim and uncovered criteria fail validation.",
+      "evidence_refs": [
+        "EVD-TASK-0023-0001",
+        "EVD-TASK-0023-0003"
+      ]
+    },
+    {
+      "criterion": "Every required Claim must map to a Gate or explicit approval requirement.",
+      "evidence_refs": [
+        "EVD-TASK-0023-0001",
+        "EVD-TASK-0023-0003"
+      ]
+    },
+    {
+      "criterion": "Claim dependencies are checked for cycles and missing references.",
+      "evidence_refs": [
+        "EVD-TASK-0023-0001",
+        "EVD-TASK-0023-0003"
+      ]
+    },
+    {
+      "criterion": "Security and governance Claim requirements cannot be downgraded by extension fields.",
+      "evidence_refs": [
+        "EVD-TASK-0023-0001",
+        "EVD-TASK-0023-0003"
+      ]
+    },
+    {
+      "criterion": "Schemas reject unknown major versions and malformed IDs while allowing compatible extension fields.",
+      "evidence_refs": [
+        "EVD-TASK-0023-0002",
+        "EVD-TASK-0023-0003"
+      ]
+    },
+    {
+      "criterion": "Contract tests include valid, uncovered, cyclic, duplicate, and forbidden-downgrade cases.",
+      "evidence_refs": [
+        "EVD-TASK-0023-0003"
+      ]
+    },
+    {
+      "criterion": "No model/provider SDK is imported by the domain or validation layer.",
+      "evidence_refs": [
+        "EVD-TASK-0023-0001",
+        "EVD-TASK-0023-0003",
+        "EVD-TASK-0023-0004"
+      ]
+    }
+  ],
+  "known_limitations": [
+    "TASK-0023 defines contracts and deterministic validators only; it does not generate Claims with an LLM.",
+    "PlanIR, scheduler execution, Evidence v2 runtime storage, and DefectRecord repair loops remain deferred to later tasks.",
+    "The producing agent is not marking TASK-0023 completed; independent verifier and EvidenceGate decide completion."
+  ],
+  "unresolved_items": []
+}

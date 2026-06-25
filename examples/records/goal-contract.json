@@ -1,0 +1,43 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GoalContract",
+  "metadata": {
+    "name": "doc-staleness-goal",
+    "goalId": "GOAL-doc-staleness",
+    "version": 1,
+    "owner": "human:maintainer"
+  },
+  "spec": {
+    "objective": "Add a deterministic documentation staleness check to a fixture project.",
+    "boundaries": [
+      "fixture project only",
+      "no production deployment"
+    ],
+    "riskLevel": "R1",
+    "mandatoryClaimTypes": [
+      "security",
+      "governance"
+    ],
+    "criteria": [
+      {
+        "id": "CRIT-functional",
+        "statement": "The check fails when an active document is past review_after.",
+        "required": true,
+        "riskLevel": "R1"
+      },
+      {
+        "id": "CRIT-security",
+        "statement": "The check does not expose secrets or require network access.",
+        "required": true,
+        "riskLevel": "R1"
+      },
+      {
+        "id": "CRIT-governance",
+        "statement": "The result is recorded as auditable evidence before completion.",
+        "required": true,
+        "riskLevel": "R1"
+      }
+    ]
+  },
+  "x-compatible-note": "Additional x-* fields are compatible within v1alpha1."
+}

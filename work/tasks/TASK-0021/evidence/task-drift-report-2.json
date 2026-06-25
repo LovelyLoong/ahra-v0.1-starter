@@ -1,0 +1,112 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0021",
+  "generated_at": "2026-06-25T14:26:31+08:00",
+  "supersedes": "local://evidence/task-drift-report.json",
+  "correction_for": {
+    "event_id": "EVT-TASK-0021-0004",
+    "evidence_id": "EVD-TASK-0021-0006",
+    "failed_criterion_index": 4
+  },
+  "classification_legend": {
+    "implemented": "Capability exists in current code/tests and the remaining drift is task/document state.",
+    "partially_implemented": "Some supporting code or contract exists, but the target dynamic-kernel semantics are incomplete.",
+    "documented_only": "Architecture or task documents exist, but there is no runtime/schema/test implementation yet.",
+    "duplicate": "Two or more artifacts currently express the same authority or content.",
+    "dead_path": "A previously planned execution path has been superseded and must not be advanced."
+  },
+  "required_categories": [
+    "implemented",
+    "partially_implemented",
+    "documented_only",
+    "duplicate",
+    "dead_path"
+  ],
+  "category_summary": {
+    "implemented": 1,
+    "partially_implemented": 2,
+    "documented_only": 1,
+    "duplicate": 1,
+    "dead_path": 1
+  },
+  "required_categories_present": true,
+  "items": [
+    {
+      "subject": "workflow max-attempt failure policy",
+      "classification": "implemented",
+      "scope": "runtime/task execution",
+      "evidence": [
+        "src/ahra/reference_runner/models.py defines ExecutionPolicy(max_attempts).",
+        "src/ahra/reference_runner/invocation.py validates executionPolicy before execution.",
+        "tests/test_reference_runner.py covers retryable failure, exhausted attempts, reviewer output retry limits, and formal AWKP failure evidence."
+      ],
+      "drift": "Old TASK-0015 stayed ready even though the capability already exists in current code/tests.",
+      "decision": "Reconciled TASK-0015 into the dynamic-kernel scheduler/budget/Defect path and canceled the old standalone task."
+    },
+    {
+      "subject": "EvidenceGate task completion vs Goal/Claim evidence validity",
+      "classification": "partially_implemented",
+      "scope": "verification/completion",
+      "evidence": [
+        "src/ahra/evidence_gate.py enforces task-level review state, expected state_version, verifier identity, and criterion evidence refs.",
+        "docs/architecture/verification-system.md now defines Claim/Gate/Evidence validity and selective reverification.",
+        "No GoalContract/ClaimGraph/GateDefinition/Evidence-v2 schema or validity engine exists yet."
+      ],
+      "drift": "Task-level EvidenceGate is implemented, but the dynamic-kernel Claim/Gate validity model remains future work.",
+      "decision": "Carry remaining work into TASK-0023 through TASK-0025."
+    },
+    {
+      "subject": "capability admission and reference monitor",
+      "classification": "partially_implemented",
+      "scope": "security/capability control",
+      "evidence": [
+        "src/ahra/policy.py and src/ahra/reference_runner/policy.py provide policy checks for current reference paths.",
+        "contracts/schemas/runtime-profile.schema.json exists.",
+        "No unified PlanIR Capability Grant admission or filesystem/tool/runtime gateway exists yet."
+      ],
+      "drift": "Policy concepts exist, but default-deny capability admission for dynamic PlanIR is not implemented.",
+      "decision": "Implement through TASK-0027 before dynamic execution is enabled."
+    },
+    {
+      "subject": "GoalContract, ClaimGraph, GatePlan, PlanDraft and PlanIR runtime path",
+      "classification": "documented_only",
+      "scope": "dynamic-kernel target architecture",
+      "evidence": [
+        "AHRA-DYNAMIC-KERNEL-MASTER-PLAN.md defines GoalContract, ClaimGraph, GatePlan, PlanDraft and PlanIR.",
+        "docs/architecture/dynamic-agent-kernel.md and docs/architecture/plan-ir.md define the target flow.",
+        "No matching runtime modules, schemas, compiler, admission path, scheduler, or fixture E2E exists in src/ahra yet."
+      ],
+      "drift": "The target architecture is now documented and planned, but not operational.",
+      "decision": "Do not claim runtime support until TASK-0023 through TASK-0031 pass."
+    },
+    {
+      "subject": "root master-plan filename pair",
+      "classification": "duplicate",
+      "scope": "documentation/package migration",
+      "evidence": [
+        "AHRA-DYNAMIC-KERNEL-MASTER-PLAN.md and AHRA_dynamic_kernel_master_plan_2026-06-25.md were imported from the source pack.",
+        "Both files had the same SHA-256 at import time: E7DE3CE531E26A7300E141E7DFAEDC1370214D940BE2ECC6BF8B4729038CBC2F.",
+        "The previous implementation report noted this only as a limitation; the original drift report did not classify it."
+      ],
+      "drift": "Two root files define the same master plan content under different names.",
+      "decision": "TASK-0022 must choose the active authority path and mark the duplicate as alias, legacy, or remove candidate without losing traceability."
+    },
+    {
+      "subject": "superseded TASK-0011 through TASK-0020 backlog progression path",
+      "classification": "dead_path",
+      "scope": "work planning/state projection",
+      "evidence": [
+        "TASK-0011 through TASK-0013 and TASK-0015 through TASK-0020 now have append-only backlog_reconciled events and canceled state projections.",
+        "TASK-0014 remains completed only as retained compatibility evidence.",
+        "work/index.md no longer presents the old backlog as executable next work."
+      ],
+      "drift": "The old fixed backlog path must not auto-advance after the maintainer redirected work to CTX-ahra-dynamic-kernel.",
+      "decision": "Treat the old progression as dead for execution; use TASK-0021 through TASK-0032 as the only active sequence."
+    }
+  ],
+  "notes": [
+    "This report intentionally does not claim code deletion or dead runtime code.",
+    "dead_path here refers to the old AWKP backlog progression path after explicit dynamic-kernel redirection.",
+    "MCP and loop-engineering remain legacy/compatibility paths, not dead paths, until TASK-0032 decides their disposition."
+  ]
+}

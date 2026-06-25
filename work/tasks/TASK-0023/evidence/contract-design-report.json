@@ -1,0 +1,54 @@
+{
+  "schema_version": "ahra/task-evidence/0.1",
+  "task_id": "TASK-0023",
+  "evidence_id": "EVD-TASK-0023-0001",
+  "kind": "contract_design_report",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T15:34:46+08:00",
+  "summary": "Defined provider-neutral GoalContract, ClaimGraph, Claim, GateDefinition, and GatePlan contracts plus deterministic acceptance validation.",
+  "files": [
+    "contracts/schemas/goal-contract.schema.json",
+    "contracts/schemas/claim-graph.schema.json",
+    "contracts/schemas/gate-definition.schema.json",
+    "contracts/schemas/gate-plan.schema.json",
+    "src/ahra/acceptance_contracts.py",
+    "contracts/compatibility/acceptance-contracts.md"
+  ],
+  "domain_objects": [
+    "GoalContract",
+    "GoalCriterion",
+    "ClaimGraph",
+    "Claim",
+    "GateDefinition",
+    "GatePlan",
+    "GatePlanEntry"
+  ],
+  "deterministic_validations": [
+    "GoalContract criteria have unique stable IDs.",
+    "ClaimGraph claims have unique stable IDs.",
+    "Every Goal criterion is covered by at least one Claim.",
+    "Every Claim criterion reference points to the GoalContract.",
+    "Every required Claim has gateRefs or approvalRequired.",
+    "Every Claim gateRef and every GatePlan gateRef points to a registered GateDefinition.",
+    "GatePlan claimRefs point to existing Claims and match Claim gateRefs.",
+    "Claim dependencies point to existing Claims and are acyclic.",
+    "GoalContract mandatoryClaimTypes require required Claims.",
+    "security and governance Claims cannot be optional or weakened by x-* extension override keys."
+  ],
+  "provider_sdk_imports": {
+    "checked_files": [
+      "src/ahra/acceptance_contracts.py",
+      "src/ahra/domain.py",
+      "src/ahra/validation.py"
+    ],
+    "forbidden_dependencies": [
+      "openai",
+      "anthropic",
+      "langgraph",
+      "temporalio",
+      "boto3",
+      "kubernetes"
+    ],
+    "result": "none_detected"
+  }
+}

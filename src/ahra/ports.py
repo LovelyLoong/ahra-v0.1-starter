@@ -13,6 +13,19 @@ from .domain import (
     RunRecord,
     ToolDescriptor,
 )
+from .evidence_v2 import (
+    EvidenceInspection,
+    EvidenceInvalidationTrigger,
+    EvidenceStatusEvent,
+    EvidenceV2,
+    LegacyEvidenceRecord,
+)
+from .verification import (
+    CompletionGateResult,
+    DefectRecord,
+    VerificationSelection,
+    VerificationTrigger,
+)
 
 
 class AgentRole(StrEnum):
@@ -223,6 +236,21 @@ class ArtifactStore(Protocol):
 class EvidenceStore(Protocol):
     def put(self, content: bytes, media_type: str, metadata: dict[str, Any]) -> str: ...
     def get(self, evidence_ref: str) -> bytes: ...
+
+
+@runtime_checkable
+class EvidenceRegistryPort(Protocol):
+    def put_v2(self, evidence: EvidenceV2) -> None: ...
+    def inspect(self, evidence_ref: str, trigger: EvidenceInvalidationTrigger | None = None) -> EvidenceInspection: ...
+    def append_status_event(self, event: EvidenceStatusEvent) -> None: ...
+    def adapt_legacy_manifest(self, manifest: dict[str, Any]) -> tuple[LegacyEvidenceRecord, ...]: ...
+
+
+@runtime_checkable
+class VerificationServicePort(Protocol):
+    def select(self, trigger: VerificationTrigger) -> VerificationSelection: ...
+    def complete(self, trigger: VerificationTrigger | None = None) -> CompletionGateResult: ...
+    def defects(self) -> tuple[DefectRecord, ...]: ...
 
 
 @runtime_checkable

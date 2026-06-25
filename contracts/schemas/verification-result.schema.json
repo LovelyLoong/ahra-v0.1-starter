@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/verification-result.v1alpha1.json",
+  "title": "AHRA VerificationResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "ahra.dev/v1alpha1" },
+    "kind": { "const": "VerificationResult" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resultId", "createdAt"],
+      "properties": {
+        "resultId": { "type": "string", "pattern": "^VRES-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gateRef", "claimRefs", "result", "expected", "actual"],
+      "properties": {
+        "gateRef": { "$ref": "#/$defs/gateId" },
+        "claimRefs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/claimId" } },
+        "result": { "enum": ["passed", "failed", "blocked"] },
+        "expected": { "type": "string", "minLength": 1 },
+        "actual": { "type": "string", "minLength": 1 },
+        "refs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "evidenceRef": { "$ref": "#/$defs/evidenceId" },
+        "defectRef": { "$ref": "#/$defs/defectId" }
+      }
+    }
+  },
+  "$defs": {
+    "claimId": { "type": "string", "pattern": "^CLAIM-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+    "defectId": { "type": "string", "pattern": "^DEF-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+    "evidenceId": { "type": "string", "pattern": "^EVD-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+    "gateId": { "type": "string", "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" }
+  }
+}

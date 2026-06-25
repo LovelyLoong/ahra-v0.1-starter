@@ -1,0 +1,53 @@
+{
+  "package": "AHRA governed dynamic Agent kernel document pack",
+  "generated_at": "2026-06-25",
+  "files": [
+    "AHRA-DYNAMIC-KERNEL-MASTER-PLAN.md",
+    "README.md",
+    "architecture/decisions/ADR-0007-governed-dynamic-agent-kernel.md",
+    "docs/architecture/dynamic-agent-kernel.md",
+    "docs/architecture/plan-ir.md",
+    "docs/architecture/repository-consolidation.md",
+    "docs/architecture/verification-system.md",
+    "docs/policies/agent-authority-boundaries.md",
+    "docs/policies/component-lifecycle.md",
+    "docs/roadmaps/dynamic-kernel-roadmap.md",
+    "templates/execution-agent-prompt.md",
+    "templates/independent-verifier-prompt.md",
+    "work/proposed/CTX-ahra-dynamic-kernel.md",
+    "work/proposed/TASK-SEQUENCE.md",
+    "work/proposed/tasks/TASK-0021.md",
+    "work/proposed/tasks/TASK-0022.md",
+    "work/proposed/tasks/TASK-0023.md",
+    "work/proposed/tasks/TASK-0024.md",
+    "work/proposed/tasks/TASK-0025.md",
+    "work/proposed/tasks/TASK-0026.md",
+    "work/proposed/tasks/TASK-0027.md",
+    "work/proposed/tasks/TASK-0028.md",
+    "work/proposed/tasks/TASK-0029.md",
+    "work/proposed/tasks/TASK-0030.md",
+    "work/proposed/tasks/TASK-0031.md",
+    "work/proposed/tasks/TASK-0032.md"
+  ],
+  "proposed_tasks": [
+    "TASK-0021",
+    "TASK-0022",
+    "TASK-0023",
+    "TASK-0024",
+    "TASK-0025",
+    "TASK-0026",
+    "TASK-0027",
+    "TASK-0028",
+    "TASK-0029",
+    "TASK-0030",
+    "TASK-0031",
+    "TASK-0032"
+  ],
+  "stage_gates": [
+    "SG-0",
+    "SG-1",
+    "SG-2",
+    "SG-3",
+    "SG-4"
+  ]
+}

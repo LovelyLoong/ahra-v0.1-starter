@@ -27,6 +27,14 @@ ERRORS: list[str] = []
 WARNINGS: list[str] = []
 
 
+def is_proposed_task_draft(path: Path) -> bool:
+    try:
+        rel = path.relative_to(ROOT / "work" / "proposed" / "tasks")
+    except ValueError:
+        return False
+    return rel.suffix == ".md"
+
+
 def err(path: Path, message: str) -> None:
     ERRORS.append(f"{path.relative_to(ROOT)}: {message}")
 
@@ -104,6 +112,8 @@ def lint_docs() -> None:
     for base in [ROOT / "docs", ROOT / "work"]:
         for path in base.rglob("*.md"):
             if path.name == "README.md":
+                continue
+            if is_proposed_task_draft(path):
                 continue
             fm = simple_frontmatter(path)
             if fm is None:
@@ -255,10 +265,58 @@ def lint_relative_links() -> None:
                 err(path, f"broken relative link: {target}")
 
 
+def lint_authority_map() -> None:
+    path = ROOT / "docs" / "architecture" / "authority-map.md"
+    if not path.exists():
+        err(path, "required architecture authority map is missing")
+        return
+    authority_ids: set[str] = set()
+    link_pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+    for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        stripped = line.strip()
+        if not stripped.startswith("| AUTH-"):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if len(cells) < 3:
+            err(path, f"line {lineno}: authority row must include id, concept, and active owner")
+            continue
+        authority_id = cells[0]
+        if authority_id in authority_ids:
+            err(path, f"line {lineno}: duplicate authority id {authority_id}")
+        authority_ids.add(authority_id)
+        owner_cell = cells[2]
+        match = link_pattern.search(owner_cell)
+        if not match:
+            err(path, f"line {lineno}: active owner must be a relative Markdown link")
+            continue
+        target = match.group(1).split("#", 1)[0]
+        if not target:
+            err(path, f"line {lineno}: active owner link is empty")
+            continue
+        resolved = (path.parent / target).resolve()
+        try:
+            resolved.relative_to(ROOT.resolve())
+        except ValueError:
+            err(path, f"line {lineno}: active owner escapes repository: {target}")
+            continue
+        if not resolved.exists():
+            err(path, f"line {lineno}: active owner link is broken: {target}")
+            continue
+        if resolved.suffix == ".md":
+            fm = simple_frontmatter(resolved)
+            if fm is None:
+                err(path, f"line {lineno}: active owner has no parseable frontmatter: {target}")
+            elif fm.get("status") != "active":
+                err(path, f"line {lineno}: active owner {target} must have status: active")
+    if not authority_ids:
+        err(path, "authority map must define at least one AUTH-* row")
+
+
 def main() -> int:
     lint_root()
     lint_docs()
     lint_tasks()
+    lint_authority_map()
     lint_relative_links()
     for message in WARNINGS:
         print("WARNING:", message)

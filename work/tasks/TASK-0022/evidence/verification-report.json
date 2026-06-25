@@ -1,0 +1,26 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0022",
+  "generated_at": "2026-06-25T15:00:05+08:00",
+  "commands": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "exit_code": 0,
+      "output_sha256": "38bf06613e65f9347f74eb83afa8fbbfb6593f5d3be399a2ce3cc5ec0b8fe28c",
+      "summary": "Passed: lint_contracts OK and unittest discovery ran 70 tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "exit_code": 0,
+      "output_sha256": "a89f30eca0b735b659afa4e650cb171ebdb433fe47b911b7d8f79ea7707a09ef",
+      "summary": "Passed: AWKP lint returned 0 error(s), 0 warning(s), including authority-map lint."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "Passed: no whitespace errors reported."
+    }
+  ],
+  "authority_map_audit_passed": true
+}

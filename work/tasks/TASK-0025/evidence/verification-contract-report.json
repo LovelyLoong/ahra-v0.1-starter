@@ -1,0 +1,44 @@
+{
+    "schema_version":  "ahra/verification-contract-report/0.1",
+    "task_id":  "TASK-0025",
+    "evidence_id":  "EVD-TASK-0025-0001",
+    "created_by":  "agent:codex-dynamic-kernel-operator",
+    "created_at":  "2026-06-25T16:30:05+08:00",
+    "source_refs":  [
+                        "work/tasks/TASK-0025/task.md",
+                        "docs/architecture/verification-system.md",
+                        "work/tasks/TASK-0023/evidence/implementation-report.json",
+                        "work/tasks/TASK-0024/evidence/implementation-report.json"
+                    ],
+    "contract_files":  [
+                           "contracts/schemas/verification-trigger.schema.json",
+                           "contracts/schemas/verification-selection.schema.json",
+                           "contracts/schemas/verification-result.schema.json",
+                           "contracts/schemas/defect-record.schema.json"
+                       ],
+    "example_files":  [
+                          "examples/records/verification-trigger.json",
+                          "examples/records/verification-selection.json",
+                          "examples/records/verification-result.json",
+                          "examples/records/defect-record.json"
+                      ],
+    "summary":  "TASK-0025 adds provider-neutral contracts for VerificationTrigger, VerificationSelection, VerificationResult, and DefectRecord while preserving the existing task EvidenceGate path.",
+    "contract_points":  [
+                            {
+                                "kind":  "VerificationTrigger",
+                                "result":  "Records changed refs, failed gates, changed claims/gates, and policy/runtime/test/verifier digest changes used by selective verification."
+                            },
+                            {
+                                "kind":  "VerificationSelection",
+                                "result":  "Records selected gates, declared full gate set, affected claims, reused current evidence, stale evidence, and deterministic rationale."
+                            },
+                            {
+                                "kind":  "VerificationResult",
+                                "result":  "Records gate result, exact claims, expected/actual, refs, evidenceRef, and optional defectRef."
+                            },
+                            {
+                                "kind":  "DefectRecord",
+                                "result":  "Records exact claim, gate, expected/actual, refs, repair boundary, and lifecycle status."
+                            }
+                        ]
+}

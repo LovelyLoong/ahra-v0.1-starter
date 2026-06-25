@@ -1,0 +1,16 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0030",
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "state": "queued",
+  "state_version": 1,
+  "owner": null,
+  "attempt": 0,
+  "lease": null,
+  "next_action": "Wait for TASK-0029 to complete, then claim with CAS.",
+  "pause_reason": "dependency",
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-06-25T12:31:28+08:00"
+}

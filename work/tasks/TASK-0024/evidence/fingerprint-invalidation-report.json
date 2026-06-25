@@ -1,0 +1,92 @@
+{
+    "schema_version":  "ahra/fingerprint-invalidation-report/0.1",
+    "task_id":  "TASK-0024",
+    "evidence_id":  "EVD-TASK-0024-0002",
+    "created_by":  "agent:codex-dynamic-kernel-operator",
+    "created_at":  "2026-06-25T16:08:52+08:00",
+    "implementation_refs":  [
+                                "src/ahra/evidence_v2.py",
+                                "tests/test_evidence_v2.py"
+                            ],
+    "canonical_fingerprint":  {
+                                  "function":  "canonical_fingerprint(payload)",
+                                  "method":  "json.dumps with sort_keys=True and compact separators, then sha256 over UTF-8 bytes.",
+                                  "evidence_payload_sorting":  "EvidenceV2 and GateRunV2 sort claimRefs, subjects, and dependencies before fingerprinting so map ordering and input list ordering do not create false cache misses for equivalent bindings.",
+                                  "test":  "test_canonical_fingerprint_is_stable_for_map_ordering"
+                              },
+    "invalidation_matrix":  [
+                                {
+                                    "trigger":  "subject_or_dependency_digest_changed",
+                                    "state":  "stale",
+                                    "reason":  "digest_changed:\u003cref\u003e",
+                                    "tests":  [
+                                                  "test_direct_subject_digest_change_marks_stale"
+                                              ]
+                                },
+                                {
+                                    "trigger":  "transitive_evidence_dependency_not_current",
+                                    "state":  "stale",
+                                    "reason":  "dependency_evidence_not_current:\u003cevidence_ref\u003e",
+                                    "tests":  [
+                                                  "test_transitive_evidence_dependency_marks_downstream_stale"
+                                              ]
+                                },
+                                {
+                                    "trigger":  "unrelated_artifact_changed_with_complete_scope",
+                                    "state":  "current",
+                                    "reason":  "none",
+                                    "tests":  [
+                                                  "test_unrelated_artifact_change_does_not_invalidate_complete_evidence"
+                                              ]
+                                },
+                                {
+                                    "trigger":  "unrelated_change_with_incomplete_dependency_scope",
+                                    "state":  "stale",
+                                    "reason":  "dependency_scope_incomplete",
+                                    "tests":  [
+                                                  "test_incomplete_dependency_scope_invalidates_conservatively"
+                                              ]
+                                },
+                                {
+                                    "trigger":  "claim_changed",
+                                    "state":  "stale",
+                                    "reason":  "claim_changed:\u003cclaim_ref\u003e",
+                                    "tests":  [
+                                                  "covered by EvidenceInvalidationTrigger.changed_claim_refs implementation"
+                                              ]
+                                },
+                                {
+                                    "trigger":  "gate_policy_runtime_test_or_verifier_changed",
+                                    "state":  "stale",
+                                    "reason":  "gate_changed/policy_changed/runtime_profile_changed/test_definition_changed/verifier_release_changed",
+                                    "tests":  [
+                                                  "test_policy_gate_runtime_test_and_verifier_changes_mark_stale"
+                                              ]
+                                },
+                                {
+                                    "trigger":  "ttl_expired",
+                                    "state":  "expired",
+                                    "reason":  "ttl_expired",
+                                    "tests":  [
+                                                  "test_ttl_revocation_and_contradiction_are_distinct"
+                                              ]
+                                },
+                                {
+                                    "trigger":  "revoked",
+                                    "state":  "revoked",
+                                    "reason":  "revoked",
+                                    "tests":  [
+                                                  "test_ttl_revocation_and_contradiction_are_distinct"
+                                              ]
+                                },
+                                {
+                                    "trigger":  "contradicted",
+                                    "state":  "contradicted",
+                                    "reason":  "contradicted",
+                                    "tests":  [
+                                                  "test_ttl_revocation_and_contradiction_are_distinct"
+                                              ]
+                                }
+                            ],
+    "inspect_api":  "EvidenceRegistry.inspect and inspect_all return EvidenceInspection with state, current flag, fingerprint, and reasons."
+}

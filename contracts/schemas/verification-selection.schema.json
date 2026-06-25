@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/verification-selection.v1alpha1.json",
+  "title": "AHRA VerificationSelection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": { "const": "ahra.dev/v1alpha1" },
+    "kind": { "const": "VerificationSelection" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectionId", "createdAt"],
+      "properties": {
+        "selectionId": { "type": "string", "pattern": "^VSEL-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectedGateRefs", "fullGateRefs", "affectedClaimRefs", "reusedEvidenceRefs", "staleEvidenceRefs", "rationale"],
+      "properties": {
+        "selectedGateRefs": { "type": "array", "items": { "$ref": "#/$defs/gateId" } },
+        "fullGateRefs": { "type": "array", "items": { "$ref": "#/$defs/gateId" } },
+        "affectedClaimRefs": { "type": "array", "items": { "$ref": "#/$defs/claimId" } },
+        "reusedEvidenceRefs": { "type": "array", "items": { "$ref": "#/$defs/evidenceId" } },
+        "staleEvidenceRefs": { "type": "array", "items": { "$ref": "#/$defs/evidenceId" } },
+        "rationale": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  },
+  "$defs": {
+    "claimId": { "type": "string", "pattern": "^CLAIM-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+    "evidenceId": { "type": "string", "pattern": "^EVD-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" },
+    "gateId": { "type": "string", "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$" }
+  }
+}

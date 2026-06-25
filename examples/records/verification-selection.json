@@ -1,0 +1,37 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "VerificationSelection",
+  "metadata": {
+    "selectionId": "VSEL-doc-staleness-local-change",
+    "createdAt": "2026-06-25T00:10:02Z"
+  },
+  "spec": {
+    "selectedGateRefs": [
+      "GATE-cli-integration",
+      "GATE-node-cli-unit",
+      "GATE-security-baseline"
+    ],
+    "fullGateRefs": [
+      "GATE-cli-integration",
+      "GATE-goal-completion",
+      "GATE-node-cli-unit",
+      "GATE-security-baseline"
+    ],
+    "affectedClaimRefs": [
+      "CLAIM-cli-detects-stale-docs",
+      "CLAIM-evidence-recorded"
+    ],
+    "reusedEvidenceRefs": [
+      "EVD-frontmatter-current"
+    ],
+    "staleEvidenceRefs": [
+      "EVD-cli-stale"
+    ],
+    "rationale": [
+      "affected_claim:CLAIM-cli-detects-stale-docs->GATE-node-cli-unit",
+      "failed_gate:GATE-node-cli-unit",
+      "integration_boundary:GATE-cli-integration",
+      "mandatory_safety_claim:CLAIM-secret-safe->GATE-security-baseline"
+    ]
+  }
+}

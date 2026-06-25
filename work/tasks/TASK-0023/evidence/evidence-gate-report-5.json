@@ -1,0 +1,113 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0023",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-25T07:45:32.338379Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier re-ran the task checks, inspected the contract schemas, validator, examples, tests, evidence manifests, and mapped every acceptance criterion to registered evidence.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Every Goal criterion must map to at least one Claim and uncovered criteria fail validation.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0023-0001",
+        "EVD-TASK-0023-0003"
+      ],
+      "notes": "Goal criterion coverage is implemented by deterministic contract validation and tested by the uncovered-criterion case."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Every required Claim must map to a Gate or explicit approval requirement.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0023-0001",
+        "EVD-TASK-0023-0003"
+      ],
+      "notes": "Required claims must have a gateRef or approvalRequired; the required-claim-without-gate test fails closed."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Claim dependencies are checked for cycles and missing references.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0023-0001",
+        "EVD-TASK-0023-0003"
+      ],
+      "notes": "Missing dependencies and cyclic dependencies are both covered by deterministic validator tests."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Security and governance Claim requirements cannot be downgraded by extension fields.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0023-0001",
+        "EVD-TASK-0023-0003"
+      ],
+      "notes": "Security and governance claims cannot be made optional or weakened through extension-field override paths."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Schemas reject unknown major versions and malformed IDs while allowing compatible extension fields.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0023-0002",
+        "EVD-TASK-0023-0003"
+      ],
+      "notes": "Schemas reject unknown major versions and malformed IDs, while compatible x-* extension fields validate."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Contract tests include valid, uncovered, cyclic, duplicate, and forbidden-downgrade cases.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0023-0003"
+      ],
+      "notes": "Contract tests include valid, uncovered, cyclic, duplicate, and forbidden-downgrade cases."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "No model/provider SDK is imported by the domain or validation layer.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0023-0003",
+        "EVD-TASK-0023-0004"
+      ],
+      "notes": "Targeted tests and contract lint found no model/provider SDK imports in the domain or validation layer."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "notes": "82 tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "No whitespace errors reported."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_acceptance_contracts tests.test_schemas -v",
+      "status": "passed",
+      "notes": "13 tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "status": "passed",
+      "notes": "AHRA lint 0 failures and schema examples OK."
+    },
+    {
+      "command": "TASK-0023 manifest SHA256 audit",
+      "status": "passed",
+      "notes": "All artifact-manifest and evidence-manifest hashes matched local files."
+    }
+  ]
+}

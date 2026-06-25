@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/gate-plan.v1alpha1.json",
+  "title": "AHRA GatePlan",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[A-Za-z0-9_.-]+$": {}
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "GatePlan"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "name",
+        "goalId",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,62}$"
+        },
+        "goalId": {
+          "$ref": "#/$defs/goalId"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "goalRef",
+        "claimGraphRef",
+        "gates"
+      ],
+      "properties": {
+        "goalRef": {
+          "$ref": "#/$defs/goalId"
+        },
+        "claimGraphRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/gatePlanEntry"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "claimId": {
+      "type": "string",
+      "pattern": "^CLAIM-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "gateId": {
+      "type": "string",
+      "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "gatePlanEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "gateRef",
+        "claimRefs",
+        "evidenceKind"
+      ],
+      "properties": {
+        "gateRef": {
+          "$ref": "#/$defs/gateId"
+        },
+        "claimRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/claimId"
+          }
+        },
+        "evidenceKind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]{1,63}$"
+        }
+      }
+    },
+    "goalId": {
+      "type": "string",
+      "pattern": "^GOAL-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    }
+  }
+}

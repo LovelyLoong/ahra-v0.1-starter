@@ -19,3 +19,4 @@ tags: [decisions]
 | Decision | Purpose |
 |---|---|
 | [ADR-0001](ADR-0001-separate-contract-state-events.md) | Separate task contract, state snapshot, and event ledger |
+| [ADR-0007](../../architecture/decisions/ADR-0007-governed-dynamic-agent-kernel.md) | Governed dynamic Agent execution kernel |

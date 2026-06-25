@@ -1,0 +1,87 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0022",
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "generated_at": "2026-06-25T15:00:05+08:00",
+  "producer": "agent:codex-dynamic-kernel-operator",
+  "summary": "Installed dynamic-kernel architecture authority and lifecycle rules without changing runtime behavior.",
+  "changed_files": [
+    "AHRA_dynamic_kernel_master_plan_2026-06-25.md",
+    "docs/architecture/authority-map.md",
+    "docs/architecture/dynamic-agent-kernel.md",
+    "docs/architecture/verification-system.md",
+    "docs/architecture/plan-ir.md",
+    "docs/architecture/repository-consolidation.md",
+    "docs/policies/agent-authority-boundaries.md",
+    "docs/policies/component-lifecycle.md",
+    "docs/roadmaps/dynamic-kernel-roadmap.md",
+    "README.md",
+    "AGENTS.md",
+    "docs/index.md",
+    "docs/architecture/index.md",
+    "docs/policies/index.md",
+    "docs/decisions/index.md",
+    "docs/roadmaps/index.md",
+    "architecture/decisions/ADR-0007-governed-dynamic-agent-kernel.md",
+    "scripts/lint_awkp.py",
+    "work/tasks/TASK-0022/*",
+    "work/index.md"
+  ],
+  "acceptance_criteria": [
+    {
+      "criterion_index": 1,
+      "status": "producer_claimed_ready",
+      "evidence_refs": [
+        "EVD-TASK-0022-0001"
+      ],
+      "notes": "ADR-0007 status line is accepted."
+    },
+    {
+      "criterion_index": 2,
+      "status": "producer_claimed_ready",
+      "evidence_refs": [
+        "EVD-TASK-0022-0002"
+      ],
+      "notes": "Authority map has one active owner per AUTH row and all active owner links point to status: active documents."
+    },
+    {
+      "criterion_index": 3,
+      "status": "producer_claimed_ready",
+      "evidence_refs": [
+        "EVD-TASK-0022-0001",
+        "EVD-TASK-0022-0004"
+      ],
+      "notes": "README and AGENTS distinguish current implemented entrypoints from target dynamic-kernel architecture."
+    },
+    {
+      "criterion_index": 4,
+      "status": "producer_claimed_ready",
+      "evidence_refs": [
+        "EVD-TASK-0022-0001"
+      ],
+      "notes": "Duplicate master plan and old completion roadmap are retained with archived/superseded status."
+    },
+    {
+      "criterion_index": 5,
+      "status": "producer_claimed_ready",
+      "evidence_refs": [
+        "EVD-TASK-0022-0002",
+        "EVD-TASK-0022-0003"
+      ],
+      "notes": "scripts/lint_awkp.py now checks authority-map rows and existing link lint checks index links."
+    },
+    {
+      "criterion_index": 6,
+      "status": "producer_claimed_ready",
+      "evidence_refs": [
+        "EVD-TASK-0022-0003"
+      ],
+      "notes": "scripts/check.py, scripts/lint_awkp.py, and git diff --check passed."
+    }
+  ],
+  "known_limitations": [
+    "No dynamic Planner runtime was implemented.",
+    "No PlanIR scheduler or Capability Admission runtime was implemented.",
+    "Legacy MCP and loop-engineering code were not deleted."
+  ]
+}

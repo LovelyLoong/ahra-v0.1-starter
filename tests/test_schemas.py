@@ -27,6 +27,17 @@ class SchemaTests(unittest.TestCase):
         ("examples/records/policy-decision.json", "contracts/schemas/policy-decision.schema.json"),
         ("examples/records/approval.json", "contracts/schemas/approval.schema.json"),
         ("examples/records/event.json", "contracts/schemas/event.schema.json"),
+        ("examples/records/goal-contract.json", "contracts/schemas/goal-contract.schema.json"),
+        ("examples/records/claim-graph.json", "contracts/schemas/claim-graph.schema.json"),
+        ("examples/records/gate-definition.json", "contracts/schemas/gate-definition.schema.json"),
+        ("examples/records/gate-plan.json", "contracts/schemas/gate-plan.schema.json"),
+        ("examples/records/evidence-v2.json", "contracts/schemas/evidence-v2.schema.json"),
+        ("examples/records/gate-run-v2.json", "contracts/schemas/gate-run-v2.schema.json"),
+        ("examples/records/evidence-status-event.json", "contracts/schemas/evidence-status-event.schema.json"),
+        ("examples/records/verification-trigger.json", "contracts/schemas/verification-trigger.schema.json"),
+        ("examples/records/verification-selection.json", "contracts/schemas/verification-selection.schema.json"),
+        ("examples/records/verification-result.json", "contracts/schemas/verification-result.schema.json"),
+        ("examples/records/defect-record.json", "contracts/schemas/defect-record.schema.json"),
     ]
 
     def test_examples_validate(self) -> None:

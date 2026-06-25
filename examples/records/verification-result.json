@@ -1,0 +1,21 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "VerificationResult",
+  "metadata": {
+    "resultId": "VRES-doc-staleness-cli-failed",
+    "createdAt": "2026-06-25T00:10:05Z"
+  },
+  "spec": {
+    "gateRef": "GATE-node-cli-unit",
+    "claimRefs": [
+      "CLAIM-cli-detects-stale-docs"
+    ],
+    "result": "failed",
+    "expected": "CLI exits non-zero for active documents past review_after.",
+    "actual": "CLI returned zero for an expired active document fixture.",
+    "refs": [
+      "ART-test-log"
+    ],
+    "defectRef": "DEF-doc-staleness-cli"
+  }
+}

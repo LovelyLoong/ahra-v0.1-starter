@@ -1,0 +1,118 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0021",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-25T06:19:33.749740Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "TASK-0021 evidence is mostly present, but the drift report does not satisfy criterion 4 because it does not clearly distinguish implemented, partially implemented, duplicate, and dead paths.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A machine-readable component inventory covers every default-visible package, command, Skill, adapter, contract family, active architecture document, and active task.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0021-0002"
+      ],
+      "notes": "Inventory contains 74 entries covering package scripts, commands, local Skills, adapter, component, contract-family, architecture/policy/ADR document, task-record, and active-task categories. Index files were treated as navigation indexes rather than architecture concept documents."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Each inventory entry names owner, lifecycle class, entrypoints, consumers, tests, served Core Objects, and replacement/removal information.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0021-0002"
+      ],
+      "notes": "Verifier field audit found no inventory entries missing owner, lifecycle_class, entrypoints, consumers, tests, served_core_objects, or replacement_or_removal."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Baseline command results and environment limitations are preserved as Evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0021-0001"
+      ],
+      "notes": "Verifier reran baseline checks: scripts/check.py passed 70 tests, lint_awkp returned 0 errors and warnings, and git diff --check reported no whitespace errors."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "A drift report distinguishes implemented, partially implemented, documented-only, duplicate, and dead paths.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0021-0003"
+      ],
+      "notes": "task-drift-report.json combines partially implemented and implemented into one classification and does not explicitly classify duplicate or dead paths inside the drift report. The duplicate master-plan limitation appears in implementation-report.json, but the acceptance criterion requires the drift report itself to distinguish those categories."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "TASK-0011 through TASK-0020 have append-only, human-direction-consistent reconciliation outcomes; no history is rewritten.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0021-0004"
+      ],
+      "notes": "Verifier compared TASK-0011 through TASK-0020 events against HEAD; each current ledger preserved all prior lines and appended exactly one backlog_reconciled event with the recorded decision."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "No file is deleted and no new runtime behavior is introduced.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0021-0005"
+      ],
+      "notes": "git status and git ls-files --deleted showed no deleted files. The only tracked code edit is scripts/lint_awkp.py, scoped to ignoring non-authoritative work/proposed task drafts during doc frontmatter linting, not runtime execution behavior."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Proposed task IDs are confirmed or remapped atomically.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0021-0004",
+        "EVD-TASK-0021-0005"
+      ],
+      "notes": "Verifier checked TASK-0021 through TASK-0032 were absent in HEAD before this uncommitted promotion, and current task directories contain the required task/state/event/manifest/handoff scaffolding."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "notes": "Verifier rerun passed: lint_contracts OK and unittest discovery ran 70 tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "notes": "Verifier rerun returned AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "Verifier rerun returned no output."
+    },
+    {
+      "command": "manifest SHA-256 audit for TASK-0021 artifact/evidence manifests",
+      "status": "passed",
+      "notes": "All local artifact and evidence manifest hashes matched file content."
+    },
+    {
+      "command": "component inventory field and entrypoint audit",
+      "status": "passed",
+      "notes": "No required fields were missing; pyproject scripts and local Skill directories were represented."
+    },
+    {
+      "command": "TASK-0011..TASK-0020 append-only reconciliation audit",
+      "status": "passed",
+      "notes": "Each old task appended exactly one backlog_reconciled event relative to HEAD."
+    },
+    {
+      "command": "TASK-0021..TASK-0032 ID availability audit",
+      "status": "passed",
+      "notes": "Each promoted task directory was absent in HEAD and is present in the current worktree."
+    },
+    {
+      "command": "drift report category audit",
+      "status": "failed",
+      "notes": "task-drift-report.json lacks distinct implemented, partially implemented, duplicate, and dead-path categories."
+    }
+  ]
+}

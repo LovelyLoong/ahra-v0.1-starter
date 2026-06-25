@@ -1,0 +1,25 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GatePlan",
+  "metadata": {
+    "name": "doc-staleness-gate-plan",
+    "goalId": "GOAL-doc-staleness",
+    "version": 1
+  },
+  "spec": {
+    "goalRef": "GOAL-doc-staleness",
+    "claimGraphRef": "ClaimGraph/doc-staleness-claims@v1",
+    "gates": [
+      {
+        "gateRef": "GATE-acceptance-contract-suite",
+        "evidenceKind": "contract_test",
+        "claimRefs": [
+          "CLAIM-frontmatter-parses",
+          "CLAIM-cli-detects-stale-docs",
+          "CLAIM-secret-safe",
+          "CLAIM-evidence-recorded"
+        ]
+      }
+    ]
+  }
+}

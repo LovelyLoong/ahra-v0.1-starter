@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/evidence-v2.v1alpha1.json",
+  "title": "AHRA Evidence v2",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[A-Za-z0-9_.-]+$": {}
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "Evidence"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "evidenceId",
+        "createdAt"
+      ],
+      "properties": {
+        "evidenceId": {
+          "$ref": "#/$defs/evidenceId"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "claimRefs",
+        "gateRef",
+        "gateDefinitionDigest",
+        "gateRunId",
+        "result",
+        "confidence",
+        "subjects",
+        "dependencies",
+        "environment",
+        "validity",
+        "dependencyScope"
+      ],
+      "properties": {
+        "claimRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/claimId"
+          }
+        },
+        "gateRef": {
+          "$ref": "#/$defs/gateRef"
+        },
+        "gateDefinitionDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "gateRunId": {
+          "$ref": "#/$defs/gateRunId"
+        },
+        "result": {
+          "enum": [
+            "passed",
+            "failed",
+            "blocked"
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "unverified",
+            "inferred",
+            "reviewed",
+            "verified"
+          ]
+        },
+        "fingerprint": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "subjects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/digestRef"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/digestRef"
+          }
+        },
+        "environment": {
+          "$ref": "#/$defs/environment"
+        },
+        "validity": {
+          "$ref": "#/$defs/validity"
+        },
+        "dependencyScope": {
+          "enum": [
+            "complete",
+            "incomplete"
+          ]
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "supersedes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceId"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "claimId": {
+      "type": "string",
+      "pattern": "^CLAIM-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "digestRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "digest"
+      ],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "$ref": "#/$defs/sha256Digest"
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runtimeProfileDigest",
+        "policyDigest",
+        "verifierReleaseDigest",
+        "testDefinitionDigest"
+      ],
+      "properties": {
+        "runtimeProfileDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "policyDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "verifierReleaseDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "testDefinitionDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        },
+        "relevantEnvironmentDigest": {
+          "$ref": "#/$defs/sha256Digest"
+        }
+      }
+    },
+    "evidenceId": {
+      "type": "string",
+      "pattern": "^EVD-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "gateRef": {
+      "type": "string",
+      "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}(@sha256:[a-f0-9]{64})?$"
+    },
+    "gateRunId": {
+      "type": "string",
+      "pattern": "^GATERUN-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "sha256Digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "validity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "current",
+            "stale",
+            "expired",
+            "revoked",
+            "contradicted"
+          ]
+        },
+        "validUntil": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0021",
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "generated_at": "2026-06-25T12:31:28+08:00",
+  "producer": "agent:codex-dynamic-kernel-operator",
+  "base_commit": "a422398710ff04ea2f80c38b39ce95d6816e2d6d",
+  "branch": "main",
+  "summary": "Migrated the dynamic-kernel document pack, promoted TASK-0021..TASK-0032 into authoritative AWKP task records, reconciled old TASK-0011..TASK-0020 backlog records, and published baseline inventory/drift evidence without introducing runtime behavior.",
+  "changed_files": [
+    "dynamic-kernel docs and templates",
+    "work/proposed/*",
+    "work/tasks/TASK-0021..TASK-0032/*",
+    "work/tasks/TASK-0011..TASK-0020/state.json/events.jsonl",
+    "scripts/lint_awkp.py",
+    "work/index.md"
+  ],
+  "known_limitations": [
+    "The external pack README was not allowed to overwrite the existing project README; it was preserved as AHRA-DYNAMIC-KERNEL-DOCUMENT-PACK-README.md. TASK-0022 must update the real README deliberately.",
+    "The two imported master-plan root files are byte-identical in the source pack; the actual task sequence is TASK-SEQUENCE.md and work/proposed/TASK-SEQUENCE.md.",
+    "Baseline checks were executed after document migration and lint boundary correction, not before all file edits. The initial repo git status was clean before migration.",
+    "Dynamic Goal/Claim/Gate/PlanIR runtime behavior is not implemented by TASK-0021 and remains assigned to TASK-0023 onward."
+  ],
+  "acceptance_criteria": [
+    {
+      "criterion": "Machine-readable component inventory covers default-visible package, commands, Skills, adapters, contract families, active architecture documents, and active tasks.",
+      "evidence_refs": [
+        "EVD-TASK-0021-0002"
+      ],
+      "status": "producer_claimed_ready"
+    },
+    {
+      "criterion": "Each inventory entry names owner, lifecycle class, entrypoints, consumers, tests, served Core Objects, and replacement/removal information.",
+      "evidence_refs": [
+        "EVD-TASK-0021-0002"
+      ],
+      "status": "producer_claimed_ready"
+    },
+    {
+      "criterion": "Baseline command results and environment limitations are preserved as Evidence.",
+      "evidence_refs": [
+        "EVD-TASK-0021-0001"
+      ],
+      "status": "producer_claimed_ready"
+    },
+    {
+      "criterion": "Drift report distinguishes implemented, partially implemented, documented-only, duplicate, and dead or legacy paths.",
+      "evidence_refs": [
+        "EVD-TASK-0021-0003"
+      ],
+      "status": "producer_claimed_ready"
+    },
+    {
+      "criterion": "TASK-0011 through TASK-0020 have append-only reconciliation outcomes and no history rewrite.",
+      "evidence_refs": [
+        "EVD-TASK-0021-0004"
+      ],
+      "status": "producer_claimed_ready"
+    },
+    {
+      "criterion": "No file is deleted and no new runtime behavior is introduced.",
+      "evidence_refs": [
+        "EVD-TASK-0021-0005"
+      ],
+      "status": "producer_claimed_ready"
+    },
+    {
+      "criterion": "Proposed task IDs are confirmed or remapped atomically.",
+      "evidence_refs": [
+        "EVD-TASK-0021-0004",
+        "EVD-TASK-0021-0005"
+      ],
+      "status": "producer_claimed_ready"
+    }
+  ],
+  "verification": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "exit_code": 0,
+      "summary": "scripts/lint_contracts.py returned 0; unittest discovery ran 70 tests in 37.068s and returned OK.",
+      "output_digest": "b0fffd68a8e0e6a6fe4fa21fc68065fa2afdfb861560d53189ecc55fdd75b9cd",
+      "limitation": "Executed after document-pack migration and lint boundary edit, but before runtime/code behavior changes; initial git status before migration was clean."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 error(s), 0 warning(s).",
+      "output_digest": "c735212e3a2a3f2dfe62866829e064c86295bb24c11899c14e334abf43029c13",
+      "limitation": "The lint now treats work/proposed/tasks/*.md as non-authoritative drafts so promoted task IDs are not double-counted."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors reported.",
+      "output_digest": "6bcb157023c182e9b98893bc3f5300adf80132875306278f75a1f7f4b5875728",
+      "limitation": null
+    }
+  ]
+}

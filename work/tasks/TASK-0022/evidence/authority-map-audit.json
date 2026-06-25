@@ -1,0 +1,77 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0022",
+  "generated_at": "2026-06-25T15:00:05+08:00",
+  "audit": {
+    "authority_count": 9,
+    "duplicate_authority_ids": [],
+    "broken_active_owner_links": [],
+    "inactive_active_owners": [],
+    "rows": [
+      {
+        "authority_id": "AUTH-master-plan",
+        "concept": "Dynamic-kernel migration plan",
+        "active_owner": "../../AHRA_dynamic_kernel_master_plan_2026-06-25.md",
+        "owner_status": "active",
+        "lifecycle": "active"
+      },
+      {
+        "authority_id": "AUTH-current-entrypoints",
+        "concept": "Current implemented local operation path",
+        "active_owner": "framework-entrypoints.md",
+        "owner_status": "active",
+        "lifecycle": "active-current"
+      },
+      {
+        "authority_id": "AUTH-dynamic-execution-architecture",
+        "concept": "Target governed dynamic execution architecture",
+        "active_owner": "dynamic-agent-kernel.md",
+        "owner_status": "active",
+        "lifecycle": "active-target"
+      },
+      {
+        "authority_id": "AUTH-verification-model",
+        "concept": "Claim, Gate, Evidence validity, Defect, selective reverification",
+        "active_owner": "verification-system.md",
+        "owner_status": "active",
+        "lifecycle": "active-target"
+      },
+      {
+        "authority_id": "AUTH-plan-ir",
+        "concept": "PlanDraft, PlanIR, compiler and validator semantics",
+        "active_owner": "plan-ir.md",
+        "owner_status": "active",
+        "lifecycle": "active-target"
+      },
+      {
+        "authority_id": "AUTH-agent-authority-boundaries",
+        "concept": "Planner, Executor, Verifier, Harness authority split",
+        "active_owner": "../policies/agent-authority-boundaries.md",
+        "owner_status": "active",
+        "lifecycle": "active-policy"
+      },
+      {
+        "authority_id": "AUTH-component-lifecycle",
+        "concept": "Component lifecycle classes and default exposure rules",
+        "active_owner": "../policies/component-lifecycle.md",
+        "owner_status": "active",
+        "lifecycle": "active-policy"
+      },
+      {
+        "authority_id": "AUTH-repository-consolidation",
+        "concept": "Repository cleanup and legacy disposition",
+        "active_owner": "repository-consolidation.md",
+        "owner_status": "active",
+        "lifecycle": "active-target"
+      },
+      {
+        "authority_id": "AUTH-dynamic-roadmap",
+        "concept": "Stage gates and task order after TASK-0021",
+        "active_owner": "../roadmaps/dynamic-kernel-roadmap.md",
+        "owner_status": "active",
+        "lifecycle": "active-target"
+      }
+    ],
+    "passed": true
+  }
+}

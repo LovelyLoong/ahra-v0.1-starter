@@ -1,0 +1,109 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0021",
+  "generated_at": "2026-06-25T12:31:28+08:00",
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "decisions": [
+    {
+      "task_id": "TASK-0011",
+      "previous_state": "queued",
+      "new_state": "canceled",
+      "previous_state_version": 1,
+      "new_state_version": 2,
+      "decision": "rewrite",
+      "reason": "Durable control-plane boundary is rewritten into the dynamic-kernel authority, Goal/Claim/Gate, and PlanIR stages; do not execute the old standalone boundary task.",
+      "event_id": "EVT-TASK-0011-0002"
+    },
+    {
+      "task_id": "TASK-0012",
+      "previous_state": "queued",
+      "new_state": "canceled",
+      "previous_state_version": 1,
+      "new_state_version": 2,
+      "decision": "cancel",
+      "reason": "Project scaffold helper has no unique reason in the new dynamic-kernel migration path and is canceled rather than carried as default backlog.",
+      "event_id": "EVT-TASK-0012-0002"
+    },
+    {
+      "task_id": "TASK-0013",
+      "previous_state": "queued",
+      "new_state": "canceled",
+      "previous_state_version": 1,
+      "new_state_version": 2,
+      "decision": "defer",
+      "reason": "Optional CI wrapper is deferred until dynamic-kernel gates and lifecycle lint exist; the old task must not auto-advance.",
+      "event_id": "EVT-TASK-0013-0002"
+    },
+    {
+      "task_id": "TASK-0014",
+      "previous_state": "completed",
+      "new_state": "completed",
+      "previous_state_version": 13,
+      "new_state_version": 14,
+      "decision": "retain",
+      "reason": "Completed CLI plus local Skill entrypoint is retained as the current compatibility surface until TASK-0032 removes or quarantines legacy paths.",
+      "event_id": "EVT-TASK-0014-0021"
+    },
+    {
+      "task_id": "TASK-0015",
+      "previous_state": "ready",
+      "new_state": "canceled",
+      "previous_state_version": 1,
+      "new_state_version": 2,
+      "decision": "reconcile",
+      "reason": "Max-attempt behavior is already present in code/tests while the old task remains ready; remaining policy is reconciled into dynamic budgets, Defect, and scheduler tasks.",
+      "event_id": "EVT-TASK-0015-0002"
+    },
+    {
+      "task_id": "TASK-0016",
+      "previous_state": "queued",
+      "new_state": "canceled",
+      "previous_state_version": 1,
+      "new_state_version": 2,
+      "decision": "rewrite",
+      "reason": "EvidenceGate handoff policy is rewritten into Claim/Gate evidence and independent verifier stages.",
+      "event_id": "EVT-TASK-0016-0002"
+    },
+    {
+      "task_id": "TASK-0017",
+      "previous_state": "queued",
+      "new_state": "canceled",
+      "previous_state_version": 1,
+      "new_state_version": 2,
+      "decision": "rewrite",
+      "reason": "Runtime signal work is rewritten into dynamic execution state, checkpoint, and verification selection work.",
+      "event_id": "EVT-TASK-0017-0002"
+    },
+    {
+      "task_id": "TASK-0018",
+      "previous_state": "queued",
+      "new_state": "canceled",
+      "previous_state_version": 1,
+      "new_state_version": 2,
+      "decision": "rewrite",
+      "reason": "Runtime profile capability skeleton is rewritten into TASK-0027 Capability Admission and Reference Monitor work.",
+      "event_id": "EVT-TASK-0018-0002"
+    },
+    {
+      "task_id": "TASK-0019",
+      "previous_state": "queued",
+      "new_state": "canceled",
+      "previous_state_version": 1,
+      "new_state_version": 2,
+      "decision": "rewrite",
+      "reason": "Lease/CAS strengthening is rewritten into PlanIR scheduler/state wiring rather than the old workflow-only sequence.",
+      "event_id": "EVT-TASK-0019-0002"
+    },
+    {
+      "task_id": "TASK-0020",
+      "previous_state": "queued",
+      "new_state": "canceled",
+      "previous_state_version": 1,
+      "new_state_version": 2,
+      "decision": "defer",
+      "reason": "Retention and cleanup policy is deferred to TASK-0032 after the dynamic path passes SG-3.",
+      "event_id": "EVT-TASK-0020-0002"
+    }
+  ],
+  "policy": "Old TASK-0011..TASK-0020 records were not rewritten; each received an append-only backlog_reconciled event and a state projection update. Completed TASK-0014 remains completed; queued/ready old backlog records are canceled so they cannot auto-advance under the superseded plan."
+}

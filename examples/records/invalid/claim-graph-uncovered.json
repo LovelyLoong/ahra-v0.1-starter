@@ -1,0 +1,48 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "ClaimGraph",
+  "metadata": {
+    "name": "doc-staleness-claims",
+    "goalId": "GOAL-doc-staleness",
+    "version": 1
+  },
+  "spec": {
+    "goalRef": "GOAL-doc-staleness",
+    "claims": [
+      {
+        "id": "CLAIM-frontmatter-parses",
+        "type": "structural",
+        "statement": "The document frontmatter parser reads review_after deterministically.",
+        "criterionRefs": [
+          "CRIT-functional"
+        ],
+        "dependsOn": [],
+        "riskLevel": "R1",
+        "required": true,
+        "requiredEvidenceKinds": [
+          "contract_test"
+        ],
+        "gateRefs": [
+          "GATE-acceptance-contract-suite"
+        ]
+      },
+      {
+        "id": "CLAIM-secret-safe",
+        "type": "security",
+        "statement": "The staleness check does not read secrets and does not require network access.",
+        "criterionRefs": [
+          "CRIT-security"
+        ],
+        "dependsOn": [],
+        "riskLevel": "R1",
+        "required": true,
+        "requiredEvidenceKinds": [
+          "contract_test"
+        ],
+        "gateRefs": [
+          "GATE-acceptance-contract-suite"
+        ]
+      }
+    ]
+  }
+}

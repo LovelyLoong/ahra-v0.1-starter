@@ -1,0 +1,120 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0025",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier-rereview",
+  "generated_at": "2026-06-25T09:04:03.878539Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier re-reviewed TASK-0025 after request_changes repair. The fingerprint reuse blocker is fixed: Evidence is reused only when stored_fingerprint exists and matches the canonical fingerprint; missing fingerprints are marked stale with fingerprint_not_matched rationale. All criteria are mapped to registered evidence.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Selection is deterministic for the same graph, changes and policy.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0025-0002",
+        "EVD-TASK-0025-0004"
+      ],
+      "notes": "Selection remains deterministic for the same graph, changes, and policy."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Failed Gates, affected Claims, downstream integration boundaries, and mandatory safety Gates are selected.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0025-0002",
+        "EVD-TASK-0025-0004"
+      ],
+      "notes": "Failed gates, affected claims, downstream integration boundaries, and mandatory safety gates are selected."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Unchanged current Evidence is reused only when fingerprints match.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0025-0007",
+        "EVD-TASK-0025-0008",
+        "EVD-TASK-0025-0009"
+      ],
+      "notes": "The prior blocker is repaired. Independent probe now shows reusedEvidenceRefs is empty and EVD-no-stored-fingerprint is stale with fingerprint_not_matched rationale."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Completion fails for missing, stale, expired, revoked or contradicted Evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0025-0003",
+        "EVD-TASK-0025-0004"
+      ],
+      "notes": "Completion fails closed for missing, stale, expired, revoked, contradicted evidence, and unresolved defects."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "A failed Gate creates a structured Defect with exact Claim, Gate, expected/actual, refs and repair boundary.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0025-0003",
+        "EVD-TASK-0025-0004"
+      ],
+      "notes": "Failed or blocked gate results produce structured DefectRecord content with claim, gate, expected, actual, refs, and repair boundary."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "The selective fixture executes fewer Gates than the declared full set and records the rationale.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0025-0002",
+        "EVD-TASK-0025-0004"
+      ],
+      "notes": "Selective fixture executes fewer gates than the full set while recording rationale and preserving final logical coverage."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "The existing Task completion path remains fail-closed during migration.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0025-0003",
+        "EVD-TASK-0025-0004"
+      ],
+      "notes": "Existing task EvidenceGate path remains fail-closed during migration."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_verification tests.test_schemas -v",
+      "status": "passed",
+      "notes": "8 tests OK."
+    },
+    {
+      "command": "fingerprint reuse repair probe",
+      "status": "passed",
+      "notes": "No stored_fingerprint evidence was not reused; it appeared in staleEvidenceRefs with fingerprint_not_matched:EVD-no-stored-fingerprint."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "notes": "100 tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "status": "passed",
+      "notes": "AHRA lint 0 failures; schemas and examples validated."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "No whitespace errors reported."
+    },
+    {
+      "command": "TASK-0025 manifest SHA256 audit",
+      "status": "passed",
+      "notes": "All artifact-manifest and evidence-manifest local hashes matched."
+    }
+  ]
+}

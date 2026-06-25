@@ -1,0 +1,48 @@
+{
+  "schema_version": "ahra/task-evidence/0.1",
+  "task_id": "TASK-0023",
+  "evidence_id": "EVD-TASK-0023-0002",
+  "kind": "schema_validation_report",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T15:34:46+08:00",
+  "valid_examples": [
+    {
+      "document": "examples/records/goal-contract.json",
+      "schema": "contracts/schemas/goal-contract.schema.json",
+      "result": "valid"
+    },
+    {
+      "document": "examples/records/claim-graph.json",
+      "schema": "contracts/schemas/claim-graph.schema.json",
+      "result": "valid"
+    },
+    {
+      "document": "examples/records/gate-definition.json",
+      "schema": "contracts/schemas/gate-definition.schema.json",
+      "result": "valid"
+    },
+    {
+      "document": "examples/records/gate-plan.json",
+      "schema": "contracts/schemas/gate-plan.schema.json",
+      "result": "valid"
+    }
+  ],
+  "invalid_examples": [
+    "examples/records/invalid/claim-graph-uncovered.json",
+    "examples/records/invalid/claim-graph-cyclic.json",
+    "examples/records/invalid/claim-graph-duplicate.json",
+    "examples/records/invalid/claim-graph-forbidden-downgrade.json"
+  ],
+  "versioning_rules": [
+    "apiVersion ahra.dev/v1alpha1 is the only accepted major version in this release.",
+    "Unknown major versions fail closed by schema const validation.",
+    "Compatible extension fields use x-* names.",
+    "Malformed Goal, Criterion, Claim, and Gate IDs fail schema pattern validation.",
+    "Extensions cannot weaken required security or governance Claim fields."
+  ],
+  "command_summary": {
+    "command": "uv run python -B scripts/lint_contracts.py",
+    "exit_code": 0,
+    "result": "AHRA lint: 0 failure(s); all four new valid acceptance examples were reported OK."
+  }
+}

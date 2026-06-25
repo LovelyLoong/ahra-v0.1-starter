@@ -1,0 +1,53 @@
+{
+    "schema_version":  "ahra/evidence-v2-design-report/0.1",
+    "task_id":  "TASK-0024",
+    "evidence_id":  "EVD-TASK-0024-0001",
+    "created_by":  "agent:codex-dynamic-kernel-operator",
+    "created_at":  "2026-06-25T16:08:52+08:00",
+    "source_refs":  [
+                        "work/tasks/TASK-0024/task.md",
+                        "docs/architecture/verification-system.md",
+                        "src/ahra/evidence_gate.py",
+                        "work/tasks/TASK-0023/evidence-manifest.json"
+                    ],
+    "contract_files":  [
+                           "contracts/schemas/evidence-v2.schema.json",
+                           "contracts/schemas/gate-run-v2.schema.json",
+                           "contracts/schemas/evidence-status-event.schema.json",
+                           "examples/records/evidence-v2.json",
+                           "examples/records/gate-run-v2.json",
+                           "examples/records/evidence-status-event.json"
+                       ],
+    "implementation_files":  [
+                                 "src/ahra/evidence_v2.py",
+                                 "src/ahra/ports.py",
+                                 "src/ahra/__init__.py",
+                                 "tests/test_evidence_v2.py",
+                                 "tests/test_schemas.py",
+                                 "scripts/lint_contracts.py"
+                             ],
+    "summary":  "Evidence v2 now has explicit schemas, examples, provider-neutral Python records, a registry inspect surface, status events, and a legacy AWKP evidence-manifest adapter.",
+    "design_points":  [
+                          {
+                              "area":  "Evidence v2",
+                              "result":  "Evidence records bind claimRefs, gateRef, gateDefinitionDigest, gateRunId, result, confidence, subject digests, dependency digests, runtime/policy/verifier/test/environment digests, validity state, TTL, refs, and supersedes."
+                          },
+                          {
+                              "area":  "GateRun v2",
+                              "result":  "GateRun records now bind gateDefinitionDigest, subject/dependency digest refs, environment digests, validity state, stored fingerprint, command, timing, result, and evidenceRef."
+                          },
+                          {
+                              "area":  "Status and supersession",
+                              "result":  "EvidenceStatusEvent records state transitions separately from immutable Evidence payloads and can name supersededBy without overwriting historical evidence."
+                          },
+                          {
+                              "area":  "Port boundary",
+                              "result":  "EvidenceRegistryPort was added to src/ahra/ports.py for put, inspect, status-event append, and legacy-manifest adaptation without depending on provider SDKs."
+                          }
+                      ],
+    "compatibility_notes":  [
+                                "Existing EvidenceGate v1 task-completion reports remain unchanged and readable.",
+                                "Evidence v2 is added as new contracts and Python records; no Evidence v1 payloads are deleted or silently upgraded.",
+                                "Legacy AWKP evidence manifests are labeled legacy_partial by the adapter because they do not contain full v2 fingerprint bindings."
+                            ]
+}

@@ -1,0 +1,98 @@
+{
+    "schema_version":  "ahra/task-implementation-report/0.1",
+    "task_id":  "TASK-0025",
+    "evidence_id":  "EVD-TASK-0025-0005",
+    "created_by":  "agent:codex-dynamic-kernel-operator",
+    "created_at":  "2026-06-25T16:30:05+08:00",
+    "producer_agent_release":  "agent:codex-dynamic-kernel-operator@codex-session",
+    "context_manifest":  {
+                             "workspace":  "E:/ahra-v0.1-starter",
+                             "branch":  "main",
+                             "base_commit":  "a422398710ff04ea2f80c38b39ce95d6816e2d6d",
+                             "final_commit":  null,
+                             "patch_state":  "uncommitted working tree changes prepared for verifier review"
+                         },
+    "implemented_files":  [
+                              "contracts/schemas/verification-trigger.schema.json",
+                              "contracts/schemas/verification-selection.schema.json",
+                              "contracts/schemas/verification-result.schema.json",
+                              "contracts/schemas/defect-record.schema.json",
+                              "examples/records/verification-trigger.json",
+                              "examples/records/verification-selection.json",
+                              "examples/records/verification-result.json",
+                              "examples/records/defect-record.json",
+                              "src/ahra/verification.py",
+                              "src/ahra/ports.py",
+                              "src/ahra/__init__.py",
+                              "tests/test_verification.py",
+                              "tests/test_schemas.py",
+                              "scripts/lint_contracts.py"
+                          ],
+    "acceptance_map":  [
+                           {
+                               "criterion_index":  1,
+                               "criterion":  "Selection is deterministic for the same graph, changes and policy.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0025-0002",
+                                                     "EVD-TASK-0025-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  2,
+                               "criterion":  "Failed Gates, affected Claims, downstream integration boundaries, and mandatory safety Gates are selected.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0025-0002",
+                                                     "EVD-TASK-0025-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  3,
+                               "criterion":  "Unchanged current Evidence is reused only when fingerprints match.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0025-0002",
+                                                     "EVD-TASK-0025-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  4,
+                               "criterion":  "Completion fails for missing, stale, expired, revoked or contradicted Evidence.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0025-0003",
+                                                     "EVD-TASK-0025-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  5,
+                               "criterion":  "A failed Gate creates a structured Defect with exact Claim, Gate, expected/actual, refs and repair boundary.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0025-0003",
+                                                     "EVD-TASK-0025-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  6,
+                               "criterion":  "The selective fixture executes fewer Gates than the declared full set and records the rationale.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0025-0002",
+                                                     "EVD-TASK-0025-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  7,
+                               "criterion":  "The existing Task completion path remains fail-closed during migration.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0025-0003",
+                                                     "EVD-TASK-0025-0004"
+                                                 ]
+                           }
+                       ],
+    "known_limitations":  [
+                              "TASK-0025 implements deterministic selection, completion evaluation, and DefectRecord generation; it does not generate repair plans.",
+                              "TASK-0025 does not execute arbitrary Agent nodes or replace existing task EvidenceGate completion.",
+                              "The verification service is provider-neutral and in-memory for v0.1; persistent registry execution remains a future adapter concern.",
+                              "The producing agent is not marking TASK-0025 completed; independent verifier and EvidenceGate decide completion."
+                          ],
+    "unresolved_items":  [
+
+                         ]
+}

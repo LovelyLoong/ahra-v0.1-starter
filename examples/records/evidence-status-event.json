@@ -1,0 +1,15 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "EvidenceStatusEvent",
+  "metadata": {
+    "eventId": "EVT-EVD-doc-staleness-unit-stale",
+    "occurredAt": "2026-06-25T00:05:00Z"
+  },
+  "spec": {
+    "evidenceRef": "EVD-doc-staleness-unit",
+    "fromState": "current",
+    "toState": "stale",
+    "reason": "subject digest changed",
+    "supersededBy": "EVD-doc-staleness-unit-rerun"
+  }
+}

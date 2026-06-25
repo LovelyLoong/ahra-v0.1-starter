@@ -1,0 +1,58 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0021",
+  "generated_at": "2026-06-25T12:31:28+08:00",
+  "base_commit": "a422398710ff04ea2f80c38b39ce95d6816e2d6d",
+  "branch": "main",
+  "commands": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "exit_code": 0,
+      "summary": "scripts/lint_contracts.py returned 0; unittest discovery ran 70 tests in 37.068s and returned OK.",
+      "output_digest": "b0fffd68a8e0e6a6fe4fa21fc68065fa2afdfb861560d53189ecc55fdd75b9cd",
+      "limitation": "Executed after document-pack migration and lint boundary edit, but before runtime/code behavior changes; initial git status before migration was clean."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 error(s), 0 warning(s).",
+      "output_digest": "c735212e3a2a3f2dfe62866829e064c86295bb24c11899c14e334abf43029c13",
+      "limitation": "The lint now treats work/proposed/tasks/*.md as non-authoritative drafts so promoted task IDs are not double-counted."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors reported.",
+      "output_digest": "6bcb157023c182e9b98893bc3f5300adf80132875306278f75a1f7f4b5875728",
+      "limitation": null
+    },
+    {
+      "command": "uv run ahra --help",
+      "exit_code": 0,
+      "summary": "Default command groups: workflow, task, evidence-gate, doctor.",
+      "output_digest": "7d0af421c32ae290cd6e148e771a90b4f828e64c33d4717acd5f0b81e2902302",
+      "limitation": null
+    },
+    {
+      "command": "uv run ahra workflow --help",
+      "exit_code": 0,
+      "summary": "Workflow subcommands: validate, start, inspect, resume.",
+      "output_digest": "39a6501c7ecd08de935ba1d5cd6194d3536a677c41b4ae083fa94d91a974540a",
+      "limitation": null
+    },
+    {
+      "command": "uv run ahra task --help",
+      "exit_code": 0,
+      "summary": "Task subcommand: inspect.",
+      "output_digest": "1277b89253e683ca14c937f9057646b74eefaea1e8d1345a9db0f2b081da78d4",
+      "limitation": null
+    },
+    {
+      "command": "uv run ahra evidence-gate --help",
+      "exit_code": 0,
+      "summary": "EvidenceGate subcommand: evaluate.",
+      "output_digest": "f8f70867692e3f32fc72fc64a656a8b3c3882ce0b9307a52c917ebcbe0830ae6",
+      "limitation": null
+    }
+  ]
+}

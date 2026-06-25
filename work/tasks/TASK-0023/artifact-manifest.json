@@ -1,0 +1,151 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0023",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0023-0001",
+      "task_id": "TASK-0023",
+      "kind": "contract_design_report",
+      "name": "contract-design-report.json",
+      "uri": "local://evidence/contract-design-report.json",
+      "sha256": "f30f690ae66ab073c29524e15a6d14710e5781e8f4125d842e6a9228fbb9e658",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T15:34:46+08:00",
+      "input_refs": [
+        "task.md",
+        "../../AHRA_dynamic_kernel_master_plan_2026-06-25.md",
+        "../../docs/architecture/verification-system.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0023-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0023-0002",
+      "task_id": "TASK-0023",
+      "kind": "schema_validation_report",
+      "name": "schema-validation-report.json",
+      "uri": "local://evidence/schema-validation-report.json",
+      "sha256": "9511a13a3d43fdd62ccc2749a1394b55ba96857d25467ee7400573d07a83b9b9",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T15:34:46+08:00",
+      "input_refs": [
+        "contracts/schemas/",
+        "examples/records/"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0023-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0023-0003",
+      "task_id": "TASK-0023",
+      "kind": "contract_test_report",
+      "name": "contract-test-report.json",
+      "uri": "local://evidence/contract-test-report.json",
+      "sha256": "94623782e4d93d5bd072297a6631e2733d15dfb76f91fe9774b29714a27bab56",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T15:34:46+08:00",
+      "input_refs": [
+        "tests/test_acceptance_contracts.py",
+        "tests/test_schemas.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0023-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0023-0004",
+      "task_id": "TASK-0023",
+      "kind": "verification_report",
+      "name": "verification-report.json",
+      "uri": "local://evidence/verification-report.json",
+      "sha256": "573aac811bfeb5160d6a8481d12f85885b21f20b5087b3bb92df923b4a1c0e9b",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T15:34:46+08:00",
+      "input_refs": [
+        "scripts/check.py",
+        "scripts/lint_awkp.py",
+        "scripts/lint_contracts.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0023-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0023-0005",
+      "task_id": "TASK-0023",
+      "kind": "implementation_report",
+      "name": "implementation-report.json",
+      "uri": "local://evidence/implementation-report.json",
+      "sha256": "17bd73908d86ab38fb6fd861d394749f99e4d5978734a041ea3021b1d30ebf7b",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T15:34:46+08:00",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "evidence/contract-design-report.json",
+        "evidence/schema-validation-report.json",
+        "evidence/contract-test-report.json",
+        "evidence/verification-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0023-0005"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0023-HANDOFF-0001",
+      "task_id": "TASK-0023",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "2b189d8da9046e9abc8fe55cf6e2a2d686c67ade42f2775121ede7eb862567b4",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T15:34:46+08:00",
+      "input_refs": [
+        "task.md",
+        "evidence/implementation-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0023-0001",
+        "EVD-TASK-0023-0002",
+        "EVD-TASK-0023-0003",
+        "EVD-TASK-0023-0004",
+        "EVD-TASK-0023-0005"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0023-0006",
+      "task_id": "TASK-0023",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-5.json",
+      "uri": "local://evidence/evidence-gate-report-5.json",
+      "sha256": "34455e8ad86dd477492bcc22f407c97ad6468b3026339756f775dff149ae1e91",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-25T07:45:32.338379Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0023-0006"
+      ],
+      "supersedes": null
+    }
+  ]
+}

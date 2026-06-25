@@ -2,15 +2,15 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0013",
   "context_id": "CTX-ahra-ci-gates-decision",
-  "state": "queued",
-  "state_version": 1,
+  "state": "canceled",
+  "state_version": 2,
   "owner": null,
   "attempt": 0,
   "lease": null,
-  "next_action": "Wait for TASK-0010 to complete, then decide whether optional CI gates have one concrete wrapper target.",
-  "pause_reason": "backlog",
+  "next_action": "No action under the old backlog; see CTX-ahra-dynamic-kernel and TASK-0021 reconciliation.",
+  "pause_reason": "superseded_by_dynamic_kernel",
   "blockers": [],
   "artifact_refs": [],
   "evidence_refs": [],
-  "updated_at": "2026-06-23T11:09:51+08:00"
+  "updated_at": "2026-06-25T12:31:28+08:00"
 }

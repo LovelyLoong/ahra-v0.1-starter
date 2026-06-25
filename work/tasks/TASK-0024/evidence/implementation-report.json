@@ -1,0 +1,97 @@
+{
+    "schema_version":  "ahra/task-implementation-report/0.1",
+    "task_id":  "TASK-0024",
+    "evidence_id":  "EVD-TASK-0024-0005",
+    "created_by":  "agent:codex-dynamic-kernel-operator",
+    "created_at":  "2026-06-25T16:08:52+08:00",
+    "producer_agent_release":  "agent:codex-dynamic-kernel-operator@codex-session",
+    "context_manifest":  {
+                             "workspace":  "E:/ahra-v0.1-starter",
+                             "branch":  "main",
+                             "base_commit":  "a422398710ff04ea2f80c38b39ce95d6816e2d6d",
+                             "final_commit":  null,
+                             "patch_state":  "uncommitted working tree changes prepared for verifier review"
+                         },
+    "implemented_files":  [
+                              "contracts/schemas/evidence-v2.schema.json",
+                              "contracts/schemas/gate-run-v2.schema.json",
+                              "contracts/schemas/evidence-status-event.schema.json",
+                              "examples/records/evidence-v2.json",
+                              "examples/records/gate-run-v2.json",
+                              "examples/records/evidence-status-event.json",
+                              "src/ahra/evidence_v2.py",
+                              "src/ahra/ports.py",
+                              "src/ahra/__init__.py",
+                              "tests/test_evidence_v2.py",
+                              "tests/test_schemas.py",
+                              "scripts/lint_contracts.py"
+                          ],
+    "acceptance_map":  [
+                           {
+                               "criterion_index":  1,
+                               "criterion":  "Identical canonical inputs produce the same fingerprint regardless of map ordering.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0024-0002",
+                                                     "EVD-TASK-0024-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  2,
+                               "criterion":  "Changing any bound digest makes dependent Evidence stale.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0024-0002",
+                                                     "EVD-TASK-0024-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  3,
+                               "criterion":  "Unrelated Artifact changes do not invalidate Evidence when the graph proves no dependency.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0024-0002",
+                                                     "EVD-TASK-0024-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  4,
+                               "criterion":  "Unknown or incomplete dependency information causes conservative invalidation.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0024-0002",
+                                                     "EVD-TASK-0024-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  5,
+                               "criterion":  "TTL, revocation and contradiction are represented distinctly and audibly.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0024-0001",
+                                                     "EVD-TASK-0024-0002",
+                                                     "EVD-TASK-0024-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  6,
+                               "criterion":  "Existing Evidence can be read through a clearly labeled legacy adapter but is not silently treated as fully fingerprinted.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0024-0003",
+                                                     "EVD-TASK-0024-0004"
+                                                 ]
+                           },
+                           {
+                               "criterion_index":  7,
+                               "criterion":  "Tests cover direct, transitive, unrelated, policy, gate, TTL and contradiction cases.",
+                               "evidence_refs":  [
+                                                     "EVD-TASK-0024-0002",
+                                                     "EVD-TASK-0024-0004"
+                                                 ]
+                           }
+                       ],
+    "known_limitations":  [
+                              "TASK-0024 implements Evidence v2 contracts, Python records, an in-memory registry inspection API, and a port boundary; it does not replace the existing TASK-level EvidenceGate v1 closeout path.",
+                              "Gate selection, VerificationSelection, DefectRecord repair loops, and persistent EvidenceRegistry storage are deferred to later tasks by TASK-0024 non-goals or downstream task scope.",
+                              "Legacy AWKP evidence records are compatibility-only and explicitly labeled legacy_partial; they are not silently promoted to fully fingerprinted v2 evidence.",
+                              "The producing agent is not marking TASK-0024 completed; independent verifier and EvidenceGate decide completion."
+                          ],
+    "unresolved_items":  [
+
+                         ]
+}
