@@ -16,4 +16,6 @@ tags: [runbooks]
 
 # Runbooks
 
-No concepts have been added yet.
+| Runbook | Purpose |
+|---|---|
+| [TASK-0015 workflow failure hardening plan](task-0015-workflow-failure-hardening-plan.md) | Proposed fixes for verification parsing, AWKP finalization ownership, and durable post-acceptance failure results |
