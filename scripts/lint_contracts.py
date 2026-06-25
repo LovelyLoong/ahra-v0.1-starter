@@ -69,6 +69,7 @@ def main() -> int:
         ROOT / "src/ahra/domain.py",
         ROOT / "src/ahra/evidence_v2.py",
         ROOT / "src/ahra/node_executor.py",
+        ROOT / "src/ahra/plan_execution.py",
         ROOT / "src/ahra/plan_ir.py",
         ROOT / "src/ahra/ports.py",
         ROOT / "src/ahra/validation.py",

@@ -34,6 +34,34 @@ class NodeExecutionRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class NodeExecutionUsage:
+    model_calls: int
+    tool_calls: int
+    spawned_nodes: int = 0
+    cost_usd: float | None = None
+
+    def __post_init__(self) -> None:
+        if self.model_calls < 0:
+            raise ValueError("model_calls must be non-negative")
+        if self.tool_calls < 0:
+            raise ValueError("tool_calls must be non-negative")
+        if self.spawned_nodes < 0:
+            raise ValueError("spawned_nodes must be non-negative")
+        if self.cost_usd is not None and self.cost_usd < 0:
+            raise ValueError("cost_usd must be non-negative when present")
+
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            "modelCalls": self.model_calls,
+            "toolCalls": self.tool_calls,
+            "spawnedNodes": self.spawned_nodes,
+        }
+        if self.cost_usd is not None:
+            data["costUsd"] = self.cost_usd
+        return data
+
+
+@dataclass(frozen=True, slots=True)
 class NodeExecutionResult:
     node_run_id: str
     plan_id: str
@@ -46,6 +74,7 @@ class NodeExecutionResult:
     gate_refs: tuple[str, ...] = ()
     terminal_failure_refs: tuple[str, ...] = ()
     task_completed_state_update_attempted: bool = False
+    usage: NodeExecutionUsage | None = None
     message: str = ""
     details: Mapping[str, Any] = field(default_factory=dict)
 
@@ -67,6 +96,7 @@ class NodeExecutionResult:
                 "gateRefs": list(self.gate_refs),
                 "terminalFailureRefs": list(self.terminal_failure_refs),
                 "taskCompletedStateUpdateAttempted": self.task_completed_state_update_attempted,
+                "usage": self.usage.to_dict() if self.usage else None,
                 "message": self.message,
                 "details": dict(self.details),
             },

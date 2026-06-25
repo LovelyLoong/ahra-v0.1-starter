@@ -1,0 +1,78 @@
+{
+  "schema_version": "ahra/task-changes-response-report/0.1",
+  "task_id": "TASK-0029",
+  "evidence_id": "EVD-TASK-0029-0005",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T13:59:53Z",
+  "responds_to": [
+    "EVD-TASK-0029-0004"
+  ],
+  "summary": "Addressed independent EvidenceGate request_changes findings for runtime budget enforcement and fail-closed verification boundaries.",
+  "blocker_responses": [
+    {
+      "blocker": "Criterion 2 runtime budget enforcement incomplete for maxModelCalls, maxToolCalls, maxSpawnedNodes and maxCostUsd.",
+      "status": "addressed",
+      "changes": [
+        "Added NodeExecutionUsage to NodeExecutionResult and NodeRun state records.",
+        "StaticPlanScheduler now rejects accepted NodeExecutionResult records that omit runtime usage.",
+        "StaticPlanScheduler now fails NodeRun with budget_exceeded when modelCalls, toolCalls, spawnedNodes or costUsd exceed the admitted PlanIR node budget.",
+        "StaticPlanScheduler persists NodeRun usage and checkpoint node_usage.",
+        "BoundedTaskExecutor now emits conservative runtime usage aligned with the compatibility PlanBudget."
+      ],
+      "tests": [
+        "test_usage_budget_overrun_fails_node_and_plan",
+        "test_budget_snapshots_and_wall_budget_are_enforced"
+      ]
+    },
+    {
+      "blocker": "Criterion 7 fail-closed verification boundary missing when verification_service=None.",
+      "status": "addressed",
+      "changes": [
+        "Bounded_task nodes with declared gate_refs now fail with verification_service_unavailable when VerificationService is absent.",
+        "Explicit gate_verification nodes now fail with verification_service_unavailable when VerificationService is absent.",
+        "Goal verification nodes now fail with verification_service_unavailable when VerificationService is absent and no longer synthesize EVD-goal.",
+        "Verification nodes report their own runtime usage before success."
+      ],
+      "tests": [
+        "test_declared_verification_boundaries_fail_closed_without_verifier",
+        "test_static_scheduler_enforces_dag_concurrency_and_goal_gate"
+      ]
+    }
+  ],
+  "changed_files": [
+    "src/ahra/node_executor.py",
+    "src/ahra/plan_execution.py",
+    "src/ahra/reference_runner/bounded_task.py",
+    "src/ahra/__init__.py",
+    "contracts/schemas/node-run.schema.json",
+    "tests/test_plan_execution.py"
+  ],
+  "verification": [
+    {
+      "command": ".venv/Scripts/python.exe -B -m unittest tests.test_plan_execution -v",
+      "result": "passed",
+      "summary": "11 TASK-0029 focused tests OK."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -B scripts/check.py",
+      "result": "passed",
+      "summary": "135 tests OK with 2 environment skips."
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "summary": "Exit code 0; Git reported CRLF/LF normalization warnings for task JSON files only."
+    }
+  ],
+  "environment_skips": [
+    {
+      "test": "test_symlink_escape_is_blocked_where_supported",
+      "reason": "Windows symlink privilege is not available in this environment."
+    },
+    {
+      "test": "test_local_project_python_check_uses_uv_environment",
+      "reason": "uv is not available in this terminal PATH; verification used the repository .venv Python."
+    }
+  ],
+  "producer_completion_statement": "Producer returns TASK-0029 to review only; completion remains reserved for independent EvidenceGate approval."
+}

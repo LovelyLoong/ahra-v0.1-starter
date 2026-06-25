@@ -13,6 +13,7 @@ from ahra.node_executor import (
     NodeExecutionRequest,
     NodeExecutionResult,
     NodeExecutionStatus,
+    NodeExecutionUsage,
 )
 from ahra.plan_ir import (
     CapabilityGrant as PlanCapabilityGrant,
@@ -225,6 +226,7 @@ class BoundedTaskExecutor:
             gate_refs=request.node.gate_refs,
             terminal_failure_refs=terminal_failure_refs,
             task_completed_state_update_attempted=False,
+            usage=_node_usage(task_result, task),
             message=task_result.message,
             details={
                 "taskId": task_result.task_id,
@@ -330,6 +332,7 @@ def compatibility_plan_for_task(
             max_model_calls=max(1, task.max_turns),
             max_tool_calls=max(1, len(task.checks) + 1),
             max_spawned_nodes=0,
+            max_cost_usd=0.0,
         ),
         retry_policy=RetryPolicy(
             max_attempts=min(max(task.max_attempts, 1), DEFAULT_MAX_ATTEMPTS),
@@ -443,6 +446,21 @@ def _node_status(status: WorkflowOutcome) -> NodeExecutionStatus:
         WorkflowOutcome.COMPLETE: NodeExecutionStatus.ACCEPTED,
         WorkflowOutcome.AWAITING_PLAN_APPROVAL: NodeExecutionStatus.NEEDS_HUMAN,
     }[status]
+
+
+def _node_usage(result: TaskRunResult, task: TaskSpec) -> NodeExecutionUsage:
+    model_calls = 0
+    for attempt in result.attempts:
+        if attempt.work_report is not None:
+            model_calls += 1
+        if attempt.review is not None:
+            model_calls += 1
+    return NodeExecutionUsage(
+        model_calls=model_calls,
+        tool_calls=max(1, len(task.checks) + 1),
+        spawned_nodes=0,
+        cost_usd=0.0,
+    )
 
 
 def _node_gate_summary(

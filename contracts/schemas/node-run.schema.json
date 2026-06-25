@@ -95,6 +95,40 @@
         "taskCompletedStateUpdateAttempted": {
           "type": "boolean"
         },
+        "usage": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "modelCalls",
+                "toolCalls",
+                "spawnedNodes"
+              ],
+              "properties": {
+                "modelCalls": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "toolCalls": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "spawnedNodes": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "costUsd": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          ]
+        },
         "message": {
           "type": "string"
         },

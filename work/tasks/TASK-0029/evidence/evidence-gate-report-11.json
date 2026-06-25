@@ -1,0 +1,107 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0029",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-evidencegate-2",
+  "generated_at": "2026-06-25T14:13:37.725234Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent EvidenceGate approval: all TASK-0029 acceptance criteria are covered after runtime budget enforcement and fail-closed verification boundary fixes.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Only admitted immutable PlanIR can start execution.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "Invalid PlanValidationReport and PlanIR digest mismatch are rejected before PlanExecution creation."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "DAG dependencies, concurrency limits, budgets and deadlines are enforced.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002",
+        "EVD-TASK-0029-0005"
+      ],
+      "notes": "DAG dependencies, max_concurrency, deadline, wall-clock timeout, usage snapshots, and runtime maxModelCalls/maxToolCalls/maxSpawnedNodes/maxCostUsd checks are covered by implementation and focused tests."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Crash/restart simulation resumes from checkpoint without repeating completed idempotent nodes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "Checkpoint resume test confirms completed idempotent nodes are not repeated after scheduler restart."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Stale lease/fencing token writes are rejected.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "CAS expected_version and stale fencing token writes are rejected in focused tests."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Cancellation propagates to active nodes and leaves auditable terminal state.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "Cancellation propagates to active and pending NodeRuns and leaves terminal handoff evidence."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Task/Goal, PlanExecution and NodeRun each retain distinct authority.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "AWKP Task/Goal, PlanExecution and NodeRun authority refs remain distinct via projection and reconciler checks."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "The static vertical slice produces complete Artifact/Evidence/Trace/Handoff records and passes the Goal completion gate.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002",
+        "EVD-TASK-0029-0003",
+        "EVD-TASK-0029-0005"
+      ],
+      "notes": "Static vertical slice produces artifact/evidence/trace/handoff refs and passes the goal completion gate with VerificationService; declared verification boundaries now fail closed when VerificationService is absent."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -B -m unittest tests.test_plan_execution -v",
+      "status": "passed",
+      "summary": "Ran 11 TASK-0029 focused tests; OK."
+    },
+    {
+      "command": "manual no-VerificationService and over-budget repro",
+      "status": "passed",
+      "summary": "No verifier now fails with verification_service_unavailable and no EVD-goal; over-budget usage fails with budget_exceeded and records usage."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py",
+      "status": "passed",
+      "summary": "Ran 135 tests; OK with 2 environment skips."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "Exit code 0; Git reported CRLF/LF normalization warnings only."
+    }
+  ]
+}

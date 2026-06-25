@@ -1,0 +1,96 @@
+{
+  "schema_version": "ahra/plan-execution-contract-report/0.1",
+  "task_id": "TASK-0029",
+  "evidence_id": "EVD-TASK-0029-0001",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T13:37:32Z",
+  "summary": "Implemented the first static PlanIR execution service and scheduler slice without introducing a dynamic Planner path.",
+  "implemented_components": [
+    {
+      "name": "PlanExecutionService",
+      "file": "src/ahra/plan_execution.py",
+      "reason": "Owns PlanExecution and NodeRun CAS, lease, checkpoint, cancellation, retry, and terminal-state transitions."
+    },
+    {
+      "name": "StaticPlanScheduler",
+      "file": "src/ahra/plan_execution.py",
+      "reason": "Executes admitted immutable PlanIR as a finite DAG with bounded ready-node batches and explicit VerificationService boundaries."
+    },
+    {
+      "name": "PlanCheckpointRecord",
+      "file": "src/ahra/plan_execution.py",
+      "reason": "Captures recoverable plan and node status plus immutable budget snapshots and artifact/evidence references without storing secrets or transcript."
+    },
+    {
+      "name": "AwkpTaskProjection",
+      "file": "src/ahra/plan_execution.py",
+      "reason": "Projects PlanExecution state toward AWKP Task state without making PlanExecution the Task authority."
+    },
+    {
+      "name": "reconcile_plan_execution",
+      "file": "src/ahra/plan_execution.py",
+      "reason": "Detects orphan executions, expired leases, missing node evidence, terminal-goal mismatch, and inconsistent task projection."
+    }
+  ],
+  "state_authority": {
+    "task_goal_authority": "AWKP task.md/state.json and Goal/Claim records remain governance authority.",
+    "plan_execution_authority": "PlanExecutionRecord owns a single admitted PlanIR execution attempt.",
+    "node_run_authority": "NodeRunRecord owns one node attempt; retry creates a new NodeRun attempt."
+  },
+  "scheduler_guards": [
+    "Plan execution can start only with a passing PlanValidationReport whose subject digest matches PlanIR.digest().",
+    "PlanExecution and NodeRun writes require expected status_version CAS.",
+    "Lease writes carry holder and fencing_token; stale tokens and expired leases are rejected.",
+    "Ready nodes are derived from latest NodeRun attempts and satisfied dependencies.",
+    "max_concurrency bounds each ready-node batch.",
+    "PlanExecution and NodeRun records persist admitted PlanIR budget snapshots.",
+    "Node execution is bounded by the smaller of node.timeout_seconds and budget.maxWallSeconds.",
+    "deadline_at fails the PlanExecution before dispatching more nodes.",
+    "retry creates a new NodeRun attempt and does not repeat already succeeded dependency nodes.",
+    "cancel_execution moves every non-terminal active or pending NodeRun to canceled and leaves a handoff ref.",
+    "goal_verification nodes call VerificationService.complete; other declared gate boundaries call VerificationService.select."
+  ],
+  "non_goals_preserved": [
+    "No dynamic Planner adapter was added.",
+    "No distributed queue or remote worker implementation was added.",
+    "Legacy standard-harness and loop-engineering paths were not removed."
+  ],
+  "changed_files": [
+    "src/ahra/plan_execution.py",
+    "tests/test_plan_execution.py",
+    "src/ahra/__init__.py",
+    "scripts/lint_contracts.py",
+    "work/tasks/TASK-0029/state.json",
+    "work/tasks/TASK-0029/events.jsonl"
+  ],
+  "acceptance_coverage": [
+    {
+      "criterion_index": 1,
+      "coverage": "PlanAdmissionError rejects invalid reports and digest mismatches before PlanExecution creation."
+    },
+    {
+      "criterion_index": 2,
+      "coverage": "StaticPlanScheduler derives ready nodes from dependencies, enforces max_concurrency, persists budget snapshots, bounds node wall-clock execution by budget.maxWallSeconds, and checks deadline_at."
+    },
+    {
+      "criterion_index": 3,
+      "coverage": "Checkpoint records and latest-attempt lookup let a restarted scheduler skip succeeded idempotent nodes."
+    },
+    {
+      "criterion_index": 4,
+      "coverage": "PlanExecutionService rejects stale expected_version and stale fencing_token writes."
+    },
+    {
+      "criterion_index": 5,
+      "coverage": "cancel_execution cancels active and pending NodeRuns and records a terminal handoff reference."
+    },
+    {
+      "criterion_index": 6,
+      "coverage": "AWKP Task projection is explicit and separate from PlanExecution and NodeRun records."
+    },
+    {
+      "criterion_index": 7,
+      "coverage": "The static fixture path produces artifact/evidence/trace/handoff refs and passes the goal completion gate in tests."
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "schema_version": "ahra/task-verification-report/0.1",
+  "task_id": "TASK-0029",
+  "evidence_id": "EVD-TASK-0029-0002",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T13:37:32Z",
+  "environment": {
+    "workspace": "D:/Work/ahra-v0.1-starter",
+    "branch": "task-0029-static-planir-scheduler",
+    "python": ".venv/Scripts/python.exe 3.12.5",
+    "uv_note": "uv is not available in this PowerShell PATH; verification used the repository .venv Python as discussed with the maintainer."
+  },
+  "commands": [
+    {
+      "command": ".venv/Scripts/python.exe -B -m unittest tests.test_plan_execution -v",
+      "result": "passed",
+      "summary": "9 tests OK; covers admission digest binding, DAG concurrency, budget snapshots, wall budget timeout, deadline failure, checkpoint resume, retry attempts, CAS/fencing rejection, cancellation propagation, projection, and reconciler."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -B -m unittest tests.test_plan_ir tests.test_node_executor tests.test_orchestrator tests.test_verification -v",
+      "result": "passed",
+      "summary": "24 tests OK; confirms existing PlanIR compiler, NodeExecutor, RunService, and VerificationService behavior remained compatible."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -B scripts/check.py",
+      "result": "passed",
+      "summary": "AHRA lint passed; unittest discovery ran 133 tests OK with 2 environment skips."
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "summary": "No whitespace errors reported."
+    }
+  ],
+  "environment_skips": [
+    {
+      "test": "test_symlink_escape_is_blocked_where_supported",
+      "reason": "Windows symlink privilege is not available in this environment."
+    },
+    {
+      "test": "test_local_project_python_check_uses_uv_environment",
+      "reason": "uv is not available in this terminal PATH."
+    }
+  ],
+  "acceptance_coverage": [
+    {
+      "criterion_index": 1,
+      "tests": [
+        "test_only_valid_immutable_plan_ir_can_start"
+      ]
+    },
+    {
+      "criterion_index": 2,
+      "tests": [
+        "test_static_scheduler_enforces_dag_concurrency_and_goal_gate",
+        "test_budget_snapshots_and_wall_budget_are_enforced",
+        "test_plan_deadline_stops_scheduling_before_node_execution",
+        "PlanIRTests budget and DAG validation regressions"
+      ]
+    },
+    {
+      "criterion_index": 3,
+      "tests": [
+        "test_resume_skips_completed_idempotent_nodes"
+      ]
+    },
+    {
+      "criterion_index": 4,
+      "tests": [
+        "test_stale_expected_version_and_fencing_token_are_rejected"
+      ]
+    },
+    {
+      "criterion_index": 5,
+      "tests": [
+        "test_cancellation_propagates_to_active_and_pending_nodes"
+      ]
+    },
+    {
+      "criterion_index": 6,
+      "tests": [
+        "test_projection_and_reconciler_keep_authorities_distinct"
+      ]
+    },
+    {
+      "criterion_index": 7,
+      "tests": [
+        "test_static_scheduler_enforces_dag_concurrency_and_goal_gate"
+      ]
+    }
+  ]
+}

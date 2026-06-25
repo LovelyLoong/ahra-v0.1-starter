@@ -2,15 +2,31 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0029",
   "context_id": "CTX-ahra-dynamic-kernel",
-  "state": "queued",
-  "state_version": 1,
+  "state": "completed",
+  "state_version": 11,
   "owner": null,
-  "attempt": 0,
+  "attempt": 1,
   "lease": null,
-  "next_action": "Wait for TASK-0028 to complete, then claim with CAS.",
-  "pause_reason": "dependency",
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "pause_reason": null,
   "blockers": [],
-  "artifact_refs": [],
-  "evidence_refs": [],
-  "updated_at": "2026-06-25T12:31:28+08:00"
+  "artifact_refs": [
+    "ART-TASK-0029-0001",
+    "ART-TASK-0029-0002",
+    "ART-TASK-0029-0003",
+    "ART-TASK-0029-HANDOFF-0001",
+    "ART-TASK-0029-0004",
+    "ART-TASK-0029-0005",
+    "ART-TASK-0029-HANDOFF-0002",
+    "ART-TASK-0029-0006"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0029-0001",
+    "EVD-TASK-0029-0002",
+    "EVD-TASK-0029-0003",
+    "EVD-TASK-0029-0004",
+    "EVD-TASK-0029-0005",
+    "EVD-TASK-0029-0006"
+  ],
+  "updated_at": "2026-06-25T14:13:37.725234Z"
 }

@@ -1,0 +1,110 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0029",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-evidencegate",
+  "generated_at": "2026-06-25T13:47:13.018333Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Independent EvidenceGate review requests changes: budget enforcement is incomplete and declared verification boundaries can pass without VerificationService.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Only admitted immutable PlanIR can start execution.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "Verified invalid PlanValidationReport and PlanIR digest mismatch are rejected before execution starts."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "DAG dependencies, concurrency limits, budgets and deadlines are enforced.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "DAG, concurrency, deadline and wall-clock budget are covered, but PlanBudget maxModelCalls, maxToolCalls, maxSpawnedNodes and maxCostUsd are only validated/snapshotted; no runtime usage enforcement path exists in NodeExecutionResult or StaticPlanScheduler."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Crash/restart simulation resumes from checkpoint without repeating completed idempotent nodes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "Focused resume test confirms completed idempotent nodes are not repeated across scheduler restart."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Stale lease/fencing token writes are rejected.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "Focused CAS/fencing test confirms stale expected_version and stale fencing_token writes are rejected."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Cancellation propagates to active nodes and leaves auditable terminal state.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "Focused cancellation test confirms active and pending NodeRuns become canceled and a handoff ref is left."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Task/Goal, PlanExecution and NodeRun each retain distinct authority.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002"
+      ],
+      "notes": "Projection and reconciler keep AWKP Task, Goal, PlanExecution and NodeRun authority refs distinct."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "The static vertical slice produces complete Artifact/Evidence/Trace/Handoff records and passes the Goal completion gate.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0029-0001",
+        "EVD-TASK-0029-0002",
+        "EVD-TASK-0029-0003"
+      ],
+      "notes": "The happy-path fixture passes with a verifier, but StaticPlanScheduler with verification_service=None still returns succeeded and EVD-goal, so declared goal/gate verification does not fail closed."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -B -m unittest tests.test_plan_execution -v",
+      "status": "passed",
+      "summary": "Ran 9 TASK-0029 focused tests; OK."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py",
+      "status": "passed",
+      "summary": "Ran 133 tests; OK with 2 environment skips."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "manual no-VerificationService repro using StaticPlanScheduler(..., verification_service=None)",
+      "status": "failed",
+      "summary": "Observed PlanExecutionStatus.succeeded with synthetic EVD-goal; expected fail-closed behavior for declared verification boundary."
+    },
+    {
+      "command": "code inspection of PlanBudget / NodeExecutionResult / StaticPlanScheduler budget path",
+      "status": "failed",
+      "summary": "No usage fields or scheduler checks enforce maxModelCalls, maxToolCalls, maxSpawnedNodes or maxCostUsd at runtime."
+    }
+  ]
+}
