@@ -1,0 +1,117 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0028",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-25T10:49:51.665929Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier reviewed TASK-0028 node executor migration evidence, implementation, schemas, and tests. bounded_task now executes through NodeExecutionRequest with PlanIR, PlanNodeIR, and runtime CapabilityGrant records; standard-harness is a compatibility adapter that builds a one-node PlanIR and calls the same executor. Completion remains outside the executor path, L0 deterministic checks remain distinct from semantic review, terminal failures preserve patch/evidence refs, provider drivers stay behind AgentDriver, and independent checks plus fail-closed probes passed.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "bounded_task executes from a PlanNode and CapabilityGrant, not a bespoke WorkflowRunRequest path.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0028-0001",
+        "EVD-TASK-0028-0002",
+        "EVD-TASK-0028-0003",
+        "EVD-TASK-0028-0004"
+      ],
+      "notes": "NodeExecutionRequest requires the PlanIR node to belong to the plan and requires capability grants. BoundedTaskExecutor validates node_type=bounded_task, rejects terminal goal verification nodes, validates grant plan/node/role binding, and routes execution through TaskHarness with a capability runtime gateway."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "The executor cannot update Goal/Task completed state.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0028-0001",
+        "EVD-TASK-0028-0002",
+        "EVD-TASK-0028-0003",
+        "EVD-TASK-0028-0004"
+      ],
+      "notes": "NodeExecutionResult records node status and refs only; taskCompletedStateUpdateAttempted defaults to false and the executor writes NodeRun artifacts rather than Task state. Existing formal AWKP publication still leaves tasks in review for EvidenceGate."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Deterministic checks are L0 Gates and semantic review is invoked only by declared Gate policy.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0028-0002",
+        "EVD-TASK-0028-0003",
+        "EVD-TASK-0028-0004"
+      ],
+      "notes": "Deterministic checks are run through the L0 path. BoundedTaskExecutor derives semantic_review_enabled from node gate refs, and tests confirm the task reviewer is not called when only the L0 gate is declared; semantic_review_skipped evidence is produced instead."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Rollback and terminal failure preserve patch, command and error Evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0028-0002",
+        "EVD-TASK-0028-0003",
+        "EVD-TASK-0028-0004"
+      ],
+      "notes": "TaskHarness records patch.diff, work-report, deterministic evidence, review evidence, rejected.patch when applicable, and terminal-failure evidence on timeout/error/rejection. NodeExecutionResult carries terminalFailureRefs for rejected, error, or blocked outcomes."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Compatibility mode and native node mode produce equivalent observable Artifact/Evidence semantics.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0028-0002",
+        "EVD-TASK-0028-0003",
+        "EVD-TASK-0028-0004"
+      ],
+      "notes": "The standard-harness compatibility request builds the same bounded_task PlanIR/PlanNodeIR shape used by native node mode. The equivalence test compares observable artifact kinds, evidence kinds, node type, status, gate refs, terminal failure refs, completion-attempt flag, and ref counts."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Provider-specific AgentDriver remains an adapter.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0028-0001",
+        "EVD-TASK-0028-0003",
+        "EVD-TASK-0028-0004"
+      ],
+      "notes": "NodeExecutor and NodeExecutorPort are provider-neutral contracts. AgentDriver remains the adapter boundary, and the domain validation test confirms the domain validation layer does not import provider SDKs."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_node_executor -v",
+      "status": "passed",
+      "summary": "6 NodeExecutor tests passed, including native node execution with grants, command/write grant denial, semantic review gating, immutable release registry, and standard-harness compatibility equivalence."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "summary": "Full repository check passed: 124 tests OK with 1 Windows symlink privilege skip."
+    },
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "status": "passed",
+      "summary": "0 AHRA lint failures; NodeRun schema/example and related records validate."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "summary": "0 AWKP errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "TASK-0028 manifest SHA256 audit",
+      "status": "passed",
+      "summary": "9 artifact/evidence manifest records matched local SHA-256 values before gate."
+    },
+    {
+      "command": "independent node executor fail-closed probe",
+      "status": "passed",
+      "summary": "Rejected node outside plan, missing grants, latest/digestless executor release refs, terminal goal verification nodes, wrong node type, and non-executor capability grants."
+    }
+  ]
+}

@@ -52,6 +52,13 @@ from .evidence_v2 import (
     canonical_fingerprint,
     make_status_event,
 )
+from .node_executor import (
+    NodeExecutionRequest,
+    NodeExecutionResult,
+    NodeExecutionStatus,
+    NodeExecutor,
+    NodeExecutorRegistry,
+)
 from .ports import (
     AgentDriver,
     AgentDriverRegistry,
@@ -63,6 +70,7 @@ from .ports import (
     AgentRuntimeProfile,
     CapabilityAdmissionPort,
     EvidenceRegistryPort,
+    NodeExecutorPort,
     RuntimeGatewayPort,
     SchedulerPort,
     VerificationServicePort,
@@ -159,6 +167,12 @@ __all__ = [
     "MemoryKind",
     "MemoryRecord",
     "MemoryStatus",
+    "NodeExecutionRequest",
+    "NodeExecutionResult",
+    "NodeExecutionStatus",
+    "NodeExecutor",
+    "NodeExecutorPort",
+    "NodeExecutorRegistry",
     "PlanBudget",
     "PlanCompilationResult",
     "PlanCompilerConfig",

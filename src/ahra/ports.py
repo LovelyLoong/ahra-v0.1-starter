@@ -26,6 +26,7 @@ from .evidence_v2 import (
     EvidenceV2,
     LegacyEvidenceRecord,
 )
+from .node_executor import NodeExecutionRequest, NodeExecutionResult
 from .plan_ir import PlanIR, PlanValidationReport
 from .verification import (
     CompletionGateResult,
@@ -272,6 +273,17 @@ class CapabilityAdmissionPort(Protocol):
 
 @runtime_checkable
 class RuntimeGatewayPort(Protocol):
+    def authorize_write_path(
+        self,
+        grant: CapabilityGrant,
+        *,
+        plan_id: str,
+        node_id: str,
+        actor: str,
+        relative_path: str,
+        now: datetime | None = None,
+    ) -> CapabilityAuditRecord: ...
+
     def write_text(
         self,
         grant: CapabilityGrant,
@@ -294,6 +306,17 @@ class RuntimeGatewayPort(Protocol):
         command: tuple[str, ...],
         now: datetime | None = None,
     ) -> CapabilityAuditRecord: ...
+
+
+@runtime_checkable
+class NodeExecutorPort(Protocol):
+    @property
+    def node_type(self) -> str: ...
+
+    @property
+    def release_ref(self) -> str: ...
+
+    async def execute(self, request: NodeExecutionRequest) -> NodeExecutionResult: ...
 
 
 @runtime_checkable

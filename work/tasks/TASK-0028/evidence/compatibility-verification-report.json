@@ -1,0 +1,78 @@
+{
+  "schema_version": "ahra/compatibility-verification-report/0.1",
+  "task_id": "TASK-0028",
+  "evidence_id": "EVD-TASK-0028-0003",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T18:37:18+08:00",
+  "summary": "Verified native bounded_task execution, standard-harness compatibility execution, capability denial paths, semantic gate selection, and existing rollback or terminal-failure behavior.",
+  "test_files": [
+    "tests/test_node_executor.py",
+    "tests/test_reference_runner.py",
+    "tests/test_capabilities.py",
+    "tests/test_schemas.py",
+    "tests/test_acceptance_contracts.py"
+  ],
+  "acceptance_coverage": [
+    {
+      "criterion_index": 1,
+      "test": "test_bounded_task_executes_native_plan_node_with_capability_grants",
+      "coverage": "Native executor accepts a PlanIR node plus runtime grants and emits node-run/node-gate records."
+    },
+    {
+      "criterion_index": 2,
+      "test": "test_bounded_task_executes_native_plan_node_with_capability_grants",
+      "coverage": "NodeRun records taskCompletedStateUpdateAttempted=false."
+    },
+    {
+      "criterion_index": 3,
+      "test": "test_semantic_review_runs_only_when_declared_by_gate_policy",
+      "coverage": "Removing the review gate prevents reviewer invocation and emits semantic_review_skipped evidence."
+    },
+    {
+      "criterion_index": 4,
+      "test": "test_executor_timeout_records_terminal_failure_evidence",
+      "coverage": "Existing terminal failure path still writes terminal-failure evidence and events."
+    },
+    {
+      "criterion_index": 5,
+      "test": "test_standard_harness_compatibility_matches_native_node_observable_semantics",
+      "coverage": "Native node mode and compatibility mode produce equivalent artifact kind, evidence kind, gate ref, status, terminal failure, and NodeRun state-update semantics."
+    },
+    {
+      "criterion_index": 6,
+      "test": "test_domain_validation_layer_does_not_import_provider_sdks",
+      "coverage": "Provider SDK imports remain absent from domain, port, PlanIR, capability, verification, reference-runner, and node-executor layers."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_node_executor -v",
+      "result": "passed",
+      "summary": "6 tests OK"
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "result": "passed",
+      "summary": "124 tests OK, 1 Windows symlink privilege skip"
+    },
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "result": "passed",
+      "summary": "AHRA lint: 0 failures"
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "result": "passed",
+      "summary": "0 errors, 0 warnings"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "summary": "No output"
+    }
+  ],
+  "notes": [
+    "The symlink escape security test remains present but skipped on this workstation because Windows denied symlink creation with WinError 1314.",
+    "The command gateway now allows semicolons inside declared argv arguments such as python -c snippets while still blocking command substitution, pipes, redirects, logical shell chaining, and newlines."
+  ]
+}

@@ -90,6 +90,7 @@ class AcceptanceContractTests(unittest.TestCase):
             "src/ahra/acceptance_contracts.py",
             "src/ahra/capabilities.py",
             "src/ahra/domain.py",
+            "src/ahra/node_executor.py",
             "src/ahra/plan_ir.py",
             "src/ahra/validation.py",
         ]:

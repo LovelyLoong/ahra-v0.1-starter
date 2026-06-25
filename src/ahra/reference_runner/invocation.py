@@ -23,6 +23,7 @@ from .awkp_task import (
     publish_awkp_review_in_workspace,
     task_from_awkp_markdown,
 )
+from .bounded_task import BoundedTaskExecutor, build_standard_harness_compatibility_request
 from .loop_engineering import LoopEngine
 from .models import (
     ChangePolicy,
@@ -41,7 +42,6 @@ from .models import (
     to_jsonable,
 )
 from .runtime import LocalRuntimeProvider
-from .standard_harness import TaskHarness
 from .store import FileRunStore
 
 ALLOWED_APPROVAL_MODES = {"manual", "auto", "disabled"}
@@ -602,19 +602,24 @@ async def _run_standard_harness(
 ) -> Any:
     if request.task is None:
         raise ValueError("standard-harness requires task input")
-    return await TaskHarness(
+    workspace = Path(workspace_provider.resolve_path(execution_workspace_ref))
+    node_request = build_standard_harness_compatibility_request(
+        task=request.task,
+        workspace=workspace,
+        workspace_ref=execution_workspace_ref,
+        branch=branch,
+        run_id=run_id,
+        runtime_ref=request.runtime_profile_ref,
+    )
+    task_result, _ = await BoundedTaskExecutor(
         driver,
+        store=store,
         workspace_provider=workspace_provider,
         runtime_provider=runtime_provider,
         runtime_profile_ref=request.runtime_profile_ref,
         execution_policy=request.scheduler_decision.execution_policy,
-    ).run_task(
-        task=request.task,
-        workspace_ref=execution_workspace_ref,
-        branch=branch,
-        run_id=run_id,
-        store=store,
-    )
+    ).execute_task(node_request)
+    return task_result
 
 
 async def _run_loop_engineering(

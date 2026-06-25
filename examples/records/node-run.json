@@ -1,0 +1,36 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "NodeRun",
+  "metadata": {
+    "nodeRunId": "NRUN-bounded-task-example",
+    "planId": "PLAN-bounded-task-example",
+    "nodeId": "NODE-bounded-task-example",
+    "executorRelease": "bounded-task-executor@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "spec": {
+    "nodeType": "bounded_task",
+    "status": "accepted",
+    "artifactRefs": [
+      "ART-node-patch",
+      "ART-node-work-report"
+    ],
+    "evidenceRefs": [
+      "EVD-node-deterministic",
+      "EVD-node-semantic-review",
+      "EVD-node-gate-summary"
+    ],
+    "gateRefs": [
+      "GATE-bounded-task-l0",
+      "GATE-bounded-task-review"
+    ],
+    "terminalFailureRefs": [],
+    "taskCompletedStateUpdateAttempted": false,
+    "message": "Node accepted by declared gates.",
+    "details": {
+      "taskId": "TASK-0028",
+      "taskStatus": "accepted",
+      "commit": "abc1234",
+      "semanticReviewEnabled": true
+    }
+  }
+}

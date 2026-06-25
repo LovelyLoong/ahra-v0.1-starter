@@ -4,9 +4,11 @@ import asyncio
 import contextlib
 import hashlib
 import time
+from dataclasses import replace
 from pathlib import Path
 from typing import Awaitable, TypeVar
 
+from ahra.capabilities import CapabilityGrant as RuntimeCapabilityGrant, LocalRuntimeGateway
 from ahra.ports import AgentDriver, AgentOutputContractError
 
 from .checks import run_checks
@@ -16,6 +18,7 @@ from .models import (
     CriterionAssessment,
     DeterministicEvidence,
     ExecutionPolicy,
+    PolicyEvidence,
     ReviewResult,
     ReviewVerdict,
     TaskAttemptRecord,
@@ -160,12 +163,24 @@ class TaskHarness:
         runtime_provider=None,
         runtime_profile_ref: str | None = None,
         execution_policy: ExecutionPolicy | None = None,
+        runtime_gateway: LocalRuntimeGateway | None = None,
+        capability_grants: tuple[RuntimeCapabilityGrant, ...] = (),
+        plan_id: str | None = None,
+        node_id: str | None = None,
+        actor: str = "executor",
+        semantic_review_enabled: bool = True,
     ) -> None:
         self.driver = driver
         self.workspace_provider = workspace_provider or LocalGitWorkspaceProvider()
         self.runtime_provider = runtime_provider or LocalRuntimeProvider()
         self.runtime_profile_ref = runtime_profile_ref
         self.execution_policy = execution_policy or ExecutionPolicy()
+        self.runtime_gateway = runtime_gateway
+        self.capability_grants = capability_grants
+        self.plan_id = plan_id
+        self.node_id = node_id
+        self.actor = actor
+        self.semantic_review_enabled = semantic_review_enabled
         self._run_started_monotonic: float | None = None
 
     def collect_evidence(
@@ -186,6 +201,7 @@ class TaskHarness:
             task.policy,
             parent_policy,
         )
+        policy = self._with_write_capability_violations(policy, files)
         mutated = patch_before_checks is not None and full_patch != patch_before_checks
         evidence = DeterministicEvidence(
             policy=policy,
@@ -313,66 +329,90 @@ class TaskHarness:
                 )
 
                 if evidence.passed:
-                    try:
-                        review = await self._review_with_contract_retries(
-                            task=task,
-                            report=report,
-                            evidence=evidence,
-                            full_patch=full_patch,
-                            workspace=workspace,
-                            workspace_ref=workspace_ref,
-                            checkpoint=checkpoint,
-                            run_id=run_id,
-                            attempt_number=attempt_number,
-                            store=store,
-                        )
-                    except AgentOutputContractError as exc:
-                        attempts.append(
-                            TaskAttemptRecord(
+                    review_evidence_kind = "semantic_review"
+                    if self.semantic_review_enabled:
+                        try:
+                            review = await self._review_with_contract_retries(
+                                task=task,
+                                report=report,
+                                evidence=evidence,
+                                full_patch=full_patch,
+                                workspace=workspace,
+                                workspace_ref=workspace_ref,
+                                checkpoint=checkpoint,
+                                run_id=run_id,
+                                attempt_number=attempt_number,
+                                store=store,
+                            )
+                        except AgentOutputContractError as exc:
+                            attempts.append(
+                                TaskAttemptRecord(
+                                    attempt=attempt_number,
+                                    work_report=report,
+                                    deterministic=evidence,
+                                    error=repr(exc),
+                                )
+                            )
+                            store.event(
+                                "attempt_error",
+                                task_id=task.id,
                                 attempt=attempt_number,
-                                work_report=report,
-                                deterministic=evidence,
+                                phase="task_review",
+                                retryable=False,
                                 error=repr(exc),
                             )
-                        )
+                            self.workspace_provider.rollback(workspace_ref, checkpoint)
+                            result = TaskRunResult(
+                                run_id=run_id,
+                                task_id=task.id,
+                                status=WorkflowOutcome.ERROR,
+                                checkpoint=checkpoint,
+                                attempts=tuple(attempts),
+                                message=(
+                                    "Task review failed its output contract after bounded "
+                                    f"review retries and was rolled back: {exc!r}"
+                                ),
+                                workspace=str(workspace),
+                                branch=branch,
+                                artifact_dir=str(store.run_dir),
+                            )
+                            _record_terminal_failure(
+                                store=store,
+                                task=task,
+                                result=result,
+                                execution_policy=self.execution_policy,
+                            )
+                            return result
+                    else:
                         store.event(
-                            "attempt_error",
+                            "semantic_review_skipped",
                             task_id=task.id,
                             attempt=attempt_number,
-                            phase="task_review",
-                            retryable=False,
-                            error=repr(exc),
+                            reason="semantic review was not declared by node gate policy",
                         )
-                        self.workspace_provider.rollback(workspace_ref, checkpoint)
-                        result = TaskRunResult(
-                            run_id=run_id,
-                            task_id=task.id,
-                            status=WorkflowOutcome.ERROR,
-                            checkpoint=checkpoint,
-                            attempts=tuple(attempts),
-                            message=(
-                                "Task review failed its output contract after bounded "
-                                f"review retries and was rolled back: {exc!r}"
+                        review_evidence_kind = "semantic_review_skipped"
+                        review = ReviewResult(
+                            verdict=ReviewVerdict.PASS,
+                            summary="Semantic review was skipped because no semantic review gate was declared.",
+                            criteria=tuple(
+                                CriterionAssessment(
+                                    criterion=criterion,
+                                    passed=True,
+                                    evidence="Deterministic L0 gates passed.",
+                                )
+                                for criterion in task.acceptance_criteria
                             ),
-                            workspace=str(workspace),
-                            branch=branch,
-                            artifact_dir=str(store.run_dir),
+                            confidence=1.0,
                         )
-                        _record_terminal_failure(
-                            store=store,
-                            task=task,
-                            result=result,
-                            execution_policy=self.execution_policy,
-                        )
-                        return result
                 else:
+                    review_evidence_kind = "semantic_review"
                     review = _deterministic_failure_review(evidence)
 
                 store.write_evidence(
                     f"tasks/{task.id}/attempt-{attempt_number}/review.json",
                     review,
                     task_id=task.id,
-                    kind="semantic_review",
+                    kind=review_evidence_kind,
                     refs=[deterministic_record["evidence_id"]],
                 )
                 record = TaskAttemptRecord(
@@ -592,6 +632,39 @@ class TaskHarness:
         except Exception:
             return ()
 
+    def _with_write_capability_violations(
+        self,
+        policy: PolicyEvidence,
+        files: tuple[str, ...],
+    ) -> PolicyEvidence:
+        if self.runtime_gateway is None or not self.capability_grants:
+            return policy
+        plan_id = self.plan_id
+        node_id = self.node_id
+        if not plan_id or not node_id:
+            return replace(policy, violations=tuple((*policy.violations, "capability context missing for filesystem.write authorization")))
+        write_grants = tuple(grant for grant in self.capability_grants if grant.action == "filesystem.write")
+        if not files:
+            return policy
+        violations = list(policy.violations)
+        for relative_path in files:
+            grant = _grant_for_resource(write_grants, relative_path)
+            if grant is None:
+                violations.append(f"capability grant missing for filesystem.write:{relative_path}")
+                continue
+            record = self.runtime_gateway.authorize_write_path(
+                grant,
+                plan_id=plan_id,
+                node_id=node_id,
+                actor=self.actor,
+                relative_path=relative_path,
+            )
+            if not record.allowed:
+                violations.append(f"capability denied filesystem.write:{relative_path}:{record.reason_code}")
+        if tuple(violations) == policy.violations:
+            return policy
+        return replace(policy, violations=tuple(violations))
+
     async def _review_with_contract_retries(
         self,
         *,
@@ -673,3 +746,21 @@ class TaskHarness:
                     raise
                 contract_feedback = _contract_feedback(exc)
         raise AssertionError("unreachable")
+
+
+def _grant_for_resource(
+    grants: tuple[RuntimeCapabilityGrant, ...],
+    resource: str,
+) -> RuntimeCapabilityGrant | None:
+    normalized = resource.replace("\\", "/")
+    for grant in grants:
+        if any(_resource_matches(normalized, pattern) for pattern in grant.resources):
+            return grant
+    return None
+
+
+def _resource_matches(resource: str, pattern: str) -> bool:
+    import fnmatch
+
+    normalized_pattern = pattern.replace("\\", "/")
+    return resource == normalized_pattern or fnmatch.fnmatch(resource, normalized_pattern)

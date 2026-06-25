@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/node-run.v1alpha1.json",
+  "title": "AHRA NodeRun",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[A-Za-z0-9_.-]+$": {}
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "NodeRun"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeRunId",
+        "planId",
+        "nodeId",
+        "executorRelease"
+      ],
+      "properties": {
+        "nodeRunId": {
+          "$ref": "#/$defs/nodeRunRef"
+        },
+        "planId": {
+          "$ref": "#/$defs/planRef"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nodeRef"
+        },
+        "executorRelease": {
+          "type": "string",
+          "pattern": "^.+sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeType",
+        "status",
+        "artifactRefs",
+        "evidenceRefs",
+        "gateRefs",
+        "terminalFailureRefs",
+        "taskCompletedStateUpdateAttempted"
+      ],
+      "properties": {
+        "nodeType": {
+          "enum": [
+            "bounded_task",
+            "gate_verification",
+            "goal_verification",
+            "repair"
+          ]
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "needs_human",
+            "rejected",
+            "error",
+            "blocked"
+          ]
+        },
+        "artifactRefs": {
+          "$ref": "#/$defs/artifactRefs"
+        },
+        "evidenceRefs": {
+          "$ref": "#/$defs/evidenceRefs"
+        },
+        "gateRefs": {
+          "$ref": "#/$defs/gateRefs"
+        },
+        "terminalFailureRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "taskCompletedStateUpdateAttempted": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "artifactRefs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^ART-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+      }
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^EVD-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+      }
+    },
+    "gateRefs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+      }
+    },
+    "nodeRef": {
+      "type": "string",
+      "pattern": "^NODE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "nodeRunRef": {
+      "type": "string",
+      "pattern": "^NRUN-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "planRef": {
+      "type": "string",
+      "pattern": "^PLAN-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    }
+  }
+}

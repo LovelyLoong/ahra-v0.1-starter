@@ -1,0 +1,63 @@
+{
+  "schema_version": "ahra/node-executor-contract-report/0.1",
+  "task_id": "TASK-0028",
+  "evidence_id": "EVD-TASK-0028-0001",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T18:37:18+08:00",
+  "summary": "Defined provider-neutral NodeExecutor contracts, immutable release registry resolution, a NodeRun record schema/example, and port exports for runtime-gated node execution.",
+  "contract_files": [
+    "src/ahra/node_executor.py",
+    "src/ahra/ports.py",
+    "src/ahra/__init__.py",
+    "contracts/schemas/node-run.schema.json",
+    "examples/records/node-run.json"
+  ],
+  "contract_properties": [
+    {
+      "property": "NodeExecutionRequest is PlanIR-bound",
+      "details": "The request contains a PlanIR, one PlanNodeIR from that plan, runtime CapabilityGrant records, workspace_ref, branch, run_id, and payload. __post_init__ rejects nodes that are not part of the supplied plan and rejects requests without grants."
+    },
+    {
+      "property": "NodeExecutionResult is status-only for task completion",
+      "details": "The result can report accepted, needs_human, rejected, error, or blocked and includes taskCompletedStateUpdateAttempted. It does not expose a Goal or Task completed-state mutation API."
+    },
+    {
+      "property": "Registry resolves by immutable node type and release",
+      "details": "NodeExecutorRegistry keys by (node_type, release_ref), rejects duplicate registrations, and rejects latest or digest-less release refs."
+    },
+    {
+      "property": "Provider-specific AgentDriver remains outside the contract",
+      "details": "Node executor contracts import PlanIR and CapabilityGrant records only. Provider drivers remain behind the existing AgentDriver adapter port."
+    }
+  ],
+  "acceptance_coverage": [
+    {
+      "criterion_index": 1,
+      "coverage": "Request contract requires PlanIR, PlanNodeIR, and CapabilityGrant inputs."
+    },
+    {
+      "criterion_index": 2,
+      "coverage": "Result contract records taskCompletedStateUpdateAttempted=false by default and exposes no completion writer."
+    },
+    {
+      "criterion_index": 6,
+      "coverage": "Contract and lint paths contain no provider SDK imports."
+    }
+  ],
+  "verification": [
+    {
+      "command": "uv run python -B -m unittest tests.test_node_executor -v",
+      "result": "passed",
+      "summary": "6 tests OK"
+    },
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "result": "passed",
+      "summary": "AHRA lint: 0 failures; node-run example validates"
+    }
+  ],
+  "known_limitations": [
+    "This task defines the executor primitive and compatibility adapter only; DAG scheduling remains out of scope.",
+    "NodeRun artifact records do not self-reference their own artifact id; the returned NodeExecutionResult carries the node-run artifact id after the artifact is written."
+  ]
+}

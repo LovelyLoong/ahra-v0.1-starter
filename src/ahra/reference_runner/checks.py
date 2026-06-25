@@ -84,6 +84,10 @@ def run_checks(workspace: Path, checks: tuple[CheckSpec, ...], runtime=None) -> 
     return tuple(run_check(workspace, check, runtime) for check in checks)
 
 
+def effective_check_argv(workspace: Path, argv: tuple[str, ...]) -> tuple[str, ...]:
+    return _effective_check_argv(workspace, argv)
+
+
 def _effective_check_argv(workspace: Path, argv: tuple[str, ...]) -> tuple[str, ...]:
     if not argv:
         return argv

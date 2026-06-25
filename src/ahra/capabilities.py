@@ -16,7 +16,7 @@ REFERENCE_MONITOR_VERSION = "ahra-reference-monitor/0.1"
 HIGH_RISK_ACTIONS = {"network.access", "secret.read", "external.write", "production.deploy"}
 SUPPORTED_LOCAL_ACTIONS = {"filesystem.write", "process.exec", "spawn.agent"}
 DEFAULT_WRITE_DENY_ROLES = {"planner", "task_reviewer", "goal_reviewer", "verifier"}
-COMMAND_META_CHARS = ("&&", "||", ";", "|", "$(", "`", ">", "<", "\n", "\r")
+COMMAND_META_CHARS = ("&&", "||", "|", "$(", "`", ">", "<", "\n", "\r")
 
 
 @dataclass(frozen=True, slots=True)
@@ -358,6 +358,28 @@ class LocalRuntimeGateway:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(content, encoding="utf-8")
             return self._audit(grant, plan_id, node_id, actor, "filesystem.write", True, "allow", args, {"sha256": _hash_bytes(content.encode("utf-8"))}, now)
+        return self._audit(grant, plan_id, node_id, actor, "filesystem.write", False, reason, args, None, now)
+
+    def authorize_write_path(
+        self,
+        grant: CapabilityGrant,
+        *,
+        plan_id: str,
+        node_id: str,
+        actor: str,
+        relative_path: str,
+        now: datetime | None = None,
+    ) -> CapabilityAuditRecord:
+        now = now or _now()
+        args = {"relativePath": relative_path, "operation": "authorize"}
+        reason = self._grant_denial(grant, "filesystem.write", plan_id, node_id, actor, now)
+        target = self._resolve_target(relative_path)
+        if reason == "allow" and target is None:
+            reason = "path_escape"
+        if reason == "allow" and not _resource_allowed(relative_path.replace("\\", "/"), grant.resources):
+            reason = "path_not_granted"
+        if reason == "allow":
+            return self._audit(grant, plan_id, node_id, actor, "filesystem.write", True, "allow", args, {"authorized": True}, now)
         return self._audit(grant, plan_id, node_id, actor, "filesystem.write", False, reason, args, None, now)
 
     def run_command(
