@@ -11,6 +11,7 @@ from typing import Any
 import yaml
 
 from ahra.adapters.codex_sdk import CodexSDKDriver
+from ahra.dynamic_fixture import write_dynamic_repair_fixture_report
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
 from ahra.ports import AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
 from ahra.reference_runner.invocation import (
@@ -109,6 +110,8 @@ def _dispatch(args: argparse.Namespace) -> Any:
         return _workflow_command(args)
     if args.group == "task":
         return _task_command(args)
+    if args.group == "fixture":
+        return _fixture_command(args)
     if args.group == "evidence-gate":
         return _evidence_gate_command(args)
     if args.group == "doctor":
@@ -138,6 +141,21 @@ def _task_command(args: argparse.Namespace) -> Any:
     if args.task_command == "inspect":
         return inspect_task(args.task, work_root=args.work_root)
     raise ValueError(f"unknown task command: {args.task_command}")
+
+
+def _fixture_command(args: argparse.Namespace) -> Any:
+    if args.fixture_command == "dynamic-repair":
+        report = write_dynamic_repair_fixture_report(Path(args.fixture), Path(args.report))
+        return {
+            "schema_version": report["schema_version"],
+            "report": str(Path(args.report)),
+            "goal": report["goal"],
+            "selectedFewerThanFull": report["verification"]["selectedFewerThanFull"],
+            "finalCompletionAccepted": report["verification"]["finalCompletionAccepted"],
+            "unauthorizedWriteAllowed": report["security"]["unauthorizedWriteAllowed"],
+            "terminalStatusAfterResume": report["resume"]["terminalStatusAfterResume"],
+        }
+    raise ValueError(f"unknown fixture command: {args.fixture_command}")
 
 
 def _evidence_gate_command(args: argparse.Namespace) -> Any:
@@ -386,6 +404,15 @@ def _build_parser() -> argparse.ArgumentParser:
     task_inspect = task_commands.add_parser("inspect", help="Inspect task state, manifests, events, and criteria.")
     task_inspect.add_argument("task", help="Task ID such as TASK-0014, or path to a task directory.")
     task_inspect.add_argument("--work-root", default="work", help="AWKP work root containing tasks/.")
+
+    fixture = groups.add_parser("fixture", help="Run deterministic local fixture scenarios.")
+    fixture_commands = fixture.add_subparsers(dest="fixture_command", required=True)
+    fixture_repair = fixture_commands.add_parser(
+        "dynamic-repair",
+        help="Run the isolated dynamic Goal-to-repair fixture.",
+    )
+    fixture_repair.add_argument("--fixture", required=True, help="Fixture project directory.")
+    fixture_repair.add_argument("--report", required=True, help="JSON report output path.")
 
     gate = groups.add_parser("evidence-gate", help="Evaluate AWKP task completion evidence.")
     gate_commands = gate.add_subparsers(dest="evidence_gate_command", required=True)

@@ -37,6 +37,10 @@ from .domain import (
     SideEffect,
     ToolDescriptor,
 )
+from .dynamic_fixture import (
+    run_dynamic_repair_fixture,
+    write_dynamic_repair_fixture_report,
+)
 from .evidence_v2 import (
     DigestRef,
     EvidenceEnvironment,
@@ -314,7 +318,9 @@ __all__ = [
     "planner_read_only_runtime_profile",
     "project_awkp_task",
     "reconcile_plan_execution",
+    "run_dynamic_repair_fixture",
     "select_gates",
     "validate_acceptance_contracts",
     "validate_plan_ir",
+    "write_dynamic_repair_fixture_report",
 ]

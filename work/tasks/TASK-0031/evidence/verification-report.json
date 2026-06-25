@@ -1,0 +1,119 @@
+{
+  "schema_version": "awkp/verification-report/0.1",
+  "task_id": "TASK-0031",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T15:40:00Z",
+  "summary": "Producer-side verification passed for TASK-0031 and is ready for independent EvidenceGate review.",
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -B -m unittest tests.test_dynamic_fixture -v",
+      "status": "passed",
+      "exit_code": 0,
+      "summary": "2 tests OK"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B -m unittest tests.test_dynamic_fixture tests.test_planning tests.test_plan_execution tests.test_verification -v",
+      "status": "passed",
+      "exit_code": 0,
+      "summary": "27 tests OK"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B -m ahra.cli fixture dynamic-repair --fixture tests\\fixtures\\dynamic-goal-project --report work\\tasks\\TASK-0031\\evidence\\dynamic-fixture-command-report.json",
+      "status": "passed",
+      "exit_code": 0,
+      "summary": "GoalContract input confirmed; selected gates 6 < full gates 7; final completion accepted; unauthorized write denied.",
+      "artifact_sha256": "f0eb8a07a0fb6c982bf9523ed15b1a39e671b90724d91e244d8e2f9847c8b70f"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py",
+      "status": "passed",
+      "exit_code": 0,
+      "summary": "146 tests OK, skipped=2"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "exit_code": 0,
+      "summary": "AWKP lint 0 error(s), 0 warning(s); AHRA lint 0 failure(s)"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "exit_code": 0,
+      "summary": "No whitespace errors"
+    }
+  ],
+  "acceptance_evidence_map": [
+    {
+      "criterion_index": 1,
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "dynamic fixture report goal.inputKind is GoalContract."
+    },
+    {
+      "criterion_index": 2,
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "acceptance.claimsBuiltBeforePlanIr is true and contracts validate before PlanIR."
+    },
+    {
+      "criterion_index": 3,
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "PlanDraft is validated and admitted as PlanIR before scheduler execution."
+    },
+    {
+      "criterion_index": 4,
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "Defect DEF-doc-staleness-l2 records failing L2 gate, reproduction refs, expected/actual, and repair boundary."
+    },
+    {
+      "criterion_index": 5,
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "repairChangedFiles is exactly src/doc_health.py and repairChangedOnlyAffectedPaths is true."
+    },
+    {
+      "criterion_index": 6,
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "Second verification selects 6 gates from 7 full gates and documents reused Evidence refs."
+    },
+    {
+      "criterion_index": 7,
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "staleCompletionRejected is true and finalCompletionAccepted is true only after current Evidence covers all Claims."
+    },
+    {
+      "criterion_index": 8,
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "security audit records unauthorizedWriteAllowed=false, denyReason=path_escape, sideEffectExists=false."
+    },
+    {
+      "criterion_index": 9,
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "resume.ranBeforeResume and resumedWithFreshScheduler are true."
+    },
+    {
+      "criterion_index": 10,
+      "evidence_refs": [
+        "EVD-TASK-0031-0002",
+        "EVD-TASK-0031-0003"
+      ],
+      "notes": "Producer evidence is prepared for independent verifier; producer did not complete the task."
+    }
+  ]
+}

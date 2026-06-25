@@ -1,0 +1,147 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0031",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-evidencegate-task0031",
+  "generated_at": "2026-06-25T15:58:34.031644Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent EvidenceGate approved TASK-0031 after artifact review, code review, fresh fixture reproduction, and local verification.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "The user input is a Goal Contract, not a fixed task list.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "Goal input is a GoalContract in the fixture command report, with eight goal criteria derived before execution."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Acceptance Claims exist before execution PlanIR.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "ClaimGraph and GatePlan are materialized before PlanIR compilation and execution; report records claimsBuiltBeforePlanIr=true."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The Planner output is never executed before compilation and admission.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0031-0001",
+        "EVD-TASK-0031-0003"
+      ],
+      "notes": "PlanDraft is validated through planner output validation and PlanIR admission before scheduling; report records planDraftExecutedBeforeAdmission=false and executedPlanKind=PlanIR."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The initial failure creates a Defect with exact reproduction and repair boundary.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "Initial L2 failure creates DEF-doc-staleness-l2 with failing gate, expected/actual values, refs, reproduction command, and repair boundary."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "The repair changes only allowed affected paths.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "Repair changed only src/doc_health.py inside the isolated fixture workspace and left the source fixture unmodified."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "The second verification executes fewer Gates than the full declared Gate set and documents every reused Evidence record.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "Second verification selected 6 of 7 full gates and lists all reused evidence records: acceptance order, resume, and security denial."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "L2 Completion evaluates all Claims and rejects any stale Evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "L2 completion evaluates all eight required claims; final completion passes, while stale evidence and open defect completion are rejected."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Unauthorized action is denied before side effect and appears in audit evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "Unauthorized write is denied with path_escape before side effect; audit evidence is recorded and sideEffectExists=false."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Crash/resume or cancellation is exercised at least once.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0031-0001"
+      ],
+      "notes": "Fixture exercises checkpoint resume: ranBeforeResume=true and resumedWithFreshScheduler=true before terminal failed initial completion."
+    },
+    {
+      "criterion_index": 10,
+      "criterion": "An independent final Verifier approves the fixture based on artifacts, not the producer summary.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0031-0001",
+        "EVD-TASK-0031-0002",
+        "EVD-TASK-0031-0003"
+      ],
+      "notes": "Independent verifier reviewed artifacts and code, reran focused and full checks, and is not a producer identity."
+    }
+  ],
+  "commands": [
+    {
+      "status": "passed",
+      "command": "sha256 verification for registered TASK-0031 artifacts/evidence",
+      "notes": "Manifest hashes matched dynamic fixture, verification, implementation, and handoff files."
+    },
+    {
+      "status": "passed",
+      "command": ".venv\\Scripts\\python.exe -B -m unittest tests.test_dynamic_fixture -v",
+      "notes": "2 tests OK."
+    },
+    {
+      "status": "passed",
+      "command": ".venv\\Scripts\\python.exe -B -m unittest tests.test_dynamic_fixture tests.test_planning tests.test_plan_execution tests.test_verification -v",
+      "notes": "27 tests OK."
+    },
+    {
+      "status": "passed",
+      "command": ".venv\\Scripts\\python.exe -B -m ahra.cli fixture dynamic-repair --fixture tests\\fixtures\\dynamic-goal-project --report %TEMP%\\task-0031-dynamic-fixture-review.json",
+      "notes": "Reproduced executorCalls=4, selected gates 6/7, finalCompletionAccepted=true, unauthorizedWriteAllowed=false, sideEffectExists=false."
+    },
+    {
+      "status": "passed",
+      "command": ".venv\\Scripts\\python.exe -B -m ahra.cli task inspect TASK-0031",
+      "notes": "state=review, state_version=5, lease=null, producer evidence refs known."
+    },
+    {
+      "status": "passed",
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py",
+      "notes": "146 tests OK, skipped=2 environment skips."
+    },
+    {
+      "status": "passed",
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "notes": "AWKP lint 0 errors/0 warnings; AHRA lint 0 failures."
+    },
+    {
+      "status": "passed",
+      "command": "git diff --check",
+      "notes": "Exit code 0; no output."
+    }
+  ]
+}

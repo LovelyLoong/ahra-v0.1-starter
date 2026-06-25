@@ -1,0 +1,58 @@
+{
+  "schema_version": "awkp/implementation-report/0.1",
+  "task_id": "TASK-0031",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T15:40:00Z",
+  "base_commit": "51d10a9",
+  "branch": "task-0031-dynamic-repair-loop",
+  "summary": "Implemented an isolated dynamic GoalContract-to-Defect-to-repair fixture and CLI report path for TASK-0031.",
+  "changed_files": [
+    "scripts/lint_contracts.py",
+    "src/ahra/__init__.py",
+    "src/ahra/cli.py",
+    "src/ahra/dynamic_fixture.py",
+    "tests/fixtures/dynamic-goal-project/README.md",
+    "tests/fixtures/dynamic-goal-project/docs/component.md",
+    "tests/fixtures/dynamic-goal-project/goal-contract.json",
+    "tests/fixtures/dynamic-goal-project/src/doc_health.py",
+    "tests/test_dynamic_fixture.py",
+    "work/tasks/TASK-0031/artifact-manifest.json",
+    "work/tasks/TASK-0031/evidence-manifest.json",
+    "work/tasks/TASK-0031/evidence/dynamic-fixture-command-report.json",
+    "work/tasks/TASK-0031/evidence/implementation-report.json",
+    "work/tasks/TASK-0031/evidence/verification-report.json",
+    "work/tasks/TASK-0031/events.jsonl",
+    "work/tasks/TASK-0031/handoffs/HANDOFF-0001.md",
+    "work/tasks/TASK-0031/state.json"
+  ],
+  "contracts": [
+    {
+      "name": "GoalContract input",
+      "path": "tests/fixtures/dynamic-goal-project/goal-contract.json",
+      "reason": "Fixture starts from a GoalContract with functional, structural, quality, security, operational, and governance criteria."
+    },
+    {
+      "name": "Dynamic fixture report",
+      "path": "work/tasks/TASK-0031/evidence/dynamic-fixture-command-report.json",
+      "sha256": "f0eb8a07a0fb6c982bf9523ed15b1a39e671b90724d91e244d8e2f9847c8b70f",
+      "reason": "Structured command artifact for Goal-to-Claims-to-PlanIR-to-Defect-to-repair-to-selective-reverification."
+    },
+    {
+      "name": "Planner and scheduler boundaries",
+      "path": "src/ahra/dynamic_fixture.py",
+      "reason": "Fixture uses PlannerOutputValidator, PlanIR admission validation, StaticPlanScheduler, DefectRecord, PlanPatchDraft, and select_gates/evaluate_completion."
+    }
+  ],
+  "behavior": {
+    "self_modifying_target": false,
+    "fixture_isolated_to_temp_workspace": true,
+    "planner_output_executed_before_admission": false,
+    "unauthorized_write_denied_before_side_effect": true,
+    "producer_marked_task_completed": false
+  },
+  "known_limitations": [
+    "The fixture is deterministic and local-only; it does not use production credentials or external irreversible effects.",
+    "The independent final EvidenceGate approval is intentionally pending; producer only moves TASK-0031 to review."
+  ],
+  "unresolved_items": []
+}

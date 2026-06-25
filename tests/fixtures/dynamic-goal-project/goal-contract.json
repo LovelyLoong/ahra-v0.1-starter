@@ -1,0 +1,61 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GoalContract",
+  "metadata": {
+    "goalId": "GOAL-dynamic-fixture",
+    "version": 1
+  },
+  "spec": {
+    "objective": "Repair a deterministic stale-document checker defect in an isolated fixture project.",
+    "criteria": [
+      {
+        "id": "CRIT-goal-input",
+        "statement": "The run starts from this GoalContract instead of a fixed task list.",
+        "required": true
+      },
+      {
+        "id": "CRIT-acceptance-before-plan",
+        "statement": "Acceptance Claims and Gates are produced before PlanIR execution.",
+        "required": true
+      },
+      {
+        "id": "CRIT-detect-and-repair",
+        "statement": "The fixture exposes a deterministic stale-document defect and repairs it.",
+        "required": true
+      },
+      {
+        "id": "CRIT-repair-boundary",
+        "statement": "Repair changes only the affected doc-health component.",
+        "required": true
+      },
+      {
+        "id": "CRIT-security-denial",
+        "statement": "Unauthorized writes are denied before side effects and audited.",
+        "required": true
+      },
+      {
+        "id": "CRIT-resume",
+        "statement": "The PlanIR execution can resume from a checkpoint.",
+        "required": true
+      },
+      {
+        "id": "CRIT-selective-reverification",
+        "statement": "The second verification selects fewer Gates than the full Gate set and reuses current Evidence.",
+        "required": true
+      },
+      {
+        "id": "CRIT-completion-fail-closed",
+        "statement": "L2 completion accepts only when every required Claim has current Evidence.",
+        "required": true
+      }
+    ],
+    "mandatoryClaimTypes": [
+      "functional",
+      "structural",
+      "quality",
+      "security",
+      "operational",
+      "governance"
+    ]
+  }
+}
