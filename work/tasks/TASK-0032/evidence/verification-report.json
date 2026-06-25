@@ -1,0 +1,42 @@
+{
+  "schema_version": "ahra/task-verification-report/0.1",
+  "task_id": "TASK-0032",
+  "generated_at": "2026-06-25T16:34:23.284719Z",
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -B -m ahra.cli fixture dynamic-repair --fixture tests\\fixtures\\dynamic-goal-project --report work\\tasks\\TASK-0032\\evidence\\dynamic-fixture-command-report.json",
+      "status": "passed",
+      "notes": "Report generated with finalCompletionAccepted=true, selectedFewerThanFull=true, unauthorizedWriteAllowed=false, terminalStatusAfterResume=failed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B -m unittest tests.test_repository_consolidation tests.test_cli tests.test_dynamic_fixture tests.test_plan_execution tests.test_capabilities -v",
+      "status": "passed",
+      "notes": "35 tests OK; skipped=1 symlink privilege environment skip."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "notes": "AWKP lint 0 errors/0 warnings; AHRA lint 0 failures."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py",
+      "status": "passed",
+      "notes": "150 tests OK; skipped=2 environment skips."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "Exit code 0; only LF/CRLF normalization warning for pyproject.toml."
+    },
+    {
+      "command": "Get-FileHash -Algorithm SHA256 docs\\architecture\\component-inventory.json, work\\tasks\\TASK-0032\\evidence\\component-inventory.json",
+      "status": "passed",
+      "notes": "Both files resolve to sha256:ba3f4ecc2c4a859f2e86d63d222093353b0926544e3c38d6da8e58ee95452ecd; ART-TASK-0032-0001 now uses local://evidence/component-inventory.json."
+    }
+  ],
+  "focused_test_count": 35,
+  "full_test_count": 150,
+  "full_test_skipped": 2,
+  "lint_failures": 0,
+  "git_diff_check_exit_code": 0
+}

@@ -3,7 +3,7 @@ type: Architecture
 id: ARCH-agent-drivers-workflow-invocation
 schema_version: awkp/0.1
 title: Agent drivers and workflow invocation
-description: Defines how agents start AHRA workflow modules without binding the template to one agent product or SDK.
+description: Records the legacy workflow invocation model without binding the template to one agent product or SDK.
 status: active
 owner: team:platform
 source_refs:
@@ -20,6 +20,10 @@ tags: [architecture, workflow, drivers]
 # Summary
 
 AHRA separates workflow control from agent execution.
+
+This document now describes the legacy workflow compatibility path. The current
+default dynamic-kernel operation path is defined by `framework-entrypoints.md`
+and `component-inventory.json`.
 
 Workflow modules decide the deterministic process: attempts, policy gates,
 checks, reviewer gates, rollback, dynamic planning, and approval pauses.
@@ -85,8 +89,8 @@ spec:
   approvalMode: manual
 ```
 
-The request is intentionally independent from any one caller. The default
-local caller is the `ahra` CLI command surface documented by the local Skill.
+The request is intentionally independent from any one caller. In the current
+repository it is used only by explicit legacy workflow compatibility calls.
 
 MCP is not part of the current default starter route.
 
@@ -104,15 +108,16 @@ produce follow-up tasks:
 Workflow modules without a planner phase still validate and record
 `approvalMode`, but the field has no extra behavior for that module.
 
-# Agent-Friendly Operation
+# Legacy Operation
 
-When a user asks an agent to start a workflow, the agent should:
+When a user explicitly asks an agent to start a legacy workflow, the agent
+should:
 
 1. Read the local skill for workflow running.
 2. Locate or create a `WorkflowRunRequest`.
 3. Validate the request against the contract schema.
 4. Resolve the workflow module and `driverRef`.
-5. Call `uv run ahra workflow start <request>`.
+5. Call the legacy workflow compatibility command.
 6. Report the resulting run id, status, artifact dir, and evidence refs.
 7. Leave AWKP Task completion to the evidence gate and independent verifier.
 
@@ -196,21 +201,21 @@ MCP tools must not bypass schema validation, module registry resolution,
 driver registry resolution, or artifact/evidence writing. The preferred future
 operation surface is CLI plus Skill.
 
-# Minimal Starter Scope
+# Legacy Starter Scope
 
-The starter should provide:
+The legacy workflow compatibility surface provides:
 
 - The request schema.
 - A driver registry.
 - A reference runner API.
 - A fake driver for tests.
-- Agent-facing local Skills and documentation that tell agents which local
-  CLI commands to use.
-- A CLI wrapper around the stable local APIs.
+- Agent-facing local Skills and documentation that identify this as a legacy
+  path.
+- A hidden CLI compatibility wrapper around the stable local APIs.
 - An optional Codex Python SDK driver adapter.
 - A manual resume request path for approved planner proposals.
 
-The starter should not provide:
+This compatibility surface should not provide:
 
 - A mandatory `ProjectAdapter`.
 - A mandatory model provider integration.

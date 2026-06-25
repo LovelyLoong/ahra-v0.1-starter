@@ -9,104 +9,102 @@ owner: team:platform
 source_refs:
   - ../../AGENTS.md
   - ../../README.md
-  - ../../skills/ahra-workflow-runner/SKILL.md
-  - ../../docs/architecture/agent-drivers-and-workflow-invocation.md
-  - ../../docs/architecture/reference-runtime-adapters-and-mcp.md
+  - ../../skills/ahra-dynamic-kernel/SKILL.md
+  - component-inventory.json
 evidence_refs: []
 confidence: reviewed
-last_verified_at: 2026-06-23T14:32:49+08:00
-review_after: 2026-09-23T00:00:00Z
-tags: [architecture, entrypoint, cli, skill]
+last_verified_at: 2026-06-25T16:05:13Z
+review_after: 2026-09-25T00:00:00Z
+tags: [architecture, entrypoint, cli, skill, dynamic-kernel]
 ---
 
 # Summary
 
-The default foundation entrypoint is **CLI plus local Skill plus repository
-documentation**.
+The default foundation entrypoint is **CLI plus the dynamic-kernel Skill plus
+repository documentation**.
 
-An agent should first read `AGENTS.md`, load the relevant local Skill, inspect
-the referenced task or request, and then run documented local commands. The
-foundation must remain usable without an MCP server.
+The current executable dynamic path is deterministic and local. It proves one
+authoritative runtime chain:
 
-- Skill tells an agent which command to run and what evidence to inspect.
-- CLI wraps the same Python APIs that currently back the reference runner,
-  EvidenceGate, task inspection, and local checks.
-- Documentation remains the human-readable authority for boundaries,
-  sequencing, and non-goals.
+```text
+GoalContract
+  -> ClaimGraph and GatePlan
+  -> untrusted PlanDraft
+  -> admitted PlanIR
+  -> StaticPlanIRScheduler and NodeRun leases
+  -> CapabilityAdmission and CapabilityGateway
+  -> Artifact and Evidence v2 records
+  -> Defect repair and selective reverification
+  -> GoalCompletionService
+  -> AWKP EvidenceGate for task completion
+```
+
+This path is exercised by the dynamic repair fixture. It is not a claim that
+AHRA already provides a production-grade general orchestrator for arbitrary
+projects.
 
 # Current Operation Surface
 
-The current reliable operation surface is:
+The default local operation surface is:
 
-- `uv run ahra workflow validate <request.yaml>`
-- `uv run ahra workflow start <request.yaml>`
-- `uv run ahra workflow inspect <artifact-dir>`
-- `uv run ahra workflow resume <resume-request.yaml>`
-- `uv run ahra task inspect <TASK-ID>`
-- `uv run ahra evidence-gate evaluate <TASK-ID> --expected-version <N> --report <report.json> --actor <verifier>`
-- `uv run ahra doctor`
-- `uv run python -B scripts/check.py`
-- `uv run python -B scripts/check.py --lint`
-- `uv run python -B scripts/check.py --test`
-- `uv run python -B scripts/lint_awkp.py`
-- `uv run python -B -m ahra.demo`
+- `python -m ahra.cli fixture dynamic-repair --fixture tests/fixtures/dynamic-goal-project --report <report.json>`
+- `python -m ahra.cli task inspect <TASK-ID>`
+- `python -m ahra.cli evidence-gate evaluate <TASK-ID> --expected-version <N> --report <report.json> --actor <verifier>`
+- `python -m ahra.cli doctor`
+- `python -B scripts/check.py`
+- `python -B scripts/check.py --lint`
+- `python -B scripts/check.py --test`
+- `python -B scripts/lint_awkp.py`
 - `git diff --check`
-- direct Python calls to the reference runner APIs from tests or adapters.
+
+On the maintainer workstation, `.venv\Scripts\python.exe` or `uv run python`
+may be used for the same commands when the bare Python launcher is affected by
+host encryption tooling.
 
 # CLI Boundary
 
-The CLI wrapper is intentionally narrow and must not invent workflow logic. It
-exposes existing operations:
+The CLI wrapper is intentionally narrow and must not invent runtime logic. It
+exposes existing Python services:
 
-- `ahra workflow validate`
-- `ahra workflow start`
-- `ahra workflow inspect`
-- `ahra workflow resume`
-- `ahra task inspect`
-- `ahra evidence-gate evaluate`
-- `ahra doctor`
+- `fixture dynamic-repair`
+- `task inspect`
+- `evidence-gate evaluate`
+- `doctor`
 
-Every CLI command must call the same underlying Python service used by tests.
-The CLI must fail closed on unknown modules, unknown drivers, stale
-`expected_version`, invalid plan digests, missing manifests, and missing local
-evidence.
+The default CLI help must not expose MCP, demo commands, `fake-reference`, or
+legacy workflow modules. Historical workflow compatibility remains reachable
+only when explicitly requested by a caller that already knows that compatibility
+route.
 
-# MCP Position
+# Default Dynamic Fixture
 
-MCP is not part of the current default starter route.
+The dynamic repair fixture is fixture-scoped but authoritative for the current
+implemented chain. It must demonstrate:
 
-The existing MCP code path is a legacy or optional adapter surface. It must not
-be required to operate the framework, and new tasks should not add MCP-only
-capabilities. A later implementation task may remove, quarantine, or explicitly
-freeze the MCP code.
+- Goal input before task decomposition.
+- Claims and Gates before PlanIR.
+- Planner output compiled and admitted before execution.
+- Capability denial before side effect.
+- Artifact and Evidence records for every accepted node result.
+- Defect creation with reproduction and repair boundary.
+- Selective reverification with documented Evidence reuse.
+- Completion that rejects stale, uncovered, or open-defect evidence.
 
-This avoids making a framework template depend on an agent-client integration
-protocol before the framework's local operation contract is stable.
+# Legacy Compatibility
 
-# Example Policy
+`standard-harness`, `loop-engineering`, old workflow request schemas, the
+reference runner compatibility path, and `fake-reference` are legacy assets.
+They are retained for regression tests and migration trace. They are frozen for
+default-route purposes and must not receive new default-path features.
 
-Examples must distinguish two uses:
+The MCP server is also legacy. It has no default console script and is not part
+of the local operation route.
 
-- Test fixtures may use `driverRef: fake-reference` and in-process fake
-  drivers. The CLI only registers this driver when called with
-  `--enable-fixture-driver`.
-- Runnable examples must name a driver that is actually available in the local
-  environment, or clearly state the setup command required before execution.
+`src/ahra/demo.py` is experimental/example code. It has no default console
+script or Makefile target.
 
-An example that validates as a schema fixture must not imply it is a runnable
-default entrypoint.
+# Archive Boundary
 
-# Local Isolation Boundary
-
-For the starter's local profile, run-owned Git worktree isolation is sufficient
-as the default boundary.
-
-This protects the source worktree from direct mutation while the module is
-executing. For a formal AWKP task run, the reference runner fast-forwards the
-source workspace only after deterministic and semantic gates pass and after the
-task review evidence has been written. That source update moves the task to
-`review`, not `completed`.
-
-The local profile does not claim process, network, host, or secret isolation.
-Stronger runtime sandboxing remains a future adapter behind existing ports and
-should not block the local template route.
+Completed task directories remain traceable audit records. They are excluded
+from normal Context Builder read order unless the current task, event, evidence
+record, or user request explicitly references them.

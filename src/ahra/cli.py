@@ -10,34 +10,25 @@ from typing import Any
 
 import yaml
 
-from ahra.adapters.codex_sdk import CodexSDKDriver
 from ahra.dynamic_fixture import write_dynamic_repair_fixture_report
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
 from ahra.ports import AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
-from ahra.reference_runner.invocation import (
-    load_workflow_resume_request,
-    load_workflow_run_request,
-    resume_workflow,
-    run_workflow,
-    validate_workflow_resume_request,
-    validate_workflow_run_request,
-)
-from ahra.reference_runner.models import (
-    CriterionAssessment,
-    GoalReviewResult,
-    NextStepDecision,
-    PlanAction,
-    ReviewResult,
-    ReviewVerdict,
-    WorkReport,
-    to_jsonable,
-)
 
 
 class FixtureDriver:
     """In-process fixture driver for CLI smoke tests only."""
 
     async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        from ahra.reference_runner.models import (
+            CriterionAssessment,
+            GoalReviewResult,
+            NextStepDecision,
+            PlanAction,
+            ReviewResult,
+            ReviewVerdict,
+            WorkReport,
+        )
+
         if request.role == AgentRole.EXECUTOR:
             workspace = Path(str(request.workspace_ref))
             task = request.payload["task"]
@@ -91,8 +82,9 @@ class FixtureDriver:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = _build_parser()
-    args = parser.parse_args(argv)
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
+    parser = _build_parser(include_legacy_workflow=bool(raw_argv and raw_argv[0] == "workflow"))
+    args = parser.parse_args(raw_argv)
     try:
         result = _dispatch(args)
     except (EvidenceGateError, ValueError, OSError, RuntimeError) as exc:
@@ -120,6 +112,13 @@ def _dispatch(args: argparse.Namespace) -> Any:
 
 
 def _workflow_command(args: argparse.Namespace) -> Any:
+    from ahra.reference_runner.invocation import (
+        load_workflow_resume_request,
+        load_workflow_run_request,
+        resume_workflow,
+        run_workflow,
+    )
+
     if args.workflow_command == "validate":
         return _validate_workflow_request(Path(args.request))
     if args.workflow_command == "start":
@@ -195,6 +194,13 @@ def _doctor_command(args: argparse.Namespace) -> Any:
 
 
 def _validate_workflow_request(path: Path) -> dict[str, Any]:
+    from ahra.reference_runner.invocation import (
+        load_workflow_resume_request,
+        load_workflow_run_request,
+        validate_workflow_resume_request,
+        validate_workflow_run_request,
+    )
+
     document = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(document, dict):
         raise ValueError(f"workflow request must be an object: {path}")
@@ -254,6 +260,8 @@ def _inspect_workflow(artifact_dir: Path) -> dict[str, Any]:
 
 
 def _driver_registry(*, enable_fixture_driver: bool) -> AgentDriverRegistry:
+    from ahra.adapters.codex_sdk import CodexSDKDriver
+
     registry = AgentDriverRegistry()
     registry.register("codex-python-sdk", CodexSDKDriver())
     if enable_fixture_driver:
@@ -271,6 +279,8 @@ def _ensure_successful_envelope(envelope: Any) -> dict[str, Any]:
     return summary
 
 def _envelope_summary(envelope: Any) -> dict[str, Any]:
+    from ahra.reference_runner.models import to_jsonable
+
     return {
         "run_id": envelope.run_id,
         "module_id": envelope.module_id,
@@ -371,33 +381,34 @@ def _print(payload: dict[str, Any], *, stream: Any | None = None) -> None:
     print(json.dumps(payload, ensure_ascii=False, indent=2), file=stream)
 
 
-def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="ahra", description="Operate the AHRA local reference framework.")
+def _build_parser(*, include_legacy_workflow: bool = False) -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="ahra", description="Operate the AHRA dynamic-kernel local framework.")
     groups = parser.add_subparsers(dest="group", required=True)
 
-    workflow = groups.add_parser("workflow", help="Validate, start, inspect, or resume workflow runs.")
-    workflow_commands = workflow.add_subparsers(dest="workflow_command", required=True)
-    workflow_validate = workflow_commands.add_parser("validate", help="Validate a workflow request file.")
-    workflow_validate.add_argument("request", help="WorkflowRunRequest or WorkflowResumeRequest YAML path.")
+    if include_legacy_workflow:
+        workflow = groups.add_parser("workflow", help="Legacy workflow compatibility commands.")
+        workflow_commands = workflow.add_subparsers(dest="workflow_command", required=True)
+        workflow_validate = workflow_commands.add_parser("validate", help="Validate a workflow request file.")
+        workflow_validate.add_argument("request", help="WorkflowRunRequest or WorkflowResumeRequest YAML path.")
 
-    workflow_start = workflow_commands.add_parser("start", help="Start a WorkflowRunRequest.")
-    workflow_start.add_argument("request", help="WorkflowRunRequest YAML path.")
-    workflow_start.add_argument(
-        "--enable-fixture-driver",
-        action="store_true",
-        help="Register fake-reference for local fixture smoke tests only.",
-    )
+        workflow_start = workflow_commands.add_parser("start", help="Start a WorkflowRunRequest.")
+        workflow_start.add_argument("request", help="WorkflowRunRequest YAML path.")
+        workflow_start.add_argument(
+            "--enable-fixture-driver",
+            action="store_true",
+            help="Register fake-reference for local fixture smoke tests only.",
+        )
 
-    workflow_inspect = workflow_commands.add_parser("inspect", help="Inspect a local workflow artifact directory.")
-    workflow_inspect.add_argument("artifact_dir", help="Local workflow artifact directory.")
+        workflow_inspect = workflow_commands.add_parser("inspect", help="Inspect a local workflow artifact directory.")
+        workflow_inspect.add_argument("artifact_dir", help="Local workflow artifact directory.")
 
-    workflow_resume = workflow_commands.add_parser("resume", help="Resume a WorkflowResumeRequest.")
-    workflow_resume.add_argument("request", help="WorkflowResumeRequest YAML path.")
-    workflow_resume.add_argument(
-        "--enable-fixture-driver",
-        action="store_true",
-        help="Register fake-reference for local fixture smoke tests only.",
-    )
+        workflow_resume = workflow_commands.add_parser("resume", help="Resume a WorkflowResumeRequest.")
+        workflow_resume.add_argument("request", help="WorkflowResumeRequest YAML path.")
+        workflow_resume.add_argument(
+            "--enable-fixture-driver",
+            action="store_true",
+            help="Register fake-reference for local fixture smoke tests only.",
+        )
 
     task = groups.add_parser("task", help="Inspect AWKP task state and acceptance criteria.")
     task_commands = task.add_subparsers(dest="task_command", required=True)

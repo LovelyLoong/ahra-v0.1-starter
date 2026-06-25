@@ -18,9 +18,7 @@ dev = ["pytest>=8.0"]
 
 [project.scripts]
 ahra = "ahra.cli:main"
-ahra-demo = "ahra.demo:main"
 ahra-lint = "ahra.validation:main"
-ahra-mcp = "ahra.mcp_server:main"
 ahra-evidence-gate = "ahra.evidence_gate:main"
 
 [tool.setuptools]

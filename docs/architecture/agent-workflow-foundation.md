@@ -24,14 +24,14 @@ tags: [architecture, workflow, foundation]
 This project is an **Agent workflow foundation**.
 
 It is not merely an outer harness template around another project. It provides
-a complete Agent work system: work-governance rules, executable standard
-workflows, artifact and evidence authority, project adaptation boundaries, and
-extension contracts for custom workflows.
+a complete Agent work system: work-governance rules, dynamic execution
+contracts, artifact and evidence authority, project adaptation boundaries, and
+adapter contracts.
 
-The preferred use is to run project work through the standard Agent workflows.
-Projects may still use other agents or human-operated tools, but their work
-must follow this framework's governance rules for scope, state, evidence,
-handoff, and completion.
+The current default use is to operate through the dynamic-kernel entrypoints in
+`framework-entrypoints.md`. Projects may still use other agents or
+human-operated tools, but their work must follow this framework's governance
+rules for scope, state, evidence, handoff, and completion.
 
 # Layers
 
@@ -40,24 +40,24 @@ The foundation has five layers:
 | Layer | Purpose |
 |---|---|
 | Work-governance framework | Defines task contracts, state authority, events, artifacts, evidence, handoffs, leases, and completion gates. |
-| Standard workflows | Provides executable workflows such as `standard-harness` and `loop-engineering`. |
+| Dynamic kernel | Provides the current Goal, Claim, PlanIR, Capability, Scheduler, Evidence, Defect, and Completion path. |
 | Project adaptation | Lets a concrete project add local docs, Skills, commands, checks, policies, and domain rules without changing the foundation. |
-| Custom workflow extension | Lets advanced users compose or implement project-specific workflow modules behind stable contracts. |
-| Operation entrypoint | Uses Skill plus docs now, then CLI plus Skill, to operate the framework consistently. |
+| Adapter extension | Lets advanced users add planners, executors, runtimes, and drivers behind stable ports. |
+| Operation entrypoint | Uses CLI plus Skill plus docs to operate the framework consistently. |
 
 # Usage Modes
 
 Supported usage modes are:
 
-1. **Standard workflow mode**: use the built-in workflow modules. This is the
-   recommended path.
+1. **Dynamic-kernel mode**: use the current default dynamic fixture, Python
+   services, task inspection, EvidenceGate, and local checks.
 2. **Governed external-agent mode**: use any compatible human or Agent tool,
    but require it to follow the work-governance framework and produce the
    expected artifacts and evidence.
 3. **Project-adapted workflow mode**: add project-specific rules, Skills,
    checks, and adapters while preserving the foundation contracts.
-4. **Custom workflow mode**: compose or implement new workflow modules when the
-   standard modules are not enough.
+4. **Legacy workflow compatibility mode**: explicitly invoke historical
+   workflow modules for migration or regression trace.
 
 # Non-Negotiable Boundary
 
@@ -69,10 +69,9 @@ runner.
 
 # Custom Workflow Direction
 
-Custom workflows should feel composable, but the first implementation should
+Custom execution paths should feel composable, but new default behavior should
 not start with a broad visual builder. The stable foundation should come first:
 
-- workflow module descriptors;
 - typed inputs and outputs;
 - deterministic gates;
 - semantic review gates;
@@ -89,7 +88,7 @@ composition helpers.
 The product direction is:
 
 1. Keep the work-governance framework strict and file-auditable.
-2. Make standard workflows the recommended happy path.
+2. Make the dynamic kernel the default local execution model.
 3. Keep project adaptation local and explicit.
-4. Allow custom workflows through contracts, not ad hoc scripts.
-5. Operate through Skill plus docs now and CLI plus Skill next.
+4. Allow custom adapters through contracts, not ad hoc scripts.
+5. Operate through CLI plus Skill plus docs.

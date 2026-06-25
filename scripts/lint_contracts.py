@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import tomllib
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -49,6 +51,42 @@ MAPPINGS = [
     ("examples/records/plan-validation-report.json", "contracts/schemas/plan-validation-report.schema.json"),
 ]
 
+INVENTORY_PATH = ROOT / "docs/architecture/component-inventory.json"
+DEFAULT_DOC_PATHS = [
+    ROOT / "README.md",
+    ROOT / "AGENTS.md",
+    ROOT / "docs/architecture/framework-entrypoints.md",
+    ROOT / "skills/ahra-dynamic-kernel/SKILL.md",
+]
+FORBIDDEN_DEFAULT_DOC_SNIPPETS = [
+    "uv run ahra workflow",
+    "ahra workflow start",
+    "ahra workflow resume",
+    "standard-harness` is the default",
+    "loop-engineering` is the default",
+    "standard workflows the recommended path",
+    "built-in modules are the recommended path",
+    "python -m ahra.demo",
+    "make demo",
+]
+FORBIDDEN_DEFAULT_SCRIPTS = {
+    "ahra-mcp": "MCP is legacy and must not be installed as a default console script",
+    "ahra-demo": "demo.py is experimental and must not be installed as a default console script",
+}
+VALID_COMPONENT_CLASSES = {"core", "adapter", "experimental", "legacy", "removal_candidate", "archived"}
+CORE_REQUIRED_FIELDS = {
+    "owner",
+    "review_after",
+    "paths",
+    "serves",
+    "entrypoints",
+    "consumers",
+    "tests",
+    "security_class",
+    "side_effects",
+    "artifact_evidence",
+}
+
 
 def main() -> int:
     failures = 0
@@ -86,6 +124,9 @@ def main() -> int:
                 failures += 1
                 print(f"ERROR {path.relative_to(ROOT)} imports adapter dependency {name}")
 
+    failures += _check_default_exposure()
+    failures += _check_component_inventory()
+
     awkp_lint = ROOT / "scripts/lint_awkp.py"
     result = subprocess.run([sys.executable, str(awkp_lint)], cwd=ROOT, check=False)
     if result.returncode:
@@ -94,6 +135,89 @@ def main() -> int:
 
     print(f"AHRA lint: {failures} failure(s)")
     return 1 if failures else 0
+
+
+def _check_default_exposure() -> int:
+    failures = 0
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    scripts = pyproject.get("project", {}).get("scripts", {})
+    for name, reason in FORBIDDEN_DEFAULT_SCRIPTS.items():
+        if name in scripts:
+            failures += 1
+            print(f"ERROR pyproject.toml exposes {name}: {reason}")
+    for name, target in sorted(scripts.items()):
+        if "mcp_server" in str(target) or "demo" in str(target):
+            failures += 1
+            print(f"ERROR pyproject.toml script {name} targets legacy/default-excluded module {target}")
+
+    from ahra import cli  # noqa: WPS433 - local lint verifies CLI default exposure.
+
+    help_text = cli._build_parser().format_help()
+    for token in ["workflow", "mcp", "demo", "fake-reference", "standard-harness", "loop-engineering"]:
+        if token in help_text:
+            failures += 1
+            print(f"ERROR default CLI help exposes default-excluded token: {token}")
+
+    for path in DEFAULT_DOC_PATHS:
+        text = path.read_text(encoding="utf-8")
+        lowered = text.lower()
+        for snippet in FORBIDDEN_DEFAULT_DOC_SNIPPETS:
+            if snippet.lower() in lowered:
+                failures += 1
+                print(f"ERROR {path.relative_to(ROOT)} contains default-route legacy snippet: {snippet}")
+    return failures
+
+
+def _check_component_inventory() -> int:
+    failures = 0
+    inventory = json.loads(INVENTORY_PATH.read_text(encoding="utf-8"))
+    if inventory.get("schema_version") != "ahra/component-inventory/0.1":
+        print("ERROR docs/architecture/component-inventory.json has invalid schema_version")
+        failures += 1
+    components = inventory.get("components")
+    if not isinstance(components, list) or not components:
+        print("ERROR docs/architecture/component-inventory.json has no components")
+        return failures + 1
+
+    seen: set[str] = set()
+    for component in components:
+        component_id = str(component.get("id") or "")
+        if not component_id:
+            failures += 1
+            print("ERROR component inventory entry missing id")
+            continue
+        if component_id in seen:
+            failures += 1
+            print(f"ERROR duplicate component inventory id: {component_id}")
+        seen.add(component_id)
+
+        lifecycle_class = str(component.get("lifecycle_class") or "")
+        if lifecycle_class not in VALID_COMPONENT_CLASSES:
+            failures += 1
+            print(f"ERROR {component_id} has invalid lifecycle_class: {lifecycle_class}")
+        if "candidate" in lifecycle_class:
+            failures += 1
+            print(f"ERROR {component_id} remains a candidate lifecycle class")
+
+        if component.get("default_visible") and lifecycle_class not in {"core", "adapter"}:
+            failures += 1
+            print(f"ERROR {component_id} is default-visible but not core/adapter")
+
+        if lifecycle_class == "core":
+            missing = sorted(field for field in CORE_REQUIRED_FIELDS if not component.get(field))
+            if missing:
+                failures += 1
+                print(f"ERROR {component_id} core entry missing required fields: {', '.join(missing)}")
+        if lifecycle_class in {"legacy", "removal_candidate"}:
+            for field in ("compatibility_scope", "removal_trigger"):
+                if not component.get(field):
+                    failures += 1
+                    print(f"ERROR {component_id} {lifecycle_class} entry missing {field}")
+        if lifecycle_class == "archived" and not component.get("trace_location"):
+            failures += 1
+            print(f"ERROR {component_id} archived entry missing trace_location")
+
+    return failures
 
 
 if __name__ == "__main__":

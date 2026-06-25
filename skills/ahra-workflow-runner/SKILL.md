@@ -1,7 +1,11 @@
-# AHRA Workflow Runner
+# AHRA Legacy Workflow Runner
 
-Use this skill when the user asks to start, run, resume, or validate an AHRA
-workflow module such as `standard-harness` or `loop-engineering`.
+Use this skill only when the user explicitly asks to start, run, resume, or
+validate a legacy AHRA workflow module such as `standard-harness` or
+`loop-engineering`.
+
+This is a compatibility skill. The default TASK-0032 route is
+`skills/ahra-dynamic-kernel/SKILL.md` plus `ahra fixture dynamic-repair`.
 
 ## Read First
 
@@ -38,7 +42,7 @@ workflow module such as `standard-harness` or `loop-engineering`.
 - If the request is ambiguous, ask for the missing request file, module id,
   workspace ref, or driver ref.
 
-## Expected Request Shape
+## Legacy Request Shape
 
 ```yaml
 apiVersion: ahra.dev/v1alpha1
@@ -90,32 +94,23 @@ spec:
 6. Call `uv run ahra workflow resume <request>`.
 7. Inspect the updated artifact and evidence manifests.
 
-## Default Commands
+## Compatibility Commands
 
-Use these local commands for verification and health checks:
+Use these commands only for explicit legacy workflow compatibility runs:
 
 - `uv run ahra workflow validate <request.yaml>`
 - `uv run ahra workflow start <request.yaml>`
 - `uv run ahra workflow inspect <artifact-dir>`
 - `uv run ahra workflow resume <resume-request.yaml>`
-- `uv run ahra task inspect <TASK-ID>`
-- `uv run ahra evidence-gate evaluate <TASK-ID> --expected-version <N> --report <report.json> --actor <verifier>`
-- `uv run ahra doctor`
-- `uv run python -B scripts/check.py`
-- `uv run python -B scripts/check.py --lint`
-- `uv run python -B scripts/check.py --test`
-- `uv run python -B scripts/lint_awkp.py`
-- `uv run python -B -m ahra.demo`
-- `git diff --check`
 
 `fake-reference` is only available for fixture smoke tests when the CLI is
 called with `--enable-fixture-driver`. Do not use it as a runnable default
 driver.
 
-Use `codex-python-sdk` as the maintainer workstation's default non-fixture
-local driver. If the optional SDK package or local Codex account setup is
-missing, report the structured failure and ask the user to install or
-authenticate the SDK before rerunning the workflow.
+Use `codex-python-sdk` as the explicit non-fixture driver for this legacy path.
+If the optional SDK package or local Codex account setup is missing, report the
+structured failure and ask the user to install or authenticate the SDK before
+rerunning the workflow.
 
 Do not use a separate command-line fallback driver. The starter does not
 provide one.

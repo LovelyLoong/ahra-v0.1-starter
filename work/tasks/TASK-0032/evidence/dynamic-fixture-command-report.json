@@ -1,0 +1,2025 @@
+{
+  "acceptance": {
+    "claimRefs": [
+      "CLAIM-goal-contract-input",
+      "CLAIM-acceptance-before-plan",
+      "CLAIM-defect-repair-functional",
+      "CLAIM-repair-boundary-governance",
+      "CLAIM-security-denial",
+      "CLAIM-resume-operational",
+      "CLAIM-selective-reverification",
+      "CLAIM-goal-completion"
+    ],
+    "claimsBuiltBeforePlanIr": true,
+    "contextManifest": {
+      "agent_release_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "compiler_version": "context-builder/0.1",
+      "context_manifest_id": "CTXMAN-d991db6c433f4f57ff387845",
+      "items": [
+        {
+          "estimated_tokens": 50,
+          "kind": "policy",
+          "priority": 100,
+          "ref": "policy/dynamic-fixture@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "sha256": "e0d9a5fc442c210f03a016509af934cd7e1cf8c573291238de36560952536991",
+          "trust": "project-authoritative"
+        },
+        {
+          "estimated_tokens": 24,
+          "kind": "agent_release",
+          "priority": 100,
+          "ref": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "sha256": "3c030b95ad52debd6a5f6a22c8b3cce01eacf55800d8b5413fefe3ccd012e128",
+          "trust": "system-authoritative"
+        },
+        {
+          "estimated_tokens": 31,
+          "kind": "task",
+          "priority": 100,
+          "ref": "GOAL-dynamic-fixture",
+          "sha256": "22a7d67937d455d3e9bb8304afa3bd3b915a98ce2ad9462dd8b63d8f0491a2a8",
+          "trust": "project-authoritative"
+        },
+        {
+          "estimated_tokens": 50,
+          "kind": "run_state",
+          "priority": 100,
+          "ref": "RUN-dynamic-fixture",
+          "sha256": "647aa30b2118b4cf0be10a8d46d412d910cae1383469b9f334e6f5117f682f59",
+          "trust": "system-authoritative"
+        },
+        {
+          "estimated_tokens": 288,
+          "kind": "tool_schema",
+          "priority": 80,
+          "ref": "planner-available-node-gate-runtime-types",
+          "sha256": "c2119f9e9bb936c9a3c591822e1774e89ae45437edc56865f0e5b96608952174",
+          "trust": "project-authoritative"
+        },
+        {
+          "estimated_tokens": 78,
+          "kind": "output_contract",
+          "priority": 100,
+          "ref": "planner-output-contracts",
+          "sha256": "d444df7458c0bd9ed9d168d4bbb5a5f384fb003b00191c89619ba2849f13c4a7",
+          "trust": "system-authoritative"
+        }
+      ],
+      "run_id": "RUN-dynamic-fixture",
+      "schema_version": "ahra/context-manifest/0.1",
+      "sha256": "d991db6c433f4f57ff387845bcba4dfc25e094d264972e356b4d1de9f6f01427",
+      "token_budget": 4096
+    },
+    "contractValidation": "passed",
+    "gateRefs": [
+      "GATE-acceptance-contract",
+      "GATE-doc-health-l1",
+      "GATE-repair-boundary",
+      "GATE-security-denial",
+      "GATE-resume-check",
+      "GATE-selective-reverify",
+      "GATE-goal-completion"
+    ],
+    "plannerInputArtifact": {
+      "artifactId": "PLART-38d4e0f54bdd9ea55e7202d9",
+      "contextManifestDigest": "d991db6c433f4f57ff387845bcba4dfc25e094d264972e356b4d1de9f6f01427",
+      "contextManifestRef": "CTXMAN-d991db6c433f4f57ff387845",
+      "kind": "planner-context-input",
+      "mediaType": "application/json",
+      "payload": {
+        "agentReleaseDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "budgetLimits": {
+          "maxCostUsd": 2.0,
+          "maxFanOut": 4,
+          "maxModelCalls": 40,
+          "maxPlanDepth": 4,
+          "maxPlanNodes": 8,
+          "maxRepairCycles": 2,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 40,
+          "maxWallSeconds": 120
+        },
+        "claimRefs": [
+          "CLAIM-acceptance-before-plan",
+          "CLAIM-defect-repair-functional",
+          "CLAIM-goal-completion",
+          "CLAIM-goal-contract-input",
+          "CLAIM-repair-boundary-governance",
+          "CLAIM-resume-operational",
+          "CLAIM-security-denial",
+          "CLAIM-selective-reverification"
+        ],
+        "defects": [],
+        "goalDigest": "sha256:548a9a8f3aed6165ba842ae09771c1d86aca359541235dedae1277cf090c430f",
+        "goalRef": "GOAL-dynamic-fixture",
+        "policyDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "policyRef": "policy/dynamic-fixture@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "registeredGateRefs": {
+          "GATE-acceptance-contract": "sha256:ab8e129cdfa9b3342a5ac4b18bfba7b6a5b87c67f0d9d52594f1814b03d5633c",
+          "GATE-doc-health-l1": "sha256:7fc839724d544f074c97464ecfa00b314dcaec0d2704d4410aa53d2170f08f8d",
+          "GATE-goal-completion": "sha256:433d857945829af07d3cdb64b8167447a08380a7e6f1aa6bb441d4a7c12cbee5",
+          "GATE-repair-boundary": "sha256:090305125465fd3cb40d3e301918fa0cc38c67c9db51536c717677a651fb4067",
+          "GATE-resume-check": "sha256:3824f1f504fd6267998b2e74c70f94dbd4806f6b5b4d3e7fd132c68b0a4e3955",
+          "GATE-security-denial": "sha256:c38e818ce32b60fda1b34cb9e461d843c137d38bbc66f62a5df4b1d2d5599232",
+          "GATE-selective-reverify": "sha256:cc9a98e7dc7932014f51c7e11aa6b0924dd88a705250c48d2b58108e0ef8bfb2"
+        },
+        "registeredNodeTypes": {
+          "bounded_task": "dynamic-fixture-executor@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "goal_verification": "goal-verifier@sha256:9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        "registeredRuntimeRefs": {
+          "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "runId": "RUN-dynamic-fixture",
+        "tokenBudget": 4096
+      },
+      "refs": [
+        "CLAIM-acceptance-before-plan",
+        "CLAIM-defect-repair-functional",
+        "CLAIM-goal-completion",
+        "CLAIM-goal-contract-input",
+        "CLAIM-repair-boundary-governance",
+        "CLAIM-resume-operational",
+        "CLAIM-security-denial",
+        "CLAIM-selective-reverification",
+        "GOAL-dynamic-fixture",
+        "policy/dynamic-fixture@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "releaseDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sha256": "sha256:38d4e0f54bdd9ea55e7202d9fd38ad22e578a12abcd2d1b161f8b66d1efb69a6"
+    }
+  },
+  "acceptanceMapping": {
+    "AC10_independent_final_verifier": [
+      "EVD-TASK-0031-review-pending"
+    ],
+    "AC1_goal_contract_input": [
+      "EVD-acceptance-order-current"
+    ],
+    "AC2_claims_before_plan_ir": [
+      "EVD-acceptance-order-current"
+    ],
+    "AC3_planner_output_not_executed_before_admission": [
+      "EVD-acceptance-order-current"
+    ],
+    "AC4_defect_with_reproduction_and_boundary": [
+      "EVD-doc-health-initial",
+      "DEF-doc-staleness-l2"
+    ],
+    "AC5_repair_only_allowed_paths": [
+      "EVD-repair-boundary-current"
+    ],
+    "AC6_selective_verification_and_reuse": [
+      "EVD-selective-reverify-current"
+    ],
+    "AC7_l2_rejects_stale_evidence": [
+      "EVD-goal-completion-final"
+    ],
+    "AC8_unauthorized_action_denied_audited": [
+      "EVD-security-denial-initial"
+    ],
+    "AC9_crash_resume_exercised": [
+      "EVD-resume-current"
+    ]
+  },
+  "defect": {
+    "record": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "DefectRecord",
+      "metadata": {
+        "createdAt": "2026-06-25T00:00:00Z",
+        "defectId": "DEF-doc-staleness-l2"
+      },
+      "spec": {
+        "actual": "Initial doc-health evidence is failed and dependent goal evidence is not current.",
+        "claimRef": "CLAIM-defect-repair-functional",
+        "expected": "L2 completion has current passed evidence for every required Claim.",
+        "gateRef": "GATE-goal-completion",
+        "refs": [
+          "EVD-doc-health-initial",
+          "PEXEC-ce0b1c8d05b4e799"
+        ],
+        "repairBoundary": "Only src/doc_health.py may change during repair.",
+        "status": "open"
+      }
+    },
+    "reproduction": {
+      "actual": "Initial doc-health evidence is failed and dependent goal evidence is not current.",
+      "command": "dynamic fixture end-to-end command",
+      "expected": "L2 completion has current passed evidence for every required Claim.",
+      "failingGate": "GATE-goal-completion",
+      "refs": [
+        "EVD-doc-health-initial",
+        "PEXEC-ce0b1c8d05b4e799"
+      ]
+    }
+  },
+  "execution": {
+    "executedPlanKind": "PlanIR",
+    "executorCalls": [
+      "NODE-acceptance-order",
+      "NODE-doc-checker",
+      "NODE-security-audit",
+      "NODE-doc-checker-repair"
+    ],
+    "initial": {
+      "artifact_refs": [
+        "ART-acceptance-order",
+        "ART-doc-health",
+        "ART-security-audit"
+      ],
+      "budget_summary": {
+        "maxCostUsd": 0.4,
+        "maxModelCalls": 16,
+        "maxSpawnedNodes": 0,
+        "maxToolCalls": 16,
+        "maxWallSeconds": 60,
+        "nodeCount": 4
+      },
+      "cancel_requested": false,
+      "checkpoint_ref": "checkpoint://CHK-ffbd67cf6581fac9",
+      "created_at": "2026-06-25T16:18:11.122516Z",
+      "deadline_at": null,
+      "evidence_refs": [
+        "EVD-acceptance-order-current",
+        "EVD-resume-current",
+        "EVD-doc-health-initial",
+        "EVD-security-denial-initial",
+        "EVD-goal-completion",
+        "EVD-repair-boundary",
+        "EVD-selective-reverify"
+      ],
+      "failure_class": "goal_completion_failed",
+      "goal_ref": "GOAL-dynamic-fixture",
+      "handoff_refs": [],
+      "lease": null,
+      "max_concurrency": 1,
+      "message": "Goal completion gate did not cover every required Claim.",
+      "node_run_refs": [
+        "NRUN-da042ecaac38e7ea",
+        "NRUN-19bb2a8c65ce4843",
+        "NRUN-2d1f460907779b46",
+        "NRUN-06e78c693f3edc04"
+      ],
+      "plan_digest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1",
+      "plan_execution_id": "PEXEC-ce0b1c8d05b4e799",
+      "plan_id": "PLAN-f9c4654ccd20c128",
+      "plan_version": 1,
+      "schema_version": "ahra/plan-execution/0.1",
+      "status": "failed",
+      "status_version": 25,
+      "task_ref": null,
+      "trace_refs": [
+        "TRACE-PEXEC-ce0b1c8d05b4e799"
+      ],
+      "updated_at": "2026-06-25T16:18:11.131754Z",
+      "validation_report_digest": "sha256:c7a55c9f23d867d6849955edd71db4db64f0b7a4b54fde2388459c6005a2244b",
+      "validation_report_ref": "PLANVAL-52dadab155676b92"
+    },
+    "initialNodeRuns": [
+      {
+        "artifact_refs": [
+          "ART-acceptance-order"
+        ],
+        "attempt": 1,
+        "budget": {
+          "maxCostUsd": 0.1,
+          "maxModelCalls": 4,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 4,
+          "maxWallSeconds": 15
+        },
+        "created_at": "2026-06-25T16:18:11.122516Z",
+        "dependency_node_refs": [],
+        "evidence_refs": [
+          "EVD-acceptance-order-current",
+          "EVD-resume-current"
+        ],
+        "executor_release": "dynamic-fixture-executor@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "failure_class": null,
+        "gate_refs": [
+          "GATE-acceptance-contract",
+          "GATE-resume-check"
+        ],
+        "lease": null,
+        "message": "Acceptance contracts were materialized before PlanIR execution.",
+        "node_id": "NODE-acceptance-order",
+        "node_run_id": "NRUN-da042ecaac38e7ea",
+        "node_type": "bounded_task",
+        "plan_digest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1",
+        "plan_execution_id": "PEXEC-ce0b1c8d05b4e799",
+        "plan_id": "PLAN-f9c4654ccd20c128",
+        "schema_version": "ahra/node-run-state/0.1",
+        "status": "succeeded",
+        "status_version": 6,
+        "terminal_failure_refs": [],
+        "updated_at": "2026-06-25T16:18:11.125579Z",
+        "usage": {
+          "costUsd": 0.0,
+          "modelCalls": 1,
+          "spawnedNodes": 0,
+          "toolCalls": 1
+        }
+      },
+      {
+        "artifact_refs": [
+          "ART-doc-health"
+        ],
+        "attempt": 1,
+        "budget": {
+          "maxCostUsd": 0.1,
+          "maxModelCalls": 4,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 4,
+          "maxWallSeconds": 15
+        },
+        "created_at": "2026-06-25T16:18:11.122516Z",
+        "dependency_node_refs": [
+          "NODE-acceptance-order"
+        ],
+        "evidence_refs": [
+          "EVD-doc-health-initial"
+        ],
+        "executor_release": "dynamic-fixture-executor@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "failure_class": null,
+        "gate_refs": [
+          "GATE-doc-health-l1"
+        ],
+        "lease": null,
+        "message": "Fixture injected deterministic stale-document defect.",
+        "node_id": "NODE-doc-checker",
+        "node_run_id": "NRUN-19bb2a8c65ce4843",
+        "node_type": "bounded_task",
+        "plan_digest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1",
+        "plan_execution_id": "PEXEC-ce0b1c8d05b4e799",
+        "plan_id": "PLAN-f9c4654ccd20c128",
+        "schema_version": "ahra/node-run-state/0.1",
+        "status": "succeeded",
+        "status_version": 6,
+        "terminal_failure_refs": [],
+        "updated_at": "2026-06-25T16:18:11.128702Z",
+        "usage": {
+          "costUsd": 0.0,
+          "modelCalls": 1,
+          "spawnedNodes": 0,
+          "toolCalls": 1
+        }
+      },
+      {
+        "artifact_refs": [],
+        "attempt": 1,
+        "budget": {
+          "maxCostUsd": 0.1,
+          "maxModelCalls": 4,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 4,
+          "maxWallSeconds": 15
+        },
+        "created_at": "2026-06-25T16:18:11.122516Z",
+        "dependency_node_refs": [
+          "NODE-doc-checker",
+          "NODE-security-audit"
+        ],
+        "evidence_refs": [
+          "EVD-goal-completion",
+          "EVD-repair-boundary",
+          "EVD-selective-reverify"
+        ],
+        "executor_release": null,
+        "failure_class": "goal_completion_failed",
+        "gate_refs": [
+          "GATE-goal-completion",
+          "GATE-repair-boundary",
+          "GATE-selective-reverify"
+        ],
+        "lease": null,
+        "message": "Goal completion gate did not cover every required Claim.",
+        "node_id": "NODE-goal",
+        "node_run_id": "NRUN-06e78c693f3edc04",
+        "node_type": "goal_verification",
+        "plan_digest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1",
+        "plan_execution_id": "PEXEC-ce0b1c8d05b4e799",
+        "plan_id": "PLAN-f9c4654ccd20c128",
+        "schema_version": "ahra/node-run-state/0.1",
+        "status": "failed",
+        "status_version": 6,
+        "terminal_failure_refs": [],
+        "updated_at": "2026-06-25T16:18:11.131754Z",
+        "usage": {
+          "costUsd": 0.0,
+          "modelCalls": 1,
+          "spawnedNodes": 0,
+          "toolCalls": 0
+        }
+      },
+      {
+        "artifact_refs": [
+          "ART-security-audit"
+        ],
+        "attempt": 1,
+        "budget": {
+          "maxCostUsd": 0.1,
+          "maxModelCalls": 4,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 4,
+          "maxWallSeconds": 15
+        },
+        "created_at": "2026-06-25T16:18:11.122516Z",
+        "dependency_node_refs": [
+          "NODE-acceptance-order"
+        ],
+        "evidence_refs": [
+          "EVD-security-denial-initial"
+        ],
+        "executor_release": "dynamic-fixture-executor@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "failure_class": null,
+        "gate_refs": [
+          "GATE-security-denial"
+        ],
+        "lease": null,
+        "message": "Unauthorized write was denied and audited before side effect.",
+        "node_id": "NODE-security-audit",
+        "node_run_id": "NRUN-2d1f460907779b46",
+        "node_type": "bounded_task",
+        "plan_digest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1",
+        "plan_execution_id": "PEXEC-ce0b1c8d05b4e799",
+        "plan_id": "PLAN-f9c4654ccd20c128",
+        "schema_version": "ahra/node-run-state/0.1",
+        "status": "succeeded",
+        "status_version": 6,
+        "terminal_failure_refs": [],
+        "updated_at": "2026-06-25T16:18:11.131754Z",
+        "usage": {
+          "costUsd": 0.0,
+          "modelCalls": 1,
+          "spawnedNodes": 0,
+          "toolCalls": 1
+        }
+      }
+    ],
+    "repairAllowedPaths": [
+      "src/doc_health.py"
+    ],
+    "repairChangedFiles": [
+      "src/doc_health.py"
+    ],
+    "repairChangedOnlyAffectedPaths": true,
+    "repairNodeResult": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "NodeRun",
+      "metadata": {
+        "executorRelease": "dynamic-fixture-executor@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "nodeId": "NODE-doc-checker-repair",
+        "nodeRunId": "NRUN-fixture-repair",
+        "planId": "PLAN-f9c4654ccd20c128"
+      },
+      "spec": {
+        "artifactRefs": [
+          "ART-doc-health"
+        ],
+        "details": {
+          "audit": {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "CapabilityAuditRecord",
+            "metadata": {
+              "auditId": "AUD-014dc129-20b8-4350-87c5-faf2846a44fe",
+              "occurredAt": "2026-06-25T16:18:11.151753Z"
+            },
+            "spec": {
+              "action": "filesystem.write",
+              "actor": "executor",
+              "allowed": true,
+              "argumentDigest": "sha256:3fbbb7a8503b723da81c0eb29abdce3a1b22dd51e954370711edba4692a7ef7a",
+              "grantDigest": "sha256:558896f0b44d3266819f0f2fa30a37a8dec7dd7b4be0c06db76c210260f18e93",
+              "nodeId": "NODE-doc-checker-repair",
+              "planId": "PLAN-f9c4654ccd20c128",
+              "policyDecisionId": "PDEC-4947dbaaa51a05d4",
+              "reasonCode": "allow",
+              "resultDigest": "sha256:88ed08ba1e08dba8ba2e708ad9f51f50dfed8e5c298b69bcfe5727a73d93cb28"
+            }
+          }
+        },
+        "evidenceRefs": [
+          "EVD-doc-health-repaired",
+          "EVD-repair-boundary-current",
+          "EVD-selective-reverify-current"
+        ],
+        "gateRefs": [
+          "GATE-doc-health-l1",
+          "GATE-repair-boundary",
+          "GATE-selective-reverify"
+        ],
+        "message": "Repair changed only the affected doc-health component.",
+        "nodeType": "bounded_task",
+        "status": "accepted",
+        "taskCompletedStateUpdateAttempted": false,
+        "terminalFailureRefs": [],
+        "usage": {
+          "costUsd": 0.0,
+          "modelCalls": 1,
+          "spawnedNodes": 0,
+          "toolCalls": 1
+        }
+      }
+    },
+    "selectiveReverification": {
+      "finalCompletion": {
+        "complete": true,
+        "missingClaimRefs": [],
+        "nonCurrentEvidenceRefs": [],
+        "openDefectRefs": [],
+        "uncoveredClaimRefs": []
+      },
+      "fullGateRefs": [
+        "GATE-acceptance-contract",
+        "GATE-doc-health-l1",
+        "GATE-goal-completion",
+        "GATE-repair-boundary",
+        "GATE-resume-check",
+        "GATE-security-denial",
+        "GATE-selective-reverify"
+      ],
+      "mode": "selected-gates-only",
+      "selectedGateRefs": [
+        "GATE-acceptance-contract",
+        "GATE-doc-health-l1",
+        "GATE-goal-completion",
+        "GATE-repair-boundary",
+        "GATE-security-denial",
+        "GATE-selective-reverify"
+      ]
+    }
+  },
+  "fixture": {
+    "ahraRepositorySelfModified": false,
+    "isolatedWorkspace": "C:\\Users\\13075\\AppData\\Local\\Temp\\ahra-dynamic-fixture-cu0lzpl3\\project",
+    "source": "D:\\Work\\ahra-v0.1-starter\\tests\\fixtures\\dynamic-goal-project",
+    "sourceDigestAfter": "sha256:27cab14159c7a8caa814ea74e3de52bdaaef8e99e42a83d1a3ebae583b604b2c",
+    "sourceDigestBefore": "sha256:27cab14159c7a8caa814ea74e3de52bdaaef8e99e42a83d1a3ebae583b604b2c",
+    "sourceUnmodified": true,
+    "workspaceDigestAfter": "sha256:c869af1f1f8bf4b3c66b34ba249683ec10cdcd0691423eac5b9595249e7b12b4",
+    "workspaceDigestBefore": "sha256:27cab14159c7a8caa814ea74e3de52bdaaef8e99e42a83d1a3ebae583b604b2c"
+  },
+  "generated_at": "2026-06-25T16:18:11.160579Z",
+  "goal": {
+    "criteria": [
+      "CRIT-goal-input",
+      "CRIT-acceptance-before-plan",
+      "CRIT-detect-and-repair",
+      "CRIT-repair-boundary",
+      "CRIT-security-denial",
+      "CRIT-resume",
+      "CRIT-selective-reverification",
+      "CRIT-completion-fail-closed"
+    ],
+    "goalId": "GOAL-dynamic-fixture",
+    "inputKind": "GoalContract",
+    "objectiveDigest": "sha256:32f385b74283d59d2533d0df241300eb7faba31e4dd201419f0a31fad5c71478",
+    "version": 1
+  },
+  "performance": {
+    "costUsd": 0.0,
+    "durationSeconds": 0.054437,
+    "modelCalls": 5.0,
+    "spawnedNodes": 0.0,
+    "tokenCounts": null,
+    "tokensAvailable": false,
+    "toolCalls": 4.0
+  },
+  "planning": {
+    "executionValidation": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanValidationReport",
+      "metadata": {
+        "createdBy": "ahra-planner-admission/0.1",
+        "reportId": "PLANVAL-dcdd4971288e0caa"
+      },
+      "spec": {
+        "errors": [],
+        "refs": [
+          "CTXMAN-d991db6c433f4f57ff387845",
+          "PLANVAL-52dadab155676b92",
+          "PLART-36b8a9ab3d2abb5fe699737b"
+        ],
+        "result": "passed",
+        "subjectDigest": "sha256:36b8a9ab3d2abb5fe699737bb71a21a9bae75056353a17995cf0229f3e2635ca",
+        "subjectRef": "PLART-36b8a9ab3d2abb5fe699737b"
+      }
+    },
+    "planAdmissionValidation": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanValidationReport",
+      "metadata": {
+        "createdBy": "ahra-plan-compiler",
+        "reportId": "PLANVAL-52dadab155676b92"
+      },
+      "spec": {
+        "errors": [],
+        "refs": [
+          "PLAN-f9c4654ccd20c128"
+        ],
+        "result": "passed",
+        "subjectDigest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1",
+        "subjectRef": "PLAN-f9c4654ccd20c128@v1"
+      }
+    },
+    "planDraftArtifact": {
+      "artifactId": "PLART-03dfb1fc3d9b5568c279e6e9",
+      "contextManifestDigest": "d991db6c433f4f57ff387845bcba4dfc25e094d264972e356b4d1de9f6f01427",
+      "contextManifestRef": "CTXMAN-d991db6c433f4f57ff387845",
+      "kind": "planner-plan-draft",
+      "mediaType": "application/json",
+      "payload": {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "PlanDraft",
+        "metadata": {
+          "goalId": "GOAL-dynamic-fixture",
+          "proposedBy": "fixture-planner@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "spec": {
+          "nodes": [
+            {
+              "budgetRequest": {
+                "maxCostUsd": 0.1,
+                "maxModelCalls": 4,
+                "maxSpawnedNodes": 0,
+                "maxToolCalls": 4,
+                "maxWallSeconds": 15
+              },
+              "capabilityRequests": [
+                {
+                  "capability": "filesystem.write",
+                  "resources": [
+                    "reports/acceptance-order.json"
+                  ]
+                }
+              ],
+              "claimRefs": [
+                "CLAIM-acceptance-before-plan",
+                "CLAIM-goal-contract-input",
+                "CLAIM-resume-operational"
+              ],
+              "dependsOn": [],
+              "expectedOutputs": [
+                {
+                  "artifactRequired": true,
+                  "consumerNodeRefs": [],
+                  "deliveryRole": "evidence",
+                  "name": "acceptance-order-evidence",
+                  "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                }
+              ],
+              "gateRefs": [
+                "GATE-acceptance-contract",
+                "GATE-resume-check"
+              ],
+              "id": "NODE-acceptance-order",
+              "inputRefs": [
+                "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              ],
+              "nodeType": "bounded_task",
+              "objective": "Record GoalContract and ClaimGraph ordering.",
+              "retryPolicy": {
+                "idempotencyKeyRequired": false,
+                "maxAttempts": 1,
+                "retryableFailureClasses": []
+              },
+              "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sideEffect": "idempotent",
+              "terminalGoalVerification": false,
+              "timeoutSeconds": 10
+            },
+            {
+              "budgetRequest": {
+                "maxCostUsd": 0.1,
+                "maxModelCalls": 4,
+                "maxSpawnedNodes": 0,
+                "maxToolCalls": 4,
+                "maxWallSeconds": 15
+              },
+              "capabilityRequests": [
+                {
+                  "capability": "filesystem.write",
+                  "resources": [
+                    "src/doc_health.py"
+                  ]
+                }
+              ],
+              "claimRefs": [
+                "CLAIM-defect-repair-functional"
+              ],
+              "dependsOn": [
+                "NODE-acceptance-order"
+              ],
+              "expectedOutputs": [
+                {
+                  "artifactRequired": true,
+                  "consumerNodeRefs": [],
+                  "deliveryRole": "evidence",
+                  "name": "doc-checker-evidence",
+                  "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                }
+              ],
+              "gateRefs": [
+                "GATE-doc-health-l1"
+              ],
+              "id": "NODE-doc-checker",
+              "inputRefs": [
+                "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              ],
+              "nodeType": "bounded_task",
+              "objective": "Inject deterministic stale-document checker defect.",
+              "retryPolicy": {
+                "idempotencyKeyRequired": false,
+                "maxAttempts": 1,
+                "retryableFailureClasses": []
+              },
+              "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sideEffect": "idempotent",
+              "terminalGoalVerification": false,
+              "timeoutSeconds": 10
+            },
+            {
+              "budgetRequest": {
+                "maxCostUsd": 0.1,
+                "maxModelCalls": 4,
+                "maxSpawnedNodes": 0,
+                "maxToolCalls": 4,
+                "maxWallSeconds": 15
+              },
+              "capabilityRequests": [
+                {
+                  "capability": "filesystem.write",
+                  "resources": [
+                    "audit/security-report.json"
+                  ]
+                }
+              ],
+              "claimRefs": [
+                "CLAIM-security-denial"
+              ],
+              "dependsOn": [
+                "NODE-acceptance-order"
+              ],
+              "expectedOutputs": [
+                {
+                  "artifactRequired": true,
+                  "consumerNodeRefs": [],
+                  "deliveryRole": "evidence",
+                  "name": "security-audit-evidence",
+                  "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                }
+              ],
+              "gateRefs": [
+                "GATE-security-denial"
+              ],
+              "id": "NODE-security-audit",
+              "inputRefs": [
+                "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              ],
+              "nodeType": "bounded_task",
+              "objective": "Attempt and audit denied unauthorized write.",
+              "retryPolicy": {
+                "idempotencyKeyRequired": false,
+                "maxAttempts": 1,
+                "retryableFailureClasses": []
+              },
+              "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sideEffect": "idempotent",
+              "terminalGoalVerification": false,
+              "timeoutSeconds": 10
+            },
+            {
+              "budgetRequest": {
+                "maxCostUsd": 0.1,
+                "maxModelCalls": 4,
+                "maxSpawnedNodes": 0,
+                "maxToolCalls": 4,
+                "maxWallSeconds": 15
+              },
+              "capabilityRequests": [],
+              "claimRefs": [
+                "CLAIM-goal-completion",
+                "CLAIM-repair-boundary-governance",
+                "CLAIM-selective-reverification"
+              ],
+              "dependsOn": [
+                "NODE-doc-checker",
+                "NODE-security-audit"
+              ],
+              "expectedOutputs": [
+                {
+                  "artifactRequired": true,
+                  "consumerNodeRefs": [],
+                  "deliveryRole": "evidence",
+                  "name": "goal-evidence",
+                  "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                }
+              ],
+              "gateRefs": [
+                "GATE-goal-completion",
+                "GATE-repair-boundary",
+                "GATE-selective-reverify"
+              ],
+              "id": "NODE-goal",
+              "inputRefs": [
+                "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              ],
+              "nodeType": "goal_verification",
+              "objective": "Evaluate L2 completion after initial execution.",
+              "retryPolicy": {
+                "idempotencyKeyRequired": false,
+                "maxAttempts": 1,
+                "retryableFailureClasses": []
+              },
+              "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sideEffect": "idempotent",
+              "terminalGoalVerification": true,
+              "timeoutSeconds": 10
+            }
+          ],
+          "rationale": "Dynamic fixture plan compiles GoalContract claims into an admitted PlanIR before execution."
+        }
+      },
+      "refs": [
+        "GOAL-dynamic-fixture",
+        "PLART-38d4e0f54bdd9ea55e7202d9"
+      ],
+      "releaseDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sha256": "sha256:03dfb1fc3d9b5568c279e6e9e054cdc99d8955be2cefeecec81c00ca8643ab2a"
+    },
+    "planDraftExecutedBeforeAdmission": false,
+    "planIr": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanIR",
+      "metadata": {
+        "digest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1",
+        "planId": "PLAN-f9c4654ccd20c128",
+        "version": 1
+      },
+      "spec": {
+        "claimGraphDigest": "sha256:3ac2c9d3eb4ca4ccaac39fc0bdabaeca0be01000562721a8ad456c801ff4838f",
+        "compilerVersion": "ahra-plan-compiler/0.1",
+        "edges": [
+          {
+            "sourceNodeRef": "NODE-acceptance-order",
+            "targetNodeRef": "NODE-doc-checker"
+          },
+          {
+            "sourceNodeRef": "NODE-acceptance-order",
+            "targetNodeRef": "NODE-security-audit"
+          },
+          {
+            "sourceNodeRef": "NODE-doc-checker",
+            "targetNodeRef": "NODE-goal"
+          },
+          {
+            "sourceNodeRef": "NODE-security-audit",
+            "targetNodeRef": "NODE-goal"
+          }
+        ],
+        "goalDigest": "sha256:548a9a8f3aed6165ba842ae09771c1d86aca359541235dedae1277cf090c430f",
+        "goalRef": "GOAL-dynamic-fixture",
+        "nodes": [
+          {
+            "budget": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 4,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 15
+            },
+            "canonicalOrder": 0,
+            "capabilityGrants": [
+              {
+                "capability": "filesystem.write",
+                "grantDigest": "sha256:d9ae5534e2a7fb184c1517049c03b2f03ef0aa3ed4f0a25457a0bbbe0f27b565",
+                "resources": [
+                  "reports/acceptance-order.json"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLAIM-acceptance-before-plan",
+              "CLAIM-goal-contract-input",
+              "CLAIM-resume-operational"
+            ],
+            "dependsOn": [],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "acceptance-order-evidence",
+                "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "gateDigests": [
+              "sha256:ab8e129cdfa9b3342a5ac4b18bfba7b6a5b87c67f0d9d52594f1814b03d5633c",
+              "sha256:3824f1f504fd6267998b2e74c70f94dbd4806f6b5b4d3e7fd132c68b0a4e3955"
+            ],
+            "gateRefs": [
+              "GATE-acceptance-contract",
+              "GATE-resume-check"
+            ],
+            "id": "NODE-acceptance-order",
+            "inputRefs": [
+              "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Record GoalContract and ClaimGraph ordering.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 10
+          },
+          {
+            "budget": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 4,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 15
+            },
+            "canonicalOrder": 1,
+            "capabilityGrants": [
+              {
+                "capability": "filesystem.write",
+                "grantDigest": "sha256:76f8104840fa75fd4dfe574fe7293fbf71dbcabb873196b96be3e856f57c6708",
+                "resources": [
+                  "src/doc_health.py"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLAIM-defect-repair-functional"
+            ],
+            "dependsOn": [
+              "NODE-acceptance-order"
+            ],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "doc-checker-evidence",
+                "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "gateDigests": [
+              "sha256:7fc839724d544f074c97464ecfa00b314dcaec0d2704d4410aa53d2170f08f8d"
+            ],
+            "gateRefs": [
+              "GATE-doc-health-l1"
+            ],
+            "id": "NODE-doc-checker",
+            "inputRefs": [
+              "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Inject deterministic stale-document checker defect.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 10
+          },
+          {
+            "budget": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 4,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 15
+            },
+            "canonicalOrder": 2,
+            "capabilityGrants": [
+              {
+                "capability": "filesystem.write",
+                "grantDigest": "sha256:b5219c6b55b9c39c46f2a5f54015e6d5a7c0080268831eb10f4c4ba4fe299a9f",
+                "resources": [
+                  "audit/security-report.json"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLAIM-security-denial"
+            ],
+            "dependsOn": [
+              "NODE-acceptance-order"
+            ],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "security-audit-evidence",
+                "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "gateDigests": [
+              "sha256:c38e818ce32b60fda1b34cb9e461d843c137d38bbc66f62a5df4b1d2d5599232"
+            ],
+            "gateRefs": [
+              "GATE-security-denial"
+            ],
+            "id": "NODE-security-audit",
+            "inputRefs": [
+              "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Attempt and audit denied unauthorized write.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 10
+          },
+          {
+            "budget": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 4,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 15
+            },
+            "canonicalOrder": 3,
+            "capabilityGrants": [],
+            "claimRefs": [
+              "CLAIM-goal-completion",
+              "CLAIM-repair-boundary-governance",
+              "CLAIM-selective-reverification"
+            ],
+            "dependsOn": [
+              "NODE-doc-checker",
+              "NODE-security-audit"
+            ],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "goal-evidence",
+                "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "gateDigests": [
+              "sha256:433d857945829af07d3cdb64b8167447a08380a7e6f1aa6bb441d4a7c12cbee5",
+              "sha256:090305125465fd3cb40d3e301918fa0cc38c67c9db51536c717677a651fb4067",
+              "sha256:cc9a98e7dc7932014f51c7e11aa6b0924dd88a705250c48d2b58108e0ef8bfb2"
+            ],
+            "gateRefs": [
+              "GATE-goal-completion",
+              "GATE-repair-boundary",
+              "GATE-selective-reverify"
+            ],
+            "id": "NODE-goal",
+            "inputRefs": [
+              "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            ],
+            "nodeType": "goal_verification",
+            "objective": "Evaluate L2 completion after initial execution.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": true,
+            "timeoutSeconds": 10
+          }
+        ]
+      }
+    },
+    "planIrDigest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1",
+    "repairPatch": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanPatchDraft",
+      "metadata": {
+        "parentPlanDigest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1"
+      },
+      "spec": {
+        "addNodes": [
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 4,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 15
+            },
+            "capabilityRequests": [
+              {
+                "capability": "filesystem.write",
+                "resources": [
+                  "src/doc_health.py"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLAIM-defect-repair-functional",
+              "CLAIM-repair-boundary-governance",
+              "CLAIM-selective-reverification"
+            ],
+            "dependsOn": [
+              "NODE-acceptance-order"
+            ],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "doc-checker-repair-evidence",
+                "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "gateRefs": [
+              "GATE-doc-health-l1",
+              "GATE-repair-boundary",
+              "GATE-selective-reverify"
+            ],
+            "id": "NODE-doc-checker-repair",
+            "inputRefs": [
+              "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Repair stale-document checker inside affected boundary only.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 10
+          },
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 4,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 15
+            },
+            "capabilityRequests": [],
+            "claimRefs": [
+              "CLAIM-goal-completion"
+            ],
+            "dependsOn": [
+              "NODE-doc-checker-repair",
+              "NODE-security-audit"
+            ],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "goal-reverify-evidence",
+                "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "gateRefs": [
+              "GATE-goal-completion"
+            ],
+            "id": "NODE-goal-reverify",
+            "inputRefs": [
+              "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            ],
+            "nodeType": "goal_verification",
+            "objective": "Evaluate L2 completion after bounded repair.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": true,
+            "timeoutSeconds": 10
+          }
+        ],
+        "defectRefs": [
+          "DEF-doc-staleness-l2"
+        ],
+        "parentPlanDigest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1",
+        "reusedEvidenceRefs": [
+          "EVD-acceptance-order-current",
+          "EVD-resume-current",
+          "EVD-security-denial-initial"
+        ],
+        "supersedeNodeRefs": [
+          "NODE-doc-checker",
+          "NODE-goal"
+        ],
+        "unchangedNodeRefs": [
+          "NODE-acceptance-order",
+          "NODE-security-audit"
+        ]
+      }
+    },
+    "repairPatchArtifact": {
+      "artifactId": "PLART-cc35d8e0a5738987fbca9184",
+      "contextManifestDigest": "43ce3c44e6b3878274d13f2178630f54ae8c37b6f6c3a197f4d20e6147d78297",
+      "contextManifestRef": "CTXMAN-43ce3c44e6b3878274d13f21",
+      "kind": "planner-plan-patch",
+      "mediaType": "application/json",
+      "payload": {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "PlanPatchDraft",
+        "metadata": {
+          "parentPlanDigest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1"
+        },
+        "spec": {
+          "addNodes": [
+            {
+              "budgetRequest": {
+                "maxCostUsd": 0.1,
+                "maxModelCalls": 4,
+                "maxSpawnedNodes": 0,
+                "maxToolCalls": 4,
+                "maxWallSeconds": 15
+              },
+              "capabilityRequests": [
+                {
+                  "capability": "filesystem.write",
+                  "resources": [
+                    "src/doc_health.py"
+                  ]
+                }
+              ],
+              "claimRefs": [
+                "CLAIM-defect-repair-functional",
+                "CLAIM-repair-boundary-governance",
+                "CLAIM-selective-reverification"
+              ],
+              "dependsOn": [
+                "NODE-acceptance-order"
+              ],
+              "expectedOutputs": [
+                {
+                  "artifactRequired": true,
+                  "consumerNodeRefs": [],
+                  "deliveryRole": "evidence",
+                  "name": "doc-checker-repair-evidence",
+                  "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                }
+              ],
+              "gateRefs": [
+                "GATE-doc-health-l1",
+                "GATE-repair-boundary",
+                "GATE-selective-reverify"
+              ],
+              "id": "NODE-doc-checker-repair",
+              "inputRefs": [
+                "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              ],
+              "nodeType": "bounded_task",
+              "objective": "Repair stale-document checker inside affected boundary only.",
+              "retryPolicy": {
+                "idempotencyKeyRequired": false,
+                "maxAttempts": 1,
+                "retryableFailureClasses": []
+              },
+              "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sideEffect": "idempotent",
+              "terminalGoalVerification": false,
+              "timeoutSeconds": 10
+            },
+            {
+              "budgetRequest": {
+                "maxCostUsd": 0.1,
+                "maxModelCalls": 4,
+                "maxSpawnedNodes": 0,
+                "maxToolCalls": 4,
+                "maxWallSeconds": 15
+              },
+              "capabilityRequests": [],
+              "claimRefs": [
+                "CLAIM-goal-completion"
+              ],
+              "dependsOn": [
+                "NODE-doc-checker-repair",
+                "NODE-security-audit"
+              ],
+              "expectedOutputs": [
+                {
+                  "artifactRequired": true,
+                  "consumerNodeRefs": [],
+                  "deliveryRole": "evidence",
+                  "name": "goal-reverify-evidence",
+                  "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                }
+              ],
+              "gateRefs": [
+                "GATE-goal-completion"
+              ],
+              "id": "NODE-goal-reverify",
+              "inputRefs": [
+                "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              ],
+              "nodeType": "goal_verification",
+              "objective": "Evaluate L2 completion after bounded repair.",
+              "retryPolicy": {
+                "idempotencyKeyRequired": false,
+                "maxAttempts": 1,
+                "retryableFailureClasses": []
+              },
+              "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "sideEffect": "idempotent",
+              "terminalGoalVerification": true,
+              "timeoutSeconds": 10
+            }
+          ],
+          "defectRefs": [
+            "DEF-doc-staleness-l2"
+          ],
+          "parentPlanDigest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1",
+          "reusedEvidenceRefs": [
+            "EVD-acceptance-order-current",
+            "EVD-resume-current",
+            "EVD-security-denial-initial"
+          ],
+          "supersedeNodeRefs": [
+            "NODE-doc-checker",
+            "NODE-goal"
+          ],
+          "unchangedNodeRefs": [
+            "NODE-acceptance-order",
+            "NODE-security-audit"
+          ]
+        }
+      },
+      "refs": [
+        "DEF-doc-staleness-l2",
+        "EVD-acceptance-order-current",
+        "EVD-resume-current",
+        "EVD-security-denial-initial",
+        "PLAN-f9c4654ccd20c128",
+        "PLART-76c4526b28e14477e2d33b09"
+      ],
+      "releaseDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sha256": "sha256:cc35d8e0a5738987fbca91846d4bedbd47aa37e51b0dc8a8bc1d76cea77e54a9"
+    },
+    "repairValidation": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanValidationReport",
+      "metadata": {
+        "createdBy": "ahra-planner-admission/0.1",
+        "reportId": "PLANVAL-b9f3f27ce35a9d7d"
+      },
+      "spec": {
+        "errors": [],
+        "refs": [
+          "CTXMAN-43ce3c44e6b3878274d13f21",
+          "DEF-doc-staleness-l2",
+          "EVD-acceptance-order-current",
+          "EVD-resume-current",
+          "EVD-security-denial-initial",
+          "PLANVAL-d0d6233621d73b17",
+          "PLART-fb6dfe4da7f0533fcebc15bc",
+          "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1"
+        ],
+        "result": "passed",
+        "subjectDigest": "sha256:fb6dfe4da7f0533fcebc15bc7139955329373bd4d6abb64b3e9ec1639013f716",
+        "subjectRef": "PLART-fb6dfe4da7f0533fcebc15bc"
+      }
+    },
+    "repairedPlanAdmissionValidation": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanValidationReport",
+      "metadata": {
+        "createdBy": "ahra-plan-compiler",
+        "reportId": "PLANVAL-d0d6233621d73b17"
+      },
+      "spec": {
+        "errors": [],
+        "refs": [
+          "PLAN-f9c4654ccd20c128"
+        ],
+        "result": "passed",
+        "subjectDigest": "sha256:96f22a3f27204914354b56d8b3fc353cb63444424d32ee1ddb1d3a60c5ad1e40",
+        "subjectRef": "PLAN-f9c4654ccd20c128@v2"
+      }
+    },
+    "repairedPlanIr": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanIR",
+      "metadata": {
+        "digest": "sha256:96f22a3f27204914354b56d8b3fc353cb63444424d32ee1ddb1d3a60c5ad1e40",
+        "planId": "PLAN-f9c4654ccd20c128",
+        "version": 2
+      },
+      "spec": {
+        "claimGraphDigest": "sha256:3ac2c9d3eb4ca4ccaac39fc0bdabaeca0be01000562721a8ad456c801ff4838f",
+        "compilerVersion": "ahra-plan-compiler/0.1",
+        "edges": [
+          {
+            "sourceNodeRef": "NODE-acceptance-order",
+            "targetNodeRef": "NODE-doc-checker-repair"
+          },
+          {
+            "sourceNodeRef": "NODE-acceptance-order",
+            "targetNodeRef": "NODE-security-audit"
+          },
+          {
+            "sourceNodeRef": "NODE-doc-checker-repair",
+            "targetNodeRef": "NODE-goal-reverify"
+          },
+          {
+            "sourceNodeRef": "NODE-security-audit",
+            "targetNodeRef": "NODE-goal-reverify"
+          }
+        ],
+        "goalDigest": "sha256:548a9a8f3aed6165ba842ae09771c1d86aca359541235dedae1277cf090c430f",
+        "goalRef": "GOAL-dynamic-fixture",
+        "nodes": [
+          {
+            "budget": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 4,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 15
+            },
+            "canonicalOrder": 0,
+            "capabilityGrants": [
+              {
+                "capability": "filesystem.write",
+                "grantDigest": "sha256:d9ae5534e2a7fb184c1517049c03b2f03ef0aa3ed4f0a25457a0bbbe0f27b565",
+                "resources": [
+                  "reports/acceptance-order.json"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLAIM-acceptance-before-plan",
+              "CLAIM-goal-contract-input",
+              "CLAIM-resume-operational"
+            ],
+            "dependsOn": [],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "acceptance-order-evidence",
+                "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "gateDigests": [
+              "sha256:ab8e129cdfa9b3342a5ac4b18bfba7b6a5b87c67f0d9d52594f1814b03d5633c",
+              "sha256:3824f1f504fd6267998b2e74c70f94dbd4806f6b5b4d3e7fd132c68b0a4e3955"
+            ],
+            "gateRefs": [
+              "GATE-acceptance-contract",
+              "GATE-resume-check"
+            ],
+            "id": "NODE-acceptance-order",
+            "inputRefs": [
+              "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Record GoalContract and ClaimGraph ordering.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 10
+          },
+          {
+            "budget": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 4,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 15
+            },
+            "canonicalOrder": 1,
+            "capabilityGrants": [
+              {
+                "capability": "filesystem.write",
+                "grantDigest": "sha256:76f8104840fa75fd4dfe574fe7293fbf71dbcabb873196b96be3e856f57c6708",
+                "resources": [
+                  "src/doc_health.py"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLAIM-defect-repair-functional",
+              "CLAIM-repair-boundary-governance",
+              "CLAIM-selective-reverification"
+            ],
+            "dependsOn": [
+              "NODE-acceptance-order"
+            ],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "doc-checker-repair-evidence",
+                "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "gateDigests": [
+              "sha256:7fc839724d544f074c97464ecfa00b314dcaec0d2704d4410aa53d2170f08f8d",
+              "sha256:090305125465fd3cb40d3e301918fa0cc38c67c9db51536c717677a651fb4067",
+              "sha256:cc9a98e7dc7932014f51c7e11aa6b0924dd88a705250c48d2b58108e0ef8bfb2"
+            ],
+            "gateRefs": [
+              "GATE-doc-health-l1",
+              "GATE-repair-boundary",
+              "GATE-selective-reverify"
+            ],
+            "id": "NODE-doc-checker-repair",
+            "inputRefs": [
+              "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Repair stale-document checker inside affected boundary only.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 10
+          },
+          {
+            "budget": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 4,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 15
+            },
+            "canonicalOrder": 2,
+            "capabilityGrants": [
+              {
+                "capability": "filesystem.write",
+                "grantDigest": "sha256:b5219c6b55b9c39c46f2a5f54015e6d5a7c0080268831eb10f4c4ba4fe299a9f",
+                "resources": [
+                  "audit/security-report.json"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLAIM-security-denial"
+            ],
+            "dependsOn": [
+              "NODE-acceptance-order"
+            ],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "security-audit-evidence",
+                "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "gateDigests": [
+              "sha256:c38e818ce32b60fda1b34cb9e461d843c137d38bbc66f62a5df4b1d2d5599232"
+            ],
+            "gateRefs": [
+              "GATE-security-denial"
+            ],
+            "id": "NODE-security-audit",
+            "inputRefs": [
+              "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Attempt and audit denied unauthorized write.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 10
+          },
+          {
+            "budget": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 4,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 15
+            },
+            "canonicalOrder": 3,
+            "capabilityGrants": [],
+            "claimRefs": [
+              "CLAIM-goal-completion"
+            ],
+            "dependsOn": [
+              "NODE-doc-checker-repair",
+              "NODE-security-audit"
+            ],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "goal-reverify-evidence",
+                "schemaRef": "schema://ahra/fixture-evidence@sha256:1111111111111111111111111111111111111111111111111111111111111111"
+              }
+            ],
+            "gateDigests": [
+              "sha256:433d857945829af07d3cdb64b8167447a08380a7e6f1aa6bb441d4a7c12cbee5"
+            ],
+            "gateRefs": [
+              "GATE-goal-completion"
+            ],
+            "id": "NODE-goal-reverify",
+            "inputRefs": [
+              "fixture-goal-contract@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            ],
+            "nodeType": "goal_verification",
+            "objective": "Evaluate L2 completion after bounded repair.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "runtimeRef": "runtime/dynamic-fixture@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": true,
+            "timeoutSeconds": 10
+          }
+        ],
+        "parentPlanDigest": "sha256:001aab34cdbb6248489daa9de569ad4bbe9f12b75675908ee9ae2d1319a850e1"
+      }
+    },
+    "repairedPlanIrDigest": "sha256:96f22a3f27204914354b56d8b3fc353cb63444424d32ee1ddb1d3a60c5ad1e40"
+  },
+  "resume": {
+    "checkpointBeforeResume": "checkpoint://CHK-c83aeaa4e2a1f56b",
+    "ranBeforeResume": true,
+    "resumedWithFreshScheduler": true,
+    "terminalStatusAfterResume": "failed"
+  },
+  "schema_version": "ahra/dynamic-fixture-report/0.1",
+  "security": {
+    "audit": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "CapabilityAuditRecord",
+      "metadata": {
+        "auditId": "AUD-2215e771-bcaa-4d72-9f4e-253d2bb29f8a",
+        "occurredAt": "2026-06-25T16:18:11.128702Z"
+      },
+      "spec": {
+        "action": "filesystem.write",
+        "actor": "executor",
+        "allowed": false,
+        "argumentDigest": "sha256:c17c1ab589d848a91e7a23989aa407722d75c8ca1ca9e46cf3c0a14f6b7504cc",
+        "grantDigest": "sha256:d0b8b47b14b29ab35e845026969ebbe889fe52bb638292cf6fe5005a8d29e06f",
+        "nodeId": "NODE-security-audit",
+        "planId": "PLAN-f9c4654ccd20c128",
+        "policyDecisionId": "PDEC-01bdf653f60de55a",
+        "reasonCode": "path_escape",
+        "resultDigest": null
+      }
+    },
+    "denyReason": "path_escape",
+    "sideEffectExists": false,
+    "unauthorizedWriteAllowed": false
+  },
+  "verification": {
+    "finalCompletionAccepted": true,
+    "finalCompletionResult": {
+      "complete": true,
+      "missingClaimRefs": [],
+      "nonCurrentEvidenceRefs": [],
+      "openDefectRefs": [],
+      "uncoveredClaimRefs": []
+    },
+    "finalEvidence": [
+      {
+        "claimRefs": [
+          "CLAIM-goal-contract-input",
+          "CLAIM-acceptance-before-plan"
+        ],
+        "dependencies": [],
+        "evidenceId": "EVD-acceptance-order-current",
+        "fingerprint": "sha256:5e7133e3ea4918a9123652eb764701229d0f59b83551837f9d69878d1db74238",
+        "gateRef": "GATE-acceptance-contract",
+        "result": "passed",
+        "storedFingerprint": "sha256:5e7133e3ea4918a9123652eb764701229d0f59b83551837f9d69878d1db74238",
+        "subjects": [
+          {
+            "digest": "sha256:7cec6a3d1414d6f319e7fdad8894ebf610d97e9bb859e5c27a76be0a220e7a2b",
+            "ref": "ART-acceptance-order"
+          }
+        ],
+        "supersedes": []
+      },
+      {
+        "claimRefs": [
+          "CLAIM-resume-operational"
+        ],
+        "dependencies": [],
+        "evidenceId": "EVD-resume-current",
+        "fingerprint": "sha256:7225072b70b63d0cc0c80fb376b4ca0b3184ec59ee406c7ee120fae536339fbb",
+        "gateRef": "GATE-resume-check",
+        "result": "passed",
+        "storedFingerprint": "sha256:7225072b70b63d0cc0c80fb376b4ca0b3184ec59ee406c7ee120fae536339fbb",
+        "subjects": [
+          {
+            "digest": "sha256:2947061754cbe067b00edc4b7b47c794521698c8fcd60d3b8be2ca7cec6454c7",
+            "ref": "ART-resume"
+          }
+        ],
+        "supersedes": []
+      },
+      {
+        "claimRefs": [
+          "CLAIM-security-denial"
+        ],
+        "dependencies": [],
+        "evidenceId": "EVD-security-denial-initial",
+        "fingerprint": "sha256:0828bc070b653a54402655aca4000ac24f2808a63e1cb37fd84c6e623dc42ddb",
+        "gateRef": "GATE-security-denial",
+        "result": "passed",
+        "storedFingerprint": "sha256:0828bc070b653a54402655aca4000ac24f2808a63e1cb37fd84c6e623dc42ddb",
+        "subjects": [
+          {
+            "digest": "sha256:bfc2a45f04abb39d88b4357008dbb0ad3cbe859e2384b79e1e0b77ce3cee7ecc",
+            "ref": "ART-security-audit"
+          }
+        ],
+        "supersedes": []
+      },
+      {
+        "claimRefs": [
+          "CLAIM-defect-repair-functional"
+        ],
+        "dependencies": [],
+        "evidenceId": "EVD-doc-health-repaired",
+        "fingerprint": "sha256:8e25c213fbfa80920fbab392d1343b2a9d903514673dca2454329b36b5551536",
+        "gateRef": "GATE-doc-health-l1",
+        "result": "passed",
+        "storedFingerprint": "sha256:8e25c213fbfa80920fbab392d1343b2a9d903514673dca2454329b36b5551536",
+        "subjects": [
+          {
+            "digest": "sha256:e7ff08fb377d343e13846bb7d3c65890f830994553e2b9b66347c947efe48439",
+            "ref": "ART-doc-health"
+          }
+        ],
+        "supersedes": [
+          "EVD-doc-health-initial"
+        ]
+      },
+      {
+        "claimRefs": [
+          "CLAIM-repair-boundary-governance"
+        ],
+        "dependencies": [
+          {
+            "digest": "sha256:8e25c213fbfa80920fbab392d1343b2a9d903514673dca2454329b36b5551536",
+            "ref": "EVD-doc-health-repaired"
+          }
+        ],
+        "evidenceId": "EVD-repair-boundary-current",
+        "fingerprint": "sha256:aa54e3cc33b2f02ee3a10469e15f1bfdc820a360bb1d9cd987936e1b51d7bad6",
+        "gateRef": "GATE-repair-boundary",
+        "result": "passed",
+        "storedFingerprint": "sha256:aa54e3cc33b2f02ee3a10469e15f1bfdc820a360bb1d9cd987936e1b51d7bad6",
+        "subjects": [
+          {
+            "digest": "sha256:e7ff08fb377d343e13846bb7d3c65890f830994553e2b9b66347c947efe48439",
+            "ref": "ART-doc-health"
+          }
+        ],
+        "supersedes": []
+      },
+      {
+        "claimRefs": [
+          "CLAIM-selective-reverification"
+        ],
+        "dependencies": [
+          {
+            "digest": "sha256:8e25c213fbfa80920fbab392d1343b2a9d903514673dca2454329b36b5551536",
+            "ref": "EVD-doc-health-repaired"
+          }
+        ],
+        "evidenceId": "EVD-selective-reverify-current",
+        "fingerprint": "sha256:9bca3adf94ee2f1064977cf56599d1b23ad4cd73bf58022303c10462b315b0dc",
+        "gateRef": "GATE-selective-reverify",
+        "result": "passed",
+        "storedFingerprint": "sha256:9bca3adf94ee2f1064977cf56599d1b23ad4cd73bf58022303c10462b315b0dc",
+        "subjects": [
+          {
+            "digest": "sha256:2e73c78aae2acf5b1a08c8dc9ef5f91fdb1ee302ddb195ea2bb500254ed505c8",
+            "ref": "ART-selective-reverify"
+          }
+        ],
+        "supersedes": []
+      },
+      {
+        "claimRefs": [
+          "CLAIM-goal-completion"
+        ],
+        "dependencies": [
+          {
+            "digest": "sha256:5e7133e3ea4918a9123652eb764701229d0f59b83551837f9d69878d1db74238",
+            "ref": "EVD-acceptance-order-current"
+          },
+          {
+            "digest": "sha256:7225072b70b63d0cc0c80fb376b4ca0b3184ec59ee406c7ee120fae536339fbb",
+            "ref": "EVD-resume-current"
+          },
+          {
+            "digest": "sha256:0828bc070b653a54402655aca4000ac24f2808a63e1cb37fd84c6e623dc42ddb",
+            "ref": "EVD-security-denial-initial"
+          },
+          {
+            "digest": "sha256:8e25c213fbfa80920fbab392d1343b2a9d903514673dca2454329b36b5551536",
+            "ref": "EVD-doc-health-repaired"
+          },
+          {
+            "digest": "sha256:aa54e3cc33b2f02ee3a10469e15f1bfdc820a360bb1d9cd987936e1b51d7bad6",
+            "ref": "EVD-repair-boundary-current"
+          },
+          {
+            "digest": "sha256:9bca3adf94ee2f1064977cf56599d1b23ad4cd73bf58022303c10462b315b0dc",
+            "ref": "EVD-selective-reverify-current"
+          }
+        ],
+        "evidenceId": "EVD-goal-completion-final",
+        "fingerprint": "sha256:83e7104221edb24d024dd566cc479179a5453d36e1bef1116936b4d82c7d28b7",
+        "gateRef": "GATE-goal-completion",
+        "result": "passed",
+        "storedFingerprint": "sha256:83e7104221edb24d024dd566cc479179a5453d36e1bef1116936b4d82c7d28b7",
+        "subjects": [
+          {
+            "digest": "sha256:2540997e39cb3956c5a8bf621c3164bdb3b2531dd420d78c298866f6f30c68f4",
+            "ref": "ART-goal-completion"
+          }
+        ],
+        "supersedes": []
+      }
+    ],
+    "fullGateCount": 7,
+    "fullGateRefs": [
+      "GATE-acceptance-contract",
+      "GATE-doc-health-l1",
+      "GATE-goal-completion",
+      "GATE-repair-boundary",
+      "GATE-resume-check",
+      "GATE-security-denial",
+      "GATE-selective-reverify"
+    ],
+    "l2EvaluatedClaimRefs": [
+      "CLAIM-goal-contract-input",
+      "CLAIM-acceptance-before-plan",
+      "CLAIM-defect-repair-functional",
+      "CLAIM-repair-boundary-governance",
+      "CLAIM-security-denial",
+      "CLAIM-resume-operational",
+      "CLAIM-selective-reverification",
+      "CLAIM-goal-completion"
+    ],
+    "openDefectCompletionResult": {
+      "complete": false,
+      "missingClaimRefs": [
+        "CLAIM-goal-completion",
+        "CLAIM-repair-boundary-governance",
+        "CLAIM-selective-reverification"
+      ],
+      "nonCurrentEvidenceRefs": [
+        "EVD-doc-health-initial"
+      ],
+      "openDefectRefs": [
+        "DEF-doc-staleness-l2"
+      ],
+      "uncoveredClaimRefs": [
+        "CLAIM-defect-repair-functional"
+      ]
+    },
+    "openDefectRejected": true,
+    "reusedEvidence": [
+      {
+        "claimRefs": [
+          "CLAIM-goal-contract-input",
+          "CLAIM-acceptance-before-plan"
+        ],
+        "dependencies": [],
+        "evidenceId": "EVD-acceptance-order-current",
+        "fingerprint": "sha256:5e7133e3ea4918a9123652eb764701229d0f59b83551837f9d69878d1db74238",
+        "gateRef": "GATE-acceptance-contract",
+        "result": "passed",
+        "storedFingerprint": "sha256:5e7133e3ea4918a9123652eb764701229d0f59b83551837f9d69878d1db74238",
+        "subjects": [
+          {
+            "digest": "sha256:7cec6a3d1414d6f319e7fdad8894ebf610d97e9bb859e5c27a76be0a220e7a2b",
+            "ref": "ART-acceptance-order"
+          }
+        ],
+        "supersedes": []
+      },
+      {
+        "claimRefs": [
+          "CLAIM-resume-operational"
+        ],
+        "dependencies": [],
+        "evidenceId": "EVD-resume-current",
+        "fingerprint": "sha256:7225072b70b63d0cc0c80fb376b4ca0b3184ec59ee406c7ee120fae536339fbb",
+        "gateRef": "GATE-resume-check",
+        "result": "passed",
+        "storedFingerprint": "sha256:7225072b70b63d0cc0c80fb376b4ca0b3184ec59ee406c7ee120fae536339fbb",
+        "subjects": [
+          {
+            "digest": "sha256:2947061754cbe067b00edc4b7b47c794521698c8fcd60d3b8be2ca7cec6454c7",
+            "ref": "ART-resume"
+          }
+        ],
+        "supersedes": []
+      },
+      {
+        "claimRefs": [
+          "CLAIM-security-denial"
+        ],
+        "dependencies": [],
+        "evidenceId": "EVD-security-denial-initial",
+        "fingerprint": "sha256:0828bc070b653a54402655aca4000ac24f2808a63e1cb37fd84c6e623dc42ddb",
+        "gateRef": "GATE-security-denial",
+        "result": "passed",
+        "storedFingerprint": "sha256:0828bc070b653a54402655aca4000ac24f2808a63e1cb37fd84c6e623dc42ddb",
+        "subjects": [
+          {
+            "digest": "sha256:bfc2a45f04abb39d88b4357008dbb0ad3cbe859e2384b79e1e0b77ce3cee7ecc",
+            "ref": "ART-security-audit"
+          }
+        ],
+        "supersedes": []
+      }
+    ],
+    "reusedEvidenceRefs": [
+      "EVD-acceptance-order-current",
+      "EVD-resume-current",
+      "EVD-security-denial-initial"
+    ],
+    "secondGateCount": 6,
+    "secondSelectedGateRefs": [
+      "GATE-acceptance-contract",
+      "GATE-doc-health-l1",
+      "GATE-goal-completion",
+      "GATE-repair-boundary",
+      "GATE-security-denial",
+      "GATE-selective-reverify"
+    ],
+    "selectedFewerThanFull": true,
+    "staleCompletionRejected": true,
+    "staleCompletionResult": {
+      "complete": false,
+      "missingClaimRefs": [],
+      "nonCurrentEvidenceRefs": [
+        "EVD-doc-health-repaired",
+        "EVD-goal-completion-final",
+        "EVD-repair-boundary-current",
+        "EVD-selective-reverify-current"
+      ],
+      "openDefectRefs": [],
+      "uncoveredClaimRefs": [
+        "CLAIM-defect-repair-functional",
+        "CLAIM-goal-completion",
+        "CLAIM-repair-boundary-governance",
+        "CLAIM-selective-reverification"
+      ]
+    },
+    "staleEvidenceRefs": [
+      "EVD-doc-health-initial"
+    ]
+  }
+}

@@ -179,6 +179,13 @@ Exercise task inspect.
 
 
 class CliTests(unittest.TestCase):
+    def test_default_help_hides_legacy_workflow_group(self) -> None:
+        help_text = cli._build_parser().format_help()
+
+        self.assertIn("fixture", help_text)
+        self.assertIn("evidence-gate", help_text)
+        self.assertNotIn("workflow", help_text)
+
     def test_workflow_validate_reports_request_summary(self) -> None:
         code, payload, _ = _run_cli(
             ["workflow", "validate", str(ROOT / "examples/workflow_runs/fixtures/standard-task.yaml")]

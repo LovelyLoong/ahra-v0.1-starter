@@ -21,20 +21,21 @@ tags: [architecture]
 | Concept | Purpose |
 |---|---|
 | [Architecture authority map](authority-map.md) | Single active owner for each live dynamic-kernel architecture concept |
-| [Governed dynamic Agent kernel](dynamic-agent-kernel.md) | Target acceptance-first dynamic execution architecture |
+| [Framework entrypoints](framework-entrypoints.md) | Current CLI plus dynamic-kernel Skill operation path |
+| [Component inventory](component-inventory.json) | Current component lifecycle and default exposure inventory |
+| [Governed dynamic Agent kernel](dynamic-agent-kernel.md) | Acceptance-first dynamic execution architecture for the current fixture-scoped path |
 | [Verification system v2](verification-system.md) | Claim, Gate, Evidence validity, Defect, and selective reverification model |
 | [PlanDraft and PlanIR](plan-ir.md) | Planner output boundary, trusted compilation, executable DAG, and validation rules |
 | [Repository consolidation](repository-consolidation.md) | Component disposition and default-path cleanup rules |
 
-## Current Compatibility Path
+## Legacy Compatibility And Trace
 
 | Concept | Purpose |
 |---|---|
-| [Framework entrypoints](framework-entrypoints.md) | Current CLI plus Skill operation path and MCP deprecation |
 | [Agent workflow foundation](agent-workflow-foundation.md) | Project positioning as a complete Agent workflow and work-governance foundation |
-| [Workflow modules](workflow-modules.md) | Concrete workflow implementations plugged into the AHRA template |
-| [Agent drivers and workflow invocation](agent-drivers-and-workflow-invocation.md) | Agent-neutral driver adapters and stable workflow launch requests |
-| [Reference runtime adapters and MCP](reference-runtime-adapters-and-mcp.md) | Codex Python SDK driver, resume requests, and legacy MCP entrypoint |
+| [Workflow modules](workflow-modules.md) | Legacy workflow module contracts retained for compatibility trace |
+| [Agent drivers and workflow invocation](agent-drivers-and-workflow-invocation.md) | Legacy workflow launch and adapter model retained for compatibility trace |
+| [Reference runtime adapters and MCP](reference-runtime-adapters-and-mcp.md) | Optional adapter notes and legacy MCP entrypoint |
 | [EvidenceGate](evidence-gate.md) | Verifier-side completion gate for acceptance criteria and evidence |
 | [ApprovalService](approval-service.md) | Scoped approval records for risky actions without requiring a human-facing UI |
 | [Observability and Evaluation](observability-and-evaluation.md) | Minimal local trace, audit, cost, replay, and eval records |

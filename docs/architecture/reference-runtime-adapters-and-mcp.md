@@ -181,16 +181,19 @@ separation checks.
 
 The preferred route is CLI plus Skill.
 
-# Agent Operation
+# Legacy Agent Operation
 
-An agent should prefer this order:
+For the current default path, use `framework-entrypoints.md` and
+`skills/ahra-dynamic-kernel/SKILL.md`.
+
+For an explicit legacy workflow compatibility request, an agent should use this
+order:
 
 1. Load the local AHRA workflow-runner skill.
 2. Validate the request schema.
 3. Load workflow modules.
 4. Resolve driver adapters.
-5. Start or resume through `uv run ahra workflow start` or
-   `uv run ahra workflow resume`.
+5. Start or resume through the hidden legacy workflow compatibility CLI group.
 6. When a task is in review, inspect AWKP task state and invoke EvidenceGate
    with a verifier report.
 7. Report factual run status and artifact/evidence locations.

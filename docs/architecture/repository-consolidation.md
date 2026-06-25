@@ -65,24 +65,31 @@ components:
 
 A linter should reject an unclassified default entrypoint or a `core` component lacking owner/tests/consumer.
 
-# Proposed disposition
+# Current disposition
 
-| Area | Initial disposition | Migration action |
+| Area | Current disposition | Migration action |
 |---|---|---|
-| AWKP task/state/event/artifact/evidence | Core | Preserve and adapt to Goal/Claim objects |
-| EvidenceGate | Core, refactor | Add Claim coverage and Evidence validity |
-| standard-harness | Core primitive, refactor | Rename/repackage as bounded_task executor |
-| loop-engineering | Legacy | Freeze; no features; remove after replacement |
-| WorkflowModuleRegistry | Legacy/refactor candidate | Replace with Node/Gate/Planner registries |
-| reference_runner invocation | Transitional | Split into Goal/Plan services and compatibility CLI |
-| RunService/CAS/Lease | Core candidate | Wire to real execution path or remove duplicate store |
-| ContextBuilder | Core candidate | Require in Planner/Executor/Verifier request building |
-| MemoryService | Experimental | Move out of default path until a concrete Goal use exists |
-| ReferencePolicyEngine | Core candidate | Connect to capability admission and runtime gateway |
-| MCP server | Legacy/removal candidate | Remove default script; optional package only if demanded |
-| demo.py | Example | Move to examples; must not imply production wiring |
-| duplicate architecture docs | Archived/superseded | One active authority per concept |
-| completed work tasks | Archived | Exclude from normal Agent context, preserve events |
+| AWKP task/state/event/artifact/evidence | Core | Preserved as task completion and audit authority |
+| EvidenceGate | Core | Remains verifier-side AWKP completion gate |
+| Goal/Claim/Gate contracts | Core | Current dynamic-kernel acceptance boundary |
+| Evidence v2/Defect/selective reverification | Core | Current verification and completion boundary |
+| PlanDraft/PlanIR/compiler/validator | Core | Current trusted execution boundary |
+| Capability Admission/Gateway | Core | Current default-deny side-effect boundary |
+| PlanExecution/NodeRun/Scheduler | Core | Current PlanIR execution path with lease, budget, deadline and checkpoint semantics |
+| bounded_task executor | Selected adapter | Implements NodeExecutor behind the dynamic scheduler |
+| fixture planner | Selected fixture adapter | Fixture-only planner adapter; still compiled and admitted before execution |
+| standard-harness | Legacy | Frozen compatibility module; not default-visible |
+| loop-engineering | Legacy | Frozen compatibility module; not default-visible |
+| WorkflowModuleRegistry | Legacy | Retained for explicit compatibility requests only |
+| reference_runner invocation | Legacy | Hidden compatibility CLI path only |
+| RunService/CAS/Lease | Core support | Retained for Run and lease semantics; PlanExecutionService owns PlanIR execution state |
+| ContextBuilder | Core | Used by planner request construction and fixture runtime |
+| MemoryService | Experimental | Not default until a concrete Goal use is admitted |
+| ReferencePolicyEngine | Core | Supplies policy decisions used by capability admission |
+| MCP server | Legacy | Default console script removed; direct import retained for regression trace |
+| demo.py | Experimental/example | Default console script and Makefile target removed |
+| duplicate architecture docs | Archived/superseded | One active authority per concept through authority map |
+| completed work tasks | Archived | Excluded from normal Agent context, preserved for trace |
 
 # Removal procedure
 

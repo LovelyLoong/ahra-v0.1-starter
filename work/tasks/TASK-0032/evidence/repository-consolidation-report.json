@@ -1,0 +1,139 @@
+{
+  "schema_version": "ahra/repository-consolidation-report/0.1",
+  "task_id": "TASK-0032",
+  "generated_at": "2026-06-25T16:34:23.284719Z",
+  "summary": "Repository default exposure was consolidated around the dynamic-kernel fixture path. Legacy workflow, MCP, demo, and fake-driver paths remain traceable but are no longer default-visible.",
+  "authoritative_runtime_path": [
+    "GoalContract",
+    "ClaimGraph",
+    "GatePlan",
+    "PlanDraft",
+    "PlanIR",
+    "PlanExecutionService",
+    "StaticPlanIRScheduler",
+    "CapabilityAdmissionService",
+    "CapabilityGateway",
+    "NodeExecutor",
+    "Artifact",
+    "Evidence v2",
+    "Defect",
+    "SelectiveReverification",
+    "GoalCompletionService",
+    "EvidenceGate"
+  ],
+  "default_entrypoints": [
+    "ahra fixture dynamic-repair",
+    "ahra task inspect",
+    "ahra evidence-gate evaluate",
+    "ahra doctor",
+    "scripts/check.py",
+    "scripts/check.py --lint",
+    "scripts/check.py --test",
+    "git diff --check"
+  ],
+  "legacy_quarantine": [
+    {
+      "id": "legacy-workflow-cli",
+      "paths": [
+        "src/ahra/cli.py",
+        "src/ahra/reference_runner/",
+        "examples/workflow_runs/"
+      ],
+      "compatibility_scope": "Explicit hidden CLI compatibility for historical WorkflowRunRequest and WorkflowResumeRequest files.",
+      "removal_trigger": "Remove after a non-fixture Goal operation CLI replaces formal AWKP workflow runs or when a cleanup proves no external consumer remains."
+    },
+    {
+      "id": "mcp-server",
+      "paths": [
+        "src/ahra/mcp_server.py"
+      ],
+      "compatibility_scope": "Direct import and regression tests only; no default console script.",
+      "removal_trigger": "Delete or package separately if no external MCP consumer is declared before the next release boundary."
+    },
+    {
+      "id": "demo-py",
+      "paths": [
+        "src/ahra/demo.py"
+      ],
+      "compatibility_scope": "Example-only code; no pyproject console script, no Makefile target, and no default docs dependency.",
+      "removal_trigger": "Move under examples/ or delete when dynamic-kernel examples replace it."
+    },
+    {
+      "id": "standard-harness-loop-engineering",
+      "paths": [
+        "src/ahra/reference_runner/standard_harness.py",
+        "src/ahra/reference_runner/loop_engineering.py",
+        "examples/workflow_modules/"
+      ],
+      "compatibility_scope": "Frozen legacy workflow modules retained for regression and migration trace.",
+      "removal_trigger": "Remove or move to an optional package after dynamic Goal execution covers formal task and goal operation."
+    }
+  ],
+  "implemented_changes": [
+    "Added docs/architecture/component-inventory.json with core, adapter, legacy, experimental, and archived classifications.",
+    "Published work/tasks/TASK-0032/evidence/component-inventory.json as the task-local artifact snapshot for EvidenceGate local:// URI validation.",
+    "Added skills/ahra-dynamic-kernel/SKILL.md as the current default operation Skill.",
+    "Changed skills/ahra-workflow-runner/SKILL.md to an explicit legacy compatibility Skill.",
+    "Updated README.md, AGENTS.md, framework-entrypoints.md, authority-map.md, architecture index, repository-consolidation.md, workflow module docs, and legacy adapter docs to remove contradictory default-route claims.",
+    "Removed ahra-mcp and ahra-demo from pyproject console scripts.",
+    "Removed Makefile demo target.",
+    "Made the legacy workflow CLI group hidden from default ahra help unless explicitly requested.",
+    "Lazy-loaded reference_runner and Codex SDK adapter dependencies so default ahra fixture/task/evidence-gate/doctor commands do not import legacy workflow code.",
+    "Added scripts/lint_contracts.py checks for default exposure and component inventory lifecycle requirements.",
+    "Added tests/test_repository_consolidation.py migration tests."
+  ],
+  "acceptance_mapping": {
+    "AC1_default_visible_components_classified": [
+      "docs/architecture/component-inventory.json",
+      "work/tasks/TASK-0032/evidence/component-inventory.json",
+      "scripts/lint_contracts.py",
+      "tests/test_repository_consolidation.py"
+    ],
+    "AC2_no_default_dependency_on_legacy_paths": [
+      "pyproject.toml",
+      "Makefile",
+      "src/ahra/cli.py",
+      "scripts/lint_contracts.py",
+      "tests/test_repository_consolidation.py"
+    ],
+    "AC3_legacy_capabilities_have_scope_owner_trigger": [
+      "docs/architecture/component-inventory.json",
+      "work/tasks/TASK-0032/evidence/repository-consolidation-report.json"
+    ],
+    "AC4_one_authoritative_runtime_path": [
+      "src/ahra/dynamic_fixture.py",
+      "work/tasks/TASK-0032/evidence/dynamic-fixture-command-report.json",
+      "docs/architecture/framework-entrypoints.md"
+    ],
+    "AC5_no_contradictory_default_route_docs": [
+      "README.md",
+      "AGENTS.md",
+      "docs/architecture/framework-entrypoints.md",
+      "docs/architecture/authority-map.md",
+      "scripts/lint_contracts.py"
+    ],
+    "AC6_archive_excluded_but_traceable": [
+      "AGENTS.md",
+      "work/index.md",
+      "docs/architecture/framework-entrypoints.md",
+      "docs/architecture/component-inventory.json"
+    ],
+    "AC7_checks_and_migration_tests": [
+      "work/tasks/TASK-0032/evidence/verification-report.json"
+    ],
+    "AC8_no_unowned_untested_core": [
+      "docs/architecture/component-inventory.json",
+      "tests/test_repository_consolidation.py",
+      "scripts/lint_contracts.py"
+    ]
+  },
+  "known_limits": [
+    "The default dynamic runtime path is still fixture-scoped and does not claim production-grade general orchestration.",
+    "Legacy workflow and MCP code are retained for trace and tests rather than deleted in this task."
+  ],
+  "hashes": {
+    "docs/architecture/component-inventory.json": "sha256:ba3f4ecc2c4a859f2e86d63d222093353b0926544e3c38d6da8e58ee95452ecd",
+    "work/tasks/TASK-0032/evidence/component-inventory.json": "sha256:ba3f4ecc2c4a859f2e86d63d222093353b0926544e3c38d6da8e58ee95452ecd",
+    "work/tasks/TASK-0032/evidence/dynamic-fixture-command-report.json": "sha256:e527b4969158da0c2fd0d04710aa643458bf0b6217a7eafa7bb19e535ac9b4d7"
+  }
+}

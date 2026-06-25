@@ -1,5 +1,69 @@
 {
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0032",
-  "evidence": []
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0032-0001",
+      "task_id": "TASK-0032",
+      "kind": "dynamic_fixture_command_report",
+      "name": "dynamic-fixture-command-report.json",
+      "uri": "local://evidence/dynamic-fixture-command-report.json",
+      "sha256": "e527b4969158da0c2fd0d04710aa643458bf0b6217a7eafa7bb19e535ac9b4d7",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T16:19:15.889392Z",
+      "refs": [
+        "ART-TASK-0032-0002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0032-0002",
+      "task_id": "TASK-0032",
+      "kind": "repository_consolidation_report",
+      "name": "repository-consolidation-report.json",
+      "uri": "local://evidence/repository-consolidation-report.json",
+      "sha256": "22acf6a4b5915f245ab615b61806c7e2e5e3663ec9274d464baf92029503e72c",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T16:19:15.889392Z",
+      "refs": [
+        "ART-TASK-0032-0001",
+        "ART-TASK-0032-0002",
+        "EVD-TASK-0032-0001"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0032-0003",
+      "task_id": "TASK-0032",
+      "kind": "verification_report",
+      "name": "verification-report.json",
+      "uri": "local://evidence/verification-report.json",
+      "sha256": "a9fc93ce7b99ad09e4d5299029f4e8d66d9da29b2ccc0d6c90b1faf3e7bd3e41",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T16:19:15.889392Z",
+      "refs": [
+        "ART-TASK-0032-HANDOFF-0001",
+        "EVD-TASK-0032-0001",
+        "EVD-TASK-0032-0002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0032-0004",
+      "task_id": "TASK-0032",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-6.json",
+      "uri": "local://evidence/evidence-gate-report-6.json",
+      "sha256": "5442fd98c3cb2afdb9bbaf32d5059f754c176cf1fdff878548e5a3424e5ecb17",
+      "media_type": "application/json",
+      "created_by": "agent:codex-independent-evidencegate-task0032",
+      "created_at": "2026-06-25T16:42:08.449457Z",
+      "refs": [
+        "ART-TASK-0032-0003",
+        "EVD-TASK-0032-0001",
+        "EVD-TASK-0032-0002",
+        "EVD-TASK-0032-0003"
+      ]
+    }
+  ]
 }
