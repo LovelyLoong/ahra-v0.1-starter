@@ -20,6 +20,7 @@ from .evidence_v2 import (
     EvidenceV2,
     LegacyEvidenceRecord,
 )
+from .plan_ir import PlanIR, PlanValidationReport
 from .verification import (
     CompletionGateResult,
     DefectRecord,
@@ -251,6 +252,11 @@ class VerificationServicePort(Protocol):
     def select(self, trigger: VerificationTrigger) -> VerificationSelection: ...
     def complete(self, trigger: VerificationTrigger | None = None) -> CompletionGateResult: ...
     def defects(self) -> tuple[DefectRecord, ...]: ...
+
+
+@runtime_checkable
+class SchedulerPort(Protocol):
+    def submit_plan(self, plan: PlanIR, validation_report: PlanValidationReport) -> str: ...
 
 
 @runtime_checkable

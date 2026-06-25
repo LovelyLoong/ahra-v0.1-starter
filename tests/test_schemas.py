@@ -38,6 +38,10 @@ class SchemaTests(unittest.TestCase):
         ("examples/records/verification-selection.json", "contracts/schemas/verification-selection.schema.json"),
         ("examples/records/verification-result.json", "contracts/schemas/verification-result.schema.json"),
         ("examples/records/defect-record.json", "contracts/schemas/defect-record.schema.json"),
+        ("examples/records/plan-draft.json", "contracts/schemas/plan-draft.schema.json"),
+        ("examples/records/plan-ir.json", "contracts/schemas/plan-ir.schema.json"),
+        ("examples/records/plan-patch.json", "contracts/schemas/plan-patch.schema.json"),
+        ("examples/records/plan-validation-report.json", "contracts/schemas/plan-validation-report.schema.json"),
     ]
 
     def test_examples_validate(self) -> None:

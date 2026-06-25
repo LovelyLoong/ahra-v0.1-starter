@@ -1,0 +1,42 @@
+{
+    "schema_version":  "ahra/verification-report/0.1",
+    "task_id":  "TASK-0026",
+    "evidence_id":  "EVD-TASK-0026-0003",
+    "created_by":  "agent:codex-dynamic-kernel-operator",
+    "created_at":  "2026-06-25T17:24:12+08:00",
+    "commands":  [
+                     {
+                         "command":  "uv run python -B scripts/check.py",
+                         "status":  "passed",
+                         "summary":  "Full repository check passed; 107 unittest cases OK; contract and AWKP lint embedded in check passed."
+                     },
+                     {
+                         "command":  "uv run python -B -m unittest tests.test_plan_ir tests.test_schemas -v",
+                         "status":  "passed",
+                         "summary":  "8 targeted tests OK: PlanIR compiler/validator plus schema examples."
+                     },
+                     {
+                         "command":  "uv run python -B scripts/lint_contracts.py",
+                         "status":  "passed",
+                         "summary":  "0 AHRA lint failures; new Plan schemas/examples included."
+                     },
+                     {
+                         "command":  "uv run python -B scripts/lint_awkp.py",
+                         "status":  "passed",
+                         "summary":  "0 AWKP errors, 0 warnings."
+                     },
+                     {
+                         "command":  "git diff --check",
+                         "status":  "passed",
+                         "summary":  "Exit code 0 before metadata normalization; final no-output run is performed after manifest/state publication."
+                     }
+                 ],
+    "targeted_tests":  [
+                           "canonical equivalent drafts compile to the same digest",
+                           "adversarial draft reports all fail-closed validation classes",
+                           "cycles and unbounded fan-out fail closed",
+                           "PlanPatch creates a new version and parent digest remains unchanged",
+                           "SchedulerPort accepts PlanIR and ports.py has no PlanDraft reference",
+                           "compiled PlanIR validates to a passed PlanValidationReport"
+                       ]
+}

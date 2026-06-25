@@ -1,5 +1,136 @@
 {
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0026",
-  "artifacts": []
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0026-0001",
+      "task_id": "TASK-0026",
+      "kind": "plan_ir_contract_report",
+      "name": "plan-ir-contract-report.json",
+      "uri": "local://evidence/plan-ir-contract-report.json",
+      "sha256": "6975ce901cec19d88b64befa400a2d163cb167b4b99d9effd0a79302986e9392",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T17:24:12+08:00",
+      "input_refs": [
+        "task.md",
+        "docs/architecture/plan-ir.md",
+        "contracts/schemas/plan-draft.schema.json",
+        "contracts/schemas/plan-ir.schema.json",
+        "contracts/schemas/plan-patch.schema.json",
+        "contracts/schemas/plan-validation-report.schema.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0026-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0026-0002",
+      "task_id": "TASK-0026",
+      "kind": "plan_compiler_validator_report",
+      "name": "compiler-validator-report.json",
+      "uri": "local://evidence/compiler-validator-report.json",
+      "sha256": "b541ff84adbe369e6226576329f2857e3d7aef7ecf319d36e421fd559b6855ff",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T17:24:12+08:00",
+      "input_refs": [
+        "src/ahra/plan_ir.py",
+        "src/ahra/ports.py",
+        "tests/test_plan_ir.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0026-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0026-0003",
+      "task_id": "TASK-0026",
+      "kind": "verification_report",
+      "name": "verification-report.json",
+      "uri": "local://evidence/verification-report.json",
+      "sha256": "1cafb9f0056627daaa2eb9a31006b40503faa5951140ee354c26cb18c81e0593",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T17:24:12+08:00",
+      "input_refs": [
+        "scripts/check.py",
+        "scripts/lint_awkp.py",
+        "scripts/lint_contracts.py",
+        "tests/test_plan_ir.py",
+        "tests/test_schemas.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0026-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0026-0004",
+      "task_id": "TASK-0026",
+      "kind": "implementation_report",
+      "name": "implementation-report.json",
+      "uri": "local://evidence/implementation-report.json",
+      "sha256": "6c2260bb3193a2f8b3d88733b49cf49ee17386216369854d60491bce0a6bc31f",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T17:24:12+08:00",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "evidence/plan-ir-contract-report.json",
+        "evidence/compiler-validator-report.json",
+        "evidence/verification-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0026-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0026-HANDOFF-0001",
+      "task_id": "TASK-0026",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "88109b6328eadd33af08473bd8fcdeb4c10fb51c3b6d7a59ce76681c6828ae7b",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T17:24:12+08:00",
+      "input_refs": [
+        "task.md",
+        "evidence/implementation-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0026-0001",
+        "EVD-TASK-0026-0002",
+        "EVD-TASK-0026-0003",
+        "EVD-TASK-0026-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0026-0005",
+      "task_id": "TASK-0026",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-6.json",
+      "uri": "local://evidence/evidence-gate-report-6.json",
+      "sha256": "cb8684176c3fa20b7db8fc5cbcb81d90c7b84f2cb4129e60798d3ff24af6cc91",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-25T09:33:33.631160Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0026-0005"
+      ],
+      "supersedes": null
+    }
+  ]
 }

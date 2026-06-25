@@ -1,0 +1,36 @@
+{
+    "schema_version":  "ahra/plan-compiler-validator-report/0.1",
+    "task_id":  "TASK-0026",
+    "evidence_id":  "EVD-TASK-0026-0002",
+    "created_by":  "agent:codex-dynamic-kernel-operator",
+    "created_at":  "2026-06-25T17:24:12+08:00",
+    "implementation_files":  [
+                                 "src/ahra/plan_ir.py",
+                                 "src/ahra/ports.py",
+                                 "src/ahra/__init__.py"
+                             ],
+    "compiler_capabilities":  [
+                                  "PlanDraft.from_mapping parses model-generated intent without executing it.",
+                                  "compile_plan_draft emits PlanIR only after validation passes.",
+                                  "PlanIR digest uses canonical JSON with sorted deterministic ordering.",
+                                  "compile_plan_patch validates parent digest and emits a new full PlanIR version without mutating the parent.",
+                                  "Capability grants are derived exactly from requests and fail closed when the request is outside the configured Goal scope."
+                              ],
+    "fail_closed_validation":  [
+                                   "duplicate-node-id",
+                                   "cycle-detected",
+                                   "missing-node-ref",
+                                   "unbounded-fan-out",
+                                   "missing-gate-responsibility",
+                                   "uncovered-claim",
+                                   "invalid-budget",
+                                   "mutable-latest-ref",
+                                   "unregistered-node-type",
+                                   "unregistered-gate-ref",
+                                   "unregistered-runtime-ref",
+                                   "unsafe-non-idempotent-retry",
+                                   "missing-terminal-goal-verification",
+                                   "invalid-evidence-output"
+                               ],
+    "validation_report":  "PlanValidationReport.to_dict() emits ahra.dev/v1alpha1 PlanValidationReport records with passed/failed result, subjectRef, subjectDigest, error list, and refs suitable for artifact/evidence manifests."
+}

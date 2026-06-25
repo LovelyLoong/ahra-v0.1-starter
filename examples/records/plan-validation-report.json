@@ -1,0 +1,17 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanValidationReport",
+  "metadata": {
+    "reportId": "PLANVAL-plan-ir-example",
+    "createdBy": "ahra-plan-compiler"
+  },
+  "spec": {
+    "subjectRef": "PLAN-plan-ir-example@v1",
+    "subjectDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "result": "passed",
+    "errors": [],
+    "refs": [
+      "examples/records/plan-ir.json"
+    ]
+  }
+}

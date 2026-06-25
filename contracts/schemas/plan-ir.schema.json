@@ -1,0 +1,368 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/plan-ir.v1alpha1.json",
+  "title": "AHRA PlanIR",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[A-Za-z0-9_.-]+$": {}
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "PlanIR"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planId",
+        "version",
+        "digest"
+      ],
+      "properties": {
+        "planId": {
+          "$ref": "#/$defs/planRef"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goalRef",
+        "goalDigest",
+        "claimGraphDigest",
+        "nodes",
+        "edges",
+        "compilerVersion"
+      ],
+      "properties": {
+        "goalRef": {
+          "$ref": "#/$defs/goalRef"
+        },
+        "goalDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "claimGraphDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/planNodeIr"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/edge"
+          }
+        },
+        "compilerVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parentPlanDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "validationReportRef": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxModelCalls",
+        "maxToolCalls",
+        "maxSpawnedNodes"
+      ],
+      "properties": {
+        "maxModelCalls": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxToolCalls": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxSpawnedNodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxWallSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxCostUsd": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "capabilityGrant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability",
+        "resources",
+        "grantDigest"
+      ],
+      "properties": {
+        "capability": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resources": {
+          "$ref": "#/$defs/stringList"
+        },
+        "grantDigest": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    },
+    "claimRef": {
+      "type": "string",
+      "pattern": "^CLAIM-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceNodeRef",
+        "targetNodeRef"
+      ],
+      "properties": {
+        "sourceNodeRef": {
+          "$ref": "#/$defs/nodeRef"
+        },
+        "targetNodeRef": {
+          "$ref": "#/$defs/nodeRef"
+        }
+      }
+    },
+    "gateRef": {
+      "type": "string",
+      "pattern": "^GATE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "goalRef": {
+      "type": "string",
+      "pattern": "^GOAL-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "nodeRef": {
+      "type": "string",
+      "pattern": "^NODE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "schemaRef",
+        "consumerNodeRefs",
+        "artifactRequired"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "schemaRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "consumerNodeRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nodeRef"
+          }
+        },
+        "deliveryRole": {
+          "enum": [
+            "artifact",
+            "evidence",
+            "handoff",
+            "terminal"
+          ]
+        },
+        "artifactRequired": {
+          "type": "boolean"
+        }
+      }
+    },
+    "planNodeIr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "nodeType",
+        "objective",
+        "claimRefs",
+        "dependsOn",
+        "inputRefs",
+        "expectedOutputs",
+        "capabilityGrants",
+        "gateRefs",
+        "gateDigests",
+        "runtimeRef",
+        "runtimeDigest",
+        "budget",
+        "retryPolicy",
+        "sideEffect",
+        "terminalGoalVerification",
+        "canonicalOrder"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nodeRef"
+        },
+        "nodeType": {
+          "enum": [
+            "bounded_task",
+            "gate_verification",
+            "goal_verification",
+            "repair"
+          ]
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claimRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/claimRef"
+          }
+        },
+        "dependsOn": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nodeRef"
+          }
+        },
+        "inputRefs": {
+          "$ref": "#/$defs/stringList"
+        },
+        "expectedOutputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/output"
+          }
+        },
+        "capabilityGrants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/capabilityGrant"
+          }
+        },
+        "gateRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/gateRef"
+          }
+        },
+        "gateDigests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/digest"
+          }
+        },
+        "runtimeRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtimeDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "budget": {
+          "$ref": "#/$defs/budget"
+        },
+        "retryPolicy": {
+          "$ref": "#/$defs/retryPolicy"
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "compensationRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sideEffect": {
+          "enum": [
+            "idempotent",
+            "non_idempotent"
+          ]
+        },
+        "terminalGoalVerification": {
+          "type": "boolean"
+        },
+        "canonicalOrder": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "planRef": {
+      "type": "string",
+      "pattern": "^PLAN-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "retryPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxAttempts",
+        "retryableFailureClasses",
+        "idempotencyKeyRequired"
+      ],
+      "properties": {
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "retryableFailureClasses": {
+          "$ref": "#/$defs/stringList"
+        },
+        "idempotencyKeyRequired": {
+          "type": "boolean"
+        }
+      }
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanDraft",
+  "metadata": {
+    "goalId": "GOAL-plan-ir",
+    "proposedBy": "REL-planner@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "spec": {
+    "rationale": "Compile implementation, validation, and terminal review as finite typed nodes.",
+    "nodes": [
+      {
+        "id": "NODE-implement-plan-compiler",
+        "nodeType": "bounded_task",
+        "objective": "Implement deterministic PlanDraft to PlanIR compilation.",
+        "claimRefs": [
+          "CLAIM-plan-compiler-deterministic"
+        ],
+        "dependsOn": [],
+        "inputRefs": [
+          "docs/architecture/plan-ir.md@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        "expectedOutputs": [
+          {
+            "name": "compiler-change",
+            "schemaRef": "ahra/artifact/code-change/0.1",
+            "consumerNodeRefs": [
+              "NODE-run-plan-validation-tests"
+            ],
+            "artifactRequired": true
+          }
+        ],
+        "capabilityRequests": [
+          {
+            "capability": "filesystem.write",
+            "resources": [
+              "src/ahra/plan_ir.py",
+              "tests/test_plan_ir.py"
+            ]
+          }
+        ],
+        "gateRefs": [
+          "GATE-plan-unit"
+        ],
+        "runtimeRef": "runtime/local-worktree@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "budgetRequest": {
+          "maxModelCalls": 20,
+          "maxToolCalls": 80,
+          "maxSpawnedNodes": 0,
+          "maxWallSeconds": 1200
+        },
+        "retryPolicy": {
+          "maxAttempts": 1,
+          "retryableFailureClasses": [],
+          "idempotencyKeyRequired": false
+        },
+        "timeoutSeconds": 900,
+        "sideEffect": "idempotent"
+      },
+      {
+        "id": "NODE-run-plan-validation-tests",
+        "nodeType": "gate_verification",
+        "objective": "Run schema, adversarial validation, and digest determinism tests.",
+        "claimRefs": [
+          "CLAIM-plan-validation-fail-closed"
+        ],
+        "dependsOn": [
+          "NODE-implement-plan-compiler"
+        ],
+        "inputRefs": [
+          "src/ahra/plan_ir.py@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        ],
+        "expectedOutputs": [
+          {
+            "name": "validation-test-report",
+            "schemaRef": "ahra/plan-validation-report/0.1",
+            "consumerNodeRefs": [
+              "NODE-terminal-goal-verification"
+            ],
+            "artifactRequired": true
+          }
+        ],
+        "capabilityRequests": [
+          {
+            "capability": "process.exec",
+            "resources": [
+              "uv run python -B -m unittest tests.test_plan_ir -v"
+            ]
+          }
+        ],
+        "gateRefs": [
+          "GATE-plan-tests"
+        ],
+        "runtimeRef": "runtime/local-worktree@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "budgetRequest": {
+          "maxModelCalls": 5,
+          "maxToolCalls": 30,
+          "maxSpawnedNodes": 0,
+          "maxWallSeconds": 600
+        },
+        "retryPolicy": {
+          "maxAttempts": 2,
+          "retryableFailureClasses": [
+            "transient_process_failure"
+          ],
+          "idempotencyKeyRequired": true
+        },
+        "timeoutSeconds": 600,
+        "sideEffect": "idempotent"
+      },
+      {
+        "id": "NODE-terminal-goal-verification",
+        "nodeType": "goal_verification",
+        "objective": "Verify every required Claim is covered before Scheduler admission.",
+        "claimRefs": [
+          "CLAIM-plan-compiler-deterministic",
+          "CLAIM-plan-validation-fail-closed"
+        ],
+        "dependsOn": [
+          "NODE-run-plan-validation-tests"
+        ],
+        "inputRefs": [
+          "examples/records/plan-validation-report.json@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        ],
+        "expectedOutputs": [
+          {
+            "name": "terminal-validation-report",
+            "schemaRef": "ahra/plan-validation-report/0.1",
+            "consumerNodeRefs": [],
+            "deliveryRole": "evidence",
+            "artifactRequired": true
+          }
+        ],
+        "capabilityRequests": [],
+        "gateRefs": [
+          "GATE-goal-plan-review"
+        ],
+        "runtimeRef": "runtime/local-worktree@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "budgetRequest": {
+          "maxModelCalls": 2,
+          "maxToolCalls": 10,
+          "maxSpawnedNodes": 0,
+          "maxWallSeconds": 300
+        },
+        "retryPolicy": {
+          "maxAttempts": 1,
+          "retryableFailureClasses": [],
+          "idempotencyKeyRequired": false
+        },
+        "timeoutSeconds": 300,
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true
+      }
+    ]
+  }
+}

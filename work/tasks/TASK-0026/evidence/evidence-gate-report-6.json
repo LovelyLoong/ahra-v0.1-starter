@@ -1,0 +1,111 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0026",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-25T09:33:33.631160Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier reviewed TASK-0026 PlanDraft-to-PlanIR implementation. The Scheduler boundary accepts PlanIR only, invalid plans fail closed, canonical digests are deterministic, PlanPatch creates a new version without parent mutation, PlanValidationReport is schema-backed and artifact-addressable, and domain/compiler code has no concrete model or workflow SDK imports.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "The Scheduler-facing API accepts PlanIR only and cannot receive PlanDraft.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0026-0001",
+        "EVD-TASK-0026-0002",
+        "EVD-TASK-0026-0003"
+      ],
+      "notes": "ports.py exposes SchedulerPort.submit_plan(plan: PlanIR, validation_report: PlanValidationReport) and contains no PlanDraft reference; targeted test test_scheduler_port_accepts_plan_ir_not_plan_draft passed."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Cycles, missing refs, duplicate IDs, unbounded fan-out, absent Gate responsibility, uncovered Claims, invalid budgets and mutable latest refs fail closed.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0026-0002",
+        "EVD-TASK-0026-0003"
+      ],
+      "notes": "compile_plan_draft returns plan=None on validation errors. Tests and verifier probe covered cycles, missing refs, duplicate IDs, unbounded fan-out, missing Gate responsibility, uncovered Claims, invalid budgets, and mutable latest refs."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Canonical equivalent drafts compile to the same PlanIR digest.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0026-0002",
+        "EVD-TASK-0026-0003"
+      ],
+      "notes": "PlanIR digest uses canonical JSON via canonical_fingerprint and canonical node ordering; targeted digest determinism test passed."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "A PlanPatch creates a new plan version and cannot mutate the parent.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0026-0002",
+        "EVD-TASK-0026-0003"
+      ],
+      "notes": "compile_plan_patch checks parent digest, emits parent.version + 1 with parent_plan_digest, and leaves the parent digest unchanged; targeted patch immutability test passed."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Validation reports are Artifacts suitable for Evidence references.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0026-0001",
+        "EVD-TASK-0026-0002",
+        "EVD-TASK-0026-0004"
+      ],
+      "notes": "PlanValidationReport has a contract schema/example, to_dict emits subjectRef, subjectDigest, result, errors, and refs, and the evidence manifests hash-address the report artifacts."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Domain/compiler code imports no concrete model or workflow SDK.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0026-0002",
+        "EVD-TASK-0026-0003"
+      ],
+      "notes": "src/ahra/plan_ir.py imports only stdlib and canonical_fingerprint; lint_contracts includes plan_ir.py and ports.py in forbidden SDK import scanning."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_plan_ir tests.test_schemas -v",
+      "status": "passed",
+      "summary": "8 targeted tests OK."
+    },
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "status": "passed",
+      "summary": "0 AHRA lint failures; Plan schemas/examples validated."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "summary": "0 AWKP errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "TASK-0026 manifest SHA256 audit",
+      "status": "passed",
+      "summary": "9 artifact/evidence records matched local SHA-256 values."
+    },
+    {
+      "command": "independent duplicate-node PlanIR probe",
+      "status": "passed",
+      "summary": "Duplicate node ID returned plan=None and included duplicate-node-id in validation errors; valid fixture compiled to a passed report."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "summary": "Full repository check passed; 107 unittest cases OK."
+    }
+  ]
+}

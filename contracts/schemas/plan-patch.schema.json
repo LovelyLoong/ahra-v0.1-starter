@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/plan-patch.v1alpha1.json",
+  "title": "AHRA PlanPatchDraft",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[A-Za-z0-9_.-]+$": {}
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "PlanPatchDraft"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parentPlanDigest"
+      ],
+      "properties": {
+        "parentPlanDigest": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parentPlanDigest",
+        "defectRefs",
+        "supersedeNodeRefs",
+        "addNodes"
+      ],
+      "properties": {
+        "parentPlanDigest": {
+          "$ref": "#/$defs/digest"
+        },
+        "defectRefs": {
+          "$ref": "#/$defs/stringList"
+        },
+        "supersedeNodeRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nodeRef"
+          }
+        },
+        "unchangedNodeRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nodeRef"
+          }
+        },
+        "addNodes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "nodeRef": {
+      "type": "string",
+      "pattern": "^NODE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}
