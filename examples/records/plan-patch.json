@@ -16,6 +16,9 @@
     "unchangedNodeRefs": [
       "NODE-implement-plan-compiler"
     ],
+    "reusedEvidenceRefs": [
+      "EVD-plan-compiler-existing"
+    ],
     "addNodes": [
       {
         "id": "NODE-run-plan-validation-tests",

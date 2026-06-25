@@ -9,6 +9,8 @@ from ahra.ports import AgentDriver, AgentOutputContractError, AgentRole, AgentRu
 from ahra.reference_runner.models import to_jsonable
 from ahra.reference_runner.output_contracts import parse_reference_output
 
+PLANNER_STRUCTURED_OUTPUTS = {"AcceptanceDraft", "PlanDraft", "PlanPatchDraft"}
+
 
 class CodexClient(Protocol):
     async def run(
@@ -96,6 +98,12 @@ class CodexSDKDriver(AgentDriver):
             cwd=request.workspace_ref,
         )
         data = _load_json_object(raw, request.expected_output)
+        if request.expected_output in PLANNER_STRUCTURED_OUTPUTS and request.output_contract is None:
+            raise AgentOutputContractError(
+                request.expected_output,
+                "explicit output contract is required for planner structured outputs",
+                raw_output=raw,
+            )
         if request.output_contract is not None:
             validate_agent_output(request.output_contract, data, raw_output=raw)
         try:

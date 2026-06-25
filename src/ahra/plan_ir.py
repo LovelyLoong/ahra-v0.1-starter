@@ -395,6 +395,7 @@ class PlanPatchDraft:
     supersede_node_refs: tuple[str, ...]
     add_nodes: tuple[PlanNodeDraft, ...]
     unchanged_node_refs: tuple[str, ...] = ()
+    reused_evidence_refs: tuple[str, ...] = ()
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, Any]) -> "PlanPatchDraft":
@@ -405,6 +406,7 @@ class PlanPatchDraft:
             defect_refs=tuple(sorted(str(item) for item in spec.get("defectRefs", ()))),
             supersede_node_refs=tuple(sorted(str(item) for item in spec.get("supersedeNodeRefs", ()))),
             unchanged_node_refs=tuple(sorted(str(item) for item in spec.get("unchangedNodeRefs", ()))),
+            reused_evidence_refs=tuple(sorted(str(item) for item in spec.get("reusedEvidenceRefs", ()))),
             add_nodes=tuple(PlanNodeDraft.from_mapping(_mapping(item)) for item in spec.get("addNodes", ())),
         )
 
@@ -418,6 +420,7 @@ class PlanPatchDraft:
                 "defectRefs": list(self.defect_refs),
                 "supersedeNodeRefs": list(self.supersede_node_refs),
                 "unchangedNodeRefs": list(self.unchanged_node_refs),
+                "reusedEvidenceRefs": list(self.reused_evidence_refs),
                 "addNodes": [node.to_dict() for node in self.add_nodes],
             },
         }
@@ -483,7 +486,13 @@ def compile_plan_patch(parent: PlanIR, patch: PlanPatchDraft, config: PlanCompil
     if errors:
         return PlanCompilationResult(
             plan=None,
-            report=_report("PLANPATCH-invalid", "PlanPatchDraft", None, errors, refs=patch.defect_refs),
+            report=_report(
+                "PLANPATCH-invalid",
+                "PlanPatchDraft",
+                None,
+                errors,
+                refs=tuple(sorted((*patch.defect_refs, *patch.reused_evidence_refs))),
+            ),
         )
 
     draft = PlanDraft(
@@ -498,7 +507,7 @@ def compile_plan_patch(parent: PlanIR, patch: PlanPatchDraft, config: PlanCompil
         version=parent.version + 1,
         parent_plan_digest=parent_digest,
         plan_id_override=parent.plan_id,
-        report_refs=patch.defect_refs,
+        report_refs=tuple(sorted((*patch.defect_refs, *patch.reused_evidence_refs))),
     )
 
 
@@ -668,6 +677,8 @@ def _validate_budget(node: PlanNodeDraft) -> list[PlanValidationError]:
         errors.append(PlanValidationError("invalid-budget", "maxSpawnedNodes must be finite and non-negative", node.node_id))
     if node.budget.max_wall_seconds is not None and node.budget.max_wall_seconds <= 0:
         errors.append(PlanValidationError("invalid-budget", "maxWallSeconds must be positive when present", node.node_id))
+    if node.budget.max_cost_usd is not None and node.budget.max_cost_usd < 0:
+        errors.append(PlanValidationError("invalid-budget", "maxCostUsd must be non-negative when present", node.node_id))
     if node.timeout_seconds is not None:
         if node.timeout_seconds <= 0:
             errors.append(PlanValidationError("invalid-timeout", "timeoutSeconds must be positive", node.node_id))

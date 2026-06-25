@@ -71,6 +71,8 @@ def main() -> int:
         ROOT / "src/ahra/node_executor.py",
         ROOT / "src/ahra/plan_execution.py",
         ROOT / "src/ahra/plan_ir.py",
+        ROOT / "src/ahra/planner_contracts.py",
+        ROOT / "src/ahra/planning.py",
         ROOT / "src/ahra/ports.py",
         ROOT / "src/ahra/validation.py",
         ROOT / "src/ahra/verification.py",

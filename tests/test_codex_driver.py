@@ -7,6 +7,7 @@ import types
 import unittest
 
 from ahra.adapters import CodexDriverConfig, CodexSDKClient, CodexSDKDriver
+from ahra.planning import plan_draft_output_contract
 from ahra.ports import AgentOutputContractError, AgentRole, AgentRunRequest
 from ahra.reference_runner.models import NextStepDecision, PlanAction, WorkReport
 from ahra.reference_runner.output_contracts import output_contract
@@ -99,6 +100,50 @@ class CodexSDKDriverTests(unittest.TestCase):
         self.assertEqual(result.output.action, PlanAction.ADD_TASKS)
         self.assertEqual(result.output.proposed_tasks[0].id, "set-value-3")
         self.assertEqual(client.calls[0]["sandbox"], "read_only")
+
+    def test_plan_draft_response_passes_through_after_contract_validation(self) -> None:
+        draft = {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "PlanDraft",
+            "metadata": {
+                "goalId": "GOAL-plan-ir",
+                "proposedBy": "REL-planner@sha256:" + "a" * 64,
+            },
+            "spec": {"nodes": []},
+        }
+        client = FakeCodexClient({"PlanDraft": json.dumps(draft)})
+        driver = CodexSDKDriver(client=client)
+
+        result = asyncio.run(
+            driver.run(
+                AgentRunRequest(
+                    role=AgentRole.PLANNER,
+                    run_id="RUN-codex-test",
+                    expected_output="PlanDraft",
+                    output_contract=plan_draft_output_contract(),
+                    payload={"contextManifest": {"context_manifest_id": "CTXMAN-test"}},
+                )
+            )
+        )
+
+        self.assertEqual(result.output, draft)
+        self.assertEqual(client.calls[0]["sandbox"], "read_only")
+
+    def test_plan_draft_response_requires_explicit_output_contract(self) -> None:
+        client = FakeCodexClient({"PlanDraft": json.dumps({"kind": "PlanDraft"})})
+        driver = CodexSDKDriver(client=client)
+
+        with self.assertRaisesRegex(AgentOutputContractError, "explicit output contract"):
+            asyncio.run(
+                driver.run(
+                    AgentRunRequest(
+                        role=AgentRole.PLANNER,
+                        run_id="RUN-codex-test",
+                        expected_output="PlanDraft",
+                        payload={"contextManifest": {"context_manifest_id": "CTXMAN-test"}},
+                    )
+                )
+            )
 
     def test_output_contract_schema_is_prompted_and_validated(self) -> None:
         client = FakeCodexClient(

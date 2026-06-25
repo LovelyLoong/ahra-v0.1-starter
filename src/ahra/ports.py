@@ -28,6 +28,14 @@ from .evidence_v2 import (
 )
 from .node_executor import NodeExecutionRequest, NodeExecutionResult
 from .plan_ir import PlanIR, PlanValidationReport
+from .planner_contracts import (
+    AcceptancePlanningRequest,
+    AcceptancePlanningResult,
+    ExecutionPlanningRequest,
+    ExecutionPlanningResult,
+    RepairPlanningRequest,
+    RepairPlanningResult,
+)
 from .verification import (
     CompletionGateResult,
     DefectRecord,
@@ -137,6 +145,21 @@ class AgentDriverRegistry:
 
     def refs(self) -> tuple[str, ...]:
         return tuple(sorted(self._drivers))
+
+
+@runtime_checkable
+class AcceptancePlanner(Protocol):
+    async def propose_acceptance(self, request: AcceptancePlanningRequest) -> AcceptancePlanningResult: ...
+
+
+@runtime_checkable
+class ExecutionPlanner(Protocol):
+    async def propose_plan(self, request: ExecutionPlanningRequest) -> ExecutionPlanningResult: ...
+
+
+@runtime_checkable
+class RepairPlanner(Protocol):
+    async def propose_patch(self, request: RepairPlanningRequest) -> RepairPlanningResult: ...
 
 
 @runtime_checkable

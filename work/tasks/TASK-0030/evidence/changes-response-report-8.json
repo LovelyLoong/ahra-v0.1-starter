@@ -1,0 +1,74 @@
+{
+  "schema_version": "ahra/changes-response-report/0.1",
+  "task_id": "TASK-0030",
+  "evidence_id": "EVD-TASK-0030-0005",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T15:10:10Z",
+  "responds_to": {
+    "event_id": "EVT-TASK-0030-0006",
+    "evidence_id": "EVD-TASK-0030-0004",
+    "artifact_id": "ART-TASK-0030-0004",
+    "report": "work/tasks/TASK-0030/evidence/evidence-gate-report-6.json",
+    "report_sha256": "5c7da71b412bd84044747af80229102f24ca0e3c89cc4387dda0456bf0741c50"
+  },
+  "decision": "ready_for_independent_review",
+  "summary": "Fixed both EvidenceGate request_changes blockers without lowering TASK-0030 acceptance criteria.",
+  "blocker_responses": [
+    {
+      "blocker": "Budget fail-closed is incomplete for negative budgetRequest.maxCostUsd.",
+      "status": "fixed",
+      "implementation": [
+        "Added PlanIR validation that rejects node budget max_cost_usd values below zero before execution.",
+        "Added a PlannerOutputValidator regression case for PlanDraft budgetRequest.maxCostUsd=-100.0 with PlannerBudgetLimits(max_cost_usd=1.0); validation now returns no trusted PlanIR and includes invalid-budget."
+      ],
+      "files": [
+        "src/ahra/plan_ir.py",
+        "tests/test_planning.py"
+      ],
+      "acceptance_criteria": [
+        2
+      ]
+    },
+    {
+      "blocker": "CodexSDKDriver can bypass explicit output contract for planner structured outputs.",
+      "status": "fixed",
+      "implementation": [
+        "CodexSDKDriver now requires request.output_contract for PlanDraft, PlanPatchDraft, and AcceptanceDraft expected outputs before structured passthrough.",
+        "Added a regression test that expected_output=PlanDraft with output_contract=None raises AgentOutputContractError instead of accepting raw {'kind':'PlanDraft'}."
+      ],
+      "files": [
+        "src/ahra/adapters/codex_sdk.py",
+        "tests/test_codex_driver.py"
+      ],
+      "acceptance_criteria": [
+        5
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "command": ".venv\\Scripts\\python.exe -B -m unittest tests.test_planning tests.test_plan_ir tests.test_codex_driver -v",
+      "result": "passed",
+      "summary": "21 tests OK"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py",
+      "result": "passed",
+      "summary": "144 tests OK, skipped=2"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "result": "passed",
+      "summary": "AWKP lint 0 error(s), 0 warning(s); AHRA lint 0 failure(s)"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "summary": "Exit code 0; only CRLF/LF normalization warnings for TASK-0030 JSON files"
+    }
+  ],
+  "review_notes": [
+    "The producer does not mark TASK-0030 completed.",
+    "Independent EvidenceGate should re-run review against task.md, current diff, and updated manifests."
+  ]
+}

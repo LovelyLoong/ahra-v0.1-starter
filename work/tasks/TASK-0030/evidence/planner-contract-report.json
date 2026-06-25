@@ -1,0 +1,124 @@
+{
+  "schema_version": "ahra/planner-contract-report/0.1",
+  "task_id": "TASK-0030",
+  "evidence_id": "EVD-TASK-0030-0001",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T14:34:31Z",
+  "producer_agent_release": "agent:codex-dynamic-kernel-operator@codex-session",
+  "implemented_contracts": [
+    {
+      "name": "AcceptancePlanner",
+      "port": "src/ahra/ports.py",
+      "request_result_types": "src/ahra/planner_contracts.py",
+      "implementation_path": "src/ahra/planning.py::AgentDriverAcceptancePlannerAdapter"
+    },
+    {
+      "name": "ExecutionPlanner",
+      "port": "src/ahra/ports.py",
+      "request_result_types": "src/ahra/planner_contracts.py",
+      "implementation_path": "src/ahra/planning.py::FixtureExecutionPlanner and AgentDriverExecutionPlannerAdapter"
+    },
+    {
+      "name": "RepairPlanner",
+      "port": "src/ahra/ports.py",
+      "request_result_types": "src/ahra/planner_contracts.py",
+      "implementation_path": "src/ahra/planning.py::FixtureRepairPlanner and AgentDriverRepairPlannerAdapter"
+    }
+  ],
+  "security_boundaries": [
+    {
+      "boundary": "planner runtime profile",
+      "behavior": "planner_read_only_runtime_profile returns read_only sandbox and no capabilities; ensure_planner_runtime_profile rejects write/tool execution capabilities.",
+      "tests": [
+        "tests.test_planning.PlanningTests.test_planner_runtime_profile_is_read_only_without_project_write_grants"
+      ]
+    },
+    {
+      "boundary": "untrusted draft validation",
+      "behavior": "PlannerOutputValidator compiles PlanDraft through the existing PlanIR compiler and adds total node/depth/model/tool/spawn/wall/cost limits before returning an executable PlanIR.",
+      "tests": [
+        "tests.test_planning.PlanningTests.test_planner_output_validation_fails_closed_before_execution",
+        "tests.test_plan_ir.PlanIRTests.test_scheduler_port_accepts_plan_ir_not_plan_draft"
+      ]
+    },
+    {
+      "boundary": "content-addressed planner I/O",
+      "behavior": "PlannerContextBuilder creates deterministic ContextManifest and planner input artifacts; planner output artifacts bind release digest and Context Manifest digest.",
+      "tests": [
+        "tests.test_planning.PlanningTests.test_context_manifest_and_planner_artifacts_are_deterministic",
+        "tests.test_planning.PlanningTests.test_fixture_planner_is_deterministic_and_needs_no_external_driver"
+      ]
+    },
+    {
+      "boundary": "optional AgentDriver adapter",
+      "behavior": "AgentDriver planner adapters fail with structured PlannerFailure records and never fall back to another driver; CodexSDKDriver now passes through PlanDraft after explicit output contract validation.",
+      "tests": [
+        "tests.test_planning.PlanningTests.test_agent_driver_planner_adapter_failures_are_structured_without_fallback",
+        "tests.test_codex_driver.CodexSDKDriverTests.test_plan_draft_response_passes_through_after_contract_validation"
+      ]
+    },
+    {
+      "boundary": "bounded repair/replan",
+      "behavior": "Repair validation accepts only validated trigger types, enforces repair-cycle budget, compiles PlanPatchDraft into a new full PlanIR version, and requires unchanged nodes to reference reusable Evidence.",
+      "tests": [
+        "tests.test_planning.PlanningTests.test_defect_repair_patch_is_bounded_and_reuses_unchanged_nodes_and_evidence",
+        "tests.test_plan_ir.PlanIRTests.test_plan_patch_creates_new_version_without_mutating_parent"
+      ]
+    }
+  ],
+  "acceptance_map": [
+    {
+      "criterion_index": 1,
+      "criterion": "Planner roles receive read-only runtime profiles and no project write grants.",
+      "evidence_refs": [
+        "EVD-TASK-0030-0001",
+        "EVD-TASK-0030-0002"
+      ]
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Malformed, uncovered, cyclic, over-budget or over-privileged drafts fail before execution.",
+      "evidence_refs": [
+        "EVD-TASK-0030-0001",
+        "EVD-TASK-0030-0002"
+      ]
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Planner input/output are content-addressed artifacts with release and Context Manifest digests.",
+      "evidence_refs": [
+        "EVD-TASK-0030-0001",
+        "EVD-TASK-0030-0002"
+      ]
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Fixture planner tests deterministic/no external account.",
+      "evidence_refs": [
+        "EVD-TASK-0030-0001",
+        "EVD-TASK-0030-0002"
+      ]
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Optional model adapter failures structured and cannot silently fall back to another driver.",
+      "evidence_refs": [
+        "EVD-TASK-0030-0001",
+        "EVD-TASK-0030-0002"
+      ]
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "A Defect can produce bounded PlanPatchDraft while unchanged nodes and Evidence remain referenced.",
+      "evidence_refs": [
+        "EVD-TASK-0030-0001",
+        "EVD-TASK-0030-0002"
+      ]
+    }
+  ],
+  "known_limitations": [
+    "Planner output remains untrusted until PlannerOutputValidator returns an accepted PlanIR and validation report.",
+    "AcceptancePlanner adapter is a provider-neutral structured path; this task does not promote a model-generated ClaimGraph without the existing acceptance contract validator.",
+    "The implementation is a local reference-core slice, not a distributed planner service or durable planner queue."
+  ]
+}

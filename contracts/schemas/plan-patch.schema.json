@@ -62,6 +62,13 @@
             "$ref": "#/$defs/nodeRef"
           }
         },
+        "reusedEvidenceRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          }
+        },
         "addNodes": {
           "type": "array",
           "items": {
@@ -79,6 +86,10 @@
     "nodeRef": {
       "type": "string",
       "pattern": "^NODE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "evidenceRef": {
+      "type": "string",
+      "pattern": "^EVD-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
     },
     "stringList": {
       "type": "array",

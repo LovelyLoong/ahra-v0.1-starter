@@ -34,6 +34,8 @@ def output_contract(expected_output: str) -> AgentOutputContract:
 
 def parse_reference_output(expected_output: str, data: dict[str, Any]) -> Any:
     try:
+        if expected_output in {"AcceptanceDraft", "PlanDraft", "PlanPatchDraft"}:
+            return data
         if expected_output == "WorkReport":
             return WorkReport(
                 summary=str(data["summary"]),
