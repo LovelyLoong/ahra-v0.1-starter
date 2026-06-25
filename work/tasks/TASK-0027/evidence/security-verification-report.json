@@ -1,0 +1,101 @@
+{
+  "schema_version": "ahra/task-verification-report/0.1",
+  "task_id": "TASK-0027",
+  "evidence_id": "EVD-TASK-0027-0003",
+  "kind": "security_verification_report",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T18:01:11+08:00",
+  "summary": "Producer-run verification for TASK-0027 security behavior. Completion still requires independent security review.",
+  "security_test_suite": {
+    "file": "tests/test_capabilities.py",
+    "coverage": [
+      {
+        "vector": "path traversal",
+        "test": "LocalRuntimeGatewayTests.test_path_traversal_is_blocked_before_write",
+        "result": "passed"
+      },
+      {
+        "vector": "symlink escape where applicable",
+        "test": "LocalRuntimeGatewayTests.test_symlink_escape_is_blocked_where_supported",
+        "result": "skipped_on_this_workstation",
+        "reason": "Windows returned WinError 1314 when creating a symlink, so the test used unittest.skipTest instead of claiming runtime symlink coverage on this host."
+      },
+      {
+        "vector": "command substitution",
+        "test": "LocalRuntimeGatewayTests.test_command_substitution_and_undeclared_commands_are_blocked",
+        "result": "passed"
+      },
+      {
+        "vector": "stale grant",
+        "test": "LocalRuntimeGatewayTests.test_stale_grant_and_role_mismatch_are_blocked",
+        "result": "passed"
+      },
+      {
+        "vector": "role mismatch",
+        "test": "LocalRuntimeGatewayTests.test_stale_grant_and_role_mismatch_are_blocked",
+        "result": "passed"
+      },
+      {
+        "vector": "spawn limit",
+        "test": "CapabilityAdmissionTests.test_spawn_limit_and_approval_absence_are_denied",
+        "result": "passed"
+      },
+      {
+        "vector": "approval absence",
+        "test": "CapabilityAdmissionTests.test_spawn_limit_and_approval_absence_are_denied",
+        "result": "passed"
+      },
+      {
+        "vector": "audit completeness",
+        "test": "LocalRuntimeGatewayTests.test_allowed_and_denied_writes_emit_linked_audit_records and LocalRuntimeGatewayTests.test_allowed_command_runs_and_audits_result",
+        "result": "passed"
+      },
+      {
+        "vector": "unsupported high-risk capability",
+        "test": "CapabilityAdmissionTests.test_unsupported_high_risk_capability_fails_closed",
+        "result": "passed"
+      },
+      {
+        "vector": "Goal/Policy privilege widening",
+        "test": "CapabilityAdmissionTests.test_grant_cannot_be_broader_than_goal_or_policy_scope",
+        "result": "passed"
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_capabilities -v",
+      "result": "passed",
+      "summary": "Ran 11 tests in tests.test_capabilities; OK with 1 skip for unavailable Windows symlink privilege."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_capabilities tests.test_schemas tests.test_acceptance_contracts -v",
+      "result": "passed",
+      "summary": "Ran 24 tests; OK with 1 skip for unavailable Windows symlink privilege."
+    },
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "result": "passed",
+      "summary": "AHRA lint: 0 failures; embedded AWKP lint: 0 errors, 0 warnings."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "result": "passed",
+      "summary": "Ran full project check; 118 tests OK with 1 symlink privilege skip."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "result": "passed",
+      "summary": "AWKP lint: 0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "summary": "No whitespace errors reported."
+    }
+  ],
+  "residual_risk": [
+    "The symlink escape unit test is implemented but could not exercise the symlink branch on this workstation because the OS denied symlink creation.",
+    "The local gateway cannot protect side effects performed outside the gateway API."
+  ]
+}

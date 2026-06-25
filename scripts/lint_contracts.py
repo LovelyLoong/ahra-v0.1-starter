@@ -26,6 +26,9 @@ MAPPINGS = [
     ("examples/records/memory.json", "contracts/schemas/memory-record.schema.json"),
     ("examples/records/context-manifest.json", "contracts/schemas/context-manifest.schema.json"),
     ("examples/records/policy-decision.json", "contracts/schemas/policy-decision.schema.json"),
+    ("examples/records/capability-request.json", "contracts/schemas/capability-request.schema.json"),
+    ("examples/records/capability-grant.json", "contracts/schemas/capability-grant.schema.json"),
+    ("examples/records/capability-audit-record.json", "contracts/schemas/capability-audit-record.schema.json"),
     ("examples/records/approval.json", "contracts/schemas/approval.schema.json"),
     ("examples/records/event.json", "contracts/schemas/event.schema.json"),
     ("examples/records/goal-contract.json", "contracts/schemas/goal-contract.schema.json"),
@@ -61,6 +64,7 @@ def main() -> int:
     forbidden = ("openai", "anthropic", "langgraph", "temporalio", "boto3", "kubernetes")
     for path in [
         ROOT / "src/ahra/acceptance_contracts.py",
+        ROOT / "src/ahra/capabilities.py",
         ROOT / "src/ahra/domain.py",
         ROOT / "src/ahra/evidence_v2.py",
         ROOT / "src/ahra/plan_ir.py",

@@ -7,9 +7,9 @@ description: Generated-style view of current tasks; task state files remain auth
 status: active
 owner: harness:dispatcher
 source_refs: [tasks/TASK-0001/state.json, tasks/TASK-0002/state.json, tasks/TASK-0003/state.json, tasks/TASK-0004/state.json, tasks/TASK-0005/state.json, tasks/TASK-0006/state.json, tasks/TASK-0007/state.json, tasks/TASK-0008/state.json, tasks/TASK-0009/state.json, tasks/TASK-0010/state.json, tasks/TASK-0011/state.json, tasks/TASK-0012/state.json, tasks/TASK-0013/state.json, tasks/TASK-0014/state.json, tasks/TASK-0015/state.json, tasks/TASK-0016/state.json, tasks/TASK-0017/state.json, tasks/TASK-0018/state.json, tasks/TASK-0019/state.json, tasks/TASK-0020/state.json, tasks/TASK-0021/state.json, tasks/TASK-0022/state.json, tasks/TASK-0023/state.json, tasks/TASK-0024/state.json, tasks/TASK-0025/state.json, tasks/TASK-0026/state.json, tasks/TASK-0027/state.json, tasks/TASK-0028/state.json, tasks/TASK-0029/state.json, tasks/TASK-0030/state.json, tasks/TASK-0031/state.json, tasks/TASK-0032/state.json]
-evidence_refs: [EVD-TASK-0021-0010, EVD-TASK-0022-0004, EVD-TASK-0022-0005, EVD-TASK-0023-0005, EVD-TASK-0023-0006, EVD-TASK-0024-0005, EVD-TASK-0024-0006, EVD-TASK-0025-0005, EVD-TASK-0025-0006, EVD-TASK-0025-0007, EVD-TASK-0025-0008, EVD-TASK-0025-0009, EVD-TASK-0025-0010, EVD-TASK-0026-0001, EVD-TASK-0026-0002, EVD-TASK-0026-0003, EVD-TASK-0026-0004, EVD-TASK-0026-0005]
+evidence_refs: [EVD-TASK-0021-0010, EVD-TASK-0022-0004, EVD-TASK-0022-0005, EVD-TASK-0023-0005, EVD-TASK-0023-0006, EVD-TASK-0024-0005, EVD-TASK-0024-0006, EVD-TASK-0025-0005, EVD-TASK-0025-0006, EVD-TASK-0025-0007, EVD-TASK-0025-0008, EVD-TASK-0025-0009, EVD-TASK-0025-0010, EVD-TASK-0026-0001, EVD-TASK-0026-0002, EVD-TASK-0026-0003, EVD-TASK-0026-0004, EVD-TASK-0026-0005, EVD-TASK-0027-0001, EVD-TASK-0027-0002, EVD-TASK-0027-0003, EVD-TASK-0027-0004, EVD-TASK-0027-0005]
 confidence: reviewed
-last_verified_at: 2026-06-25T09:33:33.631160Z
+last_verified_at: 2026-06-25T10:13:13.324485Z
 review_after: 2026-09-22T00:00:00Z
 tags: [work, index, dynamic-kernel]
 ---
@@ -44,7 +44,7 @@ tags: [work, index, dynamic-kernel]
 | [TASK-0024](tasks/TASK-0024/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval. |
 | [TASK-0025](tasks/TASK-0025/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval. |
 | [TASK-0026](tasks/TASK-0026/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval. |
-| [TASK-0027](tasks/TASK-0027/task.md) | queued | unassigned | Wait for TASK-0026 to complete, then claim with CAS. |
+| [TASK-0027](tasks/TASK-0027/task.md) | completed | unassigned | Completed by EvidenceGate verifier approval. |
 | [TASK-0028](tasks/TASK-0028/task.md) | queued | unassigned | Wait for TASK-0027 to complete, then claim with CAS. |
 | [TASK-0029](tasks/TASK-0029/task.md) | queued | unassigned | Wait for TASK-0028 to complete, then claim with CAS. |
 | [TASK-0030](tasks/TASK-0030/task.md) | queued | unassigned | Wait for TASK-0029 to complete, then claim with CAS. |

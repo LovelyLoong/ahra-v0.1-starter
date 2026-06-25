@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/capability-request.v1alpha1.json",
+  "title": "AHRA CapabilityRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "CapabilityRequest"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "planId",
+        "nodeId",
+        "requestedBy",
+        "role"
+      ],
+      "properties": {
+        "requestId": {
+          "$ref": "#/$defs/requestRef"
+        },
+        "planId": {
+          "$ref": "#/$defs/planRef"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nodeRef"
+        },
+        "requestedBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability",
+        "action",
+        "resources",
+        "scope",
+        "riskLevel",
+        "expiresAt",
+        "approvalRefs",
+        "spawnLimit"
+      ],
+      "properties": {
+        "capability": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resources": {
+          "$ref": "#/$defs/stringList"
+        },
+        "scope": {
+          "$ref": "#/$defs/stringList"
+        },
+        "riskLevel": {
+          "enum": [
+            "R0",
+            "R1",
+            "R2",
+            "R3"
+          ]
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "approvalRefs": {
+          "$ref": "#/$defs/stringList"
+        },
+        "spawnLimit": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nodeRef": {
+      "type": "string",
+      "pattern": "^NODE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "planRef": {
+      "type": "string",
+      "pattern": "^PLAN-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "requestRef": {
+      "type": "string",
+      "pattern": "^CREQ-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "stringList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

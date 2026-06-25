@@ -1,0 +1,25 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "CapabilityRequest",
+  "metadata": {
+    "requestId": "CREQ-capability-example",
+    "planId": "PLAN-capability-example",
+    "nodeId": "NODE-capability-example",
+    "requestedBy": "agent:executor",
+    "role": "executor"
+  },
+  "spec": {
+    "capability": "filesystem.write",
+    "action": "filesystem.write",
+    "resources": [
+      "src/ahra/capabilities.py"
+    ],
+    "scope": [
+      "src/ahra/*.py"
+    ],
+    "riskLevel": "R1",
+    "expiresAt": "2026-06-25T10:10:00Z",
+    "approvalRefs": [],
+    "spawnLimit": 0
+  }
+}

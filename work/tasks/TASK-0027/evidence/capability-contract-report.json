@@ -1,0 +1,98 @@
+{
+  "schema_version": "ahra/task-evidence-report/0.1",
+  "task_id": "TASK-0027",
+  "evidence_id": "EVD-TASK-0027-0001",
+  "kind": "capability_contract_report",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T18:01:11+08:00",
+  "summary": "Added runtime capability request, grant, and audit record contracts without replacing the existing TASK-0026 PlanIR lightweight capability records.",
+  "contract_files": [
+    "contracts/schemas/capability-request.schema.json",
+    "contracts/schemas/capability-grant.schema.json",
+    "contracts/schemas/capability-audit-record.schema.json",
+    "examples/records/capability-request.json",
+    "examples/records/capability-grant.json",
+    "examples/records/capability-audit-record.json"
+  ],
+  "code_files": [
+    "src/ahra/capabilities.py",
+    "src/ahra/ports.py",
+    "src/ahra/__init__.py"
+  ],
+  "contract_properties": [
+    {
+      "name": "CapabilityRequest",
+      "properties": [
+        "request_id",
+        "plan_id",
+        "node_id",
+        "requested_by",
+        "role",
+        "capability",
+        "action",
+        "resources",
+        "scope",
+        "risk_level",
+        "expires_at",
+        "approval_refs",
+        "spawn_limit"
+      ]
+    },
+    {
+      "name": "CapabilityGrant",
+      "properties": [
+        "grant_id",
+        "request_id",
+        "plan_id",
+        "node_id",
+        "role",
+        "capability",
+        "action",
+        "resources",
+        "scope",
+        "expires_at",
+        "issued_at",
+        "issuer",
+        "policy_decision_id",
+        "approval_refs",
+        "spawn_limit",
+        "superseded_by",
+        "digest"
+      ]
+    },
+    {
+      "name": "CapabilityAuditRecord",
+      "properties": [
+        "audit_id",
+        "plan_id",
+        "node_id",
+        "actor",
+        "action",
+        "allowed",
+        "reason_code",
+        "policy_decision_id",
+        "grant_digest",
+        "argument_digest",
+        "result_digest",
+        "occurred_at"
+      ]
+    }
+  ],
+  "compatibility_notes": [
+    "src/ahra/plan_ir.py was not rewritten for TASK-0027.",
+    "The package root keeps PlanIR CapabilityRequest and CapabilityGrant names intact and exposes runtime variants as RuntimeCapabilityRequest and RuntimeCapabilityGrant.",
+    "CapabilityAdmissionPort and RuntimeGatewayPort were added to src/ahra/ports.py as provider-neutral boundaries."
+  ],
+  "verification": [
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "result": "passed",
+      "summary": "New capability request, grant, and audit examples validate against their schemas; AHRA lint reported 0 failures."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_schemas tests.test_acceptance_contracts -v",
+      "result": "passed",
+      "summary": "Schema examples and provider-SDK import boundary tests passed."
+    }
+  ]
+}

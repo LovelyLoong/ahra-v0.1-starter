@@ -1,0 +1,20 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "CapabilityAuditRecord",
+  "metadata": {
+    "auditId": "AUD-capability-example",
+    "occurredAt": "2026-06-25T10:00:01Z"
+  },
+  "spec": {
+    "planId": "PLAN-capability-example",
+    "nodeId": "NODE-capability-example",
+    "actor": "executor",
+    "action": "filesystem.write",
+    "allowed": true,
+    "reasonCode": "allow",
+    "policyDecisionId": "PDEC-capability-example",
+    "grantDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "argumentDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "resultDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  }
+}

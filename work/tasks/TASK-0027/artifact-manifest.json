@@ -1,5 +1,138 @@
 {
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0027",
-  "artifacts": []
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0027-0001",
+      "task_id": "TASK-0027",
+      "kind": "capability_contract_report",
+      "name": "capability-contract-report.json",
+      "uri": "local://evidence/capability-contract-report.json",
+      "sha256": "23dece104c8b6b89f1e110e5da702098144c5788cd9274b934235171fac3ab8d",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T18:01:11+08:00",
+      "input_refs": [
+        "task.md",
+        "src/ahra/capabilities.py",
+        "src/ahra/ports.py",
+        "src/ahra/__init__.py",
+        "contracts/schemas/capability-request.schema.json",
+        "contracts/schemas/capability-grant.schema.json",
+        "contracts/schemas/capability-audit-record.schema.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0027-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0027-0002",
+      "task_id": "TASK-0027",
+      "kind": "admission_gateway_report",
+      "name": "admission-gateway-report.json",
+      "uri": "local://evidence/admission-gateway-report.json",
+      "sha256": "a4a0873c28b8dbcc142d05b40f94fa29e76a3e190fa79eda0d21ba8529a4b7ed",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T18:01:11+08:00",
+      "input_refs": [
+        "docs/policies/agent-authority-boundaries.md",
+        "src/ahra/capabilities.py",
+        "tests/test_capabilities.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0027-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0027-0003",
+      "task_id": "TASK-0027",
+      "kind": "security_verification_report",
+      "name": "security-verification-report.json",
+      "uri": "local://evidence/security-verification-report.json",
+      "sha256": "c7e66460523531944c011280215554b4dbb4f1f06fa9a714c925f6e08e9e6a03",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T18:01:11+08:00",
+      "input_refs": [
+        "tests/test_capabilities.py",
+        "tests/test_schemas.py",
+        "tests/test_acceptance_contracts.py",
+        "scripts/check.py",
+        "scripts/lint_contracts.py",
+        "scripts/lint_awkp.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0027-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0027-0004",
+      "task_id": "TASK-0027",
+      "kind": "implementation_report",
+      "name": "implementation-report.json",
+      "uri": "local://evidence/implementation-report.json",
+      "sha256": "7a2b04ce593e7a4a2cd57c4a763e2458694f98d8616af99136e23ac22518497f",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T18:01:11+08:00",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "evidence/capability-contract-report.json",
+        "evidence/admission-gateway-report.json",
+        "evidence/security-verification-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0027-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0027-HANDOFF-0001",
+      "task_id": "TASK-0027",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "71e38e2bc0193ccc2d0f31d567609e2c9b1fe33d56c9c7b67d25ce453576a096",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-25T18:01:11+08:00",
+      "input_refs": [
+        "task.md",
+        "evidence/implementation-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0027-0001",
+        "EVD-TASK-0027-0002",
+        "EVD-TASK-0027-0003",
+        "EVD-TASK-0027-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0027-0005",
+      "task_id": "TASK-0027",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-5.json",
+      "uri": "local://evidence/evidence-gate-report-5.json",
+      "sha256": "fc1811255e5ab3ce82a288439368c31827e5ba5ef2766cef92dd59c7d54e036a",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-25T10:13:13.324485Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0027-0005"
+      ],
+      "supersedes": null
+    }
+  ]
 }

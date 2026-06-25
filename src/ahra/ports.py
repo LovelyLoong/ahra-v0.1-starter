@@ -5,6 +5,12 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Iterable, Protocol, runtime_checkable
 
+from .capabilities import (
+    AdmissionDecision,
+    CapabilityAuditRecord,
+    CapabilityGrant,
+    CapabilityRequest,
+)
 from .domain import (
     ContextManifest,
     MemoryRecord,
@@ -257,6 +263,37 @@ class VerificationServicePort(Protocol):
 @runtime_checkable
 class SchedulerPort(Protocol):
     def submit_plan(self, plan: PlanIR, validation_report: PlanValidationReport) -> str: ...
+
+
+@runtime_checkable
+class CapabilityAdmissionPort(Protocol):
+    def admit(self, request: CapabilityRequest, *, now: datetime | None = None) -> AdmissionDecision: ...
+
+
+@runtime_checkable
+class RuntimeGatewayPort(Protocol):
+    def write_text(
+        self,
+        grant: CapabilityGrant,
+        *,
+        plan_id: str,
+        node_id: str,
+        actor: str,
+        relative_path: str,
+        content: str,
+        now: datetime | None = None,
+    ) -> CapabilityAuditRecord: ...
+
+    def run_command(
+        self,
+        grant: CapabilityGrant,
+        *,
+        plan_id: str,
+        node_id: str,
+        actor: str,
+        command: tuple[str, ...],
+        now: datetime | None = None,
+    ) -> CapabilityAuditRecord: ...
 
 
 @runtime_checkable

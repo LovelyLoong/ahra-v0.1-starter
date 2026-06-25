@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/capability-grant.v1alpha1.json",
+  "title": "AHRA CapabilityGrant",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "CapabilityGrant"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grantId",
+        "requestId",
+        "planId",
+        "nodeId",
+        "digest"
+      ],
+      "properties": {
+        "grantId": {
+          "$ref": "#/$defs/grantRef"
+        },
+        "requestId": {
+          "$ref": "#/$defs/requestRef"
+        },
+        "planId": {
+          "$ref": "#/$defs/planRef"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nodeRef"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "capability",
+        "action",
+        "resources",
+        "scope",
+        "expiresAt",
+        "issuedAt",
+        "issuer",
+        "policyDecisionId",
+        "approvalRefs",
+        "spawnLimit",
+        "supersededBy"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capability": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resources": {
+          "$ref": "#/$defs/stringList"
+        },
+        "scope": {
+          "$ref": "#/$defs/stringList"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "issuedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policyDecisionId": {
+          "$ref": "#/$defs/policyDecisionRef"
+        },
+        "approvalRefs": {
+          "$ref": "#/$defs/stringList"
+        },
+        "spawnLimit": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "supersededBy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/grantRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "grantRef": {
+      "type": "string",
+      "pattern": "^CGRANT-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "nodeRef": {
+      "type": "string",
+      "pattern": "^NODE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "planRef": {
+      "type": "string",
+      "pattern": "^PLAN-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "policyDecisionRef": {
+      "type": "string",
+      "pattern": "^PDEC-"
+    },
+    "requestRef": {
+      "type": "string",
+      "pattern": "^CREQ-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "stringList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

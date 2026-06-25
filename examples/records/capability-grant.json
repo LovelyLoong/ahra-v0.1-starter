@@ -1,0 +1,29 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "CapabilityGrant",
+  "metadata": {
+    "grantId": "CGRANT-capability-example",
+    "requestId": "CREQ-capability-example",
+    "planId": "PLAN-capability-example",
+    "nodeId": "NODE-capability-example",
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "spec": {
+    "role": "executor",
+    "capability": "filesystem.write",
+    "action": "filesystem.write",
+    "resources": [
+      "src/ahra/capabilities.py"
+    ],
+    "scope": [
+      "src/ahra/*.py"
+    ],
+    "expiresAt": "2026-06-25T10:10:00Z",
+    "issuedAt": "2026-06-25T10:00:00Z",
+    "issuer": "harness:capability-admission",
+    "policyDecisionId": "PDEC-capability-example",
+    "approvalRefs": [],
+    "spawnLimit": 0,
+    "supersededBy": null
+  }
+}

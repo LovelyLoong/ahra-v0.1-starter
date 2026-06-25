@@ -1,0 +1,110 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0027",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-25T10:13:13.324485Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent security verifier reviewed TASK-0027 capability admission and local default-deny runtime gateway. Admission intersects Goal, Policy and runtime support before issuing grants; planner and verifier write grants are denied by default; gateway checks plan, node, role, expiry, path and command allowlists before side effects; allowed and denied attempts emit linked audit records; unsupported high-risk capabilities fail closed. The local profile documents that it is a gateway reference monitor, not OS/container/network isolation.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "No request can compile into a grant broader than Goal/Policy scope.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0027-0001",
+        "EVD-TASK-0027-0002",
+        "EVD-TASK-0027-0003"
+      ],
+      "notes": "CapabilityAdmissionService denies resources outside Goal or Policy scope and narrows grant resources to the intersection of request, Goal, Policy and runtime support. Targeted tests and verifier probes confirmed no broader grant is issued."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Planner and verifier roles receive no filesystem write grant by default.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0027-0002",
+        "EVD-TASK-0027-0003"
+      ],
+      "notes": "Planner and verifier roles are denied filesystem.write by default through role checks and DEFAULT_WRITE_DENY_ROLES; targeted security test passed."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Executor writes outside allowed globs and commands outside allowlists are blocked before execution.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0027-0002",
+        "EVD-TASK-0027-0003"
+      ],
+      "notes": "LocalRuntimeGateway resolves paths under the workspace root before writes, enforces granted globs, and rejects commands outside grant resources or containing shell metacharacters before runner invocation."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Every allowed and denied side effect emits an audit record linked to plan, node and policy decision.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0027-0001",
+        "EVD-TASK-0027-0002",
+        "EVD-TASK-0027-0003"
+      ],
+      "notes": "CapabilityAuditRecord contains planId, nodeId, actor, action, policyDecisionId, grantDigest, argumentDigest and resultDigest. Tests verified allowed and denied writes plus allowed command execution produce linked audit records."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Unsupported high-risk capabilities pause/fail closed rather than silently downgrade.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0027-0002",
+        "EVD-TASK-0027-0003"
+      ],
+      "notes": "Unsupported high-risk capabilities such as network.access and secret/external actions are denied with unsupported_high_risk_capability instead of being silently downgraded; R2/R3 actions require approval refs."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Security tests cover path traversal, symlink escape where applicable, command substitution, stale grant, role mismatch, spawn limit and approval absence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0027-0003"
+      ],
+      "notes": "Security suite covers path traversal, symlink escape where OS privilege permits, command substitution, stale grant, role mismatch, spawn limit and approval absence. On this workstation symlink creation is skipped due Windows privilege denial and is recorded as residual host limitation, not claimed as executed coverage."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_capabilities tests.test_schemas tests.test_acceptance_contracts -v",
+      "status": "passed",
+      "summary": "24 tests OK with 1 Windows symlink privilege skip."
+    },
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "status": "passed",
+      "summary": "0 AHRA lint failures; capability examples validate against schemas."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed",
+      "summary": "0 AWKP errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "TASK-0027 manifest SHA256 audit",
+      "status": "passed",
+      "summary": "9 artifact/evidence records matched local SHA-256 values before gate."
+    },
+    {
+      "command": "independent capability gateway probe",
+      "status": "passed",
+      "summary": "Wrong plan, wrong node, expired request, stale grant, nested path outside granted glob and command metacharacters were denied before side effects; exact approved command was allowed and audited."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "summary": "Full repository check passed; 118 tests OK with 1 Windows symlink privilege skip."
+    }
+  ]
+}

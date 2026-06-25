@@ -1,0 +1,95 @@
+{
+  "schema_version": "ahra/task-evidence-report/0.1",
+  "task_id": "TASK-0027",
+  "evidence_id": "EVD-TASK-0027-0002",
+  "kind": "admission_gateway_report",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-25T18:01:11+08:00",
+  "summary": "Implemented capability admission and a local default-deny runtime gateway for filesystem writes and command execution.",
+  "implemented_components": [
+    {
+      "name": "CapabilityAdmissionService",
+      "file": "src/ahra/capabilities.py",
+      "behavior": [
+        "normalizes request resources and approvals",
+        "requires request expiry to be in the future",
+        "denies unsupported high-risk network, secret, external write and production deploy actions",
+        "requires approval refs for R2/R3 or high-risk actions",
+        "intersects requested resources with Goal scope and Policy scope",
+        "requires runtime support and exact command allowlist membership for process execution",
+        "denies planner, verifier and reviewer filesystem write grants by default",
+        "enforces spawn limits from the tighter Goal/Policy maximum",
+        "emits a narrower CapabilityGrant only on allow"
+      ]
+    },
+    {
+      "name": "LocalRuntimeGateway",
+      "file": "src/ahra/capabilities.py",
+      "behavior": [
+        "checks grant action, plan, node, role, expiry and supersession before side effects",
+        "blocks path traversal and symlink escape outside the workspace root",
+        "blocks writes outside granted globs before writing",
+        "blocks shell metacharacter substitution and commands outside grant resources before execution",
+        "audits every allowed or denied filesystem write and command attempt"
+      ]
+    },
+    {
+      "name": "CapabilityAdmissionPort and RuntimeGatewayPort",
+      "file": "src/ahra/ports.py",
+      "behavior": [
+        "define provider-neutral interfaces for admission and side-effect gateway calls",
+        "avoid domain-layer dependency on model, workflow, cloud or sandbox SDKs"
+      ]
+    }
+  ],
+  "default_deny_matrix": [
+    {
+      "case": "request broader than Goal scope",
+      "decision": "deny",
+      "reason_code": "privilege_widening"
+    },
+    {
+      "case": "request broader than Policy scope",
+      "decision": "deny",
+      "reason_code": "privilege_widening"
+    },
+    {
+      "case": "planner or verifier filesystem.write",
+      "decision": "deny",
+      "reason_code": "role_not_allowed"
+    },
+    {
+      "case": "process.exec outside runtime allowlist",
+      "decision": "deny",
+      "reason_code": "undeclared_command"
+    },
+    {
+      "case": "unsupported high-risk network or secret capability",
+      "decision": "deny",
+      "reason_code": "unsupported_high_risk_capability"
+    },
+    {
+      "case": "R2 request without approval",
+      "decision": "deny",
+      "reason_code": "approval_required"
+    }
+  ],
+  "isolation_boundaries": {
+    "provided": [
+      "default-deny gateway checks before local filesystem writes and command execution",
+      "workspace path containment for normal paths, traversal attempts and symlink escapes where the OS exposes symlinks",
+      "exact command allowlist and shell metacharacter rejection",
+      "audit records linked to plan, node and policy decision"
+    ],
+    "not_provided": [
+      "operating-system process isolation",
+      "container or VM isolation",
+      "network egress isolation",
+      "production secret broker",
+      "remote sandbox",
+      "containment for code that bypasses the gateway",
+      "irreversible external action authorization"
+    ],
+    "documented_in": "docs/policies/agent-authority-boundaries.md"
+  }
+}

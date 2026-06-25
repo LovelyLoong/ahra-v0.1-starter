@@ -57,3 +57,19 @@ Minimum final verification independence:
 - verifier output satisfies a structured contract;
 - host code verifies criterion coverage and evidence references;
 - high-risk domains may require a different model/provider or human approval.
+
+# Local Reference Monitor profile
+
+The local profile enforces default-deny checks before filesystem writes and
+process execution through the AHRA runtime gateway. It verifies the immutable
+Capability Grant action, plan binding, node binding, role, expiry and stale
+state; rejects path traversal and symlink escapes outside the workspace root;
+requires write paths to match granted globs; requires commands to match exact
+allowlist entries; rejects shell metacharacter substitution; and records an
+audit event for each allowed or denied side-effect attempt with plan, node,
+policy decision, argument digest and result digest where applicable.
+
+The local profile does not provide operating-system process isolation,
+container isolation, network egress isolation, a production secret broker, a
+remote sandbox, or containment for code that bypasses the runtime gateway. It
+must not be used to authorize irreversible external actions.

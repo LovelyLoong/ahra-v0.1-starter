@@ -86,7 +86,13 @@ class AcceptanceContractTests(unittest.TestCase):
 
     def test_domain_validation_layer_does_not_import_provider_sdks(self) -> None:
         forbidden = ("openai", "anthropic", "langgraph", "temporalio", "boto3", "kubernetes")
-        for rel in ["src/ahra/acceptance_contracts.py", "src/ahra/domain.py", "src/ahra/plan_ir.py", "src/ahra/validation.py"]:
+        for rel in [
+            "src/ahra/acceptance_contracts.py",
+            "src/ahra/capabilities.py",
+            "src/ahra/domain.py",
+            "src/ahra/plan_ir.py",
+            "src/ahra/validation.py",
+        ]:
             text = (ROOT / rel).read_text(encoding="utf-8")
             for name in forbidden:
                 with self.subTest(path=rel, dependency=name):
