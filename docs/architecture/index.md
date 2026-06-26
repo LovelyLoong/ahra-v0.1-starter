@@ -28,6 +28,13 @@ tags: [architecture]
 | [PlanDraft and PlanIR](plan-ir.md) | Planner output boundary, trusted compilation, executable DAG, and validation rules |
 | [Repository consolidation](repository-consolidation.md) | Component disposition and default-path cleanup rules |
 
+## M1 Proposed Architecture
+
+| Concept | Purpose |
+|---|---|
+| [Gate execution pipeline](gate-execution-pipeline.md) | Proposed path from Gate selection to actual GateRun-backed Evidence |
+| [Goal execution lifecycle](goal-execution-lifecycle.md) | Proposed durable parent lifecycle across plan versions, Defects, repairs, and completion |
+
 ## Legacy Compatibility And Trace
 
 | Concept | Purpose |

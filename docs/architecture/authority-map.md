@@ -8,6 +8,7 @@ status: active
 owner: team:platform
 source_refs:
   - ../../AHRA_dynamic_kernel_master_plan_2026-06-25.md
+  - ../../AHRA_dynamic_kernel_m1_master_plan_2026-06-26.md
   - component-inventory.json
 evidence_refs: []
 confidence: reviewed
@@ -33,7 +34,7 @@ history or compatibility, but they do not override the active owner.
 | AUTH-agent-authority-boundaries | Planner, Executor, Verifier, Harness authority split | [Agent authority boundaries](../policies/agent-authority-boundaries.md) | active-policy | root [AGENTS.md](../../AGENTS.md) remains the operational entry map |
 | AUTH-component-lifecycle | Component lifecycle classes and default exposure rules | [Component lifecycle policy](../policies/component-lifecycle.md) | active-policy | [Repository consolidation](repository-consolidation.md) gives disposition guidance |
 | AUTH-repository-consolidation | Repository cleanup and legacy disposition | [Repository consolidation](repository-consolidation.md) | active-current | [Framework completion roadmap](framework-completion-roadmap.md) is superseded |
-| AUTH-dynamic-roadmap | Stage gates and task order after TASK-0021 | [Dynamic Agent kernel roadmap](../roadmaps/dynamic-kernel-roadmap.md) | active-current | [Work index](../../work/index.md), [proposed task sequence](../../work/proposed/TASK-SEQUENCE.md) |
+| AUTH-dynamic-roadmap | Stage gates and task order after TASK-0021 | [Dynamic Agent kernel roadmap](../roadmaps/dynamic-kernel-roadmap.md) | active-current | [Work index](../../work/index.md), [proposed task sequence](../../work/proposed/TASK-SEQUENCE.md), [M1 proposed plan](../../AHRA_dynamic_kernel_m1_master_plan_2026-06-26.md), [M1 proposed roadmap](../roadmaps/dynamic-kernel-m1-roadmap.md), [M1 proposed task sequence](../../work/proposed/TASK-SEQUENCE-0033-0040.md) |
 
 # Read Rules
 
@@ -46,5 +47,8 @@ history or compatibility, but they do not override the active owner.
   [Framework entrypoints](framework-entrypoints.md).
 - Do not treat fixture-scoped dynamic execution as a production-grade general
   orchestrator.
+- Treat the M1 execution pack as proposal input until each promoted task passes
+  independent EvidenceGate review; do not use proposed docs to override active
+  owners.
 - Superseded, archived, and legacy documents remain traceable inputs, but they
   are not in the default read order.

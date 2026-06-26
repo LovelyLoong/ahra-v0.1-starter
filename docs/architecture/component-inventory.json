@@ -97,14 +97,14 @@
       "default_visible": true,
       "owner": "team:quality",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/evidence_v2.py", "src/ahra/verification.py", "contracts/schemas/evidence-v2.schema.json", "contracts/schemas/verification-selection.schema.json", "contracts/schemas/verification-result.schema.json"],
-      "serves": ["Evidence", "GateRun", "Defect", "CompletionDecision"],
-      "entrypoints": ["VerificationService", "GoalCompletionService", "dynamic fixture runtime API"],
+      "paths": ["src/ahra/evidence_v2.py", "src/ahra/verification.py", "contracts/schemas/evidence-v2.schema.json", "contracts/schemas/gate-run-v2.schema.json", "contracts/schemas/verification-selection.schema.json", "contracts/schemas/verification-result.schema.json", "contracts/schemas/gate-execution-request.schema.json", "contracts/schemas/gate-execution-result.schema.json", "contracts/schemas/verification-execution-report.schema.json"],
+      "serves": ["Evidence", "EvidenceCurrentSet", "GateRun", "GateExecutionRequest", "GateExecutionResult", "VerificationExecutionReport", "Defect", "CompletionDecision"],
+      "entrypoints": ["VerificationService", "VerificationExecutor", "GateRunnerRegistry", "GoalCompletionService", "dynamic fixture runtime API"],
       "consumers": ["PlanExecutionService", "dynamic repair fixture", "EvidenceGate evidence review"],
       "tests": ["tests/test_evidence_v2.py", "tests/test_verification.py", "tests/test_dynamic_fixture.py"],
-      "security_class": "fail-closed evidence validity and completion boundary",
-      "side_effects": "records evidence validity state in memory for local execution",
-      "artifact_evidence": "fingerprinted Evidence v2 records and completion results"
+      "security_class": "fail-closed evidence validity, supersession, current-set and completion boundary",
+      "side_effects": "records evidence validity and supersession status in memory for local execution",
+      "artifact_evidence": "fingerprinted Evidence v2 records, current-set metrics, multi-Claim Defects and completion results"
     },
     {
       "id": "component:planner-planir",
@@ -129,11 +129,11 @@
       "default_visible": true,
       "owner": "team:security",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/capabilities.py", "contracts/schemas/capability-request.schema.json", "contracts/schemas/capability-grant.schema.json", "contracts/schemas/capability-audit-record.schema.json"],
-      "serves": ["Capability", "PolicyDecision", "CapabilityAuditRecord"],
-      "entrypoints": ["CapabilityAdmissionService", "CapabilityGateway", "dynamic fixture runtime API"],
-      "consumers": ["PlanCompiler", "PlanExecutionService", "dynamic repair fixture"],
-      "tests": ["tests/test_capabilities.py", "tests/test_dynamic_fixture.py"],
+      "paths": ["src/ahra/capabilities.py", "src/ahra/plan_execution.py", "contracts/schemas/capability-request.schema.json", "contracts/schemas/capability-grant.schema.json", "contracts/schemas/capability-audit-record.schema.json"],
+      "serves": ["Capability", "PolicyDecision", "CapabilityGrant", "CapabilityAuditRecord"],
+      "entrypoints": ["CapabilityAdmissionService", "CapabilityGateway", "StaticPlanScheduler admission boundary", "dynamic fixture runtime API"],
+      "consumers": ["PlanExecutionService", "dynamic repair fixture", "bounded_task executor"],
+      "tests": ["tests/test_capabilities.py", "tests/test_plan_execution.py", "tests/test_dynamic_fixture.py"],
       "security_class": "default-deny capability gateway",
       "side_effects": "authorizes or denies runtime side effects before execution",
       "artifact_evidence": "capability requests, grants, policy decisions, and audit records"
@@ -150,9 +150,9 @@
       "entrypoints": ["StaticPlanIRScheduler", "PlanExecutionService", "dynamic fixture runtime API"],
       "consumers": ["dynamic repair fixture", "bounded_task executor"],
       "tests": ["tests/test_plan_execution.py", "tests/test_node_executor.py", "tests/test_dynamic_fixture.py"],
-      "security_class": "lease/fencing-token state machine with budget and deadline enforcement",
-      "side_effects": "dispatches admitted node executors and records artifacts/evidence",
-      "artifact_evidence": "PlanExecution states, NodeRun states, checkpoints, terminal failure records"
+      "security_class": "lease/fencing-token state machine with mandatory Capability Admission before runtime side effects",
+      "side_effects": "dispatches capability-admitted node executors and records artifacts/evidence",
+      "artifact_evidence": "PlanExecution states, NodeRun states, checkpoints, admission refs, terminal failure records"
     },
     {
       "id": "adapter:bounded-task-executor",

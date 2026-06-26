@@ -1,0 +1,54 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateExecutionRequest",
+  "metadata": {
+    "requestId": "GEXREQ-doc-health-l1",
+    "createdAt": "2026-06-26T00:00:00Z"
+  },
+  "spec": {
+    "goalExecutionId": "GOAL-dynamic-repair-fixture",
+    "planExecutionId": "PLAN-dynamic-repair-fixture",
+    "nodeRunId": "NRUN-doc-checker",
+    "gateRef": "GATE-doc-health-l1",
+    "gateKind": "contract_test",
+    "runnerReleaseRef": "fixture-deterministic",
+    "gateDefinitionDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "claimRefs": [
+      "CLAIM-defect-repair-functional"
+    ],
+    "level": "L1",
+    "evidenceKind": "contract_test",
+    "subjects": [
+      {
+        "ref": "ART-doc-health",
+        "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      }
+    ],
+    "dependencyEvidence": [
+      {
+        "evidenceRef": "EVD-acceptance-contract",
+        "fingerprint": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    ],
+    "environment": {
+      "runtimeProfileDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "policyDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "verifierReleaseDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "testDefinitionDigest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+    },
+    "workspaceRef": "workspace://dynamic-fixture",
+    "idempotencyKey": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+    "attempt": 1,
+    "command": [
+      "dynamic-fixture-gate",
+      "GATE-doc-health-l1"
+    ],
+    "timeoutSeconds": 30,
+    "mutationAllowed": false,
+    "metadata": {
+      "claimRefs": [
+        "CLAIM-defect-repair-functional"
+      ]
+    }
+  }
+}

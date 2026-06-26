@@ -1,0 +1,98 @@
+{
+  "schema_version": "ahra/task-implementation-report/0.1",
+  "task_id": "TASK-0036",
+  "created_at": "2026-06-26T07:36:14.797985Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "producer_agent_release": "codex-gpt-5",
+  "workspace": {
+    "path": "E:\\ahra-v0.1-starter",
+    "branch": "main",
+    "base_commit": "ac0c1b4795395441a0f33e18a356ce7c3ec54c84",
+    "final_commit": null
+  },
+  "input_refs": [
+    "work/tasks/TASK-0036/task.md",
+    "docs/architecture/goal-execution-lifecycle.md",
+    "docs/architecture/plan-ir.md",
+    "src/ahra/plan_execution.py",
+    "src/ahra/dynamic_fixture.py",
+    "src/ahra/verification.py"
+  ],
+  "changed_files": [
+    "src/ahra/__init__.py",
+    "src/ahra/dynamic_fixture.py",
+    "src/ahra/plan_execution.py",
+    "src/ahra/ports.py",
+    "src/ahra/verification.py",
+    "tests/test_dynamic_fixture.py",
+    "tests/test_plan_execution.py",
+    "work/tasks/TASK-0036/evidence/dynamic-fixture-report.json"
+  ],
+  "implemented_contracts": [
+    {
+      "contract": "goal_execution_record",
+      "summary": "Added GoalExecutionStatus, GoalExecutionRecord and Store CAS operations with explicit status_version, active_plan_execution_ref, plan_execution_refs, defect refs and repair_cycle."
+    },
+    {
+      "contract": "goal_execution_service",
+      "summary": "Added GoalExecution creation, PlanExecution attach/finish, repair-cycle start, defect resolution and completion guards. GoalExecution cannot complete while open defects remain."
+    },
+    {
+      "contract": "plan_version_lineage",
+      "summary": "PlanExecutionRecord now records goal_execution_ref, parent_plan_execution_ref, parent_plan_digest, reused_node_refs and reused_evidence_refs."
+    },
+    {
+      "contract": "scheduler_driven_repair",
+      "summary": "Dynamic fixture creates PlanExecution v2 and runs repair plus terminal reverify through StaticPlanScheduler. Direct repair NodeExecutor calls and helper admission path were removed from the fixture."
+    },
+    {
+      "contract": "reuse_validation",
+      "summary": "PlanExecution v2 marks unchanged nodes succeeded only when reused Evidence refs are current; the fixture fills PlanPatchDraft reusedEvidenceRefs from GateRun-backed current Evidence."
+    },
+    {
+      "contract": "repair_cycle_enforcement",
+      "summary": "GoalExecution start_repair_cycle increments repair_cycle and fails closed with repair_cycle_exhausted when max_repair_cycles is exceeded."
+    }
+  ],
+  "acceptance_mapping": {
+    "single_goal_execution_links_v1_v2": [
+      "GoalExecutionRecord.plan_execution_refs",
+      "tests.test_dynamic_fixture.DynamicFixtureTests.test_end_to_end_dynamic_repair_fixture_satisfies_acceptance_invariants"
+    ],
+    "repaired_planir_parent_digest_and_version_increment": [
+      "PlanExecutionRecord.parent_plan_digest",
+      "PlanIR.parent_plan_digest",
+      "tests.test_dynamic_fixture.DynamicFixtureTests.test_end_to_end_dynamic_repair_fixture_satisfies_acceptance_invariants"
+    ],
+    "repair_and_goal_nodes_scheduler_created": [
+      "StaticPlanScheduler.submit_plan",
+      "report.execution.repairedNodeRuns",
+      "report.execution.schedulerCreatedRepairNodeRun"
+    ],
+    "no_direct_executor_bypass": [
+      "tests.test_dynamic_fixture.DynamicFixtureTests.test_dynamic_fixture_has_no_direct_repair_executor_bypass"
+    ],
+    "repair_without_gate_success_incomplete": [
+      "tests.test_plan_execution.PlanExecutionTests.test_terminal_reverify_gate_failure_keeps_plan_failed_after_nodes_accept",
+      "GoalExecutionService.complete_goal"
+    ],
+    "unchanged_nodes_reused": [
+      "PlanExecutionService.start_execution(reused_node_refs=...)",
+      "report.execution.reusedNodeRefs"
+    ],
+    "repair_cycle_max": [
+      "tests.test_plan_execution.PlanExecutionTests.test_goal_execution_rejects_open_defect_success_and_enforces_repair_budget"
+    ],
+    "v2_start_fail_closed_inputs": [
+      "PlanExecutionService.start_execution",
+      "StaticPlanScheduler._prepare_capability_admission",
+      "VerificationExecutor.missing_runner_gate_refs"
+    ]
+  },
+  "known_limitations": [
+    "GoalExecution storage is intentionally in-memory for TASK-0036; SQLite persistence is deferred to TASK-0037.",
+    "Generic CLI orchestration is intentionally out of scope and remains deferred to TASK-0038.",
+    "The fixture reports deterministic defectTimeToResolutionSeconds as 0 because no durable wall-clock defect lifecycle store exists yet."
+  ],
+  "producer_completion_claim": "review_ready_only"
+}

@@ -1,0 +1,63 @@
+{
+  "schema_version": "ahra/task-verification-report/0.1",
+  "task_id": "TASK-0035",
+  "generated_at": "2026-06-26T06:36:54.539961Z",
+  "producer": "agent:codex-dynamic-kernel-operator",
+  "commands": [
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "exit_code": 0,
+      "summary": "Passed. Contract lint passed, unittest discovery ran 167 tests with 1 Windows symlink privilege skip."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "uv run python -B -m ahra.cli fixture dynamic-repair --fixture tests\\fixtures\\dynamic-goal-project --report work\\tasks\\TASK-0035\\evidence\\dynamic-fixture-report.json",
+      "exit_code": 0,
+      "summary": "Dynamic fixture report generated with ok=true, selectedFewerThanFull=true, finalCompletionAccepted=true, unauthorizedWriteAllowed=false."
+    }
+  ],
+  "targeted_tests": [
+    "tests.test_evidence_v2.EvidenceV2Tests.test_current_set_excludes_superseded_failed_history",
+    "tests.test_evidence_v2.EvidenceV2Tests.test_stale_superseding_leaf_does_not_reactivate_old_evidence",
+    "tests.test_evidence_v2.EvidenceV2Tests.test_supersession_self_unknown_cycle_and_competing_leaves_fail_closed",
+    "tests.test_evidence_v2.EvidenceV2Tests.test_supersession_status_events_are_derived_append_only_events",
+    "tests.test_verification.VerificationSelectionTests.test_completion_uses_current_set_instead_of_caller_curated_final_records",
+    "tests.test_verification.VerificationSelectionTests.test_completion_blocks_stale_replacement_and_omitted_history",
+    "tests.test_verification.VerificationSelectionTests.test_failed_gate_creates_structured_multi_claim_defect_record",
+    "tests.test_dynamic_fixture.DynamicFixtureTests.test_end_to_end_dynamic_repair_fixture_satisfies_acceptance_invariants"
+  ],
+  "negative_and_adversarial_coverage": {
+    "failed_superseded_by_passed": "covered",
+    "passed_superseding_record_becomes_stale": "covered",
+    "two_competing_current_leaves": "covered",
+    "supersession_cycle": "covered",
+    "unknown_supersedes_ref": "covered",
+    "revoked_current_leaf": "covered",
+    "defect_affecting_multiple_dependent_claims": "covered",
+    "caller_omits_historical_records_to_force_completion": "covered"
+  },
+  "metrics": {
+    "current_claim_coverage": 1.0,
+    "historical_evidence_count": 3,
+    "current_evidence_leaf_count": 7,
+    "supersession_resolution_failures": 0,
+    "stale_evidence_count": 3,
+    "false_completion_count": 0,
+    "historical_excluded_evidence_count": 3,
+    "evidence_status_event_count": 3,
+    "defect_affected_claim_count": 4
+  },
+  "report_refs": [
+    "work/tasks/TASK-0035/evidence/dynamic-fixture-report.json"
+  ],
+  "result": "passed"
+}

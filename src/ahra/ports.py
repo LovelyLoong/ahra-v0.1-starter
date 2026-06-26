@@ -20,6 +20,7 @@ from .domain import (
     ToolDescriptor,
 )
 from .evidence_v2 import (
+    EvidenceCurrentSet,
     EvidenceInspection,
     EvidenceInvalidationTrigger,
     EvidenceStatusEvent,
@@ -39,6 +40,10 @@ from .planner_contracts import (
 from .verification import (
     CompletionGateResult,
     DefectRecord,
+    GateExecutionRequest,
+    GateExecutionResult,
+    VerificationExecutionContext,
+    VerificationExecutionReport,
     VerificationSelection,
     VerificationTrigger,
 )
@@ -273,6 +278,8 @@ class EvidenceStore(Protocol):
 class EvidenceRegistryPort(Protocol):
     def put_v2(self, evidence: EvidenceV2) -> None: ...
     def inspect(self, evidence_ref: str, trigger: EvidenceInvalidationTrigger | None = None) -> EvidenceInspection: ...
+    def current_set(self, trigger: EvidenceInvalidationTrigger | None = None) -> EvidenceCurrentSet: ...
+    def current_passed_by_claim(self, trigger: EvidenceInvalidationTrigger | None = None) -> dict[str, tuple[EvidenceV2, ...]]: ...
     def append_status_event(self, event: EvidenceStatusEvent) -> None: ...
     def adapt_legacy_manifest(self, manifest: dict[str, Any]) -> tuple[LegacyEvidenceRecord, ...]: ...
 
@@ -285,8 +292,43 @@ class VerificationServicePort(Protocol):
 
 
 @runtime_checkable
+class GateRunnerPort(Protocol):
+    @property
+    def gate_kind(self) -> str: ...
+
+    @property
+    def release_ref(self) -> str: ...
+
+    async def run(self, request: GateExecutionRequest) -> GateExecutionResult: ...
+
+
+@runtime_checkable
+class GateRunnerRegistryPort(Protocol):
+    def register(self, runner: GateRunnerPort) -> None: ...
+    def resolve(self, gate_kind: str, release_ref: str) -> GateRunnerPort: ...
+
+
+@runtime_checkable
+class VerificationExecutorPort(Protocol):
+    async def execute_selection(
+        self,
+        selection: VerificationSelection,
+        context: VerificationExecutionContext,
+    ) -> VerificationExecutionReport: ...
+
+
+@runtime_checkable
 class SchedulerPort(Protocol):
-    def submit_plan(self, plan: PlanIR, validation_report: PlanValidationReport) -> str: ...
+    def submit_plan(
+        self,
+        plan: PlanIR,
+        validation_report: PlanValidationReport,
+        *,
+        goal_execution_ref: str | None = None,
+        parent_plan_execution_ref: str | None = None,
+        reused_node_refs: tuple[str, ...] = (),
+        reused_evidence_refs: tuple[str, ...] = (),
+    ) -> str: ...
 
 
 @runtime_checkable

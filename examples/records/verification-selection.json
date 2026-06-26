@@ -27,6 +27,10 @@
     "staleEvidenceRefs": [
       "EVD-cli-stale"
     ],
+    "historicalEvidenceRefs": [
+      "EVD-cli-failed-previous"
+    ],
+    "resolutionFailureRefs": [],
     "rationale": [
       "affected_claim:CLAIM-cli-detects-stale-docs->GATE-node-cli-unit",
       "failed_gate:GATE-node-cli-unit",

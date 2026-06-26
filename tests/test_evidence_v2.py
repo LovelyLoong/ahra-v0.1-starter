@@ -135,6 +135,90 @@ class EvidenceV2Tests(unittest.TestCase):
         self.assertEqual(event["spec"]["toState"], "stale")
         self.assertEqual(event["spec"]["supersededBy"], "EVD-rerun")
 
+    def test_current_set_excludes_superseded_failed_history(self) -> None:
+        failed = _evidence(evidence_id="EVD-old-failed", result=EvidenceResult.FAILED, stored=True)
+        passed = _evidence(evidence_id="EVD-new-passed", supersedes=("EVD-old-failed",), stored=True)
+
+        current_set = EvidenceRegistry((failed, passed)).current_set()
+
+        self.assertEqual(current_set.current_evidence_refs, ("EVD-new-passed",))
+        self.assertEqual(current_set.historical_evidence_refs, ("EVD-old-failed",))
+        self.assertEqual(current_set.resolution_failures, ())
+        self.assertEqual(
+            tuple(record.evidence_id for record in current_set.current_passed_by_claim()["CLAIM-cli-detects-stale-docs"]),
+            ("EVD-new-passed",),
+        )
+        self.assertIn("superseded_by:EVD-new-passed", current_set.inspections["EVD-old-failed"].reasons)
+
+    def test_stale_superseding_leaf_does_not_reactivate_old_evidence(self) -> None:
+        old = _evidence(evidence_id="EVD-old-passed", stored=True)
+        stale_replacement = _evidence(
+            evidence_id="EVD-new-stale",
+            supersedes=("EVD-old-passed",),
+            validity_state=EvidenceValidityState.STALE,
+            stored=True,
+        )
+
+        current_set = EvidenceRegistry((old, stale_replacement)).current_set()
+
+        self.assertEqual(current_set.current_evidence_refs, ("EVD-new-stale",))
+        self.assertEqual(current_set.historical_evidence_refs, ("EVD-old-passed",))
+        self.assertEqual(current_set.current_passed_by_claim(), {})
+        self.assertFalse(current_set.inspections["EVD-new-stale"].current)
+
+    def test_supersession_self_unknown_cycle_and_competing_leaves_fail_closed(self) -> None:
+        cases = [
+            (
+                "self",
+                (_evidence(evidence_id="EVD-self", supersedes=("EVD-self",), stored=True),),
+                "self_supersession",
+            ),
+            (
+                "unknown",
+                (_evidence(evidence_id="EVD-new", supersedes=("EVD-missing",), stored=True),),
+                "unknown_supersedes_ref",
+            ),
+            (
+                "duplicate",
+                (_evidence(evidence_id="EVD-new", supersedes=("EVD-old", "EVD-old"), stored=True), _evidence(evidence_id="EVD-old", stored=True)),
+                "duplicate_supersedes_ref",
+            ),
+            (
+                "cycle",
+                (
+                    _evidence(evidence_id="EVD-a", supersedes=("EVD-b",), stored=True),
+                    _evidence(evidence_id="EVD-b", supersedes=("EVD-a",), stored=True),
+                ),
+                "supersession_cycle",
+            ),
+            (
+                "competing",
+                (
+                    _evidence(evidence_id="EVD-left", stored=True),
+                    _evidence(evidence_id="EVD-right", stored=True),
+                ),
+                "competing_current_leaves",
+            ),
+        ]
+
+        for label, records, code in cases:
+            with self.subTest(label=label):
+                current_set = EvidenceRegistry(records).current_set()
+                self.assertEqual(current_set.current_evidence_refs, ())
+                self.assertIn(code, {failure.code for failure in current_set.resolution_failures})
+
+    def test_supersession_status_events_are_derived_append_only_events(self) -> None:
+        old = _evidence(evidence_id="EVD-old", stored=True)
+        new = _evidence(evidence_id="EVD-new", supersedes=("EVD-old",), stored=True)
+
+        events = EvidenceRegistry((old, new)).supersession_status_events(
+            occurred_at=datetime(2026, 6, 25, tzinfo=UTC)
+        )
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0].evidence_ref, "EVD-old")
+        self.assertEqual(events[0].superseded_by, "EVD-new")
+
     def test_legacy_manifest_adapter_labels_records_as_partial(self) -> None:
         manifest = json.loads((ROOT / "work/tasks/TASK-0023/evidence-manifest.json").read_text(encoding="utf-8"))
 
@@ -173,14 +257,18 @@ def _evidence(
     dependencies: tuple[DigestRef, ...] = (DigestRef("ART-schema", D3),),
     dependency_scope_complete: bool = True,
     valid_until: datetime | None = None,
+    result: EvidenceResult = EvidenceResult.PASSED,
+    validity_state: EvidenceValidityState = EvidenceValidityState.CURRENT,
+    supersedes: tuple[str, ...] = (),
+    stored: bool = False,
 ) -> EvidenceV2:
-    return EvidenceV2(
+    evidence = EvidenceV2(
         evidence_id=evidence_id,
         claim_refs=("CLAIM-cli-detects-stale-docs",),
         gate_ref="GATE-unit@sha256:" + "1" * 64,
         gate_definition_digest=D1,
         gate_run_id="GATERUN-unit",
-        result=EvidenceResult.PASSED,
+        result=result,
         confidence="verified",
         subjects=(DigestRef(subject_ref, D2),),
         dependencies=dependencies,
@@ -191,8 +279,30 @@ def _evidence(
             test_definition_digest=D7,
             relevant_environment_digest=D8,
         ),
+        validity_state=validity_state,
         valid_until=valid_until,
         dependency_scope_complete=dependency_scope_complete,
+        supersedes=supersedes,
+    )
+    if not stored:
+        return evidence
+    return EvidenceV2(
+        evidence_id=evidence.evidence_id,
+        claim_refs=evidence.claim_refs,
+        gate_ref=evidence.gate_ref,
+        gate_definition_digest=evidence.gate_definition_digest,
+        gate_run_id=evidence.gate_run_id,
+        result=evidence.result,
+        confidence=evidence.confidence,
+        subjects=evidence.subjects,
+        dependencies=evidence.dependencies,
+        environment=evidence.environment,
+        validity_state=evidence.validity_state,
+        valid_until=evidence.valid_until,
+        dependency_scope_complete=evidence.dependency_scope_complete,
+        stored_fingerprint=evidence.fingerprint(),
+        refs=evidence.refs,
+        supersedes=evidence.supersedes,
     )
 
 

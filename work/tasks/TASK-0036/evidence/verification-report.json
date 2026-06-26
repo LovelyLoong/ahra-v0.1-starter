@@ -1,0 +1,127 @@
+{
+  "schema_version": "ahra/task-verification-report/0.1",
+  "task_id": "TASK-0036",
+  "created_at": "2026-06-26T07:36:14.797985Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "verification_summary": {
+    "result": "passed",
+    "producer_only": true,
+    "independent_evidence_gate_required": true
+  },
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_plan_execution tests.test_dynamic_fixture -v",
+      "result": "passed",
+      "summary": "20 targeted tests passed."
+    },
+    {
+      "command": "uv run python -B scripts/check.py --lint",
+      "result": "passed",
+      "summary": "AHRA lint and contract lint passed with 0 failures."
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "result": "passed",
+      "summary": "AWKP lint passed with 0 errors and 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "summary": "No whitespace errors reported."
+    },
+    {
+      "command": "uv run python -B scripts/check.py --test",
+      "result": "passed",
+      "summary": "171 tests passed, 1 Windows symlink privilege test skipped."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "result": "passed",
+      "summary": "Full project check passed: lint plus 171 tests passed, 1 Windows symlink privilege test skipped."
+    },
+    {
+      "command": "uv run python -B -m ahra.cli fixture dynamic-repair --fixture tests/fixtures/dynamic-goal-project --report work/tasks/TASK-0036/evidence/dynamic-fixture-report.json",
+      "result": "passed",
+      "summary": "Generated dynamic fixture report with finalCompletionAccepted=true and terminalStatusAfterResume=failed."
+    }
+  ],
+  "dynamic_fixture_report": {
+    "path": "work/tasks/TASK-0036/evidence/dynamic-fixture-report.json",
+    "sha256": "798a6eff6c6f5ed806403f524de0115b55e8648201ad2a9967ad720916cab66a",
+    "goal_execution_status": "succeeded",
+    "plan_execution_refs": [
+      "PEXEC-ce0b1c8d05b4e799",
+      "PEXEC-2f5d7f489a9ee942"
+    ],
+    "repair_cycles": 1,
+    "open_defect_refs": [],
+    "initial_plan_status": "failed",
+    "repaired_plan_status": "succeeded",
+    "executor_calls": [
+      "NODE-acceptance-order",
+      "NODE-doc-checker",
+      "NODE-security-audit",
+      "NODE-doc-checker-repair"
+    ],
+    "second_selected_gate_refs": [
+      "GATE-doc-health-l1",
+      "GATE-repair-boundary",
+      "GATE-selective-reverify",
+      "GATE-goal-completion"
+    ],
+    "second_gate_run_count": 4,
+    "gate_execution_integrity": 1.0,
+    "capability_admission_coverage": 1.0,
+    "current_set_metrics": {
+      "currentEvidenceLeafCount": 7,
+      "historicalEvidenceCount": 1,
+      "staleEvidenceCount": 1,
+      "staleEvidenceCountByReason.superseded_by": 1,
+      "supersessionResolutionFailures": 0
+    },
+    "required_metrics": {
+      "goalExecutionRepairCycles": 1,
+      "planExecutionVersionsPerGoalExecution": 2,
+      "schedulerDispatchedNodes": 4,
+      "allExecutedNodes": 4,
+      "schedulerDispatchCoverage": 1.0,
+      "reusedEvidenceCount": 2,
+      "defectTimeToResolutionSeconds": 0,
+      "repairBoundaryCompliance": true
+    }
+  },
+  "negative_and_adversarial_coverage": [
+    {
+      "case": "invalid PlanPatch parent digest",
+      "coverage": "Existing PlanIR/Planner validation tests reject parent-plan-digest-mismatch."
+    },
+    {
+      "case": "repair Node accepted but reverify Gate failed",
+      "coverage": "tests.test_plan_execution.PlanExecutionTests.test_terminal_reverify_gate_failure_keeps_plan_failed_after_nodes_accept"
+    },
+    {
+      "case": "reused Evidence became stale before v2 start",
+      "coverage": "dynamic fixture validates repair_result.patch.reused_evidence_refs against EvidenceRegistry(initial_evidence).current_set before v2 submit."
+    },
+    {
+      "case": "repair cycle budget exhausted",
+      "coverage": "tests.test_plan_execution.PlanExecutionTests.test_goal_execution_rejects_open_defect_success_and_enforces_repair_budget"
+    },
+    {
+      "case": "second active PlanExecution attempt",
+      "coverage": "tests.test_plan_execution.PlanExecutionTests.test_goal_execution_links_plan_versions_and_blocks_second_active_plan"
+    },
+    {
+      "case": "direct executor bypass regression scan",
+      "coverage": "tests.test_dynamic_fixture.DynamicFixtureTests.test_dynamic_fixture_has_no_direct_repair_executor_bypass"
+    },
+    {
+      "case": "terminal goal node missing",
+      "coverage": "Existing reconciler reports missing-terminal-goal-node when a succeeded PlanExecution has no succeeded goal verification NodeRun."
+    }
+  ],
+  "residual_risk": [
+    "This is still an in-memory GoalExecution implementation; cross-process recovery remains TASK-0037.",
+    "The dynamic fixture uses deterministic runner metadata for repair boundary verification; real Agent repair remains TASK-0040."
+  ]
+}

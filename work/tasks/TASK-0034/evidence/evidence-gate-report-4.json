@@ -1,0 +1,136 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0034",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-26T06:13:36.786625Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent review found TASK-0034 satisfies the mandatory Capability Admission contract. Scheduler admission occurs before executor invocation, denied or missing admission fails before side effects, dynamic fixture admission coverage is complete, default-path synthetic grant fabrication was not found, and independent checks passed.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Every Node that performs a side effect has a current CapabilityGrant issued by CapabilityAdmissionService.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0034-0001",
+        "EVD-TASK-0034-0002",
+        "EVD-TASK-0034-0003"
+      ],
+      "notes": "StaticPlanScheduler prepares CapabilityAdmissionService decisions before RUNNING/executor invocation and passes only admitted runtime grants into NodeExecutionRequest. Dynamic fixture reports 4 side-effect nodes and 4 admitted nodes."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Capability admission coverage is 100% in dynamic-path tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0034-0002",
+        "EVD-TASK-0034-0003"
+      ],
+      "notes": "Dynamic fixture report and independent rerun show capabilityAdmission.coverage is 1.0, admittedNodeCount is 4, sideEffectNodeCount is 4, and unadmittedNodeExecutionCount is 0."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "No default-path code fabricates policy_decision_id, issuer or admission success.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0034-0001",
+        "EVD-TASK-0034-0002"
+      ],
+      "notes": "Default scheduler and dynamic fixture use CapabilityAdmissionService. Independent grep found no old default-path synthetic helper or static-plan/manual fixture issuer strings in plan_execution.py or dynamic_fixture.py."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "A denied capability leaves the Node non-running and creates an audit/terminal failure record.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0034-0002",
+        "EVD-TASK-0034-0003"
+      ],
+      "notes": "Scheduler tests verify missing/denied admission leaves executor.calls empty, marks NodeRun failed, and records terminal failure/admission refs. Fixture security path reports unauthorizedWriteAllowed false and no side effect."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Privilege widening, wrong role, wrong node, wrong plan, expired grant and undeclared command are rejected.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0034-0002"
+      ],
+      "notes": "Capability and gateway tests cover privilege widening, role mismatch, wrong plan/node binding, stale or expired grants, and undeclared commands."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Planner/reviewer/verifier filesystem.write attempts are rejected.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0034-0002"
+      ],
+      "notes": "CapabilityAdmissionService rejects planner and verifier filesystem.write requests by role. Reviewer write denial is covered by the same default deny role policy and referenced security report."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "The path-escape fixture is denied before side effect and traces to a real AdmissionDecision.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0034-0003"
+      ],
+      "notes": "Independent fixture rerun shows path_escape denial, unauthorizedWriteAllowed false, sideEffectExists false, and the audit record includes a real PDEC decision id and grant digest."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Legacy compatibility behavior is explicitly named and excluded from the default path.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0034-0001"
+      ],
+      "notes": "bounded_task.runtime_grants_for_node is explicitly documented as a legacy standard-harness compatibility shim, and the default dynamic Scheduler does not call it."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Full checks and security tests pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0034-0002",
+        "EVD-TASK-0034-0003"
+      ],
+      "notes": "Independent full check, AWKP lint, git diff whitespace check, targeted security/admission tests, fixture rerun, manifest SHA verification, and default-path synthetic grant grep all passed."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "status": "passed",
+      "summary": "161 tests passed, 1 skipped due Windows symlink privilege."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "summary": "AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors reported."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_plan_execution tests.test_dynamic_fixture tests.test_capabilities tests.test_repository_consolidation -v",
+      "status": "passed",
+      "summary": "30 targeted tests passed, 1 skipped due Windows symlink privilege."
+    },
+    {
+      "command": "uv run python -B -m ahra.cli fixture dynamic-repair --fixture tests\\fixtures\\dynamic-goal-project --report .tmp\\TASK-0034-review-dynamic-fixture-report.json",
+      "status": "passed",
+      "summary": "Fixture completed with finalCompletionAccepted true, unauthorizedWriteAllowed false, admission coverage 1.0, syntheticGrantCount 0."
+    },
+    {
+      "command": "manifest SHA256 verification for TASK-0034 artifact-manifest.json and evidence-manifest.json",
+      "status": "passed",
+      "summary": "All artifact and evidence sha256 values matched their local files."
+    },
+    {
+      "command": "rg -n \"_runtime_grants_for_node|harness:static-plan-scheduler|fixture:manual-repair-runner\" src\\ahra\\plan_execution.py src\\ahra\\dynamic_fixture.py",
+      "status": "passed",
+      "summary": "No matches in default scheduler or dynamic fixture paths."
+    }
+  ]
+}

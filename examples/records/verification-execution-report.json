@@ -1,0 +1,73 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "VerificationExecutionReport",
+  "metadata": {
+    "reportId": "VEXECRPT-doc-health-l1",
+    "createdAt": "2026-06-26T00:00:04Z"
+  },
+  "spec": {
+    "selection": {
+      "selectedGateRefs": [
+        "GATE-doc-health-l1"
+      ],
+      "fullGateRefs": [
+        "GATE-acceptance-contract",
+        "GATE-doc-health-l1",
+        "GATE-goal-completion"
+      ],
+      "affectedClaimRefs": [
+        "CLAIM-defect-repair-functional"
+      ],
+      "reusedEvidenceRefs": [
+        "EVD-acceptance-contract"
+      ],
+      "staleEvidenceRefs": [
+        "EVD-doc-health-l1-stale"
+      ],
+      "historicalEvidenceRefs": [
+        "EVD-doc-health-l1-failed"
+      ],
+      "resolutionFailureRefs": [],
+      "rationale": [
+        "failed_gate:GATE-doc-health-l1"
+      ]
+    },
+    "selectedGateRefs": [
+      "GATE-doc-health-l1"
+    ],
+    "executedGateRunRefs": [
+      "GATERUN-doc-health-l1"
+    ],
+    "reusedEvidenceRefs": [
+      "EVD-acceptance-contract"
+    ],
+    "attempts": [
+      {
+        "gateRef": "GATE-doc-health-l1",
+        "status": "passed",
+        "level": "L1",
+        "gateRunRef": "GATERUN-doc-health-l1",
+        "evidenceRef": "EVD-doc-health-l1",
+        "failureClass": null,
+        "message": "GATE-doc-health-l1 passed"
+      }
+    ],
+    "passed": true,
+    "metrics": {
+      "gateExecutionIntegrity": 1,
+      "unrunGatePassCount": 0,
+      "gateRunCountByStatus": {
+        "passed": 1
+      },
+      "gateRunCountByLevel": {
+        "L1": 1
+      },
+      "gateRunCountByGate": {
+        "GATE-doc-health-l1": 1
+      },
+      "evidenceWithValidGateRunLineage": 1,
+      "newEvidenceCount": 1
+    },
+    "duplicateIdempotencyKeys": []
+  }
+}

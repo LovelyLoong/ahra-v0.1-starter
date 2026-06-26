@@ -1,0 +1,110 @@
+{
+  "schema_version": "ahra/task-implementation-report/0.1",
+  "task_id": "TASK-0034",
+  "generated_at": "2026-06-26T04:16:03.320534Z",
+  "producer": "agent:codex-dynamic-kernel-operator",
+  "workspace": "E:\\ahra-v0.1-starter",
+  "branch": "main",
+  "base_commit": "ac0c1b4795395441a0f33e18a356ce7c3ec54c84",
+  "final_commit": null,
+  "scope": {
+    "implemented": [
+      "StaticPlanScheduler now requires CapabilityAdmissionPort before executable NodeRun enters running.",
+      "AdmissionDecision refs, CapabilityGrant refs and grant digests are recorded on NodeRunRecord.",
+      "Denied or unavailable admission transitions NodeRun from admitted to failed without executor invocation.",
+      "Dynamic fixture scheduler and direct repair execution now use CapabilityAdmissionService-issued runtime grants.",
+      "RuntimeGateway path-escape audit remains pre-side-effect and now traces to real admission decision/grant lineage.",
+      "Legacy standard-harness compatibility synthetic grant helper is explicitly documented as compatibility-only."
+    ],
+    "not_implemented": [
+      "Production secret broker.",
+      "External write or production deployment capabilities.",
+      "Distributed identity.",
+      "Evidence current-set redesign.",
+      "Unified Scheduler-driven repair lifecycle; reserved for TASK-0036."
+    ]
+  },
+  "changed_files": {
+    "core": [
+      "src/ahra/plan_execution.py",
+      "src/ahra/dynamic_fixture.py",
+      "src/ahra/reference_runner/bounded_task.py"
+    ],
+    "tests": [
+      "tests/test_plan_execution.py",
+      "tests/test_dynamic_fixture.py"
+    ],
+    "authority_docs": [
+      "docs/architecture/plan-ir.md",
+      "docs/architecture/component-inventory.json"
+    ],
+    "task_state": [
+      "work/tasks/TASK-0034/task.md",
+      "work/tasks/TASK-0034/state.json",
+      "work/tasks/TASK-0034/events.jsonl",
+      "work/index.md"
+    ]
+  },
+  "object_boundaries": {
+    "plan_ir": "PlanIR capability fields remain immutable capability intent/request data and are not executable runtime authorization.",
+    "admission": "CapabilityAdmissionService is the only default-path issuer of RuntimeCapabilityGrant and AdmissionDecision records.",
+    "scheduler": "StaticPlanScheduler prepares admission before running executor nodes and fails closed before running on denied or missing admission.",
+    "runtime_gateway": "LocalRuntimeGateway continues to enforce grant binding and records side-effect audit lineage.",
+    "compatibility": "reference_runner/bounded_task.py retains a synthetic grant helper only for standard-harness compatibility."
+  },
+  "acceptance_mapping": [
+    {
+      "criterion": "Every Node that performs a side effect has a current CapabilityGrant issued by CapabilityAdmissionService.",
+      "evidence_refs": ["EVD-TASK-0034-0002", "EVD-TASK-0034-0003"]
+    },
+    {
+      "criterion": "Capability admission coverage is 100% in dynamic-path tests.",
+      "evidence_refs": ["EVD-TASK-0034-0003"]
+    },
+    {
+      "criterion": "No default-path code fabricates policy_decision_id, issuer or admission success.",
+      "evidence_refs": ["EVD-TASK-0034-0001", "EVD-TASK-0034-0002"]
+    },
+    {
+      "criterion": "A denied capability leaves the Node non-running and creates an audit/terminal failure record.",
+      "evidence_refs": ["EVD-TASK-0034-0002", "EVD-TASK-0034-0003"]
+    },
+    {
+      "criterion": "Privilege widening, wrong role, wrong node, wrong plan, expired grant and undeclared command are rejected.",
+      "evidence_refs": ["EVD-TASK-0034-0002"]
+    },
+    {
+      "criterion": "Planner/reviewer/verifier filesystem.write attempts are rejected.",
+      "evidence_refs": ["EVD-TASK-0034-0002"]
+    },
+    {
+      "criterion": "The path-escape fixture is denied before side effect and traces to a real AdmissionDecision.",
+      "evidence_refs": ["EVD-TASK-0034-0003"]
+    },
+    {
+      "criterion": "Legacy compatibility behavior is explicitly named and excluded from the default path.",
+      "evidence_refs": ["EVD-TASK-0034-0001"]
+    },
+    {
+      "criterion": "Full checks and security tests pass.",
+      "evidence_refs": ["EVD-TASK-0034-0002"]
+    }
+  ],
+  "metrics": {
+    "capability_admission_coverage": 1.0,
+    "unadmitted_node_execution_count": 0,
+    "synthetic_grant_count": 0,
+    "deny_count_by_reason": {
+      "path_escape": 1
+    },
+    "pre_side_effect_denial_rate": 1.0,
+    "runtime_audit_records_with_valid_decision_grant_lineage": 5,
+    "runtime_audit_record_count": 5
+  },
+  "known_limitations": [
+    "PlanIR schema field name remains capabilityGrants for compatibility, but documentation clarifies it is not runtime authorization.",
+    "reference_runner/bounded_task.py retains synthetic grants for explicitly named legacy standard-harness compatibility.",
+    "Repair PlanIR is still directly executed in the fixture after repair planning; TASK-0036 owns Scheduler-driven repair."
+  ],
+  "next_action": "Independent EvidenceGate review for TASK-0034 mandatory Capability Admission."
+}

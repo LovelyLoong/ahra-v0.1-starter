@@ -221,6 +221,88 @@ class EvidenceInspection:
 
 
 @dataclass(frozen=True, slots=True)
+class EvidenceSupersessionFailure:
+    code: str
+    evidence_ref: str
+    message: str
+    ref: str | None = None
+
+    def to_dict(self) -> dict[str, str]:
+        result = {
+            "code": self.code,
+            "evidenceRef": self.evidence_ref,
+            "message": self.message,
+        }
+        if self.ref:
+            result["ref"] = self.ref
+        return result
+
+
+@dataclass(frozen=True, slots=True)
+class EvidenceCurrentSet:
+    records: tuple[EvidenceV2, ...]
+    current_records: tuple[EvidenceV2, ...]
+    historical_records: tuple[EvidenceV2, ...]
+    inspections: Mapping[str, EvidenceInspection]
+    resolution_failures: tuple[EvidenceSupersessionFailure, ...] = ()
+
+    @property
+    def current_evidence_refs(self) -> tuple[str, ...]:
+        return tuple(record.evidence_id for record in self.current_records)
+
+    @property
+    def historical_evidence_refs(self) -> tuple[str, ...]:
+        return tuple(record.evidence_id for record in self.historical_records)
+
+    @property
+    def resolution_failure_refs(self) -> tuple[str, ...]:
+        return tuple(
+            sorted(
+                {
+                    failure.evidence_ref
+                    for failure in self.resolution_failures
+                }
+            )
+        )
+
+    def current_passed_by_claim(self) -> dict[str, tuple[EvidenceV2, ...]]:
+        by_claim: dict[str, list[EvidenceV2]] = {}
+        if self.resolution_failures:
+            return {}
+        for record in self.current_records:
+            inspection = self.inspections[record.evidence_id]
+            if (
+                not inspection.current
+                or record.result != EvidenceResult.PASSED
+                or record.stored_fingerprint is None
+                or record.stored_fingerprint != record.fingerprint()
+            ):
+                continue
+            for claim_ref in record.claim_refs:
+                by_claim.setdefault(claim_ref, []).append(record)
+        return {
+            claim_ref: tuple(sorted(records, key=lambda item: item.evidence_id))
+            for claim_ref, records in sorted(by_claim.items())
+        }
+
+    def metrics(self) -> dict[str, int]:
+        stale_by_reason: dict[str, int] = {}
+        for inspection in self.inspections.values():
+            if inspection.current:
+                continue
+            for reason in inspection.reasons:
+                key = reason.split(":", 1)[0]
+                stale_by_reason[key] = stale_by_reason.get(key, 0) + 1
+        return {
+            "historicalEvidenceCount": len(self.historical_records),
+            "currentEvidenceLeafCount": len(self.current_records),
+            "supersessionResolutionFailures": len(self.resolution_failures),
+            "staleEvidenceCount": sum(1 for inspection in self.inspections.values() if not inspection.current),
+            **{f"staleEvidenceCountByReason.{key}": value for key, value in sorted(stale_by_reason.items())},
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class EvidenceStatusEvent:
     event_id: str
     evidence_ref: str
@@ -267,7 +349,10 @@ def canonical_fingerprint(payload: Mapping[str, Any]) -> str:
 
 class EvidenceRegistry:
     def __init__(self, records: tuple[EvidenceV2, ...]) -> None:
+        self._ordered_records = tuple(records)
         self._records = {record.evidence_id: record for record in records}
+        if len(self._records) != len(records):
+            raise ValueError("duplicate evidence_id in registry")
 
     def inspect(
         self,
@@ -309,7 +394,85 @@ class EvidenceRegistry:
                         reasons=tuple(f"dependency_evidence_not_current:{ref}" for ref in sorted(stale_dependencies)),
                     )
                     changed = True
+        superseded_by, failures = self._superseded_by()
+        if not failures:
+            for evidence_id, superseding_refs in superseded_by.items():
+                inspection = inspections[evidence_id]
+                inspections[evidence_id] = EvidenceInspection(
+                    evidence_id=evidence_id,
+                    state=inspection.state,
+                    fingerprint=inspection.fingerprint,
+                    current=False,
+                    reasons=tuple(
+                        sorted(
+                            (
+                                *inspection.reasons,
+                                *(f"superseded_by:{ref}" for ref in sorted(superseding_refs)),
+                            )
+                        )
+                    ),
+                )
         return inspections
+
+    def current_set(
+        self,
+        trigger: EvidenceInvalidationTrigger | None = None,
+    ) -> EvidenceCurrentSet:
+        inspections = self.inspect_all(trigger)
+        superseded_by, validation_failures = self._superseded_by()
+        historical = tuple(
+            sorted(
+                (record for record in self._ordered_records if record.evidence_id in superseded_by),
+                key=lambda item: item.evidence_id,
+            )
+        )
+        current = tuple(
+            sorted(
+                (record for record in self._ordered_records if record.evidence_id not in superseded_by),
+                key=lambda item: item.evidence_id,
+            )
+        )
+        competition_failures = self._competing_leaf_failures(current) if not validation_failures else ()
+        failures = (*validation_failures, *competition_failures)
+        if failures:
+            current = ()
+        return EvidenceCurrentSet(
+            records=self._ordered_records,
+            current_records=current,
+            historical_records=historical,
+            inspections=inspections,
+            resolution_failures=failures,
+        )
+
+    def current_passed_by_claim(
+        self,
+        trigger: EvidenceInvalidationTrigger | None = None,
+    ) -> dict[str, tuple[EvidenceV2, ...]]:
+        return self.current_set(trigger).current_passed_by_claim()
+
+    def supersession_status_events(
+        self,
+        *,
+        occurred_at: datetime,
+    ) -> tuple[EvidenceStatusEvent, ...]:
+        superseded_by, failures = self._superseded_by()
+        if failures:
+            return ()
+        events: list[EvidenceStatusEvent] = []
+        for evidence_ref, superseding_refs in sorted(superseded_by.items()):
+            for superseding_ref in sorted(superseding_refs):
+                events.append(
+                    make_status_event(
+                        event_id=f"EVT-{evidence_ref}-superseded-by-{superseding_ref}",
+                        evidence_ref=evidence_ref,
+                        from_state=EvidenceValidityState.CURRENT,
+                        to_state=EvidenceValidityState.CURRENT,
+                        reason="superseded",
+                        occurred_at=occurred_at,
+                        superseded_by=superseding_ref,
+                    )
+                )
+        return tuple(events)
 
     def _inspect_direct(
         self,
@@ -364,6 +527,102 @@ class EvidenceRegistry:
         if trigger.verifier_release_digest and trigger.verifier_release_digest != record.environment.verifier_release_digest:
             reasons.append("verifier_release_changed")
         return tuple(reasons)
+
+    def _superseded_by(self) -> tuple[dict[str, set[str]], tuple[EvidenceSupersessionFailure, ...]]:
+        superseded_by: dict[str, set[str]] = {}
+        failures: list[EvidenceSupersessionFailure] = []
+        for record in self._ordered_records:
+            if len(set(record.supersedes)) != len(record.supersedes):
+                failures.append(
+                    EvidenceSupersessionFailure(
+                        code="duplicate_supersedes_ref",
+                        evidence_ref=record.evidence_id,
+                        message="Evidence supersedes list contains duplicate refs.",
+                    )
+                )
+            for superseded_ref in record.supersedes:
+                if superseded_ref == record.evidence_id:
+                    failures.append(
+                        EvidenceSupersessionFailure(
+                            code="self_supersession",
+                            evidence_ref=record.evidence_id,
+                            ref=superseded_ref,
+                            message="Evidence cannot supersede itself.",
+                        )
+                    )
+                    continue
+                if superseded_ref not in self._records:
+                    failures.append(
+                        EvidenceSupersessionFailure(
+                            code="unknown_supersedes_ref",
+                            evidence_ref=record.evidence_id,
+                            ref=superseded_ref,
+                            message=f"Evidence supersedes unknown record {superseded_ref}.",
+                        )
+                    )
+                    continue
+                superseded_by.setdefault(superseded_ref, set()).add(record.evidence_id)
+        cycle_refs = self._supersession_cycle_refs()
+        for evidence_ref in cycle_refs:
+            failures.append(
+                EvidenceSupersessionFailure(
+                    code="supersession_cycle",
+                    evidence_ref=evidence_ref,
+                    message="Evidence supersession graph contains a cycle.",
+                )
+            )
+        return superseded_by, tuple(sorted(failures, key=lambda item: (item.code, item.evidence_ref, item.ref or "")))
+
+    def _supersession_cycle_refs(self) -> tuple[str, ...]:
+        graph = {
+            record.evidence_id: tuple(ref for ref in record.supersedes if ref in self._records)
+            for record in self._ordered_records
+        }
+        visiting: set[str] = set()
+        visited: set[str] = set()
+        cycle_refs: set[str] = set()
+
+        def visit(evidence_ref: str, path: tuple[str, ...]) -> None:
+            if evidence_ref in visiting:
+                if evidence_ref in path:
+                    cycle_refs.update(path[path.index(evidence_ref) :])
+                else:
+                    cycle_refs.add(evidence_ref)
+                return
+            if evidence_ref in visited:
+                return
+            visiting.add(evidence_ref)
+            for superseded_ref in graph.get(evidence_ref, ()):
+                visit(superseded_ref, (*path, superseded_ref))
+            visiting.remove(evidence_ref)
+            visited.add(evidence_ref)
+
+        for record in self._ordered_records:
+            visit(record.evidence_id, (record.evidence_id,))
+        return tuple(sorted(cycle_refs))
+
+    def _competing_leaf_failures(self, current_records: tuple[EvidenceV2, ...]) -> tuple[EvidenceSupersessionFailure, ...]:
+        by_key: dict[tuple[str, str, tuple[tuple[str, str], ...]], list[str]] = {}
+        for record in current_records:
+            subject_key = tuple(sorted((subject.ref, subject.digest) for subject in record.subjects))
+            for claim_ref in record.claim_refs:
+                key = (claim_ref, _gate_base_ref(record.gate_ref), subject_key)
+                by_key.setdefault(key, []).append(record.evidence_id)
+        failures: list[EvidenceSupersessionFailure] = []
+        for refs in by_key.values():
+            unique_refs = sorted(set(refs))
+            if len(unique_refs) <= 1:
+                continue
+            for evidence_ref in unique_refs:
+                failures.append(
+                    EvidenceSupersessionFailure(
+                        code="competing_current_leaves",
+                        evidence_ref=evidence_ref,
+                        ref=",".join(unique_refs),
+                        message="Multiple unsuperseded Evidence leaves cover the same Claim, Gate, and subject set.",
+                    )
+                )
+        return tuple(failures)
 
 
 def make_status_event(

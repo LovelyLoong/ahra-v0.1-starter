@@ -20,9 +20,21 @@
     "spec": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["claimRef", "gateRef", "expected", "actual", "refs", "repairBoundary", "status"],
+      "required": ["claimRef", "directClaimRefs", "affectedClaimRefs", "gateRef", "expected", "actual", "refs", "repairBoundary", "status"],
       "properties": {
         "claimRef": { "$ref": "#/$defs/claimId" },
+        "directClaimRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/claimId" }
+        },
+        "affectedClaimRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/claimId" }
+        },
         "gateRef": { "$ref": "#/$defs/gateId" },
         "expected": { "type": "string", "minLength": 1 },
         "actual": { "type": "string", "minLength": 1 },

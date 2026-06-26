@@ -7,7 +7,7 @@
 ## Read Order
 
 1. 当前任务的 `work/tasks/<TASK-ID>/task.md`、`state.json` 与最新 `events.jsonl`。
-2. `AHRA_dynamic_kernel_master_plan_2026-06-25.md`、`docs/architecture/authority-map.md`、`docs/architecture/component-inventory.json`。
+2. `AHRA_dynamic_kernel_master_plan_2026-06-25.md`、`AHRA_dynamic_kernel_m1_master_plan_2026-06-26.md`、`docs/architecture/authority-map.md`、`docs/architecture/component-inventory.json`。
 3. 当前已实现入口读取：`README.md` 与 `docs/architecture/framework-entrypoints.md`。
 4. 动态内核架构读取：`docs/architecture/dynamic-agent-kernel.md`、`docs/architecture/verification-system.md`、`docs/architecture/plan-ir.md`。
 5. 治理与生命周期读取：`SPEC.md`、`WORKFLOW.md`、`architecture/SPEC.md`、`docs/policies/component-lifecycle.md`、`docs/policies/agent-authority-boundaries.md`。
@@ -40,6 +40,7 @@
 - AHRA active authority map: `docs/architecture/authority-map.md`
 - AHRA component inventory: `docs/architecture/component-inventory.json`
 - AHRA dynamic kernel master plan: `AHRA_dynamic_kernel_master_plan_2026-06-25.md`
+- AHRA dynamic kernel M1 proposed plan: `AHRA_dynamic_kernel_m1_master_plan_2026-06-26.md`
 - AHRA dynamic kernel architecture: `docs/architecture/dynamic-agent-kernel.md`
 - AHRA architecture: `architecture/SPEC.md`
 - AWKP profile: `SPEC.md`

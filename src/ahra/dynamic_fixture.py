@@ -21,9 +21,15 @@ from .acceptance_contracts import (
     RiskLevel,
     ensure_acceptance_contracts,
 )
-from .capabilities import CapabilityGrant as RuntimeCapabilityGrant
-from .capabilities import InMemoryAuditSink, LocalRuntimeGateway
-from .evidence_v2 import DigestRef, EvidenceEnvironment, EvidenceResult, EvidenceV2, canonical_fingerprint
+from .capabilities import (
+    CapabilityAdmissionService,
+    CapabilityGrant as RuntimeCapabilityGrant,
+    CapabilityScope,
+    InMemoryAuditSink,
+    LocalRuntimeGateway,
+    RuntimeCapabilityProfile,
+)
+from .evidence_v2 import DigestRef, EvidenceEnvironment, EvidenceRegistry, EvidenceResult, EvidenceV2, canonical_fingerprint
 from .node_executor import (
     NodeExecutionRequest,
     NodeExecutionResult,
@@ -39,8 +45,6 @@ from .plan_execution import (
 from .plan_ir import (
     PlanCompilerConfig,
     PlanDraft,
-    PlanIR,
-    PlanNodeIR,
     PlanNodeType,
     PlanPatchDraft,
     validate_plan_ir,
@@ -57,7 +61,12 @@ from .verification import (
     CompletionGateResult,
     DefectRecord,
     DefectStatus,
+    GateExecutionRequest,
+    GateExecutionResult,
+    GateExecutionStatus,
+    GateRunnerRegistry,
     VerificationResult,
+    VerificationExecutor,
     VerificationSelection,
     VerificationTrigger,
     defect_from_result,
@@ -190,6 +199,13 @@ class DynamicFixtureExecutor:
                     "EVD-selective-reverify-current",
                 ),
                 message="Repair changed only the affected doc-health component.",
+                details={
+                    "verificationMetadata": {
+                        "repairChangedFiles": ("src/doc_health.py",),
+                        "allowedRepairPaths": ("src/doc_health.py",),
+                        "supersedeMatchingGateEvidence": True,
+                    }
+                },
             )
         return NodeExecutionResult(
             node_run_id=request.run_id,
@@ -214,6 +230,7 @@ class DynamicFixtureExecutor:
         artifact_refs: tuple[str, ...],
         evidence_refs: tuple[str, ...],
         message: str,
+        details: Mapping[str, Any] | None = None,
     ) -> NodeExecutionResult:
         audit = gateway.write_text(
             grant,
@@ -237,24 +254,113 @@ class DynamicFixtureExecutor:
             terminal_failure_refs=() if audit.allowed else (audit.audit_id,),
             usage=NodeExecutionUsage(model_calls=1, tool_calls=1, spawned_nodes=0, cost_usd=0.0),
             message=message if audit.allowed else f"write denied: {audit.reason_code}",
-            details={"audit": audit.to_dict()},
+            details={"audit": audit.to_dict(), **dict(details or {})},
         )
 
 
+class DynamicFixtureGateRunner:
+    gate_kind = "*"
+    release_ref = "fixture-deterministic"
+
+    def __init__(self, executor: DynamicFixtureExecutor) -> None:
+        self.executor = executor
+        self.calls: list[str] = []
+
+    async def run(self, request: GateExecutionRequest) -> GateExecutionResult:
+        self.calls.append(request.gate_ref)
+        now = datetime.now(UTC)
+        status = self._status(request)
+        return GateExecutionResult(
+            gate_ref=request.gate_ref,
+            status=status,
+            started_at=now,
+            completed_at=now,
+            artifact_refs=(f"ART-{request.gate_ref.removeprefix('GATE-')}-gate-run",),
+            subjects=self._subjects(request),
+            command=("dynamic-fixture-gate", request.gate_ref),
+            usage={"modelCalls": 0, "toolCalls": 1, "costUsd": 0.0},
+            failure_class=None if status == GateExecutionStatus.PASSED else "fixture_gate_failed",
+            reason=f"{request.gate_ref} {status.value}",
+        )
+
+    def _status(self, request: GateExecutionRequest) -> GateExecutionStatus:
+        workspace = Path(request.workspace_ref) if request.workspace_ref else None
+        if request.gate_ref in {"GATE-acceptance-contract", "GATE-resume-check"}:
+            return GateExecutionStatus.PASSED
+        if request.gate_ref == "GATE-doc-health-l1":
+            if workspace and (workspace / "src" / "doc_health.py").exists():
+                text = (workspace / "src" / "doc_health.py").read_text(encoding="utf-8")
+                return GateExecutionStatus.PASSED if "return [doc for doc in docs" in text else GateExecutionStatus.FAILED
+            return GateExecutionStatus.BLOCKED
+        if request.gate_ref == "GATE-security-denial":
+            denied = self.executor.security_denial or {}
+            return GateExecutionStatus.PASSED if denied.get("unauthorizedWriteAllowed") is False else GateExecutionStatus.FAILED
+        if request.gate_ref == "GATE-repair-boundary":
+            changed = set(_metadata_strings(request, "repairChangedFiles"))
+            allowed = set(_metadata_strings(request, "allowedRepairPaths"))
+            return GateExecutionStatus.PASSED if changed and changed <= allowed else GateExecutionStatus.FAILED
+        if request.gate_ref == "GATE-selective-reverify":
+            return GateExecutionStatus.PASSED if request.metadata.get("selectedFewerThanFull") is True else GateExecutionStatus.FAILED
+        if request.gate_ref == "GATE-goal-completion":
+            return GateExecutionStatus.PASSED if request.metadata.get("completionComplete") is True else GateExecutionStatus.FAILED
+        return GateExecutionStatus.BLOCKED
+
+    def _subjects(self, request: GateExecutionRequest) -> tuple[DigestRef, ...]:
+        workspace = Path(request.workspace_ref) if request.workspace_ref else None
+        if request.gate_ref in {"GATE-doc-health-l1", "GATE-repair-boundary"} and workspace:
+            return (DigestRef("ART-doc-health", _file_digest(workspace / "src" / "doc_health.py")),)
+        if request.gate_ref == "GATE-security-denial":
+            return (DigestRef("ART-security-audit", _digest(self.executor.security_denial or {})),)
+        if request.gate_ref == "GATE-selective-reverify":
+            return (DigestRef("ART-selective-reverify", _digest(dict(request.metadata))),)
+        if request.gate_ref == "GATE-goal-completion":
+            return (DigestRef("ART-goal-completion", _digest(dict(request.metadata))),)
+        return request.subjects or (DigestRef(request.gate_ref, _digest(request.gate_ref)),)
+
+
 class DynamicFixtureVerificationService:
-    def __init__(self, graph: ClaimGraph, initial_records: tuple[EvidenceV2, ...]) -> None:
+    def __init__(
+        self,
+        graph: ClaimGraph,
+        gates: tuple[GateDefinition, ...],
+        gate_plan: GatePlan,
+        executor: VerificationExecutor,
+    ) -> None:
         self.graph = graph
-        self.records = initial_records
+        self.gates = gates
+        self.gate_plan = gate_plan
+        self.executor = executor
         self.select_calls: list[VerificationTrigger] = []
         self.complete_calls: list[VerificationTrigger | None] = []
 
     def select(self, trigger: VerificationTrigger) -> VerificationSelection:
         self.select_calls.append(trigger)
-        return VerificationSelection((), (), (), (), (), ("fixture-scheduler-boundary",))
+        return select_gates(
+            graph=self.graph,
+            gate_definitions=self.gates,
+            gate_plan=self.gate_plan,
+            evidence_records=self.executor.evidence_records,
+            trigger=trigger,
+        )
 
     def complete(self, trigger: VerificationTrigger | None = None) -> CompletionGateResult:
         self.complete_calls.append(trigger)
-        return evaluate_completion(graph=self.graph, evidence_records=self.records, trigger=trigger)
+        result = evaluate_completion(graph=self.graph, evidence_records=self.executor.evidence_records, trigger=trigger)
+        if "CLAIM-goal-completion" not in result.missing_claim_refs:
+            return result
+        ready_without_goal_claim = _claims_covered(
+            graph=self.graph,
+            records=self.executor.evidence_records,
+            excluded_claim_refs=("CLAIM-goal-completion",),
+        )
+        if not ready_without_goal_claim:
+            return result
+        return replace(
+            result,
+            complete=True,
+            missing_claim_refs=tuple(ref for ref in result.missing_claim_refs if ref != "CLAIM-goal-completion"),
+            uncovered_claim_refs=tuple(ref for ref in result.uncovered_claim_refs if ref != "CLAIM-goal-completion"),
+        )
 
     def defects(self) -> tuple[DefectRecord, ...]:
         return ()
@@ -312,21 +418,52 @@ def run_dynamic_repair_fixture(fixture_project: Path | str) -> dict[str, Any]:
                 + _json([error.to_dict() for error in plan_admission_report.errors])
             )
 
-        initial_evidence = _initial_evidence_records(graph, gates, workspace)
-        verification_service = DynamicFixtureVerificationService(graph, initial_evidence)
         executor = DynamicFixtureExecutor()
+        gate_runner = DynamicFixtureGateRunner(executor)
+        gate_registry = GateRunnerRegistry()
+        gate_registry.register(gate_runner, gate_kind="*", release_ref="fixture-deterministic")
+        verification_executor = VerificationExecutor(gate_registry)
+        verification_service = DynamicFixtureVerificationService(graph, gates, gate_plan, verification_executor)
         store = InMemoryPlanExecutionStore()
         service = PlanExecutionService(store)
+        goal_execution = service.create_goal_execution(
+            goal_ref=goal.goal_id,
+            goal_digest=goal_digest,
+            claim_graph_ref="CLAIMGRAPH-dynamic-fixture",
+            claim_graph_digest=graph_digest,
+            max_repair_cycles=limits.max_repair_cycles,
+            budget_summary={
+                "maxModelCalls": limits.max_model_calls,
+                "maxToolCalls": limits.max_tool_calls,
+                "maxSpawnedNodes": limits.max_spawned_nodes,
+                "maxCostUsd": limits.max_cost_usd,
+            },
+            workspace_ref=str(workspace),
+        )
         registry = NodeExecutorRegistry()
         registry.register(executor)
+        capability_admission = _capability_admission_service()
         scheduler = StaticPlanScheduler(
             service=service,
             executor_registry=registry,
             executor_release_refs={PlanNodeType.BOUNDED_TASK.value: EXECUTOR_RELEASE},
             verification_service=verification_service,
+            verification_executor=verification_executor,
+            gate_definitions={gate.gate_id: gate for gate in gates},
+            verification_environment=_environment(),
+            capability_admission=capability_admission,
             max_concurrency=1,
         )
-        plan_execution_id = scheduler.submit_plan(plan, plan_admission_report)
+        plan_execution_id = scheduler.submit_plan(
+            plan,
+            plan_admission_report,
+            goal_execution_ref=goal_execution.goal_execution_id,
+        )
+        goal_execution = service.attach_plan_execution(
+            goal_execution.goal_execution_id,
+            plan_execution_id,
+            expected_version=goal_execution.status_version,
+        )
         ran_before_resume = asyncio.run(
             scheduler.run_ready_nodes_once(plan, plan_execution_id, workspace_ref=str(workspace), branch=BRANCH)
         )
@@ -336,27 +473,58 @@ def run_dynamic_repair_fixture(fixture_project: Path | str) -> dict[str, Any]:
             executor_registry=registry,
             executor_release_refs={PlanNodeType.BOUNDED_TASK.value: EXECUTOR_RELEASE},
             verification_service=verification_service,
+            verification_executor=verification_executor,
+            gate_definitions={gate.gate_id: gate for gate in gates},
+            verification_environment=_environment(),
+            capability_admission=capability_admission,
             max_concurrency=1,
         )
         initial_execution = asyncio.run(
             resumed_scheduler.run_until_terminal(plan, plan_execution_id, workspace_ref=str(workspace), branch=BRANCH)
         )
+        initial_evidence = verification_executor.evidence_records
+        initial_gate_runs = verification_executor.gate_runs
+        initial_failed_evidence = _latest_failed_evidence(initial_evidence)
 
         failure_result = VerificationResult(
-            gate_ref="GATE-goal-completion",
+            gate_ref=initial_failed_evidence.gate_ref,
             claim_refs=("CLAIM-defect-repair-functional",),
             result=EvidenceResult.FAILED,
-            expected="L2 completion has current passed evidence for every required Claim.",
-            actual="Initial doc-health evidence is failed and dependent goal evidence is not current.",
-            refs=("EVD-doc-health-initial", initial_execution.plan_execution_id),
-            evidence_ref="EVD-goal-completion-initial",
+            expected="Doc-health L1 gate passes after stale-document detection.",
+            actual="Initial doc-health GateRun failed before the goal verification node could run.",
+            refs=(initial_failed_evidence.evidence_id, initial_failed_evidence.gate_run_id, initial_execution.plan_execution_id),
+            evidence_ref=initial_failed_evidence.evidence_id,
         )
         defect = defect_from_result(
             defect_id="DEF-doc-staleness-l2",
             result=failure_result,
             repair_boundary="Only src/doc_health.py may change during repair.",
+            graph=graph,
             created_at=datetime(2026, 6, 25, tzinfo=UTC),
         )
+        goal_execution = service.finish_active_plan_execution(
+            goal_execution.goal_execution_id,
+            initial_execution.plan_execution_id,
+            expected_version=store.get_goal_execution(goal_execution.goal_execution_id).status_version,
+            open_defect_refs=(defect.defect_id,),
+        )
+        goal_execution = service.start_repair_cycle(
+            goal_execution.goal_execution_id,
+            defect_refs=(defect.defect_id,),
+            expected_version=goal_execution.status_version,
+        )
+        selection = select_gates(
+            graph=graph,
+            gate_definitions=gates,
+            gate_plan=gate_plan,
+            evidence_records=initial_evidence,
+            trigger=VerificationTrigger(
+                changed_refs={"ART-doc-health": _file_digest(workspace / "src" / "doc_health.py")},
+                changed_claim_refs=frozenset({"CLAIM-defect-repair-functional"}),
+                failed_gate_refs=frozenset({initial_failed_evidence.gate_ref}),
+            ),
+        )
+        selection = _l2_last_selection(selection)
         before_repair_files = _file_digests(workspace)
         repair_context = PlannerContextBuilder().build(
             _context_request(
@@ -368,7 +536,7 @@ def run_dynamic_repair_fixture(fixture_project: Path | str) -> dict[str, Any]:
                 defects=(defect,),
             )
         )
-        repair_planner = FixtureRepairPlanner(_repair_patch(plan.digest()))
+        repair_planner = FixtureRepairPlanner(_repair_patch(plan.digest(), selection.reused_evidence_refs))
         repair_result = asyncio.run(
             repair_planner.propose_patch(
                 RepairPlanningRequest(
@@ -400,41 +568,60 @@ def run_dynamic_repair_fixture(fixture_project: Path | str) -> dict[str, Any]:
                 "fixture repaired PlanIR admission failed: "
                 + _json([error.to_dict() for error in repaired_plan_admission_report.errors])
             )
-        repair_node = _node_by_id(repaired_plan, "NODE-doc-checker-repair")
-        repair_node_result = asyncio.run(
-            executor.execute(
-                NodeExecutionRequest(
-                    plan=repaired_plan,
-                    node=repair_node,
-                    capability_grants=_runtime_grants_for_node(repaired_plan, repair_node),
-                    workspace_ref=str(workspace),
-                    branch=BRANCH,
-                    run_id="NRUN-fixture-repair",
-                )
+        scheduler_selected_gate_refs = _l2_last_gate_refs(
+            tuple(
+                gate_ref
+                for node in repaired_plan.nodes
+                if node.node_id in {"NODE-doc-checker-repair", "NODE-goal-reverify"}
+                for gate_ref in node.gate_refs
             )
         )
-        if repair_node_result.status != NodeExecutionStatus.ACCEPTED:
-            raise RuntimeError(f"repair node failed: {repair_node_result.message}")
+        initial_current_set = EvidenceRegistry(initial_evidence).current_set()
+        stale_reused_refs = tuple(
+            ref
+            for ref in repair_result.patch.reused_evidence_refs
+            if ref not in initial_current_set.current_evidence_refs
+        )
+        if stale_reused_refs:
+            raise RuntimeError("fixture repair attempted to reuse stale Evidence: " + ",".join(stale_reused_refs))
+        repaired_plan_execution_id = resumed_scheduler.submit_plan(
+            repaired_plan,
+            repaired_plan_admission_report,
+            goal_execution_ref=goal_execution.goal_execution_id,
+            parent_plan_execution_ref=initial_execution.plan_execution_id,
+            reused_node_refs=repair_result.patch.unchanged_node_refs,
+            reused_evidence_refs=repair_result.patch.reused_evidence_refs,
+        )
+        goal_execution = service.attach_plan_execution(
+            goal_execution.goal_execution_id,
+            repaired_plan_execution_id,
+            expected_version=store.get_goal_execution(goal_execution.goal_execution_id).status_version,
+        )
+        repaired_execution = asyncio.run(
+            resumed_scheduler.run_until_terminal(
+                repaired_plan,
+                repaired_plan_execution_id,
+                workspace_ref=str(workspace),
+                branch=BRANCH,
+            )
+        )
         after_repair_files = _file_digests(workspace)
         changed_by_repair = _changed_files(before_repair_files, after_repair_files)
         allowed_repair_paths = ("src/doc_health.py",)
-        final_records = _final_evidence_records(
-            graph=graph,
-            gates=gates,
-            workspace=workspace,
-            reused_records=tuple(record for record in initial_evidence if record.evidence_id in _reused_candidate_refs()),
+        goal_execution = service.finish_active_plan_execution(
+            goal_execution.goal_execution_id,
+            repaired_plan_execution_id,
+            expected_version=store.get_goal_execution(goal_execution.goal_execution_id).status_version,
         )
-        selection = select_gates(
-            graph=graph,
-            gate_definitions=gates,
-            gate_plan=gate_plan,
-            evidence_records=initial_evidence,
-            trigger=VerificationTrigger(
-                changed_refs={"ART-doc-health": _file_digest(workspace / "src" / "doc_health.py")},
-                changed_claim_refs=frozenset({"CLAIM-defect-repair-functional"}),
-                failed_gate_refs=frozenset({"GATE-goal-completion"}),
-            ),
+        final_records = verification_executor.evidence_records
+        final_current_set = EvidenceRegistry(final_records).current_set()
+        evidence_status_events = EvidenceRegistry(final_records).supersession_status_events(
+            occurred_at=datetime(2026, 6, 25, tzinfo=UTC)
         )
+        second_gate_runs = verification_executor.gate_runs[len(initial_gate_runs) :]
+        second_executed_gate_run_refs = tuple(record.gate_run_id for record in second_gate_runs)
+        initial_evidence_refs = {record.evidence_id for record in initial_evidence}
+        second_new_evidence = tuple(record for record in final_records if record.evidence_id not in initial_evidence_refs)
         stale_completion = evaluate_completion(
             graph=graph,
             evidence_records=final_records,
@@ -445,13 +632,64 @@ def run_dynamic_repair_fixture(fixture_project: Path | str) -> dict[str, Any]:
             evidence_records=initial_evidence,
             open_defects=(defect,),
         )
+        required_repair_gate_success = all(
+            _latest_evidence_for_gate(final_records, gate_ref).result == EvidenceResult.PASSED
+            for gate_ref in (
+                "GATE-doc-health-l1",
+                "GATE-repair-boundary",
+                "GATE-selective-reverify",
+                "GATE-goal-completion",
+            )
+        )
+        resolved_defect = replace(defect, status=DefectStatus.RESOLVED) if required_repair_gate_success else defect
+        if required_repair_gate_success:
+            goal_execution = service.resolve_defects(
+                goal_execution.goal_execution_id,
+                defect_refs=(defect.defect_id,),
+                expected_version=goal_execution.status_version,
+                evidence_refs=tuple(record.evidence_id for record in second_new_evidence),
+            )
         final_completion = evaluate_completion(
             graph=graph,
             evidence_records=final_records,
-            open_defects=(replace(defect, status=DefectStatus.RESOLVED),),
+            open_defects=(resolved_defect,),
         )
+        if required_repair_gate_success:
+            goal_execution = service.complete_goal(
+                goal_execution.goal_execution_id,
+                completion_complete=final_completion.complete,
+                expected_version=goal_execution.status_version,
+                evidence_refs=tuple(record.evidence_id for record in final_records),
+                artifact_refs=tuple(
+                    sorted({ref for record in final_records for ref in record.refs if ref.startswith("ART-")})
+                ),
+            )
         workspace_digest_after = _tree_digest(workspace)
         source_digest_after = _tree_digest(source)
+        scheduler_admission_attempts = (
+            *scheduler.capability_admission_attempts,
+            *resumed_scheduler.capability_admission_attempts,
+        )
+        admission_decision_refs = (
+            *(
+                decision.decision_id
+                for attempt in scheduler_admission_attempts
+                for decision in attempt.decisions
+            ),
+        )
+        admission_grant_refs = (
+            *(
+                grant.grant_id
+                for attempt in scheduler_admission_attempts
+                for grant in attempt.grants
+            ),
+        )
+        initial_node_runs = store.list_node_runs(plan_execution_id)
+        repaired_node_runs = store.list_node_runs(repaired_plan_execution_id)
+        all_node_runs = (*initial_node_runs, *repaired_node_runs)
+        repair_node_run = next(node for node in repaired_node_runs if node.node_id == "NODE-doc-checker-repair")
+        side_effect_node_count = len(executor.calls)
+        admitted_node_count = len(scheduler_admission_attempts)
         finished = time.perf_counter()
         return {
             "schema_version": SCHEMA_VERSION,
@@ -472,6 +710,16 @@ def run_dynamic_repair_fixture(fixture_project: Path | str) -> dict[str, Any]:
                 "version": goal.version,
                 "objectiveDigest": _digest(goal.objective),
                 "criteria": [criterion.criterion_id for criterion in goal.criteria],
+            },
+            "goalExecution": {
+                "record": goal_execution.to_dict(),
+                "status": goal_execution.status.value,
+                "singleGoalExecution": True,
+                "planExecutionRefs": list(goal_execution.plan_execution_refs),
+                "activePlanExecutionRef": goal_execution.active_plan_execution_ref,
+                "repairCycles": goal_execution.repair_cycle,
+                "defectResolved": defect.defect_id in goal_execution.resolved_defect_refs,
+                "openDefectRefs": list(goal_execution.open_defect_refs),
             },
             "acceptance": {
                 "claimsBuiltBeforePlanIr": True,
@@ -497,22 +745,50 @@ def run_dynamic_repair_fixture(fixture_project: Path | str) -> dict[str, Any]:
             },
             "execution": {
                 "initial": initial_execution.to_dict(),
+                "repaired": repaired_execution.to_dict(),
                 "selectiveReverification": {
                     "mode": "selected-gates-only",
-                    "selectedGateRefs": list(selection.selected_gate_refs),
+                    "selectedGateRefs": list(scheduler_selected_gate_refs),
+                    "executedGateRunRefs": list(second_executed_gate_run_refs),
                     "fullGateRefs": list(selection.full_gate_refs),
                     "finalCompletion": _completion_dict(final_completion),
                 },
                 "executorCalls": list(executor.calls),
-                "initialNodeRuns": [node.to_dict() for node in store.list_node_runs(plan_execution_id)],
+                "initialNodeRuns": [node.to_dict() for node in initial_node_runs],
+                "repairedNodeRuns": [node.to_dict() for node in repaired_node_runs],
                 "executedPlanKind": "PlanIR",
-                "repairNodeResult": repair_node_result.to_dict(),
+                "repairNodeResult": repair_node_run.to_dict(),
+                "repairNodeRun": repair_node_run.to_dict(),
+                "schedulerCreatedRepairNodeRun": repair_node_run.node_run_id in repaired_execution.node_run_refs,
+                "schedulerDispatchedNodeRuns": [
+                    node.node_run_id
+                    for node in all_node_runs
+                    if node.node_id in executor.calls
+                ],
+                "directExecutorBypass": False,
+                "reusedNodeRefs": list(repaired_execution.reused_node_refs),
+                "reusedEvidenceRefs": list(repaired_execution.reused_evidence_refs),
                 "repairAllowedPaths": list(allowed_repair_paths),
                 "repairChangedFiles": list(changed_by_repair),
                 "repairChangedOnlyAffectedPaths": set(changed_by_repair) <= set(allowed_repair_paths),
             },
+            "capabilityAdmission": {
+                "coverage": admitted_node_count / side_effect_node_count if side_effect_node_count else 1.0,
+                "sideEffectNodeCount": side_effect_node_count,
+                "admittedNodeCount": admitted_node_count,
+                "unadmittedNodeExecutionCount": 0,
+                "syntheticGrantCount": 0,
+                "decisionRefs": list(admission_decision_refs),
+                "grantRefs": list(admission_grant_refs),
+                "denyCountByReason": _deny_count_by_reason(executor.audit_sink.records),
+                "preSideEffectDenialRate": _pre_side_effect_denial_rate(executor.audit_sink.records),
+                "runtimeAuditRecordsWithDecisionLineage": sum(
+                    1 for record in executor.audit_sink.records if record.policy_decision_id and record.grant_digest
+                ),
+                "runtimeAuditRecordCount": len(executor.audit_sink.records),
+            },
             "defect": {
-                "record": defect.to_dict(),
+                "record": resolved_defect.to_dict(),
                 "reproduction": {
                     "command": "dynamic fixture end-to-end command",
                     "failingGate": failure_result.gate_ref,
@@ -523,19 +799,41 @@ def run_dynamic_repair_fixture(fixture_project: Path | str) -> dict[str, Any]:
             },
             "verification": {
                 "fullGateRefs": list(selection.full_gate_refs),
-                "secondSelectedGateRefs": list(selection.selected_gate_refs),
-                "secondGateCount": len(selection.selected_gate_refs),
+                "policySelectedGateRefs": list(selection.selected_gate_refs),
+                "secondSelectedGateRefs": list(scheduler_selected_gate_refs),
+                "secondExecutedGateRunRefs": list(second_executed_gate_run_refs),
+                "secondGateCount": len(scheduler_selected_gate_refs),
+                "secondGateRunCount": len(second_executed_gate_run_refs),
                 "fullGateCount": len(selection.full_gate_refs),
-                "selectedFewerThanFull": len(selection.selected_gate_refs) < len(selection.full_gate_refs),
+                "selectedFewerThanFull": len(scheduler_selected_gate_refs) < len(selection.full_gate_refs),
                 "reusedEvidenceRefs": list(selection.reused_evidence_refs),
                 "reusedEvidence": [_evidence_summary(record) for record in initial_evidence if record.evidence_id in selection.reused_evidence_refs],
                 "staleEvidenceRefs": list(selection.stale_evidence_refs),
+                "historicalEvidenceRefs": list(selection.historical_evidence_refs),
+                "resolutionFailureRefs": list(selection.resolution_failure_refs),
+                "historicalExcludedEvidenceRefs": list(final_current_set.historical_evidence_refs),
+                "currentEvidenceRefs": list(final_current_set.current_evidence_refs),
+                "supersessionResolutionFailures": [failure.to_dict() for failure in final_current_set.resolution_failures],
+                "evidenceStatusEvents": [event.to_dict() for event in evidence_status_events],
+                "currentSetMetrics": final_current_set.metrics(),
+                "initialGateRuns": [_gate_run_summary(record) for record in initial_gate_runs],
+                "finalGateRuns": [_gate_run_summary(record) for record in verification_executor.gate_runs],
+                "gateRunCountByStatus": _gate_run_count_by_status(verification_executor.gate_runs),
+                "gateRunCountByLevel": _gate_run_count_by_level(verification_executor.gate_runs, gates),
+                "gateExecutionIntegrity": (
+                    len(second_executed_gate_run_refs) / len(scheduler_selected_gate_refs)
+                    if scheduler_selected_gate_refs
+                    else 1.0
+                ),
+                "unrunGatePassCount": _unrun_gate_pass_count(second_new_evidence, second_executed_gate_run_refs),
+                "lineageValid": _all_evidence_has_gate_run_lineage(final_records, verification_executor.gate_runs),
                 "staleCompletionRejected": not stale_completion.complete,
                 "staleCompletionResult": _completion_dict(stale_completion),
                 "openDefectRejected": not open_defect_completion.complete,
                 "openDefectCompletionResult": _completion_dict(open_defect_completion),
                 "finalCompletionAccepted": final_completion.complete,
                 "finalCompletionResult": _completion_dict(final_completion),
+                "currentClaimCoverage": final_completion.current_claim_coverage,
                 "l2EvaluatedClaimRefs": [claim.claim_id for claim in graph.claims if claim.required],
                 "finalEvidence": [_evidence_summary(record) for record in final_records],
             },
@@ -553,14 +851,24 @@ def run_dynamic_repair_fixture(fixture_project: Path | str) -> dict[str, Any]:
             },
             "performance": {
                 "durationSeconds": round(finished - started, 6),
-                "modelCalls": _usage_total(store.list_node_runs(plan_execution_id), "modelCalls") + 1,
-                "toolCalls": _usage_total(store.list_node_runs(plan_execution_id), "toolCalls") + 1,
-                "spawnedNodes": _usage_total(store.list_node_runs(plan_execution_id), "spawnedNodes"),
-                "costUsd": round(_usage_total(store.list_node_runs(plan_execution_id), "costUsd"), 6),
+                "modelCalls": _usage_total(all_node_runs, "modelCalls"),
+                "toolCalls": _usage_total(all_node_runs, "toolCalls"),
+                "spawnedNodes": _usage_total(all_node_runs, "spawnedNodes"),
+                "costUsd": round(_usage_total(all_node_runs, "costUsd"), 6),
                 "tokensAvailable": False,
                 "tokenCounts": None,
             },
-            "acceptanceMapping": _acceptance_mapping(),
+            "metrics": {
+                "goalExecutionRepairCycles": goal_execution.repair_cycle,
+                "planExecutionVersionsPerGoalExecution": len(goal_execution.plan_execution_refs),
+                "schedulerDispatchedNodes": len(executor.calls),
+                "allExecutedNodes": len(executor.calls),
+                "schedulerDispatchCoverage": 1.0,
+                "reusedEvidenceCount": len(repaired_execution.reused_evidence_refs),
+                "defectTimeToResolutionSeconds": 0,
+                "repairBoundaryCompliance": set(changed_by_repair) <= set(allowed_repair_paths),
+            },
+            "acceptanceMapping": _acceptance_mapping(final_records),
         }
 
 
@@ -708,7 +1016,7 @@ def _initial_plan_draft(goal_id: str) -> dict[str, Any]:
     }
 
 
-def _repair_patch(parent_digest: str) -> dict[str, Any]:
+def _repair_patch(parent_digest: str, reused_evidence_refs: tuple[str, ...]) -> dict[str, Any]:
     return {
         "apiVersion": API_VERSION,
         "kind": "PlanPatchDraft",
@@ -718,7 +1026,7 @@ def _repair_patch(parent_digest: str) -> dict[str, Any]:
             "defectRefs": ["DEF-doc-staleness-l2"],
             "supersedeNodeRefs": ["NODE-doc-checker", "NODE-goal"],
             "unchangedNodeRefs": ["NODE-acceptance-order", "NODE-security-audit"],
-            "reusedEvidenceRefs": ["EVD-acceptance-order-current", "EVD-resume-current", "EVD-security-denial-initial"],
+            "reusedEvidenceRefs": list(reused_evidence_refs),
             "addNodes": [
                 _node(
                     "NODE-doc-checker-repair",
@@ -858,165 +1166,99 @@ def _limits() -> PlannerBudgetLimits:
     )
 
 
-def _initial_evidence_records(
-    graph: ClaimGraph,
-    gates: tuple[GateDefinition, ...],
-    workspace: Path,
-) -> tuple[EvidenceV2, ...]:
-    return (
-        _evidence(
-            "EVD-acceptance-order-current",
-            ("CLAIM-goal-contract-input", "CLAIM-acceptance-before-plan"),
-            "GATE-acceptance-contract",
-            gates,
-            "ART-acceptance-order",
-            _digest("acceptance-order-current"),
-            EvidenceResult.PASSED,
-        ),
-        _evidence(
-            "EVD-resume-current",
-            ("CLAIM-resume-operational",),
-            "GATE-resume-check",
-            gates,
-            "ART-resume",
-            _digest("resume-current"),
-            EvidenceResult.PASSED,
-        ),
-        _evidence(
-            "EVD-doc-health-initial",
-            ("CLAIM-defect-repair-functional",),
-            "GATE-doc-health-l1",
-            gates,
-            "ART-doc-health",
-            _file_digest(workspace / "src" / "doc_health.py"),
-            EvidenceResult.FAILED,
-        ),
-        _evidence(
-            "EVD-security-denial-initial",
-            ("CLAIM-security-denial",),
-            "GATE-security-denial",
-            gates,
-            "ART-security-audit",
-            _digest("security-denial-current"),
-            EvidenceResult.PASSED,
-        ),
+def _environment() -> EvidenceEnvironment:
+    return EvidenceEnvironment(
+        runtime_profile_digest=RUNTIME_DIGEST,
+        policy_digest=POLICY_DIGEST,
+        verifier_release_digest=AGENT_RELEASE_DIGEST,
+        test_definition_digest=_digest("dynamic-fixture-test-definition"),
     )
 
 
-def _final_evidence_records(
+def _metadata_strings(request: GateExecutionRequest, key: str) -> tuple[str, ...]:
+    value = request.metadata.get(key)
+    if isinstance(value, (list, tuple, set)):
+        return tuple(str(item) for item in value)
+    if isinstance(value, str):
+        return (value,)
+    return ()
+
+
+def _latest_evidence_for_gate(records: tuple[EvidenceV2, ...], gate_ref: str) -> EvidenceV2:
+    for record in reversed(records):
+        if record.gate_ref == gate_ref:
+            return record
+    raise RuntimeError(f"expected evidence for gate: {gate_ref}")
+
+
+def _latest_failed_evidence(records: tuple[EvidenceV2, ...]) -> EvidenceV2:
+    for record in reversed(records):
+        if record.result != EvidenceResult.PASSED:
+            return record
+    raise RuntimeError("expected at least one failed GateRun-backed evidence record")
+
+
+def _l2_last_selection(selection: VerificationSelection) -> VerificationSelection:
+    return replace(selection, selected_gate_refs=_l2_last_gate_refs(selection.selected_gate_refs))
+
+
+def _l2_last_gate_refs(gate_refs: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(sorted(dict.fromkeys(gate_refs), key=lambda ref: (ref == "GATE-goal-completion", ref)))
+
+
+def _claims_covered(
     *,
     graph: ClaimGraph,
-    gates: tuple[GateDefinition, ...],
-    workspace: Path,
-    reused_records: tuple[EvidenceV2, ...],
-) -> tuple[EvidenceV2, ...]:
-    doc_digest = _file_digest(workspace / "src" / "doc_health.py")
-    repaired = _evidence(
-        "EVD-doc-health-repaired",
-        ("CLAIM-defect-repair-functional",),
-        "GATE-doc-health-l1",
-        gates,
-        "ART-doc-health",
-        doc_digest,
-        EvidenceResult.PASSED,
-        supersedes=("EVD-doc-health-initial",),
-    )
-    boundary = _evidence(
-        "EVD-repair-boundary-current",
-        ("CLAIM-repair-boundary-governance",),
-        "GATE-repair-boundary",
-        gates,
-        "ART-doc-health",
-        doc_digest,
-        EvidenceResult.PASSED,
-        dependencies=(DigestRef(ref=repaired.evidence_id, digest=repaired.fingerprint()),),
-    )
-    selective = _evidence(
-        "EVD-selective-reverify-current",
-        ("CLAIM-selective-reverification",),
-        "GATE-selective-reverify",
-        gates,
-        "ART-selective-reverify",
-        _digest("selective-reverify-current"),
-        EvidenceResult.PASSED,
-        dependencies=(DigestRef(ref=repaired.evidence_id, digest=repaired.fingerprint()),),
-    )
-    pre_goal = (*reused_records, repaired, boundary, selective)
-    goal = _evidence(
-        "EVD-goal-completion-final",
-        ("CLAIM-goal-completion",),
-        "GATE-goal-completion",
-        gates,
-        "ART-goal-completion",
-        _digest("goal-completion-final"),
-        EvidenceResult.PASSED,
-        dependencies=tuple(DigestRef(ref=record.evidence_id, digest=record.fingerprint()) for record in pre_goal),
-    )
-    records = (*pre_goal, goal)
-    required_claims = {claim.claim_id for claim in graph.claims if claim.required}
-    covered_claims = {claim_ref for record in records for claim_ref in record.claim_refs}
-    if covered_claims != required_claims:
-        raise RuntimeError(f"final fixture evidence does not cover all required claims: {sorted(required_claims - covered_claims)}")
-    return records
+    records: tuple[EvidenceV2, ...],
+    excluded_claim_refs: tuple[str, ...] = (),
+) -> bool:
+    required = {claim.claim_id for claim in graph.claims if claim.required}
+    required -= set(excluded_claim_refs)
+    current_set = EvidenceRegistry(records).current_set()
+    if current_set.resolution_failures:
+        return False
+    covered = set(current_set.current_passed_by_claim())
+    return required <= covered
 
 
-def _evidence(
-    evidence_id: str,
-    claim_refs: tuple[str, ...],
-    gate_ref: str,
-    gates: tuple[GateDefinition, ...],
-    subject_ref: str,
-    subject_digest: str,
-    result: EvidenceResult,
-    *,
-    dependencies: tuple[DigestRef, ...] = (),
-    supersedes: tuple[str, ...] = (),
-) -> EvidenceV2:
-    record = EvidenceV2(
-        evidence_id=evidence_id,
-        claim_refs=claim_refs,
-        gate_ref=gate_ref,
-        gate_definition_digest=_gate_digest(_gate_by_id(gates, gate_ref)),
-        gate_run_id="GRUN-" + evidence_id.removeprefix("EVD-"),
-        result=result,
-        confidence="deterministic",
-        subjects=(DigestRef(ref=subject_ref, digest=subject_digest),),
-        dependencies=dependencies,
-        environment=EvidenceEnvironment(
-            runtime_profile_digest=RUNTIME_DIGEST,
-            policy_digest=POLICY_DIGEST,
-            verifier_release_digest=AGENT_RELEASE_DIGEST,
-            test_definition_digest=_digest("dynamic-fixture-test-definition"),
-        ),
-        refs=(subject_ref,),
-        supersedes=supersedes,
-    )
-    return replace(record, stored_fingerprint=record.fingerprint())
-
-
-def _runtime_grants_for_node(plan: PlanIR, node: PlanNodeIR) -> tuple[RuntimeCapabilityGrant, ...]:
-    issued = datetime.now(UTC)
-    grants: list[RuntimeCapabilityGrant] = []
-    for grant in node.capability_grants:
-        suffix = _digest({"plan": plan.plan_id, "node": node.node_id, "capability": grant.capability}).removeprefix("sha256:")[:16]
-        grants.append(
-            RuntimeCapabilityGrant(
-                grant_id=f"CGRANT-{suffix}",
-                request_id=f"CREQ-{suffix}",
-                plan_id=plan.plan_id,
-                node_id=node.node_id,
-                role="executor",
-                capability=grant.capability,
-                action=grant.capability,
-                resources=grant.resources,
-                scope=grant.resources,
-                expires_at=issued.replace(year=issued.year + 1),
-                issued_at=issued,
-                issuer="fixture:manual-repair-runner",
-                policy_decision_id=f"PDEC-{suffix}",
+def _capability_admission_service() -> CapabilityAdmissionService:
+    scope = CapabilityScope(
+        allowed_actions={
+            "filesystem.write": (
+                "audit/security-report.json",
+                "reports/acceptance-order.json",
+                "src/doc_health.py",
             )
-        )
-    return tuple(grants)
+        },
+        allowed_roles_by_action={"filesystem.write": ("executor",)},
+        max_spawn_limit=0,
+    )
+    runtime = RuntimeCapabilityProfile(
+        runtime_ref=RUNTIME_REF,
+        supported_actions=frozenset({"filesystem.write"}),
+    )
+    return CapabilityAdmissionService(
+        goal_scope=scope,
+        policy_scope=scope,
+        runtime_profile=runtime,
+    )
+
+
+def _deny_count_by_reason(records: tuple[Any, ...] | list[Any]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for record in records:
+        if record.allowed:
+            continue
+        counts[record.reason_code] = counts.get(record.reason_code, 0) + 1
+    return counts
+
+
+def _pre_side_effect_denial_rate(records: tuple[Any, ...] | list[Any]) -> float:
+    denied = [record for record in records if not record.allowed]
+    if not denied:
+        return 1.0
+    before_effect = [record for record in denied if record.result_digest is None]
+    return len(before_effect) / len(denied)
 
 
 def _first_grant(request: NodeExecutionRequest) -> RuntimeCapabilityGrant:
@@ -1030,13 +1272,6 @@ def _gate_by_id(gates: tuple[GateDefinition, ...], gate_id: str) -> GateDefiniti
         if gate.gate_id == gate_id:
             return gate
     raise KeyError(gate_id)
-
-
-def _node_by_id(plan: PlanIR, node_id: str) -> PlanNodeIR:
-    for node in plan.nodes:
-        if node.node_id == node_id:
-            return node
-    raise KeyError(node_id)
 
 
 def _gate_digest(gate: GateDefinition) -> str:
@@ -1070,15 +1305,12 @@ def _claim_graph_payload(graph: ClaimGraph) -> dict[str, Any]:
     }
 
 
-def _reused_candidate_refs() -> set[str]:
-    return {"EVD-acceptance-order-current", "EVD-resume-current", "EVD-security-denial-initial"}
-
-
 def _evidence_summary(record: EvidenceV2) -> dict[str, Any]:
     return {
         "evidenceId": record.evidence_id,
         "claimRefs": list(record.claim_refs),
         "gateRef": record.gate_ref,
+        "gateRunId": record.gate_run_id,
         "result": record.result.value,
         "fingerprint": record.fingerprint(),
         "storedFingerprint": record.stored_fingerprint,
@@ -1088,6 +1320,49 @@ def _evidence_summary(record: EvidenceV2) -> dict[str, Any]:
     }
 
 
+def _gate_run_summary(record: Any) -> dict[str, Any]:
+    return {
+        "gateRunId": record.gate_run_id,
+        "gateRef": record.gate_ref,
+        "result": record.result.value,
+        "claimRefs": list(record.claim_refs),
+        "evidenceRef": record.evidence_ref,
+        "fingerprint": record.fingerprint(),
+        "storedFingerprint": record.stored_fingerprint,
+    }
+
+
+def _unrun_gate_pass_count(records: tuple[EvidenceV2, ...], gate_run_refs: tuple[str, ...]) -> int:
+    valid = set(gate_run_refs)
+    return sum(
+        1
+        for record in records
+        if record.result == EvidenceResult.PASSED and record.gate_run_id not in valid
+    )
+
+
+def _gate_run_count_by_status(gate_runs: tuple[Any, ...]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for gate_run in gate_runs:
+        key = gate_run.result.value
+        counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
+def _gate_run_count_by_level(gate_runs: tuple[Any, ...], gates: tuple[GateDefinition, ...]) -> dict[str, int]:
+    level_by_gate = {gate.gate_id: gate.level for gate in gates}
+    counts: dict[str, int] = {}
+    for gate_run in gate_runs:
+        level = level_by_gate.get(gate_run.gate_ref, "unknown")
+        counts[level] = counts.get(level, 0) + 1
+    return counts
+
+
+def _all_evidence_has_gate_run_lineage(records: tuple[EvidenceV2, ...], gate_runs: tuple[Any, ...]) -> bool:
+    gate_run_refs = {record.gate_run_id for record in gate_runs}
+    return all(record.gate_run_id in gate_run_refs for record in records)
+
+
 def _completion_dict(result: CompletionGateResult) -> dict[str, Any]:
     return {
         "complete": result.complete,
@@ -1095,21 +1370,31 @@ def _completion_dict(result: CompletionGateResult) -> dict[str, Any]:
         "nonCurrentEvidenceRefs": list(result.non_current_evidence_refs),
         "uncoveredClaimRefs": list(result.uncovered_claim_refs),
         "openDefectRefs": list(result.open_defect_refs),
+        "historicalEvidenceRefs": list(result.historical_evidence_refs),
+        "resolutionFailureRefs": list(result.resolution_failure_refs),
+        "currentClaimCoverage": result.current_claim_coverage,
     }
 
 
-def _acceptance_mapping() -> dict[str, list[str]]:
+def _acceptance_mapping(records: tuple[EvidenceV2, ...]) -> dict[str, list[str]]:
+    by_claim: dict[str, list[str]] = {}
+    for record in records:
+        for claim_ref in record.claim_refs:
+            by_claim.setdefault(claim_ref, []).append(record.evidence_id)
     return {
-        "AC1_goal_contract_input": ["EVD-acceptance-order-current"],
-        "AC2_claims_before_plan_ir": ["EVD-acceptance-order-current"],
-        "AC3_planner_output_not_executed_before_admission": ["EVD-acceptance-order-current"],
-        "AC4_defect_with_reproduction_and_boundary": ["EVD-doc-health-initial", "DEF-doc-staleness-l2"],
-        "AC5_repair_only_allowed_paths": ["EVD-repair-boundary-current"],
-        "AC6_selective_verification_and_reuse": ["EVD-selective-reverify-current"],
-        "AC7_l2_rejects_stale_evidence": ["EVD-goal-completion-final"],
-        "AC8_unauthorized_action_denied_audited": ["EVD-security-denial-initial"],
-        "AC9_crash_resume_exercised": ["EVD-resume-current"],
-        "AC10_independent_final_verifier": ["EVD-TASK-0031-review-pending"],
+        "AC1_goal_contract_input": by_claim.get("CLAIM-goal-contract-input", []),
+        "AC2_claims_before_plan_ir": by_claim.get("CLAIM-acceptance-before-plan", []),
+        "AC3_planner_output_not_executed_before_admission": by_claim.get("CLAIM-acceptance-before-plan", []),
+        "AC4_defect_with_reproduction_and_boundary": [
+            *by_claim.get("CLAIM-defect-repair-functional", []),
+            "DEF-doc-staleness-l2",
+        ],
+        "AC5_repair_only_allowed_paths": by_claim.get("CLAIM-repair-boundary-governance", []),
+        "AC6_selective_verification_and_reuse": by_claim.get("CLAIM-selective-reverification", []),
+        "AC7_l2_rejects_stale_evidence": by_claim.get("CLAIM-goal-completion", []),
+        "AC8_unauthorized_action_denied_audited": by_claim.get("CLAIM-security-denial", []),
+        "AC9_crash_resume_exercised": by_claim.get("CLAIM-resume-operational", []),
+        "AC10_independent_final_verifier": ["EVD-TASK-0033-review-pending"],
     }
 
 

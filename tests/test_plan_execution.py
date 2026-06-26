@@ -5,6 +5,7 @@ import unittest
 from dataclasses import replace
 from datetime import timedelta
 
+from ahra.capabilities import CapabilityAdmissionService, CapabilityScope, RuntimeCapabilityProfile
 from ahra.evidence_v2 import canonical_fingerprint
 from ahra.domain import utc_now
 from ahra.node_executor import (
@@ -15,11 +16,13 @@ from ahra.node_executor import (
     NodeExecutorRegistry,
 )
 from ahra.plan_execution import (
+    GoalExecutionStatus,
     InMemoryPlanExecutionStore,
     NodeRunStatus,
     PlanAdmissionError,
     PlanExecutionService,
     PlanExecutionStatus,
+    PlanInvalidTransitionError,
     PlanLeaseConflictError,
     PlanVersionConflictError,
     StaticPlanScheduler,
@@ -32,8 +35,10 @@ from ahra.plan_ir import (
     PlanNodeType,
     PlanValidationError,
     compile_plan_draft,
+    validate_plan_ir,
 )
-from ahra.verification import CompletionGateResult, DefectRecord, VerificationSelection, VerificationTrigger
+from ahra.verification import CompletionGateResult, DefectRecord, GateExecutionStatus, VerificationSelection, VerificationTrigger
+from ahra.verification import DeterministicGateRunner, GateRunnerRegistry, VerificationExecutor
 
 
 D1 = "sha256:" + "1" * 64
@@ -46,6 +51,7 @@ D7 = "sha256:" + "7" * 64
 D8 = "sha256:" + "8" * 64
 RUNTIME_REF = "runtime/local-worktree@sha256:" + "c" * 64
 EXECUTOR_RELEASE = "bounded-task-executor@sha256:" + "a" * 64
+_DEFAULT_ADMISSION = object()
 
 
 class RecordingExecutor:
@@ -145,6 +151,105 @@ class PlanExecutionTests(unittest.TestCase):
         self.assertEqual(execution.task_ref, "TASK-0029")
         self.assertEqual(execution.plan_digest, plan.digest())
 
+    def test_goal_execution_links_plan_versions_and_blocks_second_active_plan(self) -> None:
+        plan, report = _compiled_plan()
+        store = InMemoryPlanExecutionStore()
+        service = PlanExecutionService(store)
+        goal = service.create_goal_execution(
+            goal_ref=plan.goal_ref,
+            goal_digest=plan.goal_digest,
+            claim_graph_digest=plan.claim_graph_digest,
+            max_repair_cycles=2,
+        )
+        initial = service.start_execution(plan, report, goal_execution_ref=goal.goal_execution_id)
+        goal = service.attach_plan_execution(
+            goal.goal_execution_id,
+            initial.plan_execution_id,
+            expected_version=goal.status_version,
+        )
+
+        repaired_plan = replace(plan, version=plan.version + 1, parent_plan_digest=plan.digest())
+        repaired_report = validate_plan_ir(repaired_plan, _config())
+        repaired = service.start_execution(
+            repaired_plan,
+            repaired_report,
+            goal_execution_ref=goal.goal_execution_id,
+            parent_plan_execution_ref=initial.plan_execution_id,
+            reused_node_refs=("NODE-a",),
+            reused_evidence_refs=("EVD-node-a-current",),
+        )
+
+        with self.assertRaisesRegex(PlanInvalidTransitionError, "active PlanExecution"):
+            service.attach_plan_execution(
+                goal.goal_execution_id,
+                repaired.plan_execution_id,
+                expected_version=goal.status_version,
+            )
+
+        failed_initial = service.transition_execution(
+            initial.plan_execution_id,
+            PlanExecutionStatus.FAILED,
+            expected_version=store.get_execution(initial.plan_execution_id).status_version,
+            failure_class="gate_execution_failed",
+            message="initial gate failed",
+        )
+        goal = service.finish_active_plan_execution(
+            goal.goal_execution_id,
+            failed_initial.plan_execution_id,
+            expected_version=store.get_goal_execution(goal.goal_execution_id).status_version,
+            open_defect_refs=("DEF-doc-staleness-l2",),
+        )
+        goal = service.start_repair_cycle(
+            goal.goal_execution_id,
+            defect_refs=("DEF-doc-staleness-l2",),
+            expected_version=goal.status_version,
+        )
+        goal = service.attach_plan_execution(
+            goal.goal_execution_id,
+            repaired.plan_execution_id,
+            expected_version=goal.status_version,
+        )
+        node_a = [node for node in store.list_node_runs(repaired.plan_execution_id) if node.node_id == "NODE-a"][0]
+
+        self.assertEqual(goal.status, GoalExecutionStatus.RUNNING)
+        self.assertEqual(goal.plan_execution_refs, (initial.plan_execution_id, repaired.plan_execution_id))
+        self.assertEqual(repaired.parent_plan_execution_ref, initial.plan_execution_id)
+        self.assertEqual(repaired.parent_plan_digest, plan.digest())
+        self.assertEqual(repaired.reused_node_refs, ("NODE-a",))
+        self.assertEqual(repaired.reused_evidence_refs, ("EVD-node-a-current",))
+        self.assertEqual(node_a.status, NodeRunStatus.SUCCEEDED)
+
+    def test_goal_execution_rejects_open_defect_success_and_enforces_repair_budget(self) -> None:
+        plan, _ = _compiled_plan()
+        service = PlanExecutionService(InMemoryPlanExecutionStore())
+        goal = service.create_goal_execution(
+            goal_ref=plan.goal_ref,
+            goal_digest=plan.goal_digest,
+            claim_graph_digest=plan.claim_graph_digest,
+            max_repair_cycles=1,
+        )
+        goal = service.start_repair_cycle(
+            goal.goal_execution_id,
+            defect_refs=("DEF-open",),
+            expected_version=goal.status_version,
+        )
+
+        with self.assertRaisesRegex(PlanInvalidTransitionError, "Defects remain open"):
+            service.complete_goal(
+                goal.goal_execution_id,
+                completion_complete=True,
+                expected_version=goal.status_version,
+            )
+
+        exhausted = service.start_repair_cycle(
+            goal.goal_execution_id,
+            defect_refs=("DEF-open",),
+            expected_version=goal.status_version,
+        )
+
+        self.assertEqual(exhausted.status, GoalExecutionStatus.FAILED)
+        self.assertEqual(exhausted.failure_class, "repair_cycle_exhausted")
+
     def test_static_scheduler_enforces_dag_concurrency_and_goal_gate(self) -> None:
         plan, report = _compiled_plan()
         service = PlanExecutionService(InMemoryPlanExecutionStore())
@@ -168,7 +273,9 @@ class PlanExecutionTests(unittest.TestCase):
         self.assertGreaterEqual(len(verifier.select_calls), 2)
         self.assertEqual(len(verifier.complete_calls), 1)
         self.assertEqual(set(result.artifact_refs), {"ART-a", "ART-b"})
-        self.assertTrue({"EVD-a", "EVD-b", "EVD-goal"}.issubset(set(result.evidence_refs)))
+        self.assertEqual(len(result.evidence_refs), 3)
+        self.assertTrue(all(ref.startswith("EVD-") for ref in result.evidence_refs))
+        self.assertFalse({"EVD-a", "EVD-b", "EVD-goal"} & set(result.evidence_refs))
         self.assertTrue(result.trace_refs)
         self.assertTrue(result.handoff_refs)
 
@@ -277,6 +384,131 @@ class PlanExecutionTests(unittest.TestCase):
         self.assertEqual(latest["NODE-a"].status, NodeRunStatus.FAILED)
         self.assertEqual(latest["NODE-a"].failure_class, "verification_service_unavailable")
         self.assertNotIn("EVD-goal", result.evidence_refs)
+
+    def test_executable_node_fails_before_running_without_admission_service(self) -> None:
+        plan, report = _compiled_plan()
+        service = PlanExecutionService(InMemoryPlanExecutionStore())
+        executor = RecordingExecutor()
+        scheduler = _scheduler(
+            service,
+            executor,
+            PassingVerificationService(),
+            max_concurrency=1,
+            capability_admission=None,
+        )
+        execution_id = scheduler.submit_plan(plan, report)
+
+        result = asyncio.run(
+            scheduler.run_until_terminal(
+                plan,
+                execution_id,
+                workspace_ref="workspace://fixture",
+                branch="task-0034",
+            )
+        )
+        latest = {node.node_id: node for node in service.store.list_node_runs(execution_id)}
+
+        self.assertEqual(result.status, PlanExecutionStatus.FAILED)
+        self.assertEqual(result.failure_class, "capability_admission_unavailable")
+        self.assertEqual(executor.calls, [])
+        self.assertEqual(latest["NODE-a"].status, NodeRunStatus.FAILED)
+        self.assertEqual(latest["NODE-a"].failure_class, "capability_admission_unavailable")
+        self.assertEqual(latest["NODE-a"].admission_decision_refs, ())
+        self.assertEqual(latest["NODE-a"].capability_grant_refs, ())
+
+    def test_denied_capability_leaves_node_non_running_with_admission_ref(self) -> None:
+        plan, report = _compiled_plan(node_b_depends_on_node_a=True)
+        service = PlanExecutionService(InMemoryPlanExecutionStore())
+        executor = RecordingExecutor()
+        scheduler = _scheduler(
+            service,
+            executor,
+            PassingVerificationService(),
+            max_concurrency=1,
+            capability_admission=_admission_service(allowed_write_resources=("b.txt",)),
+        )
+        execution_id = scheduler.submit_plan(plan, report)
+
+        result = asyncio.run(
+            scheduler.run_until_terminal(
+                plan,
+                execution_id,
+                workspace_ref="workspace://fixture",
+                branch="task-0034",
+            )
+        )
+        latest = {node.node_id: node for node in service.store.list_node_runs(execution_id)}
+
+        self.assertEqual(result.status, PlanExecutionStatus.FAILED)
+        self.assertEqual(result.failure_class, "capability_admission_denied")
+        self.assertEqual(executor.calls, [])
+        self.assertEqual(latest["NODE-a"].status, NodeRunStatus.FAILED)
+        self.assertEqual(latest["NODE-a"].failure_class, "capability_admission_denied")
+        self.assertTrue(all(ref.startswith("PDEC-") for ref in latest["NODE-a"].admission_decision_refs))
+        self.assertEqual(latest["NODE-a"].capability_grant_refs, ())
+        self.assertEqual(latest["NODE-b"].status, NodeRunStatus.PENDING)
+
+    def test_failed_required_gate_blocks_node_success_and_downstream_scheduling(self) -> None:
+        plan, report = _compiled_plan(node_b_depends_on_node_a=True)
+        service = PlanExecutionService(InMemoryPlanExecutionStore())
+        executor = RecordingExecutor()
+        scheduler = _scheduler(
+            service,
+            executor,
+            PassingVerificationService(),
+            max_concurrency=1,
+            gate_outcomes={"GATE-node-a": GateExecutionStatus.FAILED},
+        )
+        execution_id = scheduler.submit_plan(plan, report)
+
+        result = asyncio.run(
+            scheduler.run_until_terminal(
+                plan,
+                execution_id,
+                workspace_ref="workspace://fixture",
+                branch="task-0033",
+            )
+        )
+        latest = {node.node_id: node for node in service.store.list_node_runs(execution_id)}
+
+        self.assertEqual(result.status, PlanExecutionStatus.FAILED)
+        self.assertEqual(result.failure_class, "gate_execution_failed")
+        self.assertEqual(executor.calls, ["NODE-a"])
+        self.assertEqual(latest["NODE-a"].status, NodeRunStatus.FAILED)
+        self.assertEqual(latest["NODE-a"].failure_class, "gate_execution_failed")
+        self.assertTrue(all(ref.startswith("EVD-") for ref in latest["NODE-a"].evidence_refs))
+        self.assertTrue(all(ref.startswith("GATERUN-") for ref in latest["NODE-a"].terminal_failure_refs))
+        self.assertEqual(latest["NODE-b"].status, NodeRunStatus.PENDING)
+        self.assertEqual(latest["NODE-goal"].status, NodeRunStatus.PENDING)
+
+    def test_terminal_reverify_gate_failure_keeps_plan_failed_after_nodes_accept(self) -> None:
+        plan, report = _compiled_plan()
+        service = PlanExecutionService(InMemoryPlanExecutionStore())
+        executor = RecordingExecutor()
+        scheduler = _scheduler(
+            service,
+            executor,
+            PassingVerificationService(),
+            max_concurrency=1,
+            gate_outcomes={"GATE-goal": GateExecutionStatus.FAILED},
+        )
+        execution_id = scheduler.submit_plan(plan, report)
+
+        result = asyncio.run(
+            scheduler.run_until_terminal(
+                plan,
+                execution_id,
+                workspace_ref="workspace://fixture",
+                branch="task-0036",
+            )
+        )
+        latest = {node.node_id: node for node in service.store.list_node_runs(execution_id)}
+
+        self.assertEqual(executor.calls, ["NODE-a", "NODE-b"])
+        self.assertEqual(result.status, PlanExecutionStatus.FAILED)
+        self.assertEqual(result.failure_class, "gate_execution_failed")
+        self.assertEqual(latest["NODE-goal"].status, NodeRunStatus.FAILED)
+        self.assertEqual(latest["NODE-goal"].failure_class, "gate_execution_failed")
 
     def test_resume_skips_completed_idempotent_nodes(self) -> None:
         plan, report = _compiled_plan()
@@ -443,21 +675,47 @@ def _scheduler(
     verifier: PassingVerificationService | None,
     *,
     max_concurrency: int,
+    gate_outcomes: dict[str, GateExecutionStatus] | None = None,
+    capability_admission: object = _DEFAULT_ADMISSION,
 ) -> StaticPlanScheduler:
     registry = NodeExecutorRegistry()
     registry.register(executor)
+    gate_registry = GateRunnerRegistry()
+    gate_registry.register(DeterministicGateRunner(outcomes=gate_outcomes))
+    admission = _admission_service() if capability_admission is _DEFAULT_ADMISSION else capability_admission
     return StaticPlanScheduler(
         service=service,
         executor_registry=registry,
         executor_release_refs={PlanNodeType.BOUNDED_TASK.value: executor.release_ref},
         verification_service=verifier,
+        verification_executor=VerificationExecutor(gate_registry) if verifier is not None else None,
+        capability_admission=admission,  # type: ignore[arg-type]
         max_concurrency=max_concurrency,
+    )
+
+
+def _admission_service(
+    *,
+    allowed_write_resources: tuple[str, ...] = ("a.txt", "b.txt"),
+) -> CapabilityAdmissionService:
+    scope = CapabilityScope(
+        allowed_actions={"filesystem.write": allowed_write_resources},
+        allowed_roles_by_action={"filesystem.write": ("executor",)},
+    )
+    return CapabilityAdmissionService(
+        goal_scope=scope,
+        policy_scope=scope,
+        runtime_profile=RuntimeCapabilityProfile(
+            runtime_ref=RUNTIME_REF,
+            supported_actions=frozenset({"filesystem.write"}),
+        ),
     )
 
 
 def _compiled_plan(
     *,
     retry_node_a: bool = False,
+    node_b_depends_on_node_a: bool = False,
     timeout_seconds: int | None = 30,
     max_wall_seconds: int = 30,
     max_cost_usd: float = 0.01,
@@ -465,6 +723,7 @@ def _compiled_plan(
     draft = PlanDraft.from_mapping(
         _draft_mapping(
             retry_node_a=retry_node_a,
+            node_b_depends_on_node_a=node_b_depends_on_node_a,
             timeout_seconds=timeout_seconds,
             max_wall_seconds=max_wall_seconds,
             max_cost_usd=max_cost_usd,
@@ -503,6 +762,7 @@ def _config() -> PlanCompilerConfig:
 def _draft_mapping(
     *,
     retry_node_a: bool,
+    node_b_depends_on_node_a: bool,
     timeout_seconds: int | None,
     max_wall_seconds: int,
     max_cost_usd: float,
@@ -543,6 +803,26 @@ def _draft_mapping(
     }
     if timeout_seconds is not None:
         goal_node["timeoutSeconds"] = timeout_seconds
+    node_a = _bounded_node(
+        "NODE-a",
+        "CLAIM-a",
+        "GATE-node-a",
+        retry=retry_node_a,
+        timeout_seconds=timeout_seconds,
+        max_wall_seconds=max_wall_seconds,
+        max_cost_usd=max_cost_usd,
+    )
+    node_b = _bounded_node(
+        "NODE-b",
+        "CLAIM-b",
+        "GATE-node-b",
+        retry=False,
+        timeout_seconds=timeout_seconds,
+        max_wall_seconds=max_wall_seconds,
+        max_cost_usd=max_cost_usd,
+    )
+    if node_b_depends_on_node_a:
+        node_b["dependsOn"] = ["NODE-a"]
     return {
         "apiVersion": "ahra.dev/v1alpha1",
         "kind": "PlanDraft",
@@ -553,24 +833,8 @@ def _draft_mapping(
         "spec": {
             "rationale": "Fixture for static PlanIR DAG execution.",
             "nodes": [
-                _bounded_node(
-                    "NODE-a",
-                    "CLAIM-a",
-                    "GATE-node-a",
-                    retry=retry_node_a,
-                    timeout_seconds=timeout_seconds,
-                    max_wall_seconds=max_wall_seconds,
-                    max_cost_usd=max_cost_usd,
-                ),
-                _bounded_node(
-                    "NODE-b",
-                    "CLAIM-b",
-                    "GATE-node-b",
-                    retry=False,
-                    timeout_seconds=timeout_seconds,
-                    max_wall_seconds=max_wall_seconds,
-                    max_cost_usd=max_cost_usd,
-                ),
+                node_a,
+                node_b,
                 goal_node,
             ],
         },

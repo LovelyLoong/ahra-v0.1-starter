@@ -366,6 +366,11 @@ def runtime_grants_for_node(
     issued_at: datetime | None = None,
     expires_at: datetime | None = None,
 ) -> tuple[RuntimeCapabilityGrant, ...]:
+    """Legacy standard-harness compatibility shim.
+
+    The dynamic-kernel default Scheduler must use CapabilityAdmissionService and
+    must not call this helper.
+    """
     issued = issued_at or datetime.now(UTC)
     expires = expires_at or issued + timedelta(hours=2)
     grants: list[RuntimeCapabilityGrant] = []

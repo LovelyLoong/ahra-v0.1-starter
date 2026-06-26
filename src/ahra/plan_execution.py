@@ -7,9 +7,10 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any, Mapping
 
-from .capabilities import CapabilityGrant as RuntimeCapabilityGrant
+from .acceptance_contracts import GateDefinition
+from .capabilities import AdmissionDecision, CapabilityGrant as RuntimeCapabilityGrant, CapabilityRequest as RuntimeCapabilityRequest
 from .domain import Lease, utc_now
-from .evidence_v2 import canonical_fingerprint
+from .evidence_v2 import DigestRef, EvidenceEnvironment, canonical_fingerprint
 from .node_executor import (
     NodeExecutionRequest,
     NodeExecutionResult,
@@ -18,8 +19,8 @@ from .node_executor import (
     NodeExecutorRegistry,
 )
 from .plan_ir import PlanIR, PlanNodeIR, PlanNodeType, PlanValidationReport
-from .ports import SchedulerPort, VerificationServicePort
-from .verification import VerificationTrigger
+from .ports import CapabilityAdmissionPort, SchedulerPort, VerificationExecutorPort, VerificationServicePort
+from .verification import GateLevel, VerificationExecutionContext, VerificationSelection, VerificationTrigger
 
 
 class PlanExecutionError(RuntimeError):
@@ -40,6 +41,20 @@ class PlanInvalidTransitionError(PlanExecutionError):
 
 class PlanLeaseConflictError(PlanExecutionError):
     pass
+
+
+class GoalExecutionStatus(StrEnum):
+    ADMITTED = "admitted"
+    RUNNING = "running"
+    VERIFYING = "verifying"
+    REPAIRING = "repairing"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELED = "canceled"
+
+    @property
+    def terminal(self) -> bool:
+        return self in {self.SUCCEEDED, self.FAILED, self.CANCELED}
 
 
 class PlanExecutionStatus(StrEnum):
@@ -95,10 +110,28 @@ PLAN_TRANSITIONS: dict[PlanExecutionStatus, frozenset[PlanExecutionStatus]] = {
     PlanExecutionStatus.CANCELED: frozenset(),
 }
 
+GOAL_TRANSITIONS: dict[GoalExecutionStatus, frozenset[GoalExecutionStatus]] = {
+    GoalExecutionStatus.ADMITTED: frozenset(
+        {GoalExecutionStatus.RUNNING, GoalExecutionStatus.REPAIRING, GoalExecutionStatus.FAILED, GoalExecutionStatus.CANCELED}
+    ),
+    GoalExecutionStatus.RUNNING: frozenset(
+        {GoalExecutionStatus.VERIFYING, GoalExecutionStatus.REPAIRING, GoalExecutionStatus.FAILED, GoalExecutionStatus.CANCELED}
+    ),
+    GoalExecutionStatus.VERIFYING: frozenset(
+        {GoalExecutionStatus.SUCCEEDED, GoalExecutionStatus.REPAIRING, GoalExecutionStatus.FAILED, GoalExecutionStatus.CANCELED}
+    ),
+    GoalExecutionStatus.REPAIRING: frozenset(
+        {GoalExecutionStatus.RUNNING, GoalExecutionStatus.VERIFYING, GoalExecutionStatus.FAILED, GoalExecutionStatus.CANCELED}
+    ),
+    GoalExecutionStatus.SUCCEEDED: frozenset(),
+    GoalExecutionStatus.FAILED: frozenset(),
+    GoalExecutionStatus.CANCELED: frozenset(),
+}
+
 NODE_TRANSITIONS: dict[NodeRunStatus, frozenset[NodeRunStatus]] = {
     NodeRunStatus.PENDING: frozenset({NodeRunStatus.READY, NodeRunStatus.CANCELED}),
     NodeRunStatus.READY: frozenset({NodeRunStatus.ADMITTED, NodeRunStatus.CANCELED}),
-    NodeRunStatus.ADMITTED: frozenset({NodeRunStatus.RUNNING, NodeRunStatus.CANCELED}),
+    NodeRunStatus.ADMITTED: frozenset({NodeRunStatus.RUNNING, NodeRunStatus.FAILED, NodeRunStatus.CANCELED}),
     NodeRunStatus.RUNNING: frozenset(
         {
             NodeRunStatus.VERIFYING,
@@ -170,6 +203,9 @@ class NodeRunRecord:
     artifact_refs: tuple[str, ...] = ()
     evidence_refs: tuple[str, ...] = ()
     terminal_failure_refs: tuple[str, ...] = ()
+    admission_decision_refs: tuple[str, ...] = ()
+    capability_grant_refs: tuple[str, ...] = ()
+    capability_grant_digests: tuple[str, ...] = ()
     executor_release: str | None = None
     lease: Lease | None = None
     failure_class: str | None = None
@@ -196,6 +232,9 @@ class NodeRunRecord:
             "artifact_refs": list(self.artifact_refs),
             "evidence_refs": list(self.evidence_refs),
             "terminal_failure_refs": list(self.terminal_failure_refs),
+            "admission_decision_refs": list(self.admission_decision_refs),
+            "capability_grant_refs": list(self.capability_grant_refs),
+            "capability_grant_digests": list(self.capability_grant_digests),
             "executor_release": self.executor_release,
             "lease": _lease_to_dict(self.lease),
             "failure_class": self.failure_class,
@@ -220,6 +259,11 @@ class PlanExecutionRecord:
     max_concurrency: int
     budget_summary: Mapping[str, Any]
     node_run_refs: tuple[str, ...]
+    goal_execution_ref: str | None = None
+    parent_plan_execution_ref: str | None = None
+    parent_plan_digest: str | None = None
+    reused_node_refs: tuple[str, ...] = ()
+    reused_evidence_refs: tuple[str, ...] = ()
     task_ref: str | None = None
     lease: Lease | None = None
     checkpoint_ref: str | None = None
@@ -242,6 +286,11 @@ class PlanExecutionRecord:
             "plan_version": self.plan_version,
             "plan_digest": self.plan_digest,
             "goal_ref": self.goal_ref,
+            "goal_execution_ref": self.goal_execution_ref,
+            "parent_plan_execution_ref": self.parent_plan_execution_ref,
+            "parent_plan_digest": self.parent_plan_digest,
+            "reused_node_refs": list(self.reused_node_refs),
+            "reused_evidence_refs": list(self.reused_evidence_refs),
             "task_ref": self.task_ref,
             "validation_report_ref": self.validation_report_ref,
             "validation_report_digest": self.validation_report_digest,
@@ -258,6 +307,63 @@ class PlanExecutionRecord:
             "handoff_refs": list(self.handoff_refs),
             "cancel_requested": self.cancel_requested,
             "deadline_at": _iso(self.deadline_at) if self.deadline_at else None,
+            "failure_class": self.failure_class,
+            "message": self.message,
+            "created_at": _iso(self.created_at),
+            "updated_at": _iso(self.updated_at),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class GoalExecutionRecord:
+    goal_execution_id: str
+    goal_ref: str
+    goal_digest: str
+    claim_graph_digest: str
+    status: GoalExecutionStatus
+    status_version: int
+    max_repair_cycles: int
+    claim_graph_ref: str | None = None
+    active_plan_execution_ref: str | None = None
+    plan_execution_refs: tuple[str, ...] = ()
+    open_defect_refs: tuple[str, ...] = ()
+    resolved_defect_refs: tuple[str, ...] = ()
+    repair_cycle: int = 0
+    budget_summary: Mapping[str, Any] = field(default_factory=dict)
+    usage: Mapping[str, Any] = field(default_factory=dict)
+    workspace_ref: str | None = None
+    checkpoint_ref: str | None = None
+    artifact_refs: tuple[str, ...] = ()
+    evidence_refs: tuple[str, ...] = ()
+    approval_refs: tuple[str, ...] = ()
+    failure_class: str | None = None
+    message: str = ""
+    created_at: datetime = field(default_factory=utc_now)
+    updated_at: datetime = field(default_factory=utc_now)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": "ahra/goal-execution/0.1",
+            "goal_execution_id": self.goal_execution_id,
+            "goal_ref": self.goal_ref,
+            "goal_digest": self.goal_digest,
+            "claim_graph_ref": self.claim_graph_ref,
+            "claim_graph_digest": self.claim_graph_digest,
+            "status": self.status.value,
+            "status_version": self.status_version,
+            "active_plan_execution_ref": self.active_plan_execution_ref,
+            "plan_execution_refs": list(self.plan_execution_refs),
+            "open_defect_refs": list(self.open_defect_refs),
+            "resolved_defect_refs": list(self.resolved_defect_refs),
+            "repair_cycle": self.repair_cycle,
+            "max_repair_cycles": self.max_repair_cycles,
+            "budget_summary": dict(self.budget_summary),
+            "usage": dict(self.usage),
+            "workspace_ref": self.workspace_ref,
+            "checkpoint_ref": self.checkpoint_ref,
+            "artifact_refs": list(self.artifact_refs),
+            "evidence_refs": list(self.evidence_refs),
+            "approval_refs": list(self.approval_refs),
             "failure_class": self.failure_class,
             "message": self.message,
             "created_at": _iso(self.created_at),
@@ -306,12 +412,66 @@ class ReconcilerFinding:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class CapabilityAdmissionAttempt:
+    decisions: tuple[AdmissionDecision, ...]
+    grants: tuple[RuntimeCapabilityGrant, ...]
+    failure_class: str | None = None
+    message: str = ""
+
+    @property
+    def passed(self) -> bool:
+        return self.failure_class is None and all(decision.allow for decision in self.decisions)
+
+    @property
+    def decision_refs(self) -> tuple[str, ...]:
+        return tuple(decision.decision_id for decision in self.decisions)
+
+    @property
+    def grant_refs(self) -> tuple[str, ...]:
+        return tuple(grant.grant_id for grant in self.grants)
+
+    @property
+    def grant_digests(self) -> tuple[str, ...]:
+        return tuple(grant.digest() for grant in self.grants)
+
+
 class InMemoryPlanExecutionStore:
     def __init__(self) -> None:
+        self._goal_executions: dict[str, GoalExecutionRecord] = {}
         self._executions: dict[str, PlanExecutionRecord] = {}
         self._nodes: dict[str, NodeRunRecord] = {}
         self._checkpoints: dict[str, PlanCheckpointRecord] = {}
         self._lock = threading.RLock()
+
+    def create_goal_execution(self, goal_execution: GoalExecutionRecord) -> None:
+        with self._lock:
+            if goal_execution.goal_execution_id in self._goal_executions:
+                raise PlanVersionConflictError(f"goal execution already exists: {goal_execution.goal_execution_id}")
+            self._goal_executions[goal_execution.goal_execution_id] = goal_execution
+
+    def get_goal_execution(self, goal_execution_id: str) -> GoalExecutionRecord:
+        with self._lock:
+            try:
+                return self._goal_executions[goal_execution_id]
+            except KeyError as exc:
+                raise KeyError(goal_execution_id) from exc
+
+    def compare_and_swap_goal_execution(
+        self,
+        goal_execution: GoalExecutionRecord,
+        expected_version: int,
+    ) -> GoalExecutionRecord:
+        with self._lock:
+            current = self.get_goal_execution(goal_execution.goal_execution_id)
+            if current.status_version != expected_version:
+                raise PlanVersionConflictError(
+                    f"expected goal execution version {expected_version}, current {current.status_version}"
+                )
+            if goal_execution.status_version != expected_version + 1:
+                raise PlanVersionConflictError("goal execution status_version must increment exactly once")
+            self._goal_executions[goal_execution.goal_execution_id] = goal_execution
+            return goal_execution
 
     def create_execution(
         self,
@@ -402,11 +562,224 @@ class PlanExecutionService:
     def __init__(self, store: InMemoryPlanExecutionStore) -> None:
         self.store = store
 
+    def create_goal_execution(
+        self,
+        *,
+        goal_ref: str,
+        goal_digest: str,
+        claim_graph_digest: str,
+        claim_graph_ref: str | None = None,
+        goal_execution_id: str | None = None,
+        max_repair_cycles: int = 2,
+        budget_summary: Mapping[str, Any] | None = None,
+        workspace_ref: str | None = None,
+        now: datetime | None = None,
+    ) -> GoalExecutionRecord:
+        if max_repair_cycles < 0:
+            raise PlanAdmissionError("max_repair_cycles must be non-negative")
+        now = now or utc_now()
+        record = GoalExecutionRecord(
+            goal_execution_id=goal_execution_id
+            or _goal_execution_id(goal_ref, goal_digest, claim_graph_digest, created_at=now),
+            goal_ref=goal_ref,
+            goal_digest=goal_digest,
+            claim_graph_ref=claim_graph_ref,
+            claim_graph_digest=claim_graph_digest,
+            status=GoalExecutionStatus.ADMITTED,
+            status_version=0,
+            max_repair_cycles=max_repair_cycles,
+            budget_summary=dict(budget_summary or {}),
+            workspace_ref=workspace_ref,
+            message="GoalExecution admitted and ready to attach an immutable PlanExecution.",
+            created_at=now,
+            updated_at=now,
+        )
+        self.store.create_goal_execution(record)
+        return self.store.get_goal_execution(record.goal_execution_id)
+
+    def attach_plan_execution(
+        self,
+        goal_execution_id: str,
+        plan_execution_id: str,
+        *,
+        expected_version: int,
+        now: datetime | None = None,
+    ) -> GoalExecutionRecord:
+        now = now or utc_now()
+        current = self.store.get_goal_execution(goal_execution_id)
+        execution = self.store.get_execution(plan_execution_id)
+        if execution.goal_execution_ref != goal_execution_id:
+            raise PlanAdmissionError("PlanExecution is not linked to the requested GoalExecution")
+        if current.active_plan_execution_ref:
+            raise PlanInvalidTransitionError("GoalExecution already has an active PlanExecution")
+        if current.status.terminal:
+            raise PlanInvalidTransitionError(f"cannot attach PlanExecution to terminal GoalExecution {current.status.value}")
+        to_status = GoalExecutionStatus.RUNNING
+        if to_status not in GOAL_TRANSITIONS[current.status]:
+            raise PlanInvalidTransitionError(f"{current.status.value} -> {to_status.value} is not allowed")
+        updated = replace(
+            current,
+            status=to_status,
+            status_version=current.status_version + 1,
+            active_plan_execution_ref=plan_execution_id,
+            plan_execution_refs=_merge_refs(current.plan_execution_refs, (plan_execution_id,)),
+            message=f"Attached active PlanExecution {plan_execution_id}.",
+            updated_at=now,
+        )
+        return self.store.compare_and_swap_goal_execution(updated, expected_version)
+
+    def finish_active_plan_execution(
+        self,
+        goal_execution_id: str,
+        plan_execution_id: str,
+        *,
+        expected_version: int,
+        open_defect_refs: tuple[str, ...] = (),
+        now: datetime | None = None,
+    ) -> GoalExecutionRecord:
+        now = now or utc_now()
+        current = self.store.get_goal_execution(goal_execution_id)
+        execution = self.store.get_execution(plan_execution_id)
+        if current.active_plan_execution_ref != plan_execution_id:
+            raise PlanInvalidTransitionError("PlanExecution is not the active child of this GoalExecution")
+        if not execution.status.terminal:
+            raise PlanInvalidTransitionError("active PlanExecution is not terminal")
+        if execution.status == PlanExecutionStatus.SUCCEEDED:
+            to_status = GoalExecutionStatus.VERIFYING
+        elif open_defect_refs:
+            to_status = GoalExecutionStatus.REPAIRING
+        else:
+            to_status = GoalExecutionStatus.FAILED
+        if to_status != current.status and to_status not in GOAL_TRANSITIONS[current.status]:
+            raise PlanInvalidTransitionError(f"{current.status.value} -> {to_status.value} is not allowed")
+        updated = replace(
+            current,
+            status=to_status,
+            status_version=current.status_version + 1,
+            active_plan_execution_ref=None,
+            open_defect_refs=_merge_refs(current.open_defect_refs, open_defect_refs),
+            artifact_refs=_merge_refs(current.artifact_refs, execution.artifact_refs),
+            evidence_refs=_merge_refs(current.evidence_refs, execution.evidence_refs),
+            failure_class=execution.failure_class if to_status == GoalExecutionStatus.FAILED else None,
+            message=f"PlanExecution {plan_execution_id} reached {execution.status.value}.",
+            updated_at=now,
+        )
+        return self.store.compare_and_swap_goal_execution(updated, expected_version)
+
+    def start_repair_cycle(
+        self,
+        goal_execution_id: str,
+        *,
+        defect_refs: tuple[str, ...],
+        expected_version: int,
+        now: datetime | None = None,
+    ) -> GoalExecutionRecord:
+        now = now or utc_now()
+        current = self.store.get_goal_execution(goal_execution_id)
+        if current.active_plan_execution_ref:
+            raise PlanInvalidTransitionError("cannot start repair while a PlanExecution is active")
+        if current.status.terminal:
+            raise PlanInvalidTransitionError(f"cannot repair terminal GoalExecution {current.status.value}")
+        if current.repair_cycle >= current.max_repair_cycles:
+            if GoalExecutionStatus.FAILED not in GOAL_TRANSITIONS[current.status]:
+                raise PlanInvalidTransitionError(f"{current.status.value} -> failed is not allowed")
+            failed = replace(
+                current,
+                status=GoalExecutionStatus.FAILED,
+                status_version=current.status_version + 1,
+                open_defect_refs=_merge_refs(current.open_defect_refs, defect_refs),
+                failure_class="repair_cycle_exhausted",
+                message="GoalExecution exhausted the configured repair cycle limit.",
+                updated_at=now,
+            )
+            return self.store.compare_and_swap_goal_execution(failed, expected_version)
+        to_status = GoalExecutionStatus.REPAIRING
+        if to_status != current.status and to_status not in GOAL_TRANSITIONS[current.status]:
+            raise PlanInvalidTransitionError(f"{current.status.value} -> {to_status.value} is not allowed")
+        updated = replace(
+            current,
+            status=to_status,
+            status_version=current.status_version + 1,
+            open_defect_refs=_merge_refs(current.open_defect_refs, defect_refs),
+            repair_cycle=current.repair_cycle + 1,
+            message=f"Repair cycle {current.repair_cycle + 1} started.",
+            updated_at=now,
+        )
+        return self.store.compare_and_swap_goal_execution(updated, expected_version)
+
+    def resolve_defects(
+        self,
+        goal_execution_id: str,
+        *,
+        defect_refs: tuple[str, ...],
+        expected_version: int,
+        evidence_refs: tuple[str, ...] = (),
+        now: datetime | None = None,
+    ) -> GoalExecutionRecord:
+        now = now or utc_now()
+        current = self.store.get_goal_execution(goal_execution_id)
+        missing = tuple(ref for ref in defect_refs if ref not in current.open_defect_refs)
+        if missing:
+            raise PlanInvalidTransitionError(f"cannot resolve unknown or already closed defects: {','.join(missing)}")
+        open_defects = tuple(ref for ref in current.open_defect_refs if ref not in set(defect_refs))
+        updated = replace(
+            current,
+            status_version=current.status_version + 1,
+            open_defect_refs=open_defects,
+            resolved_defect_refs=_merge_refs(current.resolved_defect_refs, defect_refs),
+            evidence_refs=_merge_refs(current.evidence_refs, evidence_refs),
+            message="Linked defects resolved after required GateRuns passed.",
+            updated_at=now,
+        )
+        return self.store.compare_and_swap_goal_execution(updated, expected_version)
+
+    def complete_goal(
+        self,
+        goal_execution_id: str,
+        *,
+        completion_complete: bool,
+        expected_version: int,
+        evidence_refs: tuple[str, ...] = (),
+        artifact_refs: tuple[str, ...] = (),
+        now: datetime | None = None,
+    ) -> GoalExecutionRecord:
+        now = now or utc_now()
+        current = self.store.get_goal_execution(goal_execution_id)
+        if current.open_defect_refs:
+            raise PlanInvalidTransitionError("GoalExecution cannot succeed while linked Defects remain open")
+        if not completion_complete:
+            updated = replace(
+                current,
+                status_version=current.status_version + 1,
+                evidence_refs=_merge_refs(current.evidence_refs, evidence_refs),
+                artifact_refs=_merge_refs(current.artifact_refs, artifact_refs),
+                message="Completion did not cover every required Claim; GoalExecution remains incomplete.",
+                updated_at=now,
+            )
+            return self.store.compare_and_swap_goal_execution(updated, expected_version)
+        to_status = GoalExecutionStatus.SUCCEEDED
+        if to_status not in GOAL_TRANSITIONS[current.status]:
+            raise PlanInvalidTransitionError(f"{current.status.value} -> {to_status.value} is not allowed")
+        updated = replace(
+            current,
+            status=to_status,
+            status_version=current.status_version + 1,
+            evidence_refs=_merge_refs(current.evidence_refs, evidence_refs),
+            artifact_refs=_merge_refs(current.artifact_refs, artifact_refs),
+            message="Completion Service accepted the GoalExecution.",
+            updated_at=now,
+        )
+        return self.store.compare_and_swap_goal_execution(updated, expected_version)
+
     def start_execution(
         self,
         plan: PlanIR,
         validation_report: PlanValidationReport,
         *,
+        goal_execution_ref: str | None = None,
+        parent_plan_execution_ref: str | None = None,
+        reused_node_refs: tuple[str, ...] = (),
+        reused_evidence_refs: tuple[str, ...] = (),
         task_ref: str | None = None,
         max_concurrency: int = 1,
         deadline_at: datetime | None = None,
@@ -418,6 +791,14 @@ class PlanExecutionService:
         now = now or utc_now()
         plan_digest = plan.digest()
         plan_execution_id = _plan_execution_id(plan)
+        node_ids = {node.node_id for node in plan.nodes}
+        unknown_reused_nodes = tuple(sorted(set(reused_node_refs) - node_ids))
+        if unknown_reused_nodes:
+            raise PlanAdmissionError(f"reused nodes are not in PlanIR: {','.join(unknown_reused_nodes)}")
+        if reused_evidence_refs and not reused_node_refs:
+            raise PlanAdmissionError("reused Evidence requires at least one unchanged reused Node")
+        if goal_execution_ref is not None:
+            self.store.get_goal_execution(goal_execution_ref)
         node_runs = tuple(
             NodeRunRecord(
                 node_run_id=_node_run_id(plan_execution_id, node.node_id, 1),
@@ -427,11 +808,17 @@ class PlanExecutionService:
                 node_id=node.node_id,
                 node_type=node.node_type,
                 attempt=1,
-                status=NodeRunStatus.PENDING,
-                status_version=0,
+                status=NodeRunStatus.SUCCEEDED if node.node_id in reused_node_refs else NodeRunStatus.PENDING,
+                status_version=1 if node.node_id in reused_node_refs else 0,
                 dependency_node_refs=node.depends_on,
                 gate_refs=node.gate_refs,
                 budget=node.budget.to_dict(),
+                evidence_refs=reused_evidence_refs if node.node_id in reused_node_refs else (),
+                message=(
+                    "Unchanged Node reused through validated current Evidence."
+                    if node.node_id in reused_node_refs
+                    else ""
+                ),
                 created_at=now,
                 updated_at=now,
             )
@@ -450,6 +837,11 @@ class PlanExecutionService:
             max_concurrency=max_concurrency,
             budget_summary=_plan_budget_summary(plan),
             node_run_refs=tuple(node.node_run_id for node in node_runs),
+            goal_execution_ref=goal_execution_ref,
+            parent_plan_execution_ref=parent_plan_execution_ref,
+            parent_plan_digest=plan.parent_plan_digest,
+            reused_node_refs=tuple(sorted(reused_node_refs)),
+            reused_evidence_refs=tuple(sorted(reused_evidence_refs)),
             task_ref=task_ref,
             trace_refs=(f"TRACE-{plan_execution_id}",),
             deadline_at=deadline_at,
@@ -570,6 +962,9 @@ class PlanExecutionService:
         artifact_refs: tuple[str, ...] = (),
         evidence_refs: tuple[str, ...] = (),
         terminal_failure_refs: tuple[str, ...] = (),
+        admission_decision_refs: tuple[str, ...] = (),
+        capability_grant_refs: tuple[str, ...] = (),
+        capability_grant_digests: tuple[str, ...] = (),
         usage: Mapping[str, Any] | None = None,
         failure_class: str | None = None,
         message: str = "",
@@ -588,6 +983,9 @@ class PlanExecutionService:
             artifact_refs=_merge_refs(current.artifact_refs, artifact_refs),
             evidence_refs=_merge_refs(current.evidence_refs, evidence_refs),
             terminal_failure_refs=_merge_refs(current.terminal_failure_refs, terminal_failure_refs),
+            admission_decision_refs=_merge_refs(current.admission_decision_refs, admission_decision_refs),
+            capability_grant_refs=_merge_refs(current.capability_grant_refs, capability_grant_refs),
+            capability_grant_digests=_merge_refs(current.capability_grant_digests, capability_grant_digests),
             usage=dict(usage) if usage is not None else current.usage,
             failure_class=failure_class,
             message=message or current.message,
@@ -614,6 +1012,9 @@ class PlanExecutionService:
             dependency_node_refs=previous.dependency_node_refs,
             gate_refs=previous.gate_refs,
             budget=dict(previous.budget),
+            admission_decision_refs=(),
+            capability_grant_refs=(),
+            capability_grant_digests=(),
             created_at=now,
             updated_at=now,
             message=f"Retry after {previous.node_run_id}: {previous.failure_class or 'failed'}",
@@ -733,6 +1134,10 @@ class StaticPlanScheduler(SchedulerPort):
         executor_registry: NodeExecutorRegistry,
         executor_release_refs: Mapping[str, str],
         verification_service: VerificationServicePort | None = None,
+        verification_executor: VerificationExecutorPort | None = None,
+        gate_definitions: Mapping[str, GateDefinition] | None = None,
+        verification_environment: EvidenceEnvironment | None = None,
+        capability_admission: CapabilityAdmissionPort | None = None,
         max_concurrency: int = 1,
         lease_holder: str = "scheduler:static-planir",
         lease_ttl_seconds: int = 300,
@@ -743,14 +1148,32 @@ class StaticPlanScheduler(SchedulerPort):
         self.executor_registry = executor_registry
         self.executor_release_refs = dict(executor_release_refs)
         self.verification_service = verification_service
+        self.verification_executor = verification_executor
+        self.gate_definitions = dict(gate_definitions or {})
+        self.verification_environment = verification_environment
+        self.capability_admission = capability_admission
         self.max_concurrency = max_concurrency
         self.lease_holder = lease_holder
         self.lease_ttl_seconds = lease_ttl_seconds
+        self.capability_admission_attempts: list[CapabilityAdmissionAttempt] = []
 
-    def submit_plan(self, plan: PlanIR, validation_report: PlanValidationReport) -> str:
+    def submit_plan(
+        self,
+        plan: PlanIR,
+        validation_report: PlanValidationReport,
+        *,
+        goal_execution_ref: str | None = None,
+        parent_plan_execution_ref: str | None = None,
+        reused_node_refs: tuple[str, ...] = (),
+        reused_evidence_refs: tuple[str, ...] = (),
+    ) -> str:
         execution = self.service.start_execution(
             plan,
             validation_report,
+            goal_execution_ref=goal_execution_ref,
+            parent_plan_execution_ref=parent_plan_execution_ref,
+            reused_node_refs=reused_node_refs,
+            reused_evidence_refs=reused_evidence_refs,
             max_concurrency=self.max_concurrency,
         )
         return execution.plan_execution_id
@@ -848,19 +1271,39 @@ class StaticPlanScheduler(SchedulerPort):
             ttl_seconds=self.lease_ttl_seconds,
             expected_version=current.status_version,
         )
+        admission = self._prepare_capability_admission(plan, node, current)
+        if not admission.passed:
+            failed = self.service.transition_node(
+                current.node_run_id,
+                NodeRunStatus.FAILED,
+                expected_version=current.status_version,
+                holder=current.lease.holder if current.lease else None,
+                fencing_token=current.lease.fencing_token if current.lease else None,
+                admission_decision_refs=admission.decision_refs,
+                capability_grant_refs=admission.grant_refs,
+                capability_grant_digests=admission.grant_digests,
+                terminal_failure_refs=admission.decision_refs or (f"ADMIT-{node.node_id.removeprefix('NODE-')}",),
+                failure_class=admission.failure_class or "capability_admission_failed",
+                message=admission.message or "Capability Admission failed before Node execution.",
+            )
+            self._maybe_retry(plan, failed, failed.failure_class or "capability_admission_failed")
+            return
         current = self.service.transition_node(
             current.node_run_id,
             NodeRunStatus.RUNNING,
             expected_version=current.status_version,
             holder=current.lease.holder if current.lease else None,
             fencing_token=current.lease.fencing_token if current.lease else None,
+            admission_decision_refs=admission.decision_refs,
+            capability_grant_refs=admission.grant_refs,
+            capability_grant_digests=admission.grant_digests,
             message="Node is running.",
         )
         if node.node_type == PlanNodeType.GOAL_VERIFICATION.value:
-            self._run_goal_verification_node(current, node)
+            await self._run_goal_verification_node(plan, current, node, workspace_ref=workspace_ref)
             return
         if node.node_type == PlanNodeType.GATE_VERIFICATION.value:
-            self._run_gate_verification_node(current, node)
+            await self._run_gate_verification_node(plan, current, node, workspace_ref=workspace_ref)
             return
 
         release_ref = self.executor_release_refs.get(node.node_type)
@@ -871,7 +1314,7 @@ class StaticPlanScheduler(SchedulerPort):
         request = NodeExecutionRequest(
             plan=plan,
             node=node,
-            capability_grants=_runtime_grants_for_node(plan, node),
+            capability_grants=admission.grants,
             workspace_ref=workspace_ref,
             branch=branch,
             run_id=current.node_run_id,
@@ -897,14 +1340,16 @@ class StaticPlanScheduler(SchedulerPort):
         except Exception as exc:  # pragma: no cover - defensive boundary
             self._fail_node(current, "executor_exception", str(exc))
             return
-        self._record_executor_result(plan, node, current, result)
+        await self._record_executor_result(plan, node, current, result, workspace_ref=workspace_ref)
 
-    def _record_executor_result(
+    async def _record_executor_result(
         self,
         plan: PlanIR,
         node: PlanNodeIR,
         current: NodeRunRecord,
         result: NodeExecutionResult,
+        *,
+        workspace_ref: str,
     ) -> None:
         latest = self.service.store.get_node_run(current.node_run_id)
         if result.status == NodeExecutionStatus.ACCEPTED:
@@ -939,12 +1384,12 @@ class StaticPlanScheduler(SchedulerPort):
                 fencing_token=current.lease.fencing_token if current.lease else None,
                 executor_release=result.executor_release,
                 artifact_refs=result.artifact_refs,
-                evidence_refs=result.evidence_refs,
+                evidence_refs=() if node.gate_refs else result.evidence_refs,
                 terminal_failure_refs=result.terminal_failure_refs,
                 usage=result.usage.to_dict() if result.usage else {},
                 message=result.message,
             )
-            if node.gate_refs and not self.verification_service:
+            if node.gate_refs and (not self.verification_service or not self.verification_executor):
                 self.service.transition_node(
                     verifying.node_run_id,
                     NodeRunStatus.FAILED,
@@ -953,15 +1398,47 @@ class StaticPlanScheduler(SchedulerPort):
                     fencing_token=current.lease.fencing_token if current.lease else None,
                     failure_class="verification_service_unavailable",
                     terminal_failure_refs=(f"VERIFY-{node.node_id.removeprefix('NODE-')}",),
-                    message="Declared gate verification requires VerificationService.",
+                    message="Declared gate verification requires VerificationService and VerificationExecutor.",
                 )
                 return
-            if self.verification_service and node.gate_refs:
-                self.verification_service.select(
-                    VerificationTrigger(
-                        changed_refs={ref: "current" for ref in (*result.artifact_refs, *result.evidence_refs)}
-                    )
+            gate_report = None
+            if self.verification_service and self.verification_executor and node.gate_refs:
+                selected = self._required_gate_selection(
+                    node=node,
+                    rationale_prefix="required_node_gate",
                 )
+                self.verification_service.select(
+                    VerificationTrigger(changed_refs={ref: "current" for ref in result.artifact_refs})
+                )
+                gate_report = await self.verification_executor.execute_selection(
+                    selected,
+                    self._verification_context(
+                        plan=plan,
+                        node=node,
+                        node_run=verifying,
+                        workspace_ref=workspace_ref,
+                        subjects=_subject_refs((*result.artifact_refs, *result.evidence_refs)),
+                        metadata=self._result_verification_metadata(node, result),
+                    ),
+                )
+                if not gate_report.passed:
+                    failure_class = _verification_report_failure_class(gate_report)
+                    self.service.transition_node(
+                        verifying.node_run_id,
+                        NodeRunStatus.FAILED,
+                        expected_version=verifying.status_version,
+                        holder=self.lease_holder,
+                        fencing_token=current.lease.fencing_token if current.lease else None,
+                        executor_release=result.executor_release,
+                        artifact_refs=result.artifact_refs,
+                        evidence_refs=tuple(record.evidence_id for record in gate_report.evidence_records),
+                        terminal_failure_refs=tuple(gate_run.gate_run_id for gate_run in gate_report.gate_runs),
+                        usage=result.usage.to_dict() if result.usage else {},
+                        failure_class=failure_class,
+                        message=f"Node gate verification failed: {failure_class}.",
+                    )
+                    return
+            evidence_refs = tuple(record.evidence_id for record in gate_report.evidence_records) if gate_report else result.evidence_refs
             self.service.transition_node(
                 verifying.node_run_id,
                 NodeRunStatus.SUCCEEDED,
@@ -970,7 +1447,7 @@ class StaticPlanScheduler(SchedulerPort):
                 fencing_token=current.lease.fencing_token if current.lease else None,
                 executor_release=result.executor_release,
                 artifact_refs=result.artifact_refs,
-                evidence_refs=result.evidence_refs,
+                evidence_refs=evidence_refs,
                 terminal_failure_refs=result.terminal_failure_refs,
                 usage=result.usage.to_dict() if result.usage else {},
                 message=result.message or "Node gates passed.",
@@ -994,9 +1471,16 @@ class StaticPlanScheduler(SchedulerPort):
         )
         self._maybe_retry(plan, failed, failure_class)
 
-    def _run_gate_verification_node(self, node_run: NodeRunRecord, node: PlanNodeIR) -> None:
+    async def _run_gate_verification_node(
+        self,
+        plan: PlanIR,
+        node_run: NodeRunRecord,
+        node: PlanNodeIR,
+        *,
+        workspace_ref: str,
+    ) -> None:
         latest = self.service.store.get_node_run(node_run.node_run_id)
-        if not self.verification_service:
+        if not self.verification_service or not self.verification_executor:
             self.service.transition_node(
                 latest.node_run_id,
                 NodeRunStatus.FAILED,
@@ -1005,7 +1489,7 @@ class StaticPlanScheduler(SchedulerPort):
                 fencing_token=node_run.lease.fencing_token if node_run.lease else None,
                 failure_class="verification_service_unavailable",
                 terminal_failure_refs=(f"VERIFY-{node.node_id.removeprefix('NODE-')}",),
-                message="Declared gate verification requires VerificationService.",
+                message="Declared gate verification requires VerificationService and VerificationExecutor.",
             )
             return
 
@@ -1026,17 +1510,36 @@ class StaticPlanScheduler(SchedulerPort):
             )
             return
 
+        selection = self._required_gate_selection(node=node, rationale_prefix="explicit_gate_verification")
         self.verification_service.select(VerificationTrigger(failed_gate_refs=frozenset(latest.gate_refs)))
+        report = await self.verification_executor.execute_selection(
+            selection,
+            self._verification_context(plan=plan, node=node, node_run=latest, workspace_ref=workspace_ref),
+        )
         verifying = self.service.transition_node(
             latest.node_run_id,
             NodeRunStatus.VERIFYING,
             expected_version=latest.status_version,
             holder=self.lease_holder,
             fencing_token=node_run.lease.fencing_token if node_run.lease else None,
-            evidence_refs=tuple(f"EVD-{gate_ref.removeprefix('GATE-')}" for gate_ref in latest.gate_refs),
+            evidence_refs=tuple(record.evidence_id for record in report.evidence_records),
             usage=usage.to_dict(),
             message="Declared gate verification boundary ran.",
         )
+        if not report.passed:
+            failure_class = _verification_report_failure_class(report)
+            self.service.transition_node(
+                verifying.node_run_id,
+                NodeRunStatus.FAILED,
+                expected_version=verifying.status_version,
+                holder=self.lease_holder,
+                fencing_token=node_run.lease.fencing_token if node_run.lease else None,
+                usage=usage.to_dict(),
+                failure_class=failure_class,
+                terminal_failure_refs=tuple(gate_run.gate_run_id for gate_run in report.gate_runs),
+                message=f"Gate verification boundary failed: {failure_class}.",
+            )
+            return
         self.service.transition_node(
             verifying.node_run_id,
             NodeRunStatus.SUCCEEDED,
@@ -1047,9 +1550,16 @@ class StaticPlanScheduler(SchedulerPort):
             message="Gate verification boundary passed.",
         )
 
-    def _run_goal_verification_node(self, node_run: NodeRunRecord, node: PlanNodeIR) -> None:
+    async def _run_goal_verification_node(
+        self,
+        plan: PlanIR,
+        node_run: NodeRunRecord,
+        node: PlanNodeIR,
+        *,
+        workspace_ref: str,
+    ) -> None:
         latest = self.service.store.get_node_run(node_run.node_run_id)
-        if not self.verification_service:
+        if not self.verification_service or not self.verification_executor:
             self.service.transition_node(
                 latest.node_run_id,
                 NodeRunStatus.FAILED,
@@ -1058,7 +1568,7 @@ class StaticPlanScheduler(SchedulerPort):
                 fencing_token=node_run.lease.fencing_token if node_run.lease else None,
                 failure_class="verification_service_unavailable",
                 terminal_failure_refs=(f"VERIFY-{node.node_id.removeprefix('NODE-')}",),
-                message="Goal completion gate requires VerificationService.",
+                message="Goal completion gate requires VerificationService and VerificationExecutor.",
             )
             return
 
@@ -1080,17 +1590,28 @@ class StaticPlanScheduler(SchedulerPort):
             return
 
         completion = self.verification_service.complete(VerificationTrigger())
+        selection = self._required_gate_selection(node=node, rationale_prefix="goal_verification_gate")
+        report = await self.verification_executor.execute_selection(
+            selection,
+            self._verification_context(
+                plan=plan,
+                node=node,
+                node_run=latest,
+                workspace_ref=workspace_ref,
+                metadata={"completionComplete": completion.complete, "claimRefs": tuple(node.claim_refs)},
+            ),
+        )
         verifying = self.service.transition_node(
             latest.node_run_id,
             NodeRunStatus.VERIFYING,
             expected_version=latest.status_version,
             holder=self.lease_holder,
             fencing_token=node_run.lease.fencing_token if node_run.lease else None,
-            evidence_refs=tuple(f"EVD-{gate_ref.removeprefix('GATE-')}" for gate_ref in latest.gate_refs),
+            evidence_refs=tuple(record.evidence_id for record in report.evidence_records),
             usage=usage.to_dict(),
             message="Goal completion gate evaluated.",
         )
-        if completion.complete:
+        if completion.complete and report.passed:
             self.service.transition_node(
                 verifying.node_run_id,
                 NodeRunStatus.SUCCEEDED,
@@ -1101,6 +1622,7 @@ class StaticPlanScheduler(SchedulerPort):
                 message="Goal completion gate passed.",
             )
         else:
+            failure_class = "goal_completion_failed" if not completion.complete else _verification_report_failure_class(report)
             self.service.transition_node(
                 verifying.node_run_id,
                 NodeRunStatus.FAILED,
@@ -1108,9 +1630,133 @@ class StaticPlanScheduler(SchedulerPort):
                 holder=self.lease_holder,
                 fencing_token=node_run.lease.fencing_token if node_run.lease else None,
                 usage=usage.to_dict(),
-                failure_class="goal_completion_failed",
+                failure_class=failure_class,
+                terminal_failure_refs=tuple(gate_run.gate_run_id for gate_run in report.gate_runs),
                 message="Goal completion gate did not cover every required Claim.",
             )
+
+    def _required_gate_selection(self, *, node: PlanNodeIR, rationale_prefix: str) -> VerificationSelection:
+        return VerificationSelection(
+            selected_gate_refs=tuple(node.gate_refs),
+            full_gate_refs=tuple(node.gate_refs),
+            affected_claim_refs=tuple(node.claim_refs),
+            reused_evidence_refs=(),
+            stale_evidence_refs=(),
+            rationale=tuple(f"{rationale_prefix}:{gate_ref}" for gate_ref in node.gate_refs),
+        )
+
+    def _prepare_capability_admission(
+        self,
+        plan: PlanIR,
+        node: PlanNodeIR,
+        node_run: NodeRunRecord,
+    ) -> CapabilityAdmissionAttempt:
+        if not node.capability_grants:
+            if node.node_type in {PlanNodeType.GOAL_VERIFICATION.value, PlanNodeType.GATE_VERIFICATION.value}:
+                return CapabilityAdmissionAttempt(decisions=(), grants=())
+            attempt = CapabilityAdmissionAttempt(
+                decisions=(),
+                grants=(),
+                failure_class="missing_capability_intent",
+                message="Executable Node has no declared capability intent for admission.",
+            )
+            self.capability_admission_attempts.append(attempt)
+            return attempt
+        if self.capability_admission is None:
+            attempt = CapabilityAdmissionAttempt(
+                decisions=(),
+                grants=(),
+                failure_class="capability_admission_unavailable",
+                message="Executable Node requires CapabilityAdmissionPort before running.",
+            )
+            self.capability_admission_attempts.append(attempt)
+            return attempt
+
+        now = utc_now()
+        decisions: list[AdmissionDecision] = []
+        grants: list[RuntimeCapabilityGrant] = []
+        for capability in node.capability_grants:
+            request = RuntimeCapabilityRequest(
+                request_id=_capability_request_id(plan, node, node_run, capability.capability, capability.resources),
+                plan_id=plan.plan_id,
+                node_id=node.node_id,
+                requested_by=self.lease_holder,
+                role="executor",
+                capability=capability.capability,
+                action=capability.capability,
+                resources=capability.resources,
+                scope=capability.resources,
+                risk_level="R1",
+                expires_at=now + timedelta(seconds=max(_node_wall_timeout_seconds(node) or 0, self.lease_ttl_seconds)),
+                spawn_limit=node.budget.max_spawned_nodes,
+            )
+            decision = self.capability_admission.admit(request, now=now)
+            decisions.append(decision)
+            if decision.allow and decision.grant is not None:
+                grants.append(decision.grant)
+
+        denied = tuple(decision for decision in decisions if not decision.allow or decision.grant is None)
+        missing = len(grants) != len(node.capability_grants)
+        if denied or missing:
+            reasons = tuple(sorted({decision.reason_code for decision in denied} or {"partial_grant_set"}))
+            attempt = CapabilityAdmissionAttempt(
+                decisions=tuple(decisions),
+                grants=tuple(grants),
+                failure_class="capability_admission_denied",
+                message="Capability Admission denied Node execution: " + ",".join(reasons),
+            )
+            self.capability_admission_attempts.append(attempt)
+            return attempt
+        attempt = CapabilityAdmissionAttempt(decisions=tuple(decisions), grants=tuple(grants))
+        self.capability_admission_attempts.append(attempt)
+        return attempt
+
+    def _verification_context(
+        self,
+        *,
+        plan: PlanIR,
+        node: PlanNodeIR,
+        node_run: NodeRunRecord,
+        workspace_ref: str,
+        subjects: tuple[DigestRef, ...] = (),
+        metadata: Mapping[str, object] | None = None,
+    ) -> VerificationExecutionContext:
+        gate_definition_digests = {
+            gate_ref: node.gate_digests[index]
+            for index, gate_ref in enumerate(node.gate_refs)
+            if index < len(node.gate_digests)
+        }
+        dependency_evidence = tuple(getattr(self.verification_executor, "evidence_records", ()))
+        execution = self.service.store.get_execution(node_run.plan_execution_id)
+        return VerificationExecutionContext(
+            goal_execution_id=execution.goal_execution_ref or plan.goal_ref,
+            plan_execution_id=node_run.plan_execution_id,
+            node_run_id=node_run.node_run_id,
+            gate_definitions=self.gate_definitions,
+            gate_definition_digests=gate_definition_digests,
+            gate_claim_refs={gate_ref: tuple(node.claim_refs) for gate_ref in node.gate_refs},
+            subjects=subjects,
+            dependency_evidence=dependency_evidence,
+            environment=self.verification_environment,
+            workspace_ref=workspace_ref,
+            attempt=node_run.attempt,
+            timeout_seconds=_node_wall_timeout_seconds(node),
+            mutation_allowed=False,
+            metadata=metadata or {"claimRefs": tuple(node.claim_refs)},
+        )
+
+    def _result_verification_metadata(
+        self,
+        node: PlanNodeIR,
+        result: NodeExecutionResult,
+    ) -> Mapping[str, object]:
+        metadata: dict[str, object] = {"claimRefs": tuple(node.claim_refs)}
+        raw = result.details.get("verificationMetadata") if isinstance(result.details, Mapping) else None
+        if isinstance(raw, Mapping):
+            metadata.update(raw)
+        if node.gate_refs and self.gate_definitions:
+            metadata.setdefault("selectedFewerThanFull", len(node.gate_refs) < len(self.gate_definitions))
+        return metadata
 
     def _ready_node_runs(self, plan: PlanIR, plan_execution_id: str) -> tuple[NodeRunRecord, ...]:
         latest = _latest_attempt_by_node(self.service.store.list_node_runs(plan_execution_id))
@@ -1327,37 +1973,44 @@ def _check_lease(
         raise PlanLeaseConflictError("lease expired")
 
 
-def _runtime_grants_for_node(plan: PlanIR, node: PlanNodeIR) -> tuple[RuntimeCapabilityGrant, ...]:
-    issued = datetime.now(UTC)
-    expires = issued + timedelta(hours=2)
-    grants: list[RuntimeCapabilityGrant] = []
-    for grant in node.capability_grants:
-        suffix = canonical_fingerprint(
-            {
-                "plan": plan.plan_id,
-                "node": node.node_id,
-                "capability": grant.capability,
-                "resources": list(grant.resources),
-            }
-        ).removeprefix("sha256:")[:16]
-        grants.append(
-            RuntimeCapabilityGrant(
-                grant_id=f"CGRANT-{suffix}",
-                request_id=f"CREQ-{suffix}",
-                plan_id=plan.plan_id,
-                node_id=node.node_id,
-                role="executor",
-                capability=grant.capability,
-                action=grant.capability,
-                resources=grant.resources,
-                scope=grant.resources,
-                expires_at=expires,
-                issued_at=issued,
-                issuer="harness:static-plan-scheduler",
-                policy_decision_id=f"PDEC-{suffix}",
-            )
-        )
-    return tuple(grants)
+def _subject_refs(refs: tuple[str, ...]) -> tuple[DigestRef, ...]:
+    return tuple(
+        DigestRef(ref=ref, digest=canonical_fingerprint({"subjectRef": ref}))
+        for ref in sorted(set(refs))
+    )
+
+
+def _verification_report_failure_class(report: Any) -> str:
+    if getattr(report, "duplicate_idempotency_keys", ()):
+        return "duplicate_gate_idempotency_key"
+    missing = getattr(report, "missing_runner_gate_refs", ())
+    if missing:
+        return "missing_gate_runner"
+    failed = getattr(report, "failed_gate_refs", ())
+    if failed:
+        return "gate_execution_failed"
+    return "gate_execution_incomplete"
+
+
+def _capability_request_id(
+    plan: PlanIR,
+    node: PlanNodeIR,
+    node_run: NodeRunRecord,
+    capability: str,
+    resources: tuple[str, ...],
+) -> str:
+    suffix = canonical_fingerprint(
+        {
+            "plan": plan.plan_id,
+            "planDigest": plan.digest(),
+            "node": node.node_id,
+            "nodeRun": node_run.node_run_id,
+            "attempt": node_run.attempt,
+            "capability": capability,
+            "resources": list(resources),
+        }
+    ).removeprefix("sha256:")[:16]
+    return f"CREQ-{suffix}"
 
 
 def _plan_budget_summary(plan: PlanIR) -> dict[str, Any]:
@@ -1442,6 +2095,23 @@ def _plan_execution_id(plan: PlanIR) -> str:
             "planDigest": plan.digest(),
             "planId": plan.plan_id,
             "version": plan.version,
+        }
+    ).removeprefix("sha256:")[:16]
+
+
+def _goal_execution_id(
+    goal_ref: str,
+    goal_digest: str,
+    claim_graph_digest: str,
+    *,
+    created_at: datetime,
+) -> str:
+    return "GEXEC-" + canonical_fingerprint(
+        {
+            "goalRef": goal_ref,
+            "goalDigest": goal_digest,
+            "claimGraphDigest": claim_graph_digest,
+            "createdAt": _iso(created_at),
         }
     ).removeprefix("sha256:")[:16]
 

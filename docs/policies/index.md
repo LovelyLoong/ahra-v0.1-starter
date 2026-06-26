@@ -21,3 +21,4 @@ tags: [policies]
 | [Agent authority boundaries](agent-authority-boundaries.md) | Non-delegable authority separation for Planner, Executor, Verifier, and trusted Harness |
 | [Component lifecycle](component-lifecycle.md) | Lifecycle classes and default exposure rules for components and docs |
 | [Document governance](document-governance.md) | Authority, provenance, freshness, and review rules for project knowledge |
+| [Minimal live loop metrics](minimal-loop-metrics.md) | Proposed hard metrics and scorecard fields for M1 dynamic-kernel experiments |

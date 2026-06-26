@@ -1,0 +1,111 @@
+{
+  "schema_version": "ahra/task-implementation-report/0.1",
+  "task_id": "TASK-0035",
+  "generated_at": "2026-06-26T06:36:54.539961Z",
+  "producer": "agent:codex-dynamic-kernel-operator",
+  "branch": "main",
+  "base_head": "ac0c1b4795395441a0f33e18a356ce7c3ec54c84",
+  "summary": "Implemented deterministic Evidence current-set resolution, supersession fail-closed validation, Completion migration to append-only Evidence history, selective verification separation of current reused versus historical excluded Evidence, and multi-Claim Defect direct/affected claim semantics.",
+  "changed_files": [
+    "src/ahra/evidence_v2.py",
+    "src/ahra/verification.py",
+    "src/ahra/dynamic_fixture.py",
+    "src/ahra/ports.py",
+    "src/ahra/__init__.py",
+    "contracts/schemas/evidence-v2.schema.json",
+    "contracts/schemas/defect-record.schema.json",
+    "contracts/schemas/verification-selection.schema.json",
+    "contracts/schemas/verification-execution-report.schema.json",
+    "examples/records/defect-record.json",
+    "examples/records/verification-selection.json",
+    "examples/records/verification-execution-report.json",
+    "docs/architecture/verification-system.md",
+    "docs/architecture/gate-execution-pipeline.md",
+    "docs/architecture/component-inventory.json",
+    "tests/test_evidence_v2.py",
+    "tests/test_verification.py",
+    "tests/test_dynamic_fixture.py"
+  ],
+  "implementation": {
+    "evidence_registry": [
+      "Added EvidenceCurrentSet and EvidenceSupersessionFailure.",
+      "Added current_set(), current_passed_by_claim(), and supersession_status_events().",
+      "Supersession graph validation rejects duplicate refs, self-supersession, unknown refs, cycles, and competing current leaves.",
+      "Superseded records remain inspectable as historical excluded Evidence and are not deleted or mutated."
+    ],
+    "completion": [
+      "evaluate_completion now resolves the EvidenceRegistry current set before evaluating required Claims.",
+      "Only current leaves with passed result and matching stored fingerprint can satisfy Claims.",
+      "Historical failed Evidence no longer blocks completion after explicit supersession.",
+      "A stale, revoked, expired, contradicted, un-fingerprinted, or resolution-failed current leaf blocks completion."
+    ],
+    "selective_verification": [
+      "select_gates now operates on current leaves and exposes historicalEvidenceRefs and resolutionFailureRefs.",
+      "Reused Evidence and stale current Evidence remain separated from historical excluded Evidence."
+    ],
+    "defects": [
+      "DefectRecord now emits directClaimRefs and affectedClaimRefs while retaining claimRef for compatibility.",
+      "defect_from_result computes affectedClaimRefs from ClaimGraph reverse dependency closure when a graph is supplied."
+    ],
+    "fixture_migration": [
+      "Dynamic repair fixture now passes full append-only Evidence history into Completion.",
+      "Rerun Gate Evidence explicitly supersedes previous Evidence for the same Gate.",
+      "Fixture report includes current-set metrics, historical excluded Evidence refs, supersession status events, and current Claim coverage."
+    ]
+  },
+  "required_metrics": {
+    "current_claim_coverage": 1.0,
+    "historical_evidence_count": 3,
+    "current_evidence_leaf_count": 7,
+    "supersession_resolution_failures": 0,
+    "stale_evidence_count": 3,
+    "false_completion_count": 0,
+    "historical_excluded_evidence_count": 3,
+    "evidence_status_event_count": 3,
+    "defect_affected_claim_count": 4
+  },
+  "acceptance_criteria_mapping": [
+    {
+      "criterion": "A passed Evidence record that supersedes a prior failed record can satisfy a Claim without deleting the failed history.",
+      "evidence_refs": ["EVD-TASK-0035-0001", "EVD-TASK-0035-0002", "EVD-TASK-0035-0003"]
+    },
+    {
+      "criterion": "A stale/revoked/contradicted superseding record leaves the Claim uncovered and blocks Completion.",
+      "evidence_refs": ["EVD-TASK-0035-0001", "EVD-TASK-0035-0002"]
+    },
+    {
+      "criterion": "Supersession cycles, self-supersession and unknown refs fail closed.",
+      "evidence_refs": ["EVD-TASK-0035-0001", "EVD-TASK-0035-0002"]
+    },
+    {
+      "criterion": "Completion consumes the EvidenceRegistry current set instead of a caller-curated tuple.",
+      "evidence_refs": ["EVD-TASK-0035-0001", "EVD-TASK-0035-0002", "EVD-TASK-0035-0003"]
+    },
+    {
+      "criterion": "Selective verification lists current reused Evidence and historical excluded Evidence separately.",
+      "evidence_refs": ["EVD-TASK-0035-0001", "EVD-TASK-0035-0002", "EVD-TASK-0035-0003"]
+    },
+    {
+      "criterion": "DefectRecord supports one or more direct Claims and one or more affected Claims.",
+      "evidence_refs": ["EVD-TASK-0035-0001", "EVD-TASK-0035-0002", "EVD-TASK-0035-0003"]
+    },
+    {
+      "criterion": "Affected Claims include deterministic reverse dependency closure or an independently validated equivalent.",
+      "evidence_refs": ["EVD-TASK-0035-0001", "EVD-TASK-0035-0002", "EVD-TASK-0035-0003"]
+    },
+    {
+      "criterion": "Legacy Evidence remains legacy_partial and cannot silently satisfy M1 Claims.",
+      "evidence_refs": ["EVD-TASK-0035-0001", "EVD-TASK-0035-0002"]
+    },
+    {
+      "criterion": "Full checks and migration tests pass.",
+      "evidence_refs": ["EVD-TASK-0035-0002"]
+    }
+  ],
+  "known_limitations": [
+    "SQLite persistence remains out of scope for TASK-0035.",
+    "Unified Scheduler execution for repair PlanIR remains owned by TASK-0036.",
+    "Legacy AWKP task Evidence remains explicit legacy_partial compatibility input and is not promoted into M1 Evidence current sets."
+  ],
+  "producer_status": "ready_for_independent_evidence_gate_review"
+}

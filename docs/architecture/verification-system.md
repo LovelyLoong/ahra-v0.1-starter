@@ -132,6 +132,26 @@ spec:
   refs: [ART-test-log, AUD-tool-trace]
 ```
 
+# Current Evidence set
+
+Evidence history is append-only. A new Evidence record may supersede one or
+more older Evidence records by listing their `evidenceId` values in
+`spec.supersedes`; the older records remain auditable and are not rewritten.
+
+The EvidenceRegistry resolves a deterministic current set before Completion or
+selective reverification:
+
+1. Validate the supersession graph.
+2. Reject self-supersession, unknown supersedes refs, cycles and competing
+   unsuperseded leaves for the same Claim/Gate/subject set.
+3. Treat unsuperseded leaves as the current Evidence set.
+4. Treat superseded records as historical excluded Evidence.
+5. Let only current leaves with `result: passed`, valid fingerprints and
+   `validity.state: current` satisfy Claims.
+
+A stale, revoked, expired or contradicted current leaf leaves the Claim
+uncovered. It must not reactivate an older superseded record.
+
 # Invalidation triggers
 
 Evidence becomes stale when any bound item changes:
@@ -159,13 +179,16 @@ INPUT:
 
 1. direct_claims := claims referencing changed subjects
 2. affected_claims := reverse_dependency_closure(direct_claims)
-3. stale_evidence := evidence bound to affected claims or changed fingerprints
-4. selected_gates := gates required by affected_claims
-5. selected_gates += failed_gates
-6. selected_gates += mandatory safety baseline for changed risk classes
-7. selected_gates += integration gates crossing changed/unchanged boundary
-8. minimize only when coverage and policy remain satisfied
-9. emit deterministic VerificationSelection with rationale
+3. current_set := EvidenceRegistry.resolve_current_set()
+4. stale_evidence := current leaves bound to affected claims or changed fingerprints
+5. historical_excluded := superseded Evidence retained for audit
+6. selected_gates := gates required by affected_claims
+7. selected_gates += failed_gates
+8. selected_gates += mandatory safety baseline for changed risk classes
+9. selected_gates += integration gates crossing changed/unchanged boundary
+10. minimize only when coverage and policy remain satisfied
+11. emit deterministic VerificationSelection with reused current Evidence,
+    stale current Evidence and historical excluded Evidence separated
 ```
 
 Selection is auditable. An Agent suggestion may be an input, but the final selection is computed by trusted code.
@@ -180,17 +203,30 @@ open -> triaged -> repair_planned -> repairing -> reverifying -> resolved
 
 A Defect may only be resolved when its failed Claims have new current Evidence and no dependent Claim remains contradicted.
 
+A Defect records:
+
+- `directClaimRefs`: the Claim or Claims directly failed by the Gate result;
+- `affectedClaimRefs`: deterministic reverse dependency closure from the direct
+  Claims, or an independently validated equivalent with trace.
+
+Repair and selective reverification use affected Claims; reproduction and root
+failure analysis use direct Claims.
+
 # Completion rule
 
 A Goal is complete only when:
 
 - every required Claim is covered;
-- every required Claim has at least one current sufficient Evidence set;
+- every required Claim has at least one sufficient Evidence record in the
+  EvidenceRegistry current set;
 - no open blocking Defect exists;
 - mandatory security/governance Claims pass;
 - required approvals are valid and unexpired;
 - all Evidence subjects match the final accepted Artifact digests;
 - the verifier is independent under the configured policy.
+
+Completion must receive the append-only Evidence history. It must not require a
+caller to delete failed or stale historical Evidence before evaluation.
 
 # Cost controls
 

@@ -1,0 +1,138 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0036",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-26T08:12:27.761190Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent review found TASK-0036 satisfies the unified GoalExecution repair contract. GoalExecution links initial and repaired PlanExecution records, repair PlanIR v2 preserves the parent digest and is scheduled through StaticPlanScheduler, unchanged nodes reuse validated current Evidence without re-execution, required GateRuns guard Defect resolution and Goal success, repair-budget and fail-closed paths are covered, and independent checks passed.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A single GoalExecution links initial and repaired PlanExecution records.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0036-0001",
+        "EVD-TASK-0036-0002",
+        "EVD-TASK-0036-0003"
+      ],
+      "notes": "The fixture and implementation show one GoalExecution with two linked PlanExecution refs: initial failed and repaired succeeded."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "The repaired PlanIR retains parent_plan_digest and increments version without mutating v1.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0036-0001",
+        "EVD-TASK-0036-0002",
+        "EVD-TASK-0036-0003"
+      ],
+      "notes": "Repaired PlanIR is version 2, records the initial plan digest as parent_plan_digest, and leaves v1 immutable."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Repair Node, selected Gate Nodes and terminal Goal verification Node all have Scheduler-created NodeRuns.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0036-0002",
+        "EVD-TASK-0036-0003"
+      ],
+      "notes": "Repair node, selected Gate verification and terminal Goal verification all appear as Scheduler-created NodeRuns with GateRun-backed Evidence."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "No dynamic orchestrator or fixture calls NodeExecutor directly.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0036-0001",
+        "EVD-TASK-0036-0002",
+        "EVD-TASK-0036-0003"
+      ],
+      "notes": "Static scan and fixture report show no dynamic orchestrator or fixture repair path calls NodeExecutor directly; executor calls are dispatched by Scheduler."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "A repair Node success without required Gate success leaves the Defect open and Goal incomplete.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0036-0002",
+        "EVD-TASK-0036-0003"
+      ],
+      "notes": "Open Defect completion is rejected, Defect resolution only occurs after required repair GateRuns pass, and Goal success is blocked while open Defects remain."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Unchanged Nodes are not re-executed, and reused Evidence passes current-set validation.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0036-0001",
+        "EVD-TASK-0036-0002",
+        "EVD-TASK-0036-0003"
+      ],
+      "notes": "Unchanged acceptance-order and security-audit nodes are reused as succeeded NodeRuns with current Evidence refs and are not re-executed in PlanExecution v2."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Repair cycles stop at the configured maximum and create a terminal failure or pause/handoff.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0036-0001",
+        "EVD-TASK-0036-0002"
+      ],
+      "notes": "GoalExecution repair_cycle increments, max_repair_cycles is enforced, and exhausted cycles produce terminal failure with repair_cycle_exhausted."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "PlanExecution v2 cannot start if Capability Admission, Plan validation or GateRunner registration fails.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0036-0001",
+        "EVD-TASK-0036-0002"
+      ],
+      "notes": "PlanExecution v2 admission is gated by Plan validation, registered executor/gate runner execution, and Capability Admission; missing or denied admission fails before executor invocation."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "SG-7 unified-repair tests and full checks pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0036-0002",
+        "EVD-TASK-0036-0003"
+      ],
+      "notes": "Independent SG-7 focused tests, full test suite, AWKP lint, diff whitespace check, manifest SHA verification and dynamic fixture CLI rerun passed."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "status": "passed",
+      "summary": "171 tests passed, 1 skipped due Windows symlink privilege."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "summary": "AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors reported."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_plan_execution tests.test_dynamic_fixture -v",
+      "status": "passed",
+      "summary": "20 focused GoalExecution, Scheduler and dynamic fixture tests passed."
+    },
+    {
+      "command": "uv run python -B -m ahra.cli fixture dynamic-repair --fixture tests\\fixtures\\dynamic-goal-project --report .tmp\\TASK-0036-review-dynamic-fixture-report.json",
+      "status": "passed",
+      "summary": "Fixture completed with GoalExecution succeeded, repair cycle 1, initial failed, repaired succeeded, two PlanExecutions, Scheduler dispatch coverage 1.0, four repair GateRuns, directExecutorBypass false and finalCompletionAccepted true."
+    },
+    {
+      "command": "TASK-0036 manifest SHA256 verification",
+      "status": "passed",
+      "summary": "All artifact and evidence sha256 values matched their local files."
+    }
+  ]
+}

@@ -20,13 +20,15 @@
     "spec": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["selectedGateRefs", "fullGateRefs", "affectedClaimRefs", "reusedEvidenceRefs", "staleEvidenceRefs", "rationale"],
+      "required": ["selectedGateRefs", "fullGateRefs", "affectedClaimRefs", "reusedEvidenceRefs", "staleEvidenceRefs", "historicalEvidenceRefs", "resolutionFailureRefs", "rationale"],
       "properties": {
         "selectedGateRefs": { "type": "array", "items": { "$ref": "#/$defs/gateId" } },
         "fullGateRefs": { "type": "array", "items": { "$ref": "#/$defs/gateId" } },
         "affectedClaimRefs": { "type": "array", "items": { "$ref": "#/$defs/claimId" } },
         "reusedEvidenceRefs": { "type": "array", "items": { "$ref": "#/$defs/evidenceId" } },
         "staleEvidenceRefs": { "type": "array", "items": { "$ref": "#/$defs/evidenceId" } },
+        "historicalEvidenceRefs": { "type": "array", "items": { "$ref": "#/$defs/evidenceId" } },
+        "resolutionFailureRefs": { "type": "array", "items": { "$ref": "#/$defs/evidenceId" } },
         "rationale": { "type": "array", "items": { "type": "string", "minLength": 1 } }
       }
     }

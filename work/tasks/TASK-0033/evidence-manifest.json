@@ -1,0 +1,67 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0033",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0033-0001",
+      "task_id": "TASK-0033",
+      "kind": "implementation_report",
+      "name": "implementation-report.json",
+      "uri": "local://evidence/implementation-report.json",
+      "sha256": "abf0601653e7357ca570f060e9fc3d1c3da4c6c533ddddb58c0b3e73432aa5fb",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T03:45:54.688952Z",
+      "refs": [
+        "ART-TASK-0033-0001"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0033-0002",
+      "task_id": "TASK-0033",
+      "kind": "verification_report",
+      "name": "verification-report.json",
+      "uri": "local://evidence/verification-report.json",
+      "sha256": "eaa97440717ae27dcca4b01f8a359560d7365d8d0e2caedcc4da30f901c96c0c",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T03:45:54.688952Z",
+      "refs": [
+        "ART-TASK-0033-0002",
+        "EVD-TASK-0033-0003"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0033-0003",
+      "task_id": "TASK-0033",
+      "kind": "dynamic_fixture_report",
+      "name": "dynamic-fixture-report.json",
+      "uri": "local://evidence/dynamic-fixture-report.json",
+      "sha256": "cc1553547a0f5325daad37926c9bc53b7abc16d98ed1c79c0ec6487810c5185f",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T03:45:54.688952Z",
+      "refs": [
+        "ART-TASK-0033-0003",
+        "EVD-TASK-0033-0001"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0033-0004",
+      "task_id": "TASK-0033",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-4.json",
+      "uri": "local://evidence/evidence-gate-report-4.json",
+      "sha256": "c0e7ec310617e92d9eecc58ac042af7e630d2d865334f47bdb407e9d9bed9d3b",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-26T04:04:53.738960Z",
+      "refs": [
+        "ART-TASK-0033-0004",
+        "EVD-TASK-0033-0001",
+        "EVD-TASK-0033-0002",
+        "EVD-TASK-0033-0003"
+      ]
+    }
+  ]
+}

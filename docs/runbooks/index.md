@@ -18,4 +18,5 @@ tags: [runbooks]
 
 | Runbook | Purpose |
 |---|---|
+| [Minimal live dynamic loop experiment](minimal-loop-experiment.md) | Proposed repeatable local M1 experiment sequence |
 | [TASK-0015 workflow failure hardening plan](task-0015-workflow-failure-hardening-plan.md) | Proposed fixes for verification parsing, AWKP finalization ownership, and durable post-acceptance failure results |

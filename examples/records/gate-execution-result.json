@@ -1,0 +1,42 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateExecutionResult",
+  "metadata": {
+    "resultId": "GEXRES-doc-health-l1",
+    "createdAt": "2026-06-26T00:00:03Z"
+  },
+  "spec": {
+    "gateRef": "GATE-doc-health-l1",
+    "status": "passed",
+    "startedAt": "2026-06-26T00:00:00Z",
+    "completedAt": "2026-06-26T00:00:03Z",
+    "artifactRefs": [
+      "ART-doc-health-l1-gate-run"
+    ],
+    "subjects": [
+      {
+        "ref": "ART-doc-health",
+        "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      }
+    ],
+    "dependencies": [
+      {
+        "ref": "EVD-acceptance-contract",
+        "digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    ],
+    "command": [
+      "dynamic-fixture-gate",
+      "GATE-doc-health-l1"
+    ],
+    "usage": {
+      "modelCalls": 0,
+      "toolCalls": 1,
+      "costUsd": 0
+    },
+    "cost": {},
+    "failureClass": null,
+    "reason": "GATE-doc-health-l1 passed",
+    "rawOutputRef": null
+  }
+}

@@ -7,6 +7,13 @@
   },
   "spec": {
     "claimRef": "CLAIM-cli-detects-stale-docs",
+    "directClaimRefs": [
+      "CLAIM-cli-detects-stale-docs"
+    ],
+    "affectedClaimRefs": [
+      "CLAIM-cli-detects-stale-docs",
+      "CLAIM-evidence-recorded"
+    ],
     "gateRef": "GATE-node-cli-unit",
     "expected": "CLI exits non-zero for active documents past review_after.",
     "actual": "CLI returned zero for an expired active document fixture.",

@@ -1,0 +1,79 @@
+{
+  "schema_version": "ahra/task-verification-report/0.1",
+  "task_id": "TASK-0034",
+  "generated_at": "2026-06-26T04:16:03.320534Z",
+  "producer": "agent:codex-dynamic-kernel-operator",
+  "commands": [
+    {
+      "command": "uv run python -B -m py_compile src\\ahra\\plan_execution.py src\\ahra\\dynamic_fixture.py",
+      "exit_code": 0,
+      "summary": "Edited scheduler and dynamic fixture modules compiled successfully."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_plan_execution -v",
+      "exit_code": 0,
+      "summary": "14 tests passed, including missing admission service and denied capability before running."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_dynamic_fixture -v",
+      "exit_code": 0,
+      "summary": "2 tests passed, including 100% admission coverage, zero synthetic grants, and runtime audit lineage assertions."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_plan_execution tests.test_dynamic_fixture tests.test_capabilities tests.test_repository_consolidation -v",
+      "exit_code": 0,
+      "summary": "30 tests passed, 1 Windows symlink privilege test skipped."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_contracts.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 errors, 0 warnings; AHRA contract lint: 0 failures."
+    },
+    {
+      "command": "uv run python -B -m ahra.cli fixture dynamic-repair --fixture tests\\fixtures\\dynamic-goal-project --report work\\tasks\\TASK-0034\\evidence\\dynamic-fixture-report.json",
+      "exit_code": 0,
+      "summary": "Dynamic fixture report generated successfully with finalCompletionAccepted=true and unauthorizedWriteAllowed=false."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "exit_code": 0,
+      "summary": "Contract lint passed; unittest discovery ran 161 tests with 161 passed and 1 skipped symlink privilege test on Windows."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 errors, 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors reported."
+    },
+    {
+      "command": "rg -n \"_runtime_grants_for_node|harness:static-plan-scheduler|fixture:manual-repair-runner\" src\\ahra\\plan_execution.py src\\ahra\\dynamic_fixture.py",
+      "exit_code": 1,
+      "summary": "No default-path synthetic grant helper or old scheduler/fixture issuer strings remain in plan_execution.py or dynamic_fixture.py."
+    }
+  ],
+  "targeted_negative_cases": {
+    "missing_admission_service": "tests.test_plan_execution.PlanExecutionTests.test_executable_node_fails_before_running_without_admission_service",
+    "partial_or_denied_grant_set": "tests.test_plan_execution.PlanExecutionTests.test_denied_capability_leaves_node_non_running_with_admission_ref",
+    "resource_wider_than_policy_scope": "tests.test_capabilities.CapabilityAdmissionTests.test_grant_cannot_be_broader_than_goal_or_policy_scope",
+    "wrong_role": "tests.test_capabilities.CapabilityAdmissionTests.test_planner_and_verifier_receive_no_write_grant_by_default",
+    "wrong_node_wrong_plan_expired_or_superseded_grant": "tests.test_capabilities.LocalRuntimeGatewayTests.test_stale_grant_and_role_mismatch_are_blocked",
+    "undeclared_command": "tests.test_capabilities.CapabilityAdmissionTests.test_admission_rejects_undeclared_command_before_grant",
+    "path_escape_pre_side_effect": "tests.test_capabilities.LocalRuntimeGatewayTests.test_path_traversal_is_blocked_before_write",
+    "high_risk_without_approval": "tests.test_capabilities.CapabilityAdmissionTests.test_spawn_limit_and_approval_absence_are_denied"
+  },
+  "dynamic_fixture_metrics": {
+    "capabilityAdmissionCoverage": 1.0,
+    "unadmittedNodeExecutionCount": 0,
+    "syntheticGrantCount": 0,
+    "denyCountByReason": {
+      "path_escape": 1
+    },
+    "preSideEffectDenialRate": 1.0,
+    "runtimeAuditRecordsWithDecisionLineage": 5,
+    "runtimeAuditRecordCount": 5
+  }
+}

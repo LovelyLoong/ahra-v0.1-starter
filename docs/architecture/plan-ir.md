@@ -56,7 +56,7 @@ Compiler adds or normalizes:
 - `planId`, `version`, `goalDigest`, `claimGraphDigest`;
 - canonical node ordering and dependency edges;
 - resolved Executor/Gate/Runtime references by immutable digest;
-- approved Capability Grants;
+- immutable capability intent records and request digests;
 - exact budgets and deadlines;
 - input/output contracts and content digests;
 - retry, timeout, compensation and cancellation semantics;
@@ -87,7 +87,10 @@ Compiler adds or normalizes:
 ## Security
 
 - Capability request is no broader than Goal scope.
-- Compiler cannot turn request into a broader grant.
+- Compiler cannot turn request into a broader runtime grant.
+- Runtime Capability Grants are issued only by Capability Admission when the
+  Scheduler prepares a NodeRun; PlanIR capability fields are not executable
+  authorization by themselves.
 - Reviewer nodes are read-only unless an explicit separate repair node is created.
 - Planner nodes cannot receive write grants.
 - Secret, network, production and irreversible capabilities require policy/approval.

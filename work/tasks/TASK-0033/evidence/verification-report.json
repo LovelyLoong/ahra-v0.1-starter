@@ -1,0 +1,90 @@
+{
+  "schema_version": "ahra/task-verification-report/0.1",
+  "task_id": "TASK-0033",
+  "generated_at": "2026-06-26T03:44:33.494519Z",
+  "producer": "agent:codex-dynamic-kernel-operator",
+  "commands": [
+    {
+      "command": "uv run python -B -m py_compile src\\ahra\\verification.py src\\ahra\\plan_execution.py src\\ahra\\ports.py src\\ahra\\dynamic_fixture.py src\\ahra\\__init__.py",
+      "exit_code": 0,
+      "summary": "Core edited modules compiled successfully."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_verification -v",
+      "exit_code": 0,
+      "summary": "15 tests passed, including missing runner, runner exception, timeout, malformed result, duplicate idempotency key, unexpected workspace mutation, and bad Evidence lineage."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_plan_execution -v",
+      "exit_code": 0,
+      "summary": "12 tests passed, including failed required Gate blocking Node success and downstream scheduling."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_dynamic_fixture -v",
+      "exit_code": 0,
+      "summary": "2 tests passed, including dynamic fixture GateRun lineage and selected/executed/reused gate assertions."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_schemas -v",
+      "exit_code": 0,
+      "summary": "All schema examples passed, including new gate execution records."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_contracts.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 errors, 0 warnings; AHRA contract lint: 0 failures."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 errors, 0 warnings."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "exit_code": 0,
+      "summary": "Contract lint passed; unittest discovery ran 159 tests with 159 passed and 1 skipped symlink privilege test on Windows."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors reported."
+    },
+    {
+      "command": "uv run python -B -m ahra.cli fixture dynamic-repair --fixture tests\\fixtures\\dynamic-goal-project --report work\\tasks\\TASK-0033\\evidence\\dynamic-fixture-report.json",
+      "exit_code": 0,
+      "summary": "Dynamic fixture report generated successfully; selectedFewerThanFull=true, finalCompletionAccepted=true, unauthorizedWriteAllowed=false, terminalStatusAfterResume=failed."
+    }
+  ],
+  "targeted_negative_cases": {
+    "selected_gate_with_no_registered_runner": "tests.test_verification.VerificationExecutorTests.test_missing_runner_fails_closed_without_synthetic_pass",
+    "runner_exception": "tests.test_verification.VerificationExecutorTests.test_runner_exception_records_blocking_gate_run_and_evidence",
+    "runner_timeout": "tests.test_verification.VerificationExecutorTests.test_runner_timeout_records_timed_out_gate_run_and_evidence",
+    "malformed_gate_execution_result": "tests.test_verification.VerificationExecutorTests.test_malformed_runner_result_records_structured_failure",
+    "failed_gate_followed_by_attempted_node_success_transition": "tests.test_plan_execution.PlanExecutionTests.test_failed_required_gate_blocks_node_success_and_downstream_scheduling",
+    "evidence_gate_run_id_does_not_exist": "tests.test_verification.VerificationExecutorTests.test_lineage_validator_reports_evidence_without_gate_run",
+    "unexpected_workspace_mutation": "tests.test_verification.VerificationExecutorTests.test_unexpected_workspace_mutation_fails_closed",
+    "duplicate_idempotency_key": "tests.test_verification.VerificationExecutorTests.test_duplicate_idempotency_key_blocks_second_gate_attempt"
+  },
+  "dynamic_fixture_metrics": {
+    "gateExecutionIntegrity": 1.0,
+    "unrunGatePassCount": 0,
+    "secondGateCount": 6,
+    "secondGateRunCount": 6,
+    "gateRunCountByStatus": {
+      "failed": 1,
+      "passed": 9
+    },
+    "gateRunCountByLevel": {
+      "L0": 3,
+      "L1": 6,
+      "L2": 1
+    },
+    "lineageValid": true,
+    "finalCompletionAccepted": true
+  },
+  "structured_summary_digest_scope": [
+    "This report stores command, exit code, and outcome summaries.",
+    "The immutable content digest for this structured summary is recorded in evidence-manifest.json after publication.",
+    "The full dynamic fixture output is preserved in evidence/dynamic-fixture-report.json and separately digested."
+  ]
+}

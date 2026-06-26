@@ -1,21 +1,31 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from ahra.acceptance_contracts import Claim, ClaimGraph, ClaimType, GateDefinition, GatePlan, GatePlanEntry, RiskLevel
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate
-from ahra.evidence_v2 import DigestRef, EvidenceEnvironment, EvidenceResult, EvidenceV2
+from ahra.evidence_v2 import DigestRef, EvidenceEnvironment, EvidenceResult, EvidenceV2, EvidenceValidityState
 from ahra.verification import (
     DefectStatus,
+    DeterministicGateRunner,
+    GateExecutionRequest,
+    GateExecutionStatus,
+    GateRunnerRegistry,
+    VerificationExecutionContext,
+    VerificationExecutor,
     VerificationResult,
+    VerificationSelection,
     VerificationTrigger,
     defect_from_result,
     evaluate_completion,
     select_gates,
+    validate_gate_run_lineage,
 )
 
 
@@ -66,6 +76,8 @@ class VerificationSelectionTests(unittest.TestCase):
         self.assertIn("CLAIM-evidence-recorded", selection.affected_claim_refs)
         self.assertIn("EVD-frontmatter-current", selection.reused_evidence_refs)
         self.assertIn("EVD-cli-stale", selection.stale_evidence_refs)
+        self.assertEqual(selection.historical_evidence_refs, ())
+        self.assertEqual(selection.resolution_failure_refs, ())
         self.assertIn("failed_gate:GATE-node-cli-unit", selection.rationale)
         self.assertIn("integration_boundary:GATE-cli-integration", selection.rationale)
         self.assertIn("mandatory_safety_claim:CLAIM-secret-safe->GATE-security-baseline", selection.rationale)
@@ -140,10 +152,58 @@ class VerificationSelectionTests(unittest.TestCase):
         )
         self.assertTrue(complete.complete)
 
-    def test_failed_gate_creates_structured_defect_record(self) -> None:
+    def test_completion_uses_current_set_instead_of_caller_curated_final_records(self) -> None:
+        graph = ClaimGraph(goal_ref="GOAL-one", version=1, claims=(_claim("CLAIM-one"),))
+        failed_old = _evidence(
+            "EVD-one-failed",
+            "CLAIM-one",
+            "ART-one",
+            D2,
+            result=EvidenceResult.FAILED,
+            stored=True,
+        )
+        passed_new = _evidence(
+            "EVD-one-passed",
+            "CLAIM-one",
+            "ART-one",
+            D2,
+            supersedes=("EVD-one-failed",),
+            stored=True,
+        )
+
+        result = evaluate_completion(graph=graph, evidence_records=(failed_old, passed_new))
+
+        self.assertTrue(result.complete)
+        self.assertEqual(result.historical_evidence_refs, ("EVD-one-failed",))
+        self.assertEqual(result.current_claim_coverage, 1.0)
+
+    def test_completion_blocks_stale_replacement_and_omitted_history(self) -> None:
+        graph = ClaimGraph(goal_ref="GOAL-one", version=1, claims=(_claim("CLAIM-one"),))
+        old = _evidence("EVD-one-old", "CLAIM-one", "ART-one", D2, stored=True)
+        stale_new = _evidence(
+            "EVD-one-new",
+            "CLAIM-one",
+            "ART-one",
+            D2,
+            validity_state=EvidenceValidityState.STALE,
+            supersedes=("EVD-one-old",),
+            stored=True,
+        )
+
+        stale_result = evaluate_completion(graph=graph, evidence_records=(old, stale_new))
+        omitted_history_result = evaluate_completion(graph=graph, evidence_records=(stale_new,))
+
+        self.assertFalse(stale_result.complete)
+        self.assertEqual(stale_result.uncovered_claim_refs, ("CLAIM-one",))
+        self.assertEqual(stale_result.historical_evidence_refs, ("EVD-one-old",))
+        self.assertFalse(omitted_history_result.complete)
+        self.assertEqual(omitted_history_result.resolution_failure_refs, ("EVD-one-new",))
+
+    def test_failed_gate_creates_structured_multi_claim_defect_record(self) -> None:
+        graph, _, _ = _fixture_contracts()
         result = VerificationResult(
             gate_ref="GATE-node-cli-unit",
-            claim_refs=("CLAIM-cli-detects-stale-docs",),
+            claim_refs=("CLAIM-cli-detects-stale-docs", "CLAIM-frontmatter-parses"),
             result=EvidenceResult.FAILED,
             expected="CLI exits non-zero for expired active documents.",
             actual="CLI returned zero.",
@@ -154,17 +214,38 @@ class VerificationSelectionTests(unittest.TestCase):
             defect_id="DEF-doc-staleness-cli",
             result=result,
             repair_boundary="Repair CLI staleness detection only.",
+            graph=graph,
             created_at=datetime(2026, 6, 25, tzinfo=UTC),
         )
 
         self.assertEqual(defect.status, DefectStatus.OPEN)
         self.assertEqual(defect.claim_ref, "CLAIM-cli-detects-stale-docs")
+        self.assertEqual(
+            defect.direct_claim_refs,
+            ("CLAIM-cli-detects-stale-docs", "CLAIM-frontmatter-parses"),
+        )
+        self.assertEqual(
+            defect.affected_claim_refs,
+            (
+                "CLAIM-cli-detects-stale-docs",
+                "CLAIM-evidence-recorded",
+                "CLAIM-frontmatter-parses",
+            ),
+        )
         self.assertEqual(defect.gate_ref, "GATE-node-cli-unit")
         self.assertEqual(defect.expected, result.expected)
         self.assertEqual(defect.actual, result.actual)
         self.assertEqual(defect.refs, ("ART-test-log",))
         self.assertEqual(defect.repair_boundary, "Repair CLI staleness detection only.")
         self.assertEqual(defect.to_dict()["kind"], "DefectRecord")
+        self.assertEqual(
+            defect.to_dict()["spec"]["affectedClaimRefs"],
+            [
+                "CLAIM-cli-detects-stale-docs",
+                "CLAIM-evidence-recorded",
+                "CLAIM-frontmatter-parses",
+            ],
+        )
 
     def test_selective_fixture_keeps_final_logical_coverage_complete(self) -> None:
         graph, gates, plan = _fixture_contracts()
@@ -180,16 +261,34 @@ class VerificationSelectionTests(unittest.TestCase):
             evidence_records=stale_records,
             trigger=VerificationTrigger(changed_refs={"ART-doc-cli": D9}),
         )
+        old_failed = _evidence(
+            "EVD-cli-stale",
+            "CLAIM-cli-detects-stale-docs",
+            "ART-doc-cli",
+            D2,
+            result=EvidenceResult.FAILED,
+            stored=True,
+        )
         final_records = (
             _evidence("EVD-frontmatter-current", "CLAIM-frontmatter-parses", "ART-frontmatter", D3, stored=True),
-            _evidence("EVD-cli-rerun", "CLAIM-cli-detects-stale-docs", "ART-doc-cli", D9, stored=True),
+            old_failed,
+            _evidence(
+                "EVD-cli-rerun",
+                "CLAIM-cli-detects-stale-docs",
+                "ART-doc-cli",
+                D9,
+                supersedes=("EVD-cli-stale",),
+                stored=True,
+            ),
             _evidence("EVD-security-current", "CLAIM-secret-safe", "ART-security", D4, stored=True),
             _evidence("EVD-evidence-rerun", "CLAIM-evidence-recorded", "ART-report", D8, stored=True),
         )
 
         self.assertLess(len(selection.selected_gate_refs), len(selection.full_gate_refs))
         self.assertTrue(selection.rationale)
-        self.assertTrue(evaluate_completion(graph=graph, evidence_records=final_records).complete)
+        completion = evaluate_completion(graph=graph, evidence_records=final_records)
+        self.assertTrue(completion.complete)
+        self.assertEqual(completion.historical_evidence_refs, ("EVD-cli-stale",))
 
     def test_existing_task_evidence_gate_path_remains_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -249,6 +348,183 @@ class VerificationSelectionTests(unittest.TestCase):
                     actor="agent:independent-verifier",
                     dry_run=True,
                 )
+
+
+class VerificationExecutorTests(unittest.TestCase):
+    def test_executes_selected_gates_and_records_gate_run_backed_evidence(self) -> None:
+        selection = _execution_selection("GATE-node-cli-unit", "GATE-cli-integration", "GATE-security-baseline")
+        runner = DeterministicGateRunner()
+        executor = _verification_executor(runner)
+
+        report = asyncio.run(executor.execute_selection(selection, _execution_context()))
+
+        self.assertTrue(report.passed)
+        self.assertEqual(len(report.gate_runs), 3)
+        self.assertEqual(len(report.evidence_records), 3)
+        self.assertEqual(report.reused_evidence_refs, ("EVD-frontmatter-current",))
+        self.assertEqual(report.gate_execution_integrity, 1.0)
+        self.assertEqual(report.unrun_gate_pass_count, 0)
+        self.assertEqual(validate_gate_run_lineage(report.evidence_records, report.gate_runs), ())
+        self.assertEqual(tuple(call.gate_ref for call in runner.calls), selection.selected_gate_refs)
+        for evidence in report.evidence_records:
+            self.assertIn(evidence.gate_run_id, {gate_run.gate_run_id for gate_run in report.gate_runs})
+            self.assertEqual(evidence.confidence, "verified")
+
+    def test_missing_runner_fails_closed_without_synthetic_pass(self) -> None:
+        report = asyncio.run(
+            VerificationExecutor(GateRunnerRegistry()).execute_selection(
+                _execution_selection("GATE-node-cli-unit"),
+                _execution_context(),
+            )
+        )
+
+        self.assertFalse(report.passed)
+        self.assertEqual(report.missing_runner_gate_refs, ("GATE-node-cli-unit",))
+        self.assertEqual(report.executed_gate_run_refs, ())
+        self.assertEqual(report.evidence_records, ())
+        self.assertEqual(report.gate_execution_integrity, 0.0)
+
+    def test_runner_exception_records_blocking_gate_run_and_evidence(self) -> None:
+        report = asyncio.run(
+            _verification_executor(_ExplodingGateRunner()).execute_selection(
+                _execution_selection("GATE-node-cli-unit"),
+                _execution_context(),
+            )
+        )
+
+        self.assertFalse(report.passed)
+        self.assertEqual(report.attempts[0].failure_class, "runner_exception")
+        self.assertEqual(report.attempts[0].status, GateExecutionStatus.ERROR)
+        self.assertEqual(report.evidence_records[0].result, EvidenceResult.BLOCKED)
+        self.assertEqual(validate_gate_run_lineage(report.evidence_records, report.gate_runs), ())
+
+    def test_runner_timeout_records_timed_out_gate_run_and_evidence(self) -> None:
+        report = asyncio.run(
+            _verification_executor(DeterministicGateRunner(delay_seconds=0.05)).execute_selection(
+                _execution_selection("GATE-node-cli-unit"),
+                _execution_context(timeout_seconds=0.001),
+            )
+        )
+
+        self.assertFalse(report.passed)
+        self.assertEqual(report.attempts[0].failure_class, "runner_timeout")
+        self.assertEqual(report.attempts[0].status, GateExecutionStatus.TIMED_OUT)
+        self.assertEqual(report.evidence_records[0].result, EvidenceResult.BLOCKED)
+
+    def test_malformed_runner_result_records_structured_failure(self) -> None:
+        report = asyncio.run(
+            _verification_executor(_MalformedGateRunner()).execute_selection(
+                _execution_selection("GATE-node-cli-unit"),
+                _execution_context(),
+            )
+        )
+
+        self.assertFalse(report.passed)
+        self.assertEqual(report.attempts[0].failure_class, "malformed_gate_result")
+        self.assertEqual(report.evidence_records[0].result, EvidenceResult.BLOCKED)
+
+    def test_duplicate_idempotency_key_blocks_second_gate_attempt(self) -> None:
+        report = asyncio.run(
+            _verification_executor(DeterministicGateRunner()).execute_selection(
+                _execution_selection("GATE-node-cli-unit", "GATE-node-cli-unit"),
+                _execution_context(),
+            )
+        )
+
+        self.assertFalse(report.passed)
+        self.assertEqual(len(report.gate_runs), 1)
+        self.assertEqual(len(report.duplicate_idempotency_keys), 1)
+        self.assertEqual(report.attempts[1].failure_class, "duplicate_idempotency_key")
+        self.assertLess(report.gate_execution_integrity, 1.0)
+
+    def test_unexpected_workspace_mutation_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            Path(temporary, "source.txt").write_text("stable\n", encoding="utf-8")
+            report = asyncio.run(
+                _verification_executor(DeterministicGateRunner(mutate_workspace=True)).execute_selection(
+                    _execution_selection("GATE-node-cli-unit"),
+                    _execution_context(workspace_ref=temporary),
+                )
+            )
+
+        self.assertFalse(report.passed)
+        self.assertEqual(report.attempts[0].failure_class, "unexpected_workspace_mutation")
+        self.assertEqual(report.evidence_records[0].result, EvidenceResult.BLOCKED)
+
+    def test_lineage_validator_reports_evidence_without_gate_run(self) -> None:
+        report = asyncio.run(
+            _verification_executor(DeterministicGateRunner()).execute_selection(
+                _execution_selection("GATE-node-cli-unit"),
+                _execution_context(),
+            )
+        )
+        bad = replace(report.evidence_records[0], gate_run_id="GATERUN-missing")
+
+        self.assertEqual(validate_gate_run_lineage((bad,), report.gate_runs), (bad.evidence_id,))
+
+
+class _ExplodingGateRunner:
+    gate_kind = "*"
+    release_ref = "*"
+
+    async def run(self, request: GateExecutionRequest) -> object:
+        raise RuntimeError(f"boom: {request.gate_ref}")
+
+
+class _MalformedGateRunner:
+    gate_kind = "*"
+    release_ref = "*"
+
+    async def run(self, request: GateExecutionRequest) -> object:
+        return {"gateRef": request.gate_ref, "status": "passed"}
+
+
+def _verification_executor(runner: object) -> VerificationExecutor:
+    registry = GateRunnerRegistry()
+    registry.register(runner)
+    return VerificationExecutor(registry)
+
+
+def _execution_selection(*gate_refs: str) -> VerificationSelection:
+    return VerificationSelection(
+        selected_gate_refs=tuple(gate_refs),
+        full_gate_refs=tuple(sorted(set(gate_refs))),
+        affected_claim_refs=(
+            "CLAIM-frontmatter-parses",
+            "CLAIM-cli-detects-stale-docs",
+            "CLAIM-secret-safe",
+            "CLAIM-evidence-recorded",
+        ),
+        reused_evidence_refs=("EVD-frontmatter-current",),
+        stale_evidence_refs=(),
+        rationale=("test-execution",),
+    )
+
+
+def _execution_context(
+    *,
+    workspace_ref: str | None = None,
+    timeout_seconds: float | None = None,
+) -> VerificationExecutionContext:
+    graph, gates, plan = _fixture_contracts()
+    return VerificationExecutionContext(
+        goal_execution_id=graph.goal_ref,
+        plan_execution_id="PEX-verification-executor",
+        node_run_id="NRUN-verification-executor",
+        gate_definitions={gate.gate_id: gate for gate in gates},
+        gate_definition_digests={gate.gate_id: D1 for gate in gates},
+        gate_claim_refs={entry.gate_ref: entry.claim_refs for entry in plan.gates},
+        subjects=(DigestRef("ART-doc-staleness-cli", D2),),
+        dependency_evidence=(),
+        environment=EvidenceEnvironment(
+            runtime_profile_digest=D4,
+            policy_digest=D5,
+            verifier_release_digest=D6,
+            test_definition_digest=D7,
+        ),
+        workspace_ref=workspace_ref,
+        timeout_seconds=timeout_seconds,
+    )
 
 
 def _fixture_contracts() -> tuple[ClaimGraph, tuple[GateDefinition, ...], GatePlan]:
@@ -322,6 +598,9 @@ def _evidence(
     stored: bool = False,
     valid_until: datetime | None = None,
     stored_fingerprint: str | None | object = ...,
+    result: EvidenceResult = EvidenceResult.PASSED,
+    validity_state: EvidenceValidityState = EvidenceValidityState.CURRENT,
+    supersedes: tuple[str, ...] = (),
 ) -> EvidenceV2:
     evidence = EvidenceV2(
         evidence_id=evidence_id,
@@ -329,7 +608,7 @@ def _evidence(
         gate_ref="GATE-node-cli-unit",
         gate_definition_digest=D1,
         gate_run_id=f"GATERUN-{evidence_id.removeprefix('EVD-')}",
-        result=EvidenceResult.PASSED,
+        result=result,
         confidence="verified",
         subjects=(DigestRef(subject_ref, digest),),
         dependencies=(),
@@ -339,7 +618,9 @@ def _evidence(
             verifier_release_digest=D6,
             test_definition_digest=D7,
         ),
+        validity_state=validity_state,
         valid_until=valid_until,
+        supersedes=supersedes,
     )
     if stored:
         fingerprint = evidence.fingerprint()
@@ -359,8 +640,10 @@ def _evidence(
             subjects=evidence.subjects,
             dependencies=evidence.dependencies,
             environment=evidence.environment,
+            validity_state=evidence.validity_state,
             valid_until=evidence.valid_until,
             stored_fingerprint=fingerprint,  # type: ignore[arg-type]
+            supersedes=evidence.supersedes,
         )
     return EvidenceV2(
         evidence_id=evidence.evidence_id,
@@ -373,8 +656,10 @@ def _evidence(
         subjects=evidence.subjects,
         dependencies=evidence.dependencies,
         environment=evidence.environment,
+        validity_state=evidence.validity_state,
         valid_until=evidence.valid_until,
         stored_fingerprint="sha256:" + "0" * 64,
+        supersedes=evidence.supersedes,
     )
 
 

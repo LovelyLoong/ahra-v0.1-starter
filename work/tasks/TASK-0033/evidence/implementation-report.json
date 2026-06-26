@@ -1,0 +1,136 @@
+{
+  "schema_version": "ahra/task-implementation-report/0.1",
+  "task_id": "TASK-0033",
+  "generated_at": "2026-06-26T03:44:33.494519Z",
+  "producer": "agent:codex-dynamic-kernel-operator",
+  "workspace": "E:\\ahra-v0.1-starter",
+  "branch": "main",
+  "base_commit": "ac0c1b4795395441a0f33e18a356ce7c3ec54c84",
+  "final_commit": null,
+  "scope": {
+    "implemented": [
+      "GateExecutionRequest, GateExecutionResult, GateRunnerRegistry, deterministic GateRunner, VerificationExecutor",
+      "GateRunV2-to-EvidenceV2 conversion from terminal GateExecutionResult values",
+      "Scheduler enforcement for normal node gates, explicit gate_verification nodes, and goal_verification nodes",
+      "Dynamic fixture migration from host-authored final Evidence to GateRunner-produced GateRun/Evidence",
+      "Schema and example records for gate execution request/result/report",
+      "Metrics for gate_execution_integrity, unrun_gate_pass_count, GateRun count by status and level, and lineage validity"
+    ],
+    "not_implemented": [
+      "SQLite persistence; reserved for TASK-0037",
+      "Generic ahra goal CLI; reserved for TASK-0038",
+      "Unified Scheduler execution for repair PlanIR; reserved for TASK-0036",
+      "Capability Admission redesign; reserved for TASK-0034",
+      "Production LLM verifier; explicitly out of TASK-0033 scope"
+    ]
+  },
+  "changed_files": {
+    "core": [
+      "src/ahra/verification.py",
+      "src/ahra/ports.py",
+      "src/ahra/plan_execution.py",
+      "src/ahra/dynamic_fixture.py",
+      "src/ahra/__init__.py"
+    ],
+    "contracts": [
+      "contracts/schemas/gate-execution-request.schema.json",
+      "contracts/schemas/gate-execution-result.schema.json",
+      "contracts/schemas/verification-execution-report.schema.json",
+      "examples/records/gate-execution-request.json",
+      "examples/records/gate-execution-result.json",
+      "examples/records/verification-execution-report.json",
+      "scripts/lint_contracts.py",
+      "tests/test_schemas.py"
+    ],
+    "tests": [
+      "tests/test_verification.py",
+      "tests/test_plan_execution.py",
+      "tests/test_dynamic_fixture.py"
+    ],
+    "authority_and_migration_docs": [
+      "AHRA_dynamic_kernel_m1_master_plan_2026-06-26.md",
+      "docs/architecture/gate-execution-pipeline.md",
+      "docs/architecture/goal-execution-lifecycle.md",
+      "docs/architecture/component-inventory.json",
+      "docs/architecture/authority-map.md",
+      "docs/roadmaps/dynamic-kernel-m1-roadmap.md",
+      "docs/runbooks/minimal-loop-experiment.md",
+      "docs/policies/minimal-loop-metrics.md",
+      "work/proposed/TASK-SEQUENCE-0033-0040.md",
+      "work/proposed/tasks/TASK-0033.md",
+      "work/proposed/tasks/TASK-0034.md",
+      "work/proposed/tasks/TASK-0035.md",
+      "work/proposed/tasks/TASK-0036.md",
+      "work/proposed/tasks/TASK-0037.md",
+      "work/proposed/tasks/TASK-0038.md",
+      "work/proposed/tasks/TASK-0039.md",
+      "work/proposed/tasks/TASK-0040.md",
+      "work/tasks/TASK-0033/task.md",
+      "work/tasks/TASK-0033/state.json",
+      "work/tasks/TASK-0033/events.jsonl"
+    ]
+  },
+  "object_boundaries": {
+    "selection": "VerificationSelection remains pure and does not produce GateRun/Evidence.",
+    "execution": "VerificationExecutor resolves a GateRunner and records one terminal GateRun/Evidence pair for each executed gate attempt.",
+    "reuse": "Reused Evidence remains in VerificationSelection.reusedEvidenceRefs and is not counted as a new GateRun.",
+    "scheduler": "NodeRun success now requires all declared required gates to pass through VerificationExecutor.",
+    "goal_completion": "Goal verification runs the declared L2 gate and also requires CompletionGateResult.complete."
+  },
+  "acceptance_mapping": [
+    {
+      "criterion": "Every selected required Gate produces exactly one terminal GateRun per attempt or a structured execution failure.",
+      "evidence_refs": ["EVD-TASK-0033-0002", "EVD-TASK-0033-0003"]
+    },
+    {
+      "criterion": "Every newly current Evidence record references the GateRun that produced it.",
+      "evidence_refs": ["EVD-TASK-0033-0002", "EVD-TASK-0033-0003"]
+    },
+    {
+      "criterion": "A failed, blocked, timed-out, malformed or missing GateRunner result prevents the owning NodeRun from succeeding.",
+      "evidence_refs": ["EVD-TASK-0033-0002"]
+    },
+    {
+      "criterion": "A goal_verification node cannot pass when any required Claim lacks current passed Evidence produced by an executed Gate or validated reuse.",
+      "evidence_refs": ["EVD-TASK-0033-0002", "EVD-TASK-0033-0003"]
+    },
+    {
+      "criterion": "The dynamic fixture no longer constructs final passed Evidence directly in host code.",
+      "evidence_refs": ["EVD-TASK-0033-0001", "EVD-TASK-0033-0003"]
+    },
+    {
+      "criterion": "Tests distinguish selectedGateRefs, executedGateRunRefs and reusedEvidenceRefs.",
+      "evidence_refs": ["EVD-TASK-0033-0002", "EVD-TASK-0033-0003"]
+    },
+    {
+      "criterion": "L0, L1 and L2 Gate paths have at least one passing and one failing test.",
+      "evidence_refs": ["EVD-TASK-0033-0002", "EVD-TASK-0033-0003"]
+    },
+    {
+      "criterion": "Full local checks, schema lint and git diff checks pass.",
+      "evidence_refs": ["EVD-TASK-0033-0002"]
+    }
+  ],
+  "metrics": {
+    "gate_execution_integrity": 1.0,
+    "unrun_gate_pass_count": 0,
+    "gate_run_count_by_status": {
+      "failed": 1,
+      "passed": 9
+    },
+    "gate_run_count_by_level": {
+      "L0": 3,
+      "L1": 6,
+      "L2": 1
+    },
+    "selective_reverification_selected_gate_count": 6,
+    "selective_reverification_executed_gate_run_count": 6,
+    "final_evidence_lineage_valid": true
+  },
+  "known_limitations": [
+    "GateRun/Evidence persistence remains in current in-memory/local report boundaries until TASK-0037.",
+    "Fixture repair execution still calls the executor directly after repair planning; TASK-0036 is responsible for routing repair PlanIR through the same Scheduler.",
+    "The deterministic GateRunner is sufficient for local executable verification and does not claim production agent verification coverage."
+  ],
+  "next_action": "Independent EvidenceGate review for SG-5 executable-verification."
+}

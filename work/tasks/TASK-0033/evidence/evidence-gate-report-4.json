@@ -1,0 +1,117 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0033",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-26T04:04:53.738960Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent SG-5 executable-verification review approved TASK-0033: selected Gates execute through GateRunner-backed GateRun records, passed Evidence has GateRun lineage, failed or unavailable gates fail closed, and the published verification commands were rerun successfully.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Every selected required Gate produces exactly one terminal GateRun per attempt or a structured execution failure.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0033-0002",
+        "EVD-TASK-0033-0003"
+      ],
+      "notes": "VerificationExecutor maps selectedGateRefs to GateExecutionRequest attempts; rerun dynamic fixture reported secondGateCount=6 and secondGateRunCount=6, with missing runner covered as structured failure."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Every newly current Evidence record references the GateRun that produced it.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0033-0002",
+        "EVD-TASK-0033-0003"
+      ],
+      "notes": "Rerun dynamic fixture reported lineageValid=true and unrunGatePassCount=0; final Evidence entries all include gateRunId."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "A failed, blocked, timed-out, malformed or missing GateRunner result prevents the owning NodeRun from succeeding.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0033-0002"
+      ],
+      "notes": "Targeted tests cover missing runner, runner exception, timeout, malformed result, unexpected workspace mutation, duplicate idempotency key, bad lineage, and failed required Gate blocking Node success."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "A goal_verification node cannot pass when any required Claim lacks current passed Evidence produced by an executed Gate or validated reuse.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0033-0002",
+        "EVD-TASK-0033-0003"
+      ],
+      "notes": "Goal verification requires CompletionGateResult.complete and a passed GateRunner execution report; stale and open-defect completion were rejected in the rerun fixture."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "The dynamic fixture no longer constructs final passed Evidence directly in host code.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0033-0001",
+        "EVD-TASK-0033-0003"
+      ],
+      "notes": "The fixture now uses DynamicFixtureGateRunner and VerificationExecutor; producer report and rerun output show final passed Evidence is GateRun-backed rather than host-authored."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Tests distinguish selectedGateRefs, executedGateRunRefs and reusedEvidenceRefs.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0033-0002",
+        "EVD-TASK-0033-0003"
+      ],
+      "notes": "Rerun fixture exposes selectedGateRefs, executedGateRunRefs, and reusedEvidenceRefs separately; targeted dynamic fixture tests assert those surfaces."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "L0, L1 and L2 Gate paths have at least one passing and one failing test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0033-0002",
+        "EVD-TASK-0033-0003"
+      ],
+      "notes": "GateRun counts cover L0=3, L1=6, L2=1 with one failed and nine passed attempts; targeted tests include failing and passing GateRunner/Scheduler paths."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Full local checks, schema lint and git diff checks pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0033-0002"
+      ],
+      "notes": "Independent reruns passed scripts/check.py, lint_awkp.py, targeted SG-5 unit tests, dynamic fixture CLI, and git diff --check."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "status": "passed",
+      "summary": "159 tests passed; 1 Windows symlink privilege test skipped."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "summary": "AWKP lint reported 0 errors and 0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors were reported."
+    },
+    {
+      "command": "uv run python -B -m ahra.cli fixture dynamic-repair --fixture tests\\fixtures\\dynamic-goal-project --report .tmp\\TASK-0033-review-dynamic-fixture-report.json",
+      "status": "passed",
+      "summary": "Dynamic fixture rerun returned selectedFewerThanFull=true, finalCompletionAccepted=true, unauthorizedWriteAllowed=false, terminalStatusAfterResume=failed."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_verification tests.test_plan_execution tests.test_dynamic_fixture -v",
+      "status": "passed",
+      "summary": "29 targeted SG-5 tests passed."
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0036",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0036-0001",
+      "task_id": "TASK-0036",
+      "kind": "implementation_report",
+      "name": "implementation-report.json",
+      "uri": "local://evidence/implementation-report.json",
+      "sha256": "0ffc4083e70a5ea68f9a75c5535f5ce66e1e2d859c63902b25e9d32387e96fdb",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T07:36:14.797985Z",
+      "input_refs": [
+        "task.md",
+        "../../../docs/architecture/goal-execution-lifecycle.md",
+        "../../../docs/architecture/plan-ir.md",
+        "../../../src/ahra/plan_execution.py",
+        "../../../src/ahra/dynamic_fixture.py",
+        "../../../src/ahra/verification.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0036-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0036-0002",
+      "task_id": "TASK-0036",
+      "kind": "verification_report",
+      "name": "verification-report.json",
+      "uri": "local://evidence/verification-report.json",
+      "sha256": "29464d9517e58c608e6add657bb39f7e8e60ce32ec8a3c4a17b105660519606b",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T07:36:14.797985Z",
+      "input_refs": [
+        "task.md",
+        "../../../tests/test_plan_execution.py",
+        "../../../tests/test_dynamic_fixture.py",
+        "evidence/dynamic-fixture-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0036-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0036-0003",
+      "task_id": "TASK-0036",
+      "kind": "dynamic_fixture_report",
+      "name": "dynamic-fixture-report.json",
+      "uri": "local://evidence/dynamic-fixture-report.json",
+      "sha256": "798a6eff6c6f5ed806403f524de0115b55e8648201ad2a9967ad720916cab66a",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T07:36:14.797985Z",
+      "input_refs": [
+        "task.md",
+        "../../../tests/fixtures/dynamic-goal-project",
+        "../../../src/ahra/dynamic_fixture.py",
+        "../../../src/ahra/plan_execution.py",
+        "../../../src/ahra/verification.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0036-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0036-HANDOFF-0001",
+      "task_id": "TASK-0036",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "c34c2ae7e2699e04d454e3e944ae4463563a8a4e05c7b2d516ee8ae94f36b550",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T07:36:14.797985Z",
+      "input_refs": [
+        "task.md",
+        "evidence/implementation-report.json",
+        "evidence/verification-report.json",
+        "evidence/dynamic-fixture-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0036-0001",
+        "EVD-TASK-0036-0002",
+        "EVD-TASK-0036-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0036-0004",
+      "task_id": "TASK-0036",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-4.json",
+      "uri": "local://evidence/evidence-gate-report-4.json",
+      "sha256": "9187338ef66fad5bcf309c852a18103b3a8aeb6dedba7d156df300082b33bbff",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-26T08:12:27.761190Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0036-0004"
+      ],
+      "supersedes": null
+    }
+  ]
+}
