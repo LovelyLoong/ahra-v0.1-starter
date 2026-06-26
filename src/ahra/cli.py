@@ -10,8 +10,8 @@ from typing import Any
 
 import yaml
 
-from ahra.dynamic_fixture import write_dynamic_repair_fixture_report
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
+from ahra.goal_operations import GoalOperationError, GoalOperationService
 from ahra.ports import AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
 
 
@@ -87,6 +87,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(raw_argv)
     try:
         result = _dispatch(args)
+    except GoalOperationError as exc:
+        _print({"ok": False, **exc.to_error_dict()}, stream=sys.stderr)
+        return 2
     except (EvidenceGateError, ValueError, OSError, RuntimeError) as exc:
         _print({"ok": False, "error": str(exc)}, stream=sys.stderr)
         return 2
@@ -104,6 +107,8 @@ def _dispatch(args: argparse.Namespace) -> Any:
         return _task_command(args)
     if args.group == "fixture":
         return _fixture_command(args)
+    if args.group == "goal":
+        return _goal_command(args)
     if args.group == "evidence-gate":
         return _evidence_gate_command(args)
     if args.group == "doctor":
@@ -144,6 +149,8 @@ def _task_command(args: argparse.Namespace) -> Any:
 
 def _fixture_command(args: argparse.Namespace) -> Any:
     if args.fixture_command == "dynamic-repair":
+        from ahra.dynamic_fixture import write_dynamic_repair_fixture_report
+
         report = write_dynamic_repair_fixture_report(Path(args.fixture), Path(args.report))
         return {
             "schema_version": report["schema_version"],
@@ -155,6 +162,27 @@ def _fixture_command(args: argparse.Namespace) -> Any:
             "terminalStatusAfterResume": report["resume"]["terminalStatusAfterResume"],
         }
     raise ValueError(f"unknown fixture command: {args.fixture_command}")
+
+
+def _goal_command(args: argparse.Namespace) -> Any:
+    service = GoalOperationService()
+    if args.goal_command == "validate":
+        return service.validate(Path(args.request))
+    if args.goal_command == "plan":
+        return service.plan(Path(args.request))
+    if args.goal_command == "start":
+        return service.start(Path(args.request), run_once=args.run_once)
+    if args.goal_command == "inspect":
+        return service.inspect(
+            args.goal_execution_id,
+            db_path=Path(args.db),
+            artifact_dir=Path(args.artifact_dir) if args.artifact_dir else None,
+        )
+    if args.goal_command == "resume":
+        return service.resume(args.goal_execution_id, request_path=Path(args.request))
+    if args.goal_command == "cancel":
+        return service.cancel(args.goal_execution_id, db_path=Path(args.db), reason=args.reason)
+    raise ValueError(f"unknown goal command: {args.goal_command}")
 
 
 def _evidence_gate_command(args: argparse.Namespace) -> Any:
@@ -424,6 +452,32 @@ def _build_parser(*, include_legacy_workflow: bool = False) -> argparse.Argument
     )
     fixture_repair.add_argument("--fixture", required=True, help="Fixture project directory.")
     fixture_repair.add_argument("--report", required=True, help="JSON report output path.")
+
+    goal = groups.add_parser("goal", help="Operate durable generic GoalExecution requests.")
+    goal_commands = goal.add_subparsers(dest="goal_command", required=True)
+    goal_validate = goal_commands.add_parser("validate", help="Validate a GoalExecutionRequest without side effects.")
+    goal_validate.add_argument("request", help="GoalExecutionRequest YAML path.")
+
+    goal_plan = goal_commands.add_parser("plan", help="Compile a GoalExecutionRequest to admitted PlanIR artifacts.")
+    goal_plan.add_argument("request", help="GoalExecutionRequest YAML path.")
+
+    goal_start = goal_commands.add_parser("start", help="Start a durable GoalExecution from a request.")
+    goal_start.add_argument("request", help="GoalExecutionRequest YAML path.")
+    goal_start.add_argument("--run-once", action="store_true", help="Run one scheduler batch and leave remaining work resumable.")
+
+    goal_inspect = goal_commands.add_parser("inspect", help="Inspect durable GoalExecution, Plan, Node, evidence, and metrics.")
+    goal_inspect.add_argument("goal_execution_id", help="GoalExecution id such as GEXEC-...")
+    goal_inspect.add_argument("--db", required=True, help="SQLite control store path.")
+    goal_inspect.add_argument("--artifact-dir", help="Optional artifact directory for relative artifact checks.")
+
+    goal_resume = goal_commands.add_parser("resume", help="Resume a durable GoalExecution using its request profile.")
+    goal_resume.add_argument("goal_execution_id", help="GoalExecution id such as GEXEC-...")
+    goal_resume.add_argument("--request", required=True, help="Original immutable GoalExecutionRequest YAML path.")
+
+    goal_cancel = goal_commands.add_parser("cancel", help="Cancel a non-terminal durable GoalExecution.")
+    goal_cancel.add_argument("goal_execution_id", help="GoalExecution id such as GEXEC-...")
+    goal_cancel.add_argument("--db", required=True, help="SQLite control store path.")
+    goal_cancel.add_argument("--reason", default="cancellation requested", help="Cancellation reason recorded in state.")
 
     gate = groups.add_parser("evidence-gate", help="Evaluate AWKP task completion evidence.")
     gate_commands = gate.add_subparsers(dest="evidence_gate_command", required=True)

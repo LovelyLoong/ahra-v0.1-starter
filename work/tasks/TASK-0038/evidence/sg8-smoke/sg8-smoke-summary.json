@@ -1,0 +1,24 @@
+﻿{
+    "schema_version":  "ahra/task-0038-sg8-smoke/0.1",
+    "request":  "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0038\\evidence\\sg8-smoke\\goal-run-request.yaml",
+    "goalExecutionId":  "GEXEC-8c810c234a600c6c",
+    "validateOk":  true,
+    "planOk":  true,
+    "startGoalStatus":  "running",
+    "startPlanStatus":  "running",
+    "resumeGoalStatus":  "succeeded",
+    "resumePlanStatus":  "succeeded",
+    "inspectMetrics":  {
+                           "goalStatus":  "succeeded",
+                           "planExecutionCount":  1,
+                           "nodeRunCount":  2,
+                           "nodeStatusCounts":  {
+                                                    "succeeded":  2
+                                                },
+                           "evidenceRefCount":  2,
+                           "capabilityGrantRefCount":  1,
+                           "missingArtifactCount":  0
+                       },
+    "terminalCancelExitCode":  2,
+    "terminalCancelCode":  "cancel_terminal_goal"
+}

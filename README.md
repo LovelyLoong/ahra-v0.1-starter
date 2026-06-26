@@ -8,7 +8,7 @@
 
 当前默认本地路径是 **CLI + 动态内核 Skill + 架构文档 + EvidenceGate**。
 
-已通过 `TASK-0023` 到 `TASK-0031` EvidenceGate 的可运行能力包括：
+已通过 `TASK-0023` 到 `TASK-0037` EvidenceGate 的可运行能力包括：
 
 - `GoalContract`、`ClaimGraph`、`GateDefinition`、`GatePlan`。
 - Evidence v2、Evidence stale/invalidation、Defect、选择性复验和 L2 Completion。
@@ -17,11 +17,19 @@
 - `bounded_task` NodeExecutor、NodeRun、PlanExecution、静态 PlanIR Scheduler、lease/fencing token、budget/deadline enforcement。
 - Provider-neutral Planner port、fixture planner、可选 Codex SDK adapter。
 - 确定性动态修复 fixture：从 Goal 输入开始，经过 Claim、PlanDraft、PlanIR、Scheduler、Capability、Artifact/Evidence、Defect 修复、选择性复验，最后由 Completion 判定。
+- SQLite control store、idempotency record、recovery reconciliation，以及真实进程退出后的恢复测试路径。
+
+当前实现还提供 `TASK-0038` 的通用 Goal operation CLI 候选路径：`GoalExecutionRequest` 经 profile/adapter/runtime/store 校验后，编译为 admitted PlanIR，并通过同一个 `PlanExecutionService`、SQLite store、StaticPlanScheduler、Capability Admission 和 deterministic GateRunner 执行。该路径是 M1 deterministic profile，不是生产级分布式编排器。
 
 当前默认命令面：
 
 ```bash
-python -m ahra.cli fixture dynamic-repair --fixture tests/fixtures/dynamic-goal-project --report <report.json>
+python -m ahra.cli goal validate examples/m1/goal-run-request.yaml
+python -m ahra.cli goal plan examples/m1/goal-run-request.yaml
+python -m ahra.cli goal start examples/m1/goal-run-request.yaml
+python -m ahra.cli goal inspect <GEXEC-ID> --db <goal-control.sqlite3>
+python -m ahra.cli goal resume <GEXEC-ID> --request examples/m1/goal-run-request.yaml
+python -m ahra.cli goal cancel <GEXEC-ID> --db <goal-control.sqlite3> --reason <reason>
 python -m ahra.cli task inspect <TASK-ID>
 python -m ahra.cli evidence-gate evaluate <TASK-ID> --expected-version <N> --report <report.json> --actor <verifier>
 python -m ahra.cli doctor
@@ -35,7 +43,9 @@ git diff --check
 
 ## Boundaries
 
-- 当前可执行动态路径仍是确定性 fixture 和 Python 服务 API，不宣称已经是任意项目的生产级通用编排器。
+- 当前可执行动态路径是 deterministic M1 Goal operation profile 和 regression fixture，不宣称已经是任意项目的生产级通用编排器。
+- `ahra goal ...` 是当前默认通用入口；它只支持显式 immutable M1 deterministic profile、SQLite store 和已注册 adapter/runtime refs。
+- `ahra fixture dynamic-repair` 是 regression-only fixture profile，用来保护旧闭环语义，不再是默认推荐入口。
 - `standard-harness`、`loop-engineering`、旧 `WorkflowRunRequest`、`fake-reference` driver 和 MCP server 已降级为 legacy compatibility path；只有用户明确要求旧 workflow 路线时才使用。
 - `src/ahra/demo.py` 是 experimental/example 代码，不在默认脚本、Makefile 或默认文档路径中。
 - Agent 不能自行宣告 AWKP Task 完成；完成必须由 EvidenceGate 和独立 verifier 决定。

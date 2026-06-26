@@ -1,0 +1,148 @@
+{
+  "schema_version": "awkp/verification-report/0.1",
+  "task_id": "TASK-0037",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-26T08:53:08.585615Z",
+  "producer_state": "review_requested",
+  "evidence_inputs": [
+    "evidence/implementation-report.json",
+    "evidence/subprocess-crash-resume-report.json",
+    "evidence/subprocess-terminal-resume-report.json",
+    "tests/test_sqlite_control_store.py"
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_sqlite_control_store -v",
+      "status": "passed",
+      "summary": "7 tests passed, including schema migration, CAS conflict, transaction rollback, expired lease, stale fencing, missing artifact, subprocess crash/resume, duplicate resume, and terminal-before-next-dispatch recovery."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_plan_execution -v",
+      "status": "passed",
+      "summary": "17 existing PlanExecution/Scheduler tests passed after adding the idempotency resume path."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_dynamic_fixture -v",
+      "status": "passed",
+      "summary": "3 dynamic fixture tests passed; TASK-0036 repair scheduling behavior remains intact."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "summary": "Repository lint passed and unittest discovery ran 178 tests successfully with 1 Windows symlink-permission skip."
+    },
+    {
+      "command": "uv run python -B scripts/check.py --lint",
+      "status": "passed",
+      "summary": "Contract and AWKP lint returned 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors."
+    },
+    {
+      "command": "uv run python -B -m ahra.sqlite_recovery_fixture --phase crash-after-idempotency ...; --phase resume ...",
+      "status": "passed",
+      "summary": "Crash process exited 97 and resume exited 0 with duplicateEffectCount=0 and resumeExecutorCallCount=0."
+    },
+    {
+      "command": "uv run python -B -m ahra.sqlite_recovery_fixture --phase stop-after-terminal ...; --phase resume ...",
+      "status": "passed",
+      "summary": "Terminal-stop process exited 75 and resume exited 0 with duplicateEffectCount=0 and resumeExecutorCallCount=0."
+    }
+  ],
+  "metrics": {
+    "crashRecoverySuccessRate": 1.0,
+    "subprocessScenarioCount": 2,
+    "crashAfterEffectDuplicateEffectCount": 0,
+    "terminalStopDuplicateEffectCount": 0,
+    "staleFencingAcceptCount": 0,
+    "crashAfterEffectRecoveryWallTimeSeconds": 1.844,
+    "terminalStopRecoveryWallTimeSeconds": 1.109,
+    "checkpointLoadSuccess": true,
+    "crashAfterEffectFindingCountByCode": {
+      "expired-node-lease": 1
+    },
+    "terminalStopFindingCountByCode": {}
+  },
+  "acceptance_map": [
+    {
+      "criterion": "A fresh process can inspect and resume a non-terminal GoalExecution from SQLite.",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ]
+    },
+    {
+      "criterion": "A Node completed before the crash is not executed again.",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0004"
+      ]
+    },
+    {
+      "criterion": "A committed side effect is not duplicated.",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ]
+    },
+    {
+      "criterion": "An expired lease is reconciled and a stale fencing token is rejected.",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003"
+      ]
+    },
+    {
+      "criterion": "An interrupted safe Node is retried only according to its declared retry/idempotency policy.",
+      "evidence_refs": [
+        "EVD-TASK-0037-0001",
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003"
+      ]
+    },
+    {
+      "criterion": "GoalExecution, PlanExecution, NodeRun and Checkpoint versions remain consistent after recovery.",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ]
+    },
+    {
+      "criterion": "GateRun/Evidence/capability lineage remains available after restart.",
+      "evidence_refs": [
+        "EVD-TASK-0037-0001",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ]
+    },
+    {
+      "criterion": "Schema migration from an empty v0.1 database is deterministic and tested.",
+      "evidence_refs": [
+        "EVD-TASK-0037-0001",
+        "EVD-TASK-0037-0002"
+      ]
+    },
+    {
+      "criterion": "The in-memory store remains test-only or explicit experimental, not default M1 authority.",
+      "evidence_refs": [
+        "EVD-TASK-0037-0001",
+        "EVD-TASK-0037-0002"
+      ]
+    },
+    {
+      "criterion": "Full checks and subprocess recovery tests pass.",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ]
+    }
+  ],
+  "producer_limitation": "This report requests review only. The producer has not marked TASK-0037 completed."
+}

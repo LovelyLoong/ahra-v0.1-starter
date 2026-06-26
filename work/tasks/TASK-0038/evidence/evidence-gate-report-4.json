@@ -1,0 +1,152 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0038",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-26T10:21:32.522599Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier checked TASK-0038 against the task contract, authority docs, manifests, implementation boundary, SG-8 smoke evidence, focused tests, CLI smoke, lint, and full repository baseline. Every acceptance criterion has sufficient evidence.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A project-specific GoalExecutionRequest validates without importing dynamic_fixture.py.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0038-0001",
+        "EVD-TASK-0038-0002"
+      ],
+      "notes": "GoalExecutionRequest validation is covered by the implementation report and test_goal_validate_does_not_import_dynamic_fixture."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "goal plan produces acceptance artifacts, PlanDraft validation and admitted PlanIR without executing Nodes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0038-0003",
+        "EVD-TASK-0038-0004"
+      ],
+      "notes": "SG-8 plan output includes request, PlanDraft, validation report, and admitted PlanIR with executedNodeCount 0."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "goal start creates a durable GoalExecution and begins the same service path used by tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0038-0001",
+        "EVD-TASK-0038-0003"
+      ],
+      "notes": "goal start creates durable GoalExecution and PlanExecution state through GoalOperationService and shared scheduler path."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "goal inspect reports Goal/Plan/Node/Gate/Evidence/Defect/capability state and metrics.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0038-0002",
+        "EVD-TASK-0038-0003"
+      ],
+      "notes": "goal inspect reports GoalExecution, PlanExecution, NodeRun, Evidence, capability grant, artifact finding, and metrics data."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "goal resume continues from SQLite in a new process.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0038-0002",
+        "EVD-TASK-0038-0003"
+      ],
+      "notes": "Resume was exercised in a new Python process from SQLite state and completed without duplicating completed work."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "goal cancel propagates through GoalExecution, PlanExecution and active NodeRuns.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0038-0001",
+        "EVD-TASK-0038-0002"
+      ],
+      "notes": "GoalOperationService.cancel delegates PlanExecution cancellation, and plan execution tests cover propagation to active and pending NodeRuns."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Unknown profiles, adapters, drivers, stores and runtime refs fail closed with structured errors.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0038-0001",
+        "EVD-TASK-0038-0002"
+      ],
+      "notes": "Negative cases cover invalid digest, legacy profile, unknown planner, executor, gate runner, runtime, missing SQLite, duplicate start, terminal cancel, and missing artifact inspect."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "The CLI contains no direct NodeExecutor or GateRunner orchestration.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0038-0001"
+      ],
+      "notes": "CLI goal handlers instantiate GoalOperationService and do not directly orchestrate NodeExecutor or GateRunner."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Default docs and Skill identify the generic Goal path while retaining the old fixture as regression-only.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0038-0001"
+      ],
+      "notes": "README, framework entrypoints, component inventory, and dynamic-kernel Skill identify ahra goal as the default generic path and fixture dynamic-repair as regression-only."
+    },
+    {
+      "criterion_index": 10,
+      "criterion": "SG-8 generic durable operation smoke passes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0038-0003",
+        "EVD-TASK-0038-0004"
+      ],
+      "notes": "SG-8 smoke summary passed with resumed succeeded status, 2 succeeded NodeRuns, 2 Evidence refs, 1 capability grant, 0 missing artifacts, and terminal cancel failing closed."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_goal_operations tests.test_cli -v",
+      "status": "passed",
+      "notes": "13 tests passed."
+    },
+    {
+      "command": "uv run ahra goal validate examples/m1/goal-run-request.yaml",
+      "status": "passed",
+      "notes": "Console-script GoalExecutionRequest validation returned ok true and valid true."
+    },
+    {
+      "command": "git -C E:\\ahra-v0.1-starter diff --check",
+      "status": "passed",
+      "notes": "No whitespace errors reported."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_contracts.py",
+      "status": "passed",
+      "notes": "AHRA lint reported 0 failures and AWKP lint reported 0 errors, 0 warnings."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "notes": "AWKP lint reported 0 errors, 0 warnings."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --lint",
+      "status": "passed",
+      "notes": "Contract and AWKP lint passed."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --test",
+      "status": "passed",
+      "notes": "183 tests passed, 1 Windows symlink privilege test skipped."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "status": "passed",
+      "notes": "Full baseline passed with the same 183 tests passed and 1 environment-specific skipped test."
+    }
+  ]
+}

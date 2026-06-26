@@ -13,41 +13,47 @@ source_refs:
   - component-inventory.json
 evidence_refs: []
 confidence: reviewed
-last_verified_at: 2026-06-25T16:05:13Z
+last_verified_at: 2026-06-26T09:38:02Z
 review_after: 2026-09-25T00:00:00Z
 tags: [architecture, entrypoint, cli, skill, dynamic-kernel]
 ---
 
 # Summary
 
-The default foundation entrypoint is **CLI plus the dynamic-kernel Skill plus
-repository documentation**.
+The default foundation entrypoint is **generic Goal CLI plus the dynamic-kernel
+Skill plus repository documentation**.
 
-The current executable dynamic path is deterministic and local. It proves one
-authoritative runtime chain:
+The current executable dynamic path is deterministic and local. It operates one
+generic `GoalExecutionRequest` through an explicit immutable M1 profile:
 
 ```text
-GoalContract
-  -> ClaimGraph and GatePlan
+GoalExecutionRequest
+  -> profile, adapter, runtime and store admission
   -> untrusted PlanDraft
   -> admitted PlanIR
-  -> StaticPlanIRScheduler and NodeRun leases
-  -> CapabilityAdmission and CapabilityGateway
+  -> durable GoalExecution in SQLite
+  -> StaticPlanIRScheduler, PlanExecution and NodeRun leases
+  -> CapabilityAdmission before executor side effects
   -> Artifact and Evidence v2 records
-  -> Defect repair and selective reverification
-  -> GoalCompletionService
+  -> deterministic GateRun-backed verification
+  -> GoalExecution completion, resume or cancel
   -> AWKP EvidenceGate for task completion
 ```
 
-This path is exercised by the dynamic repair fixture. It is not a claim that
-AHRA already provides a production-grade general orchestrator for arbitrary
-projects.
+This is a generic local Goal operation path for small deterministic projects.
+It is not a claim that AHRA already provides a production-grade distributed
+orchestrator for arbitrary projects.
 
 # Current Operation Surface
 
 The default local operation surface is:
 
-- `python -m ahra.cli fixture dynamic-repair --fixture tests/fixtures/dynamic-goal-project --report <report.json>`
+- `python -m ahra.cli goal validate examples/m1/goal-run-request.yaml`
+- `python -m ahra.cli goal plan examples/m1/goal-run-request.yaml`
+- `python -m ahra.cli goal start examples/m1/goal-run-request.yaml`
+- `python -m ahra.cli goal inspect <GEXEC-ID> --db <goal-control.sqlite3>`
+- `python -m ahra.cli goal resume <GEXEC-ID> --request examples/m1/goal-run-request.yaml`
+- `python -m ahra.cli goal cancel <GEXEC-ID> --db <goal-control.sqlite3> --reason <reason>`
 - `python -m ahra.cli task inspect <TASK-ID>`
 - `python -m ahra.cli evidence-gate evaluate <TASK-ID> --expected-version <N> --report <report.json> --actor <verifier>`
 - `python -m ahra.cli doctor`
@@ -66,7 +72,12 @@ host encryption tooling.
 The CLI wrapper is intentionally narrow and must not invent runtime logic. It
 exposes existing Python services:
 
-- `fixture dynamic-repair`
+- `goal validate`
+- `goal plan`
+- `goal start`
+- `goal inspect`
+- `goal resume`
+- `goal cancel`
 - `task inspect`
 - `evidence-gate evaluate`
 - `doctor`
@@ -76,10 +87,10 @@ legacy workflow modules. Historical workflow compatibility remains reachable
 only when explicitly requested by a caller that already knows that compatibility
 route.
 
-# Default Dynamic Fixture
+# Regression Dynamic Fixture
 
-The dynamic repair fixture is fixture-scoped but authoritative for the current
-implemented chain. It must demonstrate:
+The dynamic repair fixture is now a regression-only profile. It must continue to
+demonstrate:
 
 - Goal input before task decomposition.
 - Claims and Gates before PlanIR.
@@ -89,6 +100,8 @@ implemented chain. It must demonstrate:
 - Defect creation with reproduction and repair boundary.
 - Selective reverification with documented Evidence reuse.
 - Completion that rejects stale, uncovered, or open-defect evidence.
+
+It is not the default operation entrypoint for new Goal runs.
 
 # Legacy Compatibility
 

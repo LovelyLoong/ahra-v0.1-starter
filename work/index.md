@@ -6,10 +6,10 @@ title: Work index
 description: Generated-style view of current dynamic-kernel tasks; task state files remain authoritative in filesystem mode.
 status: active
 owner: harness:dispatcher
-source_refs: [tasks/TASK-0021/state.json, tasks/TASK-0022/state.json, tasks/TASK-0023/state.json, tasks/TASK-0024/state.json, tasks/TASK-0025/state.json, tasks/TASK-0026/state.json, tasks/TASK-0027/state.json, tasks/TASK-0028/state.json, tasks/TASK-0029/state.json, tasks/TASK-0030/state.json, tasks/TASK-0031/state.json, tasks/TASK-0032/state.json, tasks/TASK-0033/state.json, tasks/TASK-0034/state.json, tasks/TASK-0035/state.json, tasks/TASK-0036/state.json]
-evidence_refs: [EVD-TASK-0031-0001, EVD-TASK-0031-0002, EVD-TASK-0031-0003, EVD-TASK-0032-0001, EVD-TASK-0032-0002, EVD-TASK-0032-0003, EVD-TASK-0032-0004, EVD-TASK-0033-0001, EVD-TASK-0033-0002, EVD-TASK-0033-0003, EVD-TASK-0033-0004, EVD-TASK-0034-0001, EVD-TASK-0034-0002, EVD-TASK-0034-0003, EVD-TASK-0034-0004, EVD-TASK-0035-0001, EVD-TASK-0035-0002, EVD-TASK-0035-0003, EVD-TASK-0035-0004, EVD-TASK-0036-0001, EVD-TASK-0036-0002, EVD-TASK-0036-0003, EVD-TASK-0036-0004]
+source_refs: [tasks/TASK-0021/state.json, tasks/TASK-0022/state.json, tasks/TASK-0023/state.json, tasks/TASK-0024/state.json, tasks/TASK-0025/state.json, tasks/TASK-0026/state.json, tasks/TASK-0027/state.json, tasks/TASK-0028/state.json, tasks/TASK-0029/state.json, tasks/TASK-0030/state.json, tasks/TASK-0031/state.json, tasks/TASK-0032/state.json, tasks/TASK-0033/state.json, tasks/TASK-0034/state.json, tasks/TASK-0035/state.json, tasks/TASK-0036/state.json, tasks/TASK-0037/state.json, tasks/TASK-0038/state.json]
+evidence_refs: [EVD-TASK-0031-0001, EVD-TASK-0031-0002, EVD-TASK-0031-0003, EVD-TASK-0032-0001, EVD-TASK-0032-0002, EVD-TASK-0032-0003, EVD-TASK-0032-0004, EVD-TASK-0033-0001, EVD-TASK-0033-0002, EVD-TASK-0033-0003, EVD-TASK-0033-0004, EVD-TASK-0034-0001, EVD-TASK-0034-0002, EVD-TASK-0034-0003, EVD-TASK-0034-0004, EVD-TASK-0035-0001, EVD-TASK-0035-0002, EVD-TASK-0035-0003, EVD-TASK-0035-0004, EVD-TASK-0036-0001, EVD-TASK-0036-0002, EVD-TASK-0036-0003, EVD-TASK-0036-0004, EVD-TASK-0037-0001, EVD-TASK-0037-0002, EVD-TASK-0037-0003, EVD-TASK-0037-0004, EVD-TASK-0037-0005, EVD-TASK-0038-0001, EVD-TASK-0038-0002, EVD-TASK-0038-0003, EVD-TASK-0038-0004, EVD-TASK-0038-0005]
 confidence: reviewed
-last_verified_at: 2026-06-26T08:12:27.761190Z
+last_verified_at: 2026-06-26T10:21:32.522599Z
 review_after: 2026-09-25T00:00:00Z
 tags: [work, index, dynamic-kernel]
 ---
@@ -36,13 +36,14 @@ Current dynamic-kernel stage tasks:
 | [TASK-0034](tasks/TASK-0034/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
 | [TASK-0035](tasks/TASK-0035/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
 | [TASK-0036](tasks/TASK-0036/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
+| [TASK-0037](tasks/TASK-0037/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
+| [TASK-0038](tasks/TASK-0038/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
 
 # Proposed Next Sequence
 
-`TASK-0037` through `TASK-0040` remain proposal drafts under
-`work/proposed/tasks/`. `TASK-0037` is the next eligible activation candidate
-after TASK-0036 approval, but no authoritative TASK-0037 state has been created
-in this review step.
+`TASK-0039` through `TASK-0040` remain proposal drafts under
+`work/proposed/tasks/`. Do not create their authoritative task state until the
+previous task passes independent EvidenceGate review.
 
 # Archive
 

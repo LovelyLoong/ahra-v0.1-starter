@@ -1,0 +1,58 @@
+{
+  "schema_version": "ahra/task-0038-metrics/0.1",
+  "task_id": "TASK-0038",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-26T09:38:02Z",
+  "cli_command_results": {
+    "goal_validate": "passed",
+    "goal_plan": "passed",
+    "goal_start_run_once": "passed",
+    "goal_resume_new_process": "passed",
+    "goal_inspect": "passed",
+    "goal_cancel_terminal_negative": "failed_closed_expected"
+  },
+  "operation_service_coverage": {
+    "validate": true,
+    "plan": true,
+    "start": true,
+    "inspect": true,
+    "resume": true,
+    "cancel": true,
+    "negative_cases": [
+      "invalid_digest",
+      "legacy_profile_not_default",
+      "unknown_planner_adapter",
+      "unknown_executor_adapter",
+      "unknown_gate_runner",
+      "unknown_runtime_ref",
+      "missing_sqlite_database",
+      "duplicate_start_idempotency_key",
+      "cancel_terminal_goal",
+      "missing_artifact_inspect_finding"
+    ]
+  },
+  "fixture_specific_imports_in_goal_validate_path": 0,
+  "sg8_smoke": {
+    "goal_execution_id": "GEXEC-8c810c234a600c6c",
+    "resume_goal_status": "succeeded",
+    "resume_plan_status": "succeeded",
+    "plan_execution_count": 1,
+    "node_run_count": 2,
+    "node_status_counts": {
+      "succeeded": 2
+    },
+    "evidence_ref_count": 2,
+    "capability_grant_ref_count": 1,
+    "missing_artifact_count": 0,
+    "terminal_cancel_exit_code": 2,
+    "terminal_cancel_code": "cancel_terminal_goal",
+    "approx_goal_start_to_first_executor_audit_seconds": 1.20
+  },
+  "verification": {
+    "focused_unittest": "13 passed",
+    "full_check": "183 passed, 1 skipped",
+    "lint_contracts": "0 failures",
+    "git_diff_check": "passed",
+    "console_script_goal_validate": "passed"
+  }
+}

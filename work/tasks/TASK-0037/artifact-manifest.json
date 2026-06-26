@@ -1,0 +1,140 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0037",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0037-0001",
+      "task_id": "TASK-0037",
+      "kind": "implementation_report",
+      "name": "implementation-report.json",
+      "uri": "local://evidence/implementation-report.json",
+      "sha256": "ce61a699b8ee721375238de7faf46f7a6295dc03e52f7e55604c7737461c2550",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T08:53:08.585615Z",
+      "input_refs": [
+        "task.md",
+        "../../../docs/architecture/goal-execution-lifecycle.md",
+        "../../../docs/architecture/observability-and-evaluation.md",
+        "../../../src/ahra/plan_execution.py",
+        "../../../src/ahra/sqlite_control_store.py",
+        "../../../src/ahra/sqlite_recovery_fixture.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0037-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0037-0002",
+      "task_id": "TASK-0037",
+      "kind": "verification_report",
+      "name": "verification-report.json",
+      "uri": "local://evidence/verification-report.json",
+      "sha256": "998513c7e827c255746094f06be9a6d6b0d5bb0a92c33f4e8fc082e5c5e79c66",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T08:53:08.585615Z",
+      "input_refs": [
+        "task.md",
+        "../../../tests/test_sqlite_control_store.py",
+        "evidence/subprocess-crash-resume-report.json",
+        "evidence/subprocess-terminal-resume-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0037-0003",
+      "task_id": "TASK-0037",
+      "kind": "subprocess_crash_resume_report",
+      "name": "subprocess-crash-resume-report.json",
+      "uri": "local://evidence/subprocess-crash-resume-report.json",
+      "sha256": "ab3de096b051f40196bfa9aa9152a3c242b196096e00cdaa9b258f2da8e883b3",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T08:53:08.585615Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/sqlite_recovery_fixture.py",
+        "../../../src/ahra/sqlite_control_store.py",
+        "../../../src/ahra/plan_execution.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0037-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0037-0004",
+      "task_id": "TASK-0037",
+      "kind": "subprocess_terminal_resume_report",
+      "name": "subprocess-terminal-resume-report.json",
+      "uri": "local://evidence/subprocess-terminal-resume-report.json",
+      "sha256": "5da58c345ca925d09e5474a44f24179b98c58cb2d0345f638752c08678b7bf9d",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T08:53:08.585615Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/sqlite_recovery_fixture.py",
+        "../../../src/ahra/sqlite_control_store.py",
+        "../../../src/ahra/plan_execution.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0037-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0037-HANDOFF-0001",
+      "task_id": "TASK-0037",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "f2c794081c551cd9ec67ebceb797642b8cdaf3fffdf4998cc3694149a6e16017",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T08:53:08.585615Z",
+      "input_refs": [
+        "task.md",
+        "evidence/implementation-report.json",
+        "evidence/verification-report.json",
+        "evidence/subprocess-crash-resume-report.json",
+        "evidence/subprocess-terminal-resume-report.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0037-0001",
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0037-0005",
+      "task_id": "TASK-0037",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-4.json",
+      "uri": "local://evidence/evidence-gate-report-4.json",
+      "sha256": "ef74d2a7b9de364d60a8c4264e31e059fa0abef09eef4827ad3ec96f866379f8",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-26T09:06:33.985110Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0037-0005"
+      ],
+      "supersedes": null
+    }
+  ]
+}

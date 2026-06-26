@@ -1,0 +1,61 @@
+{
+  "schema_version": "awkp/implementation-report/0.1",
+  "task_id": "TASK-0037",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "created_at": "2026-06-26T08:53:08.585615Z",
+  "producer_state": "review_requested",
+  "summary": "TASK-0037 adds a local SQLite control-plane store, recovery reconciler, and deterministic subprocess recovery fixture for the M1 dynamic kernel path. The implementation keeps artifact content in files and stores runtime authority state, refs, versions, leases, checkpoints, idempotency records, and recovery events in SQLite.",
+  "schema": {
+    "schema_version": "ahra/sqlite-control-store/0.1",
+    "migration_api": "migrate_sqlite_control_store(path)",
+    "tables": [
+      "meta",
+      "goal_executions",
+      "plan_executions",
+      "node_runs",
+      "checkpoints",
+      "idempotency_records",
+      "recovery_events"
+    ],
+    "compatibility": "Forward-only local v0.1 migration from an empty database. Mismatched schema_version fails closed."
+  },
+  "changed_files": [
+    {
+      "path": "src/ahra/sqlite_control_store.py",
+      "purpose": "SQLiteControlStore, CAS-backed persistence, idempotency records, recovery events, and recover_sqlite_control_plane."
+    },
+    {
+      "path": "src/ahra/sqlite_recovery_fixture.py",
+      "purpose": "Deterministic subprocess crash/resume fixture for effect-after-idempotency and terminal-before-next-dispatch windows."
+    },
+    {
+      "path": "src/ahra/plan_execution.py",
+      "purpose": "Scheduler resumes durable idempotency results without re-invoking the NodeExecutor, then executes declared Gate verification."
+    },
+    {
+      "path": "src/ahra/__init__.py",
+      "purpose": "Exports the SQLite local control-plane profile."
+    },
+    {
+      "path": "tests/test_sqlite_control_store.py",
+      "purpose": "Migration, CAS, rollback, recovery, fencing, schema mismatch, missing artifact, and subprocess resume tests."
+    }
+  ],
+  "recovery_semantics": [
+    "Expired pre-effect READY/ADMITTED NodeRun leases are returned to PENDING.",
+    "Expired RUNNING NodeRuns without durable idempotency fail as interrupted_without_idempotency.",
+    "RUNNING NodeRuns with durable idempotency are restored to RUNNING with the committed executor result and no lease; Scheduler records the result and runs declared Gates without re-executing the NodeExecutor.",
+    "Active leases with idempotency records are not silently taken over; recovery emits active-node-lease-with-idempotency."
+  ],
+  "authority_boundaries": [
+    "SQLite is the local authority for runtime state in this profile.",
+    "Reports are projections and not the authoritative store.",
+    "InMemoryPlanExecutionStore is documented as fixture and unit-test scope.",
+    "No production migration, distributed consensus, generic goal CLI, raw private prompt, chain-of-thought, or model call behavior was added."
+  ],
+  "known_limitations": [
+    "This is a local single-process SQLite profile with crash recovery across fresh processes, not a multi-host exactly-once system.",
+    "Artifact bytes remain outside SQLite; missing file references are detected by recovery instead of reconstructed.",
+    "Generic ahra goal CLI remains deferred to TASK-0038."
+  ]
+}

@@ -1,0 +1,8 @@
+﻿{
+  "ok": false,
+  "code": "cancel_terminal_goal",
+  "error": "cannot cancel terminal GoalExecution succeeded",
+  "refs": [
+    "GEXEC-8c810c234a600c6c"
+  ]
+}

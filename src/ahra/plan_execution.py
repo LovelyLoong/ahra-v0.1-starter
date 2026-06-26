@@ -437,6 +437,8 @@ class CapabilityAdmissionAttempt:
 
 
 class InMemoryPlanExecutionStore:
+    """Fixture and unit-test store; durable local control-plane runs use SQLiteControlStore."""
+
     def __init__(self) -> None:
         self._goal_executions: dict[str, GoalExecutionRecord] = {}
         self._executions: dict[str, PlanExecutionRecord] = {}
@@ -1230,6 +1232,14 @@ class StaticPlanScheduler(SchedulerPort):
             )
             return False
 
+        resumed = await self._resume_idempotent_running_nodes(
+            plan,
+            plan_execution_id,
+            workspace_ref=workspace_ref,
+        )
+        if resumed:
+            return True
+
         ready = self._ready_node_runs(plan, plan_execution_id)
         if not ready:
             return False
@@ -1241,6 +1251,34 @@ class StaticPlanScheduler(SchedulerPort):
             )
         )
         return True
+
+    async def _resume_idempotent_running_nodes(
+        self,
+        plan: PlanIR,
+        plan_execution_id: str,
+        *,
+        workspace_ref: str,
+    ) -> bool:
+        getter = getattr(self.service.store, "get_idempotency_record_for_node", None)
+        if getter is None:
+            return False
+        resumed = False
+        for node_run in self.service.store.list_node_runs(plan_execution_id):
+            latest = self.service.store.get_node_run(node_run.node_run_id)
+            if latest.status != NodeRunStatus.RUNNING:
+                continue
+            record = getter(latest.node_run_id)
+            if record is None:
+                continue
+            await self._record_executor_result(
+                plan,
+                _node_by_id(plan, latest.node_id),
+                latest,
+                record.result,
+                workspace_ref=workspace_ref,
+            )
+            resumed = True
+        return resumed
 
     async def _run_node(
         self,

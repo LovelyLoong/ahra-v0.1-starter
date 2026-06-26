@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
+from pathlib import Path
 from typing import Any, Iterable, Protocol, runtime_checkable
 
 from .capabilities import (
@@ -329,6 +330,22 @@ class SchedulerPort(Protocol):
         reused_node_refs: tuple[str, ...] = (),
         reused_evidence_refs: tuple[str, ...] = (),
     ) -> str: ...
+
+
+@runtime_checkable
+class GoalOperationPort(Protocol):
+    def validate(self, request_path: Path | str) -> Mapping[str, Any]: ...
+    def plan(self, request_path: Path | str) -> Mapping[str, Any]: ...
+    def start(self, request_path: Path | str, *, run_once: bool = False) -> Mapping[str, Any]: ...
+    def resume(self, goal_execution_id: str, *, request_path: Path | str) -> Mapping[str, Any]: ...
+    def inspect(
+        self,
+        goal_execution_id: str,
+        *,
+        db_path: Path | str,
+        artifact_dir: Path | str | None = None,
+    ) -> Mapping[str, Any]: ...
+    def cancel(self, goal_execution_id: str, *, db_path: Path | str, reason: str) -> Mapping[str, Any]: ...
 
 
 @runtime_checkable

@@ -13,21 +13,31 @@ AHRA dynamic-kernel path.
 
 ## Current Runtime Boundary
 
-The current executable dynamic-kernel path is the deterministic local fixture:
+The current executable dynamic-kernel path is the deterministic M1 Goal
+operation profile:
 
 ```bash
-python -m ahra.cli fixture dynamic-repair --fixture tests/fixtures/dynamic-goal-project --report <report.json>
+python -m ahra.cli goal validate examples/m1/goal-run-request.yaml
+python -m ahra.cli goal plan examples/m1/goal-run-request.yaml
+python -m ahra.cli goal start examples/m1/goal-run-request.yaml
 ```
 
-That path is intentionally fixture-scoped. It proves the wired Goal to Claims to
-PlanIR to Scheduler to Capability to Artifact/Evidence to Completion flow. It
-does not claim to be a general production orchestrator for arbitrary projects.
+That path is intentionally local and deterministic. It validates one
+`GoalExecutionRequest`, compiles its PlanDraft, starts durable SQLite-backed
+GoalExecution state, executes through the shared Scheduler and Capability
+Admission path, and supports inspect, resume, and cancel. It does not claim to
+be a production orchestrator for arbitrary projects.
 
 ## Default Commands
 
 Use these commands for current local operation and verification:
 
-- `python -m ahra.cli fixture dynamic-repair --fixture tests/fixtures/dynamic-goal-project --report <report.json>`
+- `python -m ahra.cli goal validate examples/m1/goal-run-request.yaml`
+- `python -m ahra.cli goal plan examples/m1/goal-run-request.yaml`
+- `python -m ahra.cli goal start examples/m1/goal-run-request.yaml`
+- `python -m ahra.cli goal inspect <GEXEC-ID> --db <goal-control.sqlite3>`
+- `python -m ahra.cli goal resume <GEXEC-ID> --request examples/m1/goal-run-request.yaml`
+- `python -m ahra.cli goal cancel <GEXEC-ID> --db <goal-control.sqlite3> --reason <reason>`
 - `python -m ahra.cli task inspect <TASK-ID>`
 - `python -m ahra.cli evidence-gate evaluate <TASK-ID> --expected-version <N> --report <report.json> --actor <verifier>`
 - `python -m ahra.cli doctor`
@@ -39,11 +49,17 @@ Use these commands for current local operation and verification:
 On the maintainer workstation, use `.venv\Scripts\python.exe` or `uv run python`
 when the bare `python` launcher is affected by host encryption tooling.
 
+## Regression Fixture
+
+Use this only when checking the historical fixture loop:
+
+- `python -m ahra.cli fixture dynamic-repair --fixture tests/fixtures/dynamic-goal-project --report <report.json>`
+
 ## Rules
 
 - Do not declare an AWKP Task completed. Completion is decided by EvidenceGate.
 - Do not run or document MCP as a default operation path.
 - Do not use `standard-harness`, `loop-engineering`, or `fake-reference` unless
   the user explicitly asks for the legacy compatibility workflow route.
-- Treat the dynamic fixture report as evidence, not as a producer summary.
+- Treat `fixture dynamic-repair` as regression-only, not the default Goal path.
 - Report the exact command, report path, and pass/fail status.

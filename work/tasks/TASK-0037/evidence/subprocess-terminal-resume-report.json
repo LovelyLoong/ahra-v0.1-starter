@@ -1,0 +1,270 @@
+{
+  "checkpoint": {
+    "artifact_refs": [
+      "file://E:\\ahra-v0.1-starter\\.runtime\\task-0037-evidence-terminal\\workspace\\effect.txt"
+    ],
+    "checkpoint_id": "CHK-50588de20a2d17a3",
+    "created_at": "2026-06-26T08:51:22.817158Z",
+    "evidence_refs": [
+      "EVD-0ec88eb8704ccd75",
+      "EVD-0f0232638c4584be"
+    ],
+    "node_budgets": {
+      "NRUN-1bb91ec9e78a3bf5": {
+        "maxCostUsd": 0.0,
+        "maxModelCalls": 1,
+        "maxSpawnedNodes": 0,
+        "maxToolCalls": 1,
+        "maxWallSeconds": 30
+      },
+      "NRUN-569038616444fb70": {
+        "maxCostUsd": 0.0,
+        "maxModelCalls": 1,
+        "maxSpawnedNodes": 0,
+        "maxToolCalls": 2,
+        "maxWallSeconds": 30
+      }
+    },
+    "node_statuses": {
+      "NRUN-1bb91ec9e78a3bf5": "succeeded",
+      "NRUN-569038616444fb70": "succeeded"
+    },
+    "node_usage": {
+      "NRUN-1bb91ec9e78a3bf5": {
+        "costUsd": 0.0,
+        "modelCalls": 1,
+        "spawnedNodes": 0,
+        "toolCalls": 0
+      },
+      "NRUN-569038616444fb70": {
+        "costUsd": 0.0,
+        "modelCalls": 1,
+        "spawnedNodes": 0,
+        "toolCalls": 1
+      }
+    },
+    "plan_digest": "sha256:134bb507d9c97996ab23db74eed2b536942290cab2ca5209b867ad9240b0918a",
+    "plan_execution_id": "PEXEC-86a4f786ba60a0bb",
+    "plan_id": "PLAN-ffcb99095b0be991",
+    "plan_status": "succeeded",
+    "schema_version": "ahra/plan-checkpoint/0.1"
+  },
+  "gateRunRefsInResumeProcess": [
+    "GATERUN-0f0232638c4584be"
+  ],
+  "goalExecution": {
+    "active_plan_execution_ref": null,
+    "approval_refs": [],
+    "artifact_refs": [
+      "file://E:\\ahra-v0.1-starter\\.runtime\\task-0037-evidence-terminal\\workspace\\effect.txt"
+    ],
+    "budget_summary": {},
+    "checkpoint_ref": null,
+    "claim_graph_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "claim_graph_ref": null,
+    "created_at": "2026-06-26T08:51:20.435539Z",
+    "evidence_refs": [
+      "EVD-0ec88eb8704ccd75",
+      "EVD-0f0232638c4584be"
+    ],
+    "failure_class": null,
+    "goal_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "goal_execution_id": "GEXEC-sqlite-recovery",
+    "goal_ref": "GOAL-sqlite-recovery",
+    "max_repair_cycles": 2,
+    "message": "Completion Service accepted the GoalExecution.",
+    "open_defect_refs": [],
+    "plan_execution_refs": [
+      "PEXEC-86a4f786ba60a0bb"
+    ],
+    "repair_cycle": 0,
+    "resolved_defect_refs": [],
+    "schema_version": "ahra/goal-execution/0.1",
+    "status": "succeeded",
+    "status_version": 3,
+    "updated_at": "2026-06-26T08:51:23.007423Z",
+    "usage": {},
+    "workspace_ref": "E:\\ahra-v0.1-starter\\.runtime\\task-0037-evidence-terminal\\workspace"
+  },
+  "metrics": {
+    "checkpointLoadSuccess": true,
+    "crashRecoverySucceeded": true,
+    "duplicateEffectCount": 0,
+    "persistedArtifactRefCount": 1,
+    "persistedEvidenceRefCount": 2,
+    "recoveryWallTimeSeconds": 1.109,
+    "resumeExecutorCallCount": 0,
+    "sideEffectLineCount": 1
+  },
+  "nodeRuns": [
+    {
+      "admission_decision_refs": [
+        "PDEC-e07c440a-d777-4c83-a86a-e22b3c39b7c6"
+      ],
+      "artifact_refs": [
+        "file://E:\\ahra-v0.1-starter\\.runtime\\task-0037-evidence-terminal\\workspace\\effect.txt"
+      ],
+      "attempt": 1,
+      "budget": {
+        "maxCostUsd": 0.0,
+        "maxModelCalls": 1,
+        "maxSpawnedNodes": 0,
+        "maxToolCalls": 2,
+        "maxWallSeconds": 30
+      },
+      "capability_grant_digests": [
+        "sha256:316e6bd6e45736b3a14a4f012be07f2a8816d00b21f649748a1baf86d41b43d9"
+      ],
+      "capability_grant_refs": [
+        "CGRANT-793e1db2-7e58-4db9-9b32-baefab43c67a"
+      ],
+      "created_at": "2026-06-26T08:51:20.477712Z",
+      "dependency_node_refs": [],
+      "evidence_refs": [
+        "EVD-0ec88eb8704ccd75"
+      ],
+      "executor_release": "sqlite-recovery-executor@sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "failure_class": null,
+      "gate_refs": [
+        "GATE-effect"
+      ],
+      "lease": null,
+      "message": "effect committed",
+      "node_id": "NODE-effect",
+      "node_run_id": "NRUN-569038616444fb70",
+      "node_type": "bounded_task",
+      "plan_digest": "sha256:134bb507d9c97996ab23db74eed2b536942290cab2ca5209b867ad9240b0918a",
+      "plan_execution_id": "PEXEC-86a4f786ba60a0bb",
+      "plan_id": "PLAN-ffcb99095b0be991",
+      "schema_version": "ahra/node-run-state/0.1",
+      "status": "succeeded",
+      "status_version": 6,
+      "terminal_failure_refs": [],
+      "updated_at": "2026-06-26T08:51:21.421134Z",
+      "usage": {
+        "costUsd": 0.0,
+        "modelCalls": 1,
+        "spawnedNodes": 0,
+        "toolCalls": 1
+      }
+    },
+    {
+      "admission_decision_refs": [],
+      "artifact_refs": [],
+      "attempt": 1,
+      "budget": {
+        "maxCostUsd": 0.0,
+        "maxModelCalls": 1,
+        "maxSpawnedNodes": 0,
+        "maxToolCalls": 1,
+        "maxWallSeconds": 30
+      },
+      "capability_grant_digests": [],
+      "capability_grant_refs": [],
+      "created_at": "2026-06-26T08:51:20.477712Z",
+      "dependency_node_refs": [
+        "NODE-effect"
+      ],
+      "evidence_refs": [
+        "EVD-0f0232638c4584be"
+      ],
+      "executor_release": null,
+      "failure_class": null,
+      "gate_refs": [
+        "GATE-goal"
+      ],
+      "lease": null,
+      "message": "Goal completion gate passed.",
+      "node_id": "NODE-goal",
+      "node_run_id": "NRUN-1bb91ec9e78a3bf5",
+      "node_type": "goal_verification",
+      "plan_digest": "sha256:134bb507d9c97996ab23db74eed2b536942290cab2ca5209b867ad9240b0918a",
+      "plan_execution_id": "PEXEC-86a4f786ba60a0bb",
+      "plan_id": "PLAN-ffcb99095b0be991",
+      "schema_version": "ahra/node-run-state/0.1",
+      "status": "succeeded",
+      "status_version": 6,
+      "terminal_failure_refs": [],
+      "updated_at": "2026-06-26T08:51:22.535858Z",
+      "usage": {
+        "costUsd": 0.0,
+        "modelCalls": 1,
+        "spawnedNodes": 0,
+        "toolCalls": 0
+      }
+    }
+  ],
+  "planExecution": {
+    "artifact_refs": [
+      "file://E:\\ahra-v0.1-starter\\.runtime\\task-0037-evidence-terminal\\workspace\\effect.txt"
+    ],
+    "budget_summary": {
+      "maxCostUsd": 0.0,
+      "maxModelCalls": 2,
+      "maxSpawnedNodes": 0,
+      "maxToolCalls": 3,
+      "maxWallSeconds": 60,
+      "nodeCount": 2
+    },
+    "cancel_requested": false,
+    "checkpoint_ref": "checkpoint://CHK-50588de20a2d17a3",
+    "created_at": "2026-06-26T08:51:20.477712Z",
+    "deadline_at": null,
+    "evidence_refs": [
+      "EVD-0ec88eb8704ccd75",
+      "EVD-0f0232638c4584be"
+    ],
+    "failure_class": null,
+    "goal_execution_ref": "GEXEC-sqlite-recovery",
+    "goal_ref": "GOAL-sqlite-recovery",
+    "handoff_refs": [
+      "HANDOFF-PEXEC-86a4f786ba60a0bb-review"
+    ],
+    "lease": null,
+    "max_concurrency": 1,
+    "message": "Static PlanIR DAG completed and goal verification passed.",
+    "node_run_refs": [
+      "NRUN-569038616444fb70",
+      "NRUN-1bb91ec9e78a3bf5"
+    ],
+    "parent_plan_digest": null,
+    "parent_plan_execution_ref": null,
+    "plan_digest": "sha256:134bb507d9c97996ab23db74eed2b536942290cab2ca5209b867ad9240b0918a",
+    "plan_execution_id": "PEXEC-86a4f786ba60a0bb",
+    "plan_id": "PLAN-ffcb99095b0be991",
+    "plan_version": 1,
+    "reused_evidence_refs": [],
+    "reused_node_refs": [],
+    "schema_version": "ahra/plan-execution/0.1",
+    "status": "succeeded",
+    "status_version": 17,
+    "task_ref": "TASK-0037",
+    "trace_refs": [
+      "TRACE-PEXEC-86a4f786ba60a0bb"
+    ],
+    "updated_at": "2026-06-26T08:51:22.817158Z",
+    "validation_report_digest": "sha256:973d47458e45b57d0d5f78601622f952944cab0dbf1cf4aa1f59483ede5ed4b8",
+    "validation_report_ref": "PLANVAL-1b40e1228c6cf536"
+  },
+  "recoveryReport": {
+    "events": [],
+    "failed_node_run_refs": [],
+    "findings": [],
+    "metrics": {
+      "failedNodeRunCount": 0,
+      "findingCount": 0,
+      "findingCountByCode": {},
+      "idempotencyRecordCount": 1,
+      "recoveredNodeRunCount": 0,
+      "requeuedNodeRunCount": 0
+    },
+    "recovered_node_run_refs": [],
+    "requeued_node_run_refs": [],
+    "schema_version": "ahra/sqlite-recovery-report/0.1",
+    "store_ref": "sqlite://E:\\ahra-v0.1-starter\\.runtime\\task-0037-evidence-terminal\\control.sqlite"
+  },
+  "schema_version": "ahra/sqlite-recovery-fixture-report/0.1",
+  "sqliteDb": "E:\\ahra-v0.1-starter\\.runtime\\task-0037-evidence-terminal\\control.sqlite",
+  "task": "TASK-0037",
+  "workspace": "E:\\ahra-v0.1-starter\\.runtime\\task-0037-evidence-terminal\\workspace"
+}

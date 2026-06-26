@@ -1,0 +1,17 @@
+﻿{
+  "ok": true,
+  "result": {
+    "schema_version": "ahra/goal-operation-plan/0.1",
+    "goalExecutionId": "GEXEC-8c810c234a600c6c",
+    "artifactDir": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0038\\evidence\\sg8-smoke\\.ahra\\artifacts",
+    "planId": "PLAN-6a8018d3bcb78768",
+    "planDigest": "sha256:ba219e92331a5e8f7e83325d672aca77760fb8553959e6852cfbd910e76b7983",
+    "executedNodeCount": 0,
+    "metrics": {
+      "planNodeCount": 2,
+      "gateRefCount": 2,
+      "executableNodeCount": 1,
+      "declaredCapabilityCount": 1
+    }
+  }
+}

@@ -37,10 +37,6 @@ from .domain import (
     SideEffect,
     ToolDescriptor,
 )
-from .dynamic_fixture import (
-    run_dynamic_repair_fixture,
-    write_dynamic_repair_fixture_report,
-)
 from .evidence_v2 import (
     DigestRef,
     EvidenceCurrentSet,
@@ -57,6 +53,20 @@ from .evidence_v2 import (
     adapt_legacy_evidence_manifest,
     canonical_fingerprint,
     make_status_event,
+)
+from .goal_operations import (
+    DETERMINISTIC_EXECUTOR_REF,
+    DETERMINISTIC_GATE_RUNNER_REF,
+    GoalExecutionRequest,
+    GoalOperationError,
+    GoalOperationProfile,
+    GoalOperationProfileRegistry,
+    GoalOperationService,
+    INLINE_PLANNER_REF,
+    LOCAL_GOAL_RUNTIME_DIGEST,
+    LOCAL_GOAL_RUNTIME_REF,
+    M1_PROFILE_REF,
+    load_goal_execution_request,
 )
 from .node_executor import (
     NodeExecutionRequest,
@@ -85,6 +95,14 @@ from .plan_execution import (
     StaticPlanScheduler,
     project_awkp_task,
     reconcile_plan_execution,
+)
+from .sqlite_control_store import (
+    SQLITE_CONTROL_SCHEMA_VERSION,
+    SQLiteControlStore,
+    SQLiteControlStoreError,
+    SQLiteRecoveryReport,
+    migrate_sqlite_control_store,
+    recover_sqlite_control_plane,
 )
 from .planner_contracts import (
     AcceptancePlanningRequest,
@@ -133,6 +151,7 @@ from .ports import (
     ExecutionPlanner,
     GateRunnerPort,
     GateRunnerRegistryPort,
+    GoalOperationPort,
     NodeExecutorPort,
     RepairPlanner,
     RuntimeGatewayPort,
@@ -222,6 +241,8 @@ __all__ = [
     "CompletionGateResult",
     "DefectRecord",
     "DefectStatus",
+    "DETERMINISTIC_EXECUTOR_REF",
+    "DETERMINISTIC_GATE_RUNNER_REF",
     "DeterministicGateRunner",
     "DigestRef",
     "EvidenceCurrentSet",
@@ -250,17 +271,27 @@ __all__ = [
     "GateRunnerPort",
     "GateRunnerRegistry",
     "GateRunnerRegistryPort",
+    "GoalExecutionRequest",
     "GoalExecutionRecord",
     "GoalExecutionStatus",
     "GoalContract",
     "GoalCriterion",
+    "GoalOperationError",
+    "GoalOperationPort",
+    "GoalOperationProfile",
+    "GoalOperationProfileRegistry",
+    "GoalOperationService",
     "InMemoryAuditSink",
+    "INLINE_PLANNER_REF",
     "L0Gate",
     "L1Gate",
     "L2Gate",
     "Lease",
     "LegacyEvidenceRecord",
     "LocalRuntimeGateway",
+    "LOCAL_GOAL_RUNTIME_DIGEST",
+    "LOCAL_GOAL_RUNTIME_REF",
+    "M1_PROFILE_REF",
     "MemoryKind",
     "MemoryRecord",
     "MemoryStatus",
@@ -323,6 +354,10 @@ __all__ = [
     "RunStatus",
     "SchedulerPort",
     "SideEffect",
+    "SQLITE_CONTROL_SCHEMA_VERSION",
+    "SQLiteControlStore",
+    "SQLiteControlStoreError",
+    "SQLiteRecoveryReport",
     "StaticPlanScheduler",
     "ToolDescriptor",
     "VerificationExecutionContext",
@@ -351,10 +386,23 @@ __all__ = [
     "planner_read_only_runtime_profile",
     "project_awkp_task",
     "reconcile_plan_execution",
+    "migrate_sqlite_control_store",
+    "recover_sqlite_control_plane",
     "run_dynamic_repair_fixture",
     "select_gates",
     "validate_gate_run_lineage",
     "validate_acceptance_contracts",
     "validate_plan_ir",
     "write_dynamic_repair_fixture_report",
+    "load_goal_execution_request",
 ]
+
+
+def __getattr__(name: str):
+    if name in {"run_dynamic_repair_fixture", "write_dynamic_repair_fixture_report"}:
+        from .dynamic_fixture import run_dynamic_repair_fixture, write_dynamic_repair_fixture_report
+
+        globals()["run_dynamic_repair_fixture"] = run_dynamic_repair_fixture
+        globals()["write_dynamic_repair_fixture_report"] = write_dynamic_repair_fixture_report
+        return globals()[name]
+    raise AttributeError(f"module 'ahra' has no attribute {name!r}")

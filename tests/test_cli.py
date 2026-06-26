@@ -182,6 +182,7 @@ class CliTests(unittest.TestCase):
     def test_default_help_hides_legacy_workflow_group(self) -> None:
         help_text = cli._build_parser().format_help()
 
+        self.assertIn("goal", help_text)
         self.assertIn("fixture", help_text)
         self.assertIn("evidence-gate", help_text)
         self.assertNotIn("workflow", help_text)

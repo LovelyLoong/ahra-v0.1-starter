@@ -1,0 +1,162 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0037",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-26T09:06:33.985110Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent review found TASK-0037 satisfies the SQLite durability and process restart recovery contract. The SQLiteControlStore persists GoalExecution, PlanExecution, NodeRun, Checkpoint, idempotency records and recovery events with version-checked writes; recovery uses durable idempotency records to finish declared Gate verification without re-invoking the NodeExecutor; stale fencing, schema mismatch, transaction rollback and missing artifact refs fail closed; independent subprocess crash and resume probes produced zero duplicate effects.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A fresh process can inspect and resume a non-terminal GoalExecution from SQLite.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ],
+      "notes": "Fresh subprocess resume re-opened the same SQLite database, inspected the existing PlanExecution, and completed the Goal from persisted state."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "A Node completed before the crash is not executed again.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ],
+      "notes": "Crash-after-idempotency and terminal-stop resume both reported resumeExecutorCallCount=0 for the completed effect Node."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "A committed side effect is not duplicated.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ],
+      "notes": "Independent subprocess probes and published reports both show duplicateEffectCount=0 and sideEffectLineCount=1."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "An expired lease is reconciled and a stale fencing token is rejected.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0037-0001",
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003"
+      ],
+      "notes": "Recovery reports expired-node-lease and requeues pre-effect Nodes; stale fencing writes are rejected by PlanExecutionService tests."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "An interrupted safe Node is retried only according to its declared retry/idempotency policy.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0037-0001",
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003"
+      ],
+      "notes": "Running Nodes with durable idempotency are recovered for gate completion; running Nodes without durable idempotency fail as interrupted_without_idempotency."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "GoalExecution, PlanExecution, NodeRun and Checkpoint versions remain consistent after recovery.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ],
+      "notes": "Recovered reports include consistent GoalExecution, PlanExecution, NodeRun and checkpoint records; checkpointLoadSuccess is true."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "GateRun/Evidence/capability lineage remains available after restart.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0037-0001",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ],
+      "notes": "Resume reports preserve capability decision/grant refs and produce GateRun/Evidence refs in the resume process."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Schema migration from an empty v0.1 database is deterministic and tested.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0037-0001",
+        "EVD-TASK-0037-0002"
+      ],
+      "notes": "Migration initializes ahra/sqlite-control-store/0.1 from an empty database and schema mismatch fails closed."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "The in-memory store remains test-only or explicit experimental, not default M1 authority.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0037-0001",
+        "EVD-TASK-0037-0002"
+      ],
+      "notes": "InMemoryPlanExecutionStore is explicitly documented as fixture and unit-test scope; SQLiteControlStore is exported as the durable local control-plane profile."
+    },
+    {
+      "criterion_index": 10,
+      "criterion": "Full checks and subprocess recovery tests pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0037-0002",
+        "EVD-TASK-0037-0003",
+        "EVD-TASK-0037-0004"
+      ],
+      "notes": "Independent full checks, targeted SQLite/Scheduler/fixture tests, lint, diff whitespace, manifest hash verification and subprocess recovery probes all passed."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "status": "passed",
+      "summary": "178 tests passed, 1 skipped due Windows symlink privilege."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --lint",
+      "status": "passed",
+      "summary": "Contract and AHRA lint passed with 0 failures."
+    },
+    {
+      "command": "uv run python -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "summary": "AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors reported."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_sqlite_control_store tests.test_plan_execution tests.test_dynamic_fixture -v",
+      "status": "passed",
+      "summary": "27 focused SQLite control store, Scheduler and dynamic fixture tests passed."
+    },
+    {
+      "command": "independent subprocess crash-after-idempotency and resume probe",
+      "status": "passed",
+      "summary": "Crash phase exited 97, resume exited 0, duplicateEffectCount=0, resumeExecutorCallCount=0, recoveredNodeRunCount=1 and two GateRun refs were produced during resume."
+    },
+    {
+      "command": "independent subprocess stop-after-terminal and resume probe",
+      "status": "passed",
+      "summary": "Stop phase exited 75, resume exited 0, duplicateEffectCount=0, resumeExecutorCallCount=0, recoveredNodeRunCount=0 and one GateRun ref was produced during resume."
+    },
+    {
+      "command": "TASK-0037 manifest SHA256 verification",
+      "status": "passed",
+      "summary": "All artifact and evidence sha256 values matched their local files."
+    }
+  ]
+}
