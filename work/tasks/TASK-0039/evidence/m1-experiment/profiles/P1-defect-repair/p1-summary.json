@@ -1,0 +1,35 @@
+{
+  "currentClaimCoverage": 1.0,
+  "defectRef": "DEF-M1-DOC-HEALTH",
+  "gateExecutionIntegrity": 1.0,
+  "goalExecutionId": "GEXEC-671994fbebed52de",
+  "goalStatus": "succeeded",
+  "initialPlanStatus": "failed",
+  "openDefectCompletionRejected": true,
+  "parentPlanDigest": "sha256:d4fbbdc3d8a7c4ffbb7ec584e154a633c512635a5d58a80d6434d1251f19e680",
+  "planExecutionRefs": [
+    "PEXEC-9c048af84c85c361",
+    "PEXEC-cefcee9ba4bfeca1"
+  ],
+  "profile": "P1-defect-repair",
+  "rawArtifacts": {
+    "defect": "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\profiles\\P1-defect-repair\\p1-defect.json",
+    "evidence": "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\profiles\\P1-defect-repair\\p1-evidence-records.json",
+    "finalInspect": "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\profiles\\P1-defect-repair\\p1-final-inspect.json",
+    "gateRuns": "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\profiles\\P1-defect-repair\\p1-gate-runs.json"
+  },
+  "repairBoundaryCompliance": 1.0,
+  "repairPlanStatus": "succeeded",
+  "reusedEvidence": [
+    {
+      "evidenceRef": "EVD-ed4f922469687094",
+      "rationale": "NODE-security-boundary did not change between PlanIR v1 and v2."
+    }
+  ],
+  "schema_version": "ahra/m1-experiment/0.1",
+  "verificationEfficiency": {
+    "fullGateBaselineCost": 3,
+    "selectedGateCost": 2,
+    "weightedVerificationSaving": 0.33333333333333337
+  }
+}

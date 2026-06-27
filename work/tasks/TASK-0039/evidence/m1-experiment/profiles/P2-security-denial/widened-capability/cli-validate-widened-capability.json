@@ -1,0 +1,53 @@
+{
+  "command": [
+    "E:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+    "-B",
+    "-m",
+    "ahra.cli",
+    "goal",
+    "validate",
+    "goal-run-request.yaml"
+  ],
+  "cwd": "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\profiles\\P2-security-denial\\widened-capability",
+  "exitCode": 0,
+  "payload": {
+    "ok": true,
+    "result": {
+      "executorAdapterRef": "executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "gateRunnerAdapterRef": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "goalExecutionId": "GEXEC-5da08d2ce140c303",
+      "metrics": {
+        "executableNodeCount": 0,
+        "gateRefCount": 0,
+        "planNodeCount": 0
+      },
+      "planValidationReport": {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "PlanValidationReport",
+        "metadata": {
+          "createdBy": "ahra-plan-compiler",
+          "reportId": "PLANVAL-564d88fc17b387be"
+        },
+        "spec": {
+          "errors": [
+            {
+              "code": "capability-out-of-scope",
+              "message": "NODE-doc-health requests capability process.exec outside Goal scope",
+              "ref": "NODE-doc-health"
+            }
+          ],
+          "refs": [
+            "PLANDRAFT-invalid"
+          ],
+          "result": "failed",
+          "subjectDigest": null,
+          "subjectRef": "PlanDraft"
+        }
+      },
+      "plannerAdapterRef": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "profileRef": "profile/m1-deterministic@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "schema_version": "ahra/goal-operation-validation/0.1",
+      "valid": false
+    }
+  }
+}

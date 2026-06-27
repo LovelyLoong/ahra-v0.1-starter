@@ -1,0 +1,14 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalContract
+metadata:
+  goalId: GOAL-M1-MINIMAL-LOOP
+  version: 1
+spec:
+  objective: Detect expired documents in a deterministic isolated fixture.
+  criteria:
+    - id: CRIT-doc-health
+      statement: Expired fixture documents are reported by the deterministic run.
+    - id: CRIT-security-boundary
+      statement: Execution stays inside the admitted workspace and declared write paths.
+    - id: CRIT-goal-completion
+      statement: Completion is accepted only from current Evidence.

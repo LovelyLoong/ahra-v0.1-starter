@@ -1,0 +1,194 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0039",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0039-0001",
+      "task_id": "TASK-0039",
+      "kind": "implementation_report",
+      "name": "implementation-report.md",
+      "uri": "local://evidence/implementation-report.md",
+      "sha256": "6098ae58c820b3869fcdbd415d71a6bf14b155d0437aceb7940abf61f4708a94",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/m1_experiment.py",
+        "../../../scripts/run_m1_minimal_experiment.py",
+        "../../../tests/test_m1_experiment.py",
+        "../../../tests/fixtures/m1-minimal-project/goal-run-request.yaml"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0039-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0039-0002",
+      "task_id": "TASK-0039",
+      "kind": "metrics",
+      "name": "metrics.json",
+      "uri": "local://evidence/metrics.json",
+      "sha256": "3c6118eb7bd01541043cdeae82e8fbae250b895d8701635fd7f65ece8d250885",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "input_refs": [
+        "evidence/m1-experiment/m1-scorecard.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0039-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0039-0003",
+      "task_id": "TASK-0039",
+      "kind": "twenty_run_scorecard",
+      "name": "m1-scorecard.json",
+      "uri": "local://evidence/m1-experiment/m1-scorecard.json",
+      "sha256": "d56deeedcf920c84f3ebe8bb4366f130550e9e8d97294a657dfc15c557bfb772",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "input_refs": [
+        "../../../tests/fixtures/m1-minimal-project/goal-run-request.yaml",
+        "../../../scripts/run_m1_minimal_experiment.py",
+        "../../../src/ahra/m1_experiment.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0039-0002",
+        "EVD-TASK-0039-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0039-0004",
+      "task_id": "TASK-0039",
+      "kind": "full_vs_selective_verification_baseline",
+      "name": "p1-summary.json",
+      "uri": "local://evidence/m1-experiment/profiles/P1-defect-repair/p1-summary.json",
+      "sha256": "cb343610ad2dbfc952aebf95d1c77c9e130faf0699f7fa93b2150ef8ef016b13",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "input_refs": [
+        "../../../tests/fixtures/m1-minimal-project/goal-run-request.yaml",
+        "../../../src/ahra/m1_experiment.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0039-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0039-0005",
+      "task_id": "TASK-0039",
+      "kind": "raw_gate_runs",
+      "name": "p1-gate-runs.json",
+      "uri": "local://evidence/m1-experiment/profiles/P1-defect-repair/p1-gate-runs.json",
+      "sha256": "517114639a7c5924b505b1246313a54b2a28e0adc8dc23bef11f57ab82f44c26",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "input_refs": [
+        "evidence/m1-experiment/profiles/P1-defect-repair/p1-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0039-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0039-0006",
+      "task_id": "TASK-0039",
+      "kind": "raw_evidence_records",
+      "name": "p1-evidence-records.json",
+      "uri": "local://evidence/m1-experiment/profiles/P1-defect-repair/p1-evidence-records.json",
+      "sha256": "6c96ec9016e1a07eb14823535d85959a4587487a086520a849d82e60e05dddc4",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "input_refs": [
+        "evidence/m1-experiment/profiles/P1-defect-repair/p1-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0039-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0039-0007",
+      "task_id": "TASK-0039",
+      "kind": "security_report",
+      "name": "p2-summary.json",
+      "uri": "local://evidence/m1-experiment/profiles/P2-security-denial/p2-summary.json",
+      "sha256": "06c8072f52ab0947b9ae7c60b03dd5c227a11ca27aff1fcc4fadcc53cc604e76",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "input_refs": [
+        "../../../tests/fixtures/m1-minimal-project/goal-run-request.yaml",
+        "../../../src/ahra/m1_experiment.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0039-0005"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0039-0008",
+      "task_id": "TASK-0039",
+      "kind": "m1_fixture_project",
+      "name": "fixture-manifest.json",
+      "uri": "local://evidence/fixture-manifest.json",
+      "sha256": "62547dd4531942c64a8b404b3bcddc52117bc4c5e98ac53166beff450681c7a1",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "input_refs": [
+        "../../../tests/fixtures/m1-minimal-project/goal-contract.yaml",
+        "../../../tests/fixtures/m1-minimal-project/project-profile.yaml",
+        "../../../tests/fixtures/m1-minimal-project/goal-run-request.yaml",
+        "../../../tests/fixtures/m1-minimal-project/src/doc_health.py",
+        "../../../tests/fixtures/m1-minimal-project/docs/example.md",
+        "../../../tests/fixtures/m1-minimal-project/tests/test_doc_health.py",
+        "../../../tests/fixtures/m1-minimal-project/tests/test_security_boundary.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0039-0006"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0039-HANDOFF-0001",
+      "task_id": "TASK-0039",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "7ec03d915587f184abe659dd9597a800b905cc9a624da96ff2dcb2c1469e04ad",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "input_refs": [
+        "task.md",
+        "evidence/implementation-report.md",
+        "evidence/fixture-manifest.json",
+        "evidence/metrics.json",
+        "evidence/m1-experiment/m1-scorecard.json",
+        "evidence/m1-experiment/profiles/P1-defect-repair/p1-summary.json",
+        "evidence/m1-experiment/profiles/P2-security-denial/p2-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0039-0001",
+        "EVD-TASK-0039-0002",
+        "EVD-TASK-0039-0003",
+        "EVD-TASK-0039-0004",
+        "EVD-TASK-0039-0005",
+        "EVD-TASK-0039-0006"
+      ],
+      "supersedes": null
+    }
+  ]
+}

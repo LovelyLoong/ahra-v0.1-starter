@@ -1,0 +1,13 @@
+apiVersion: ahra.dev/v1alpha1
+kind: ProjectProfile
+metadata:
+  name: m1-minimal-project
+spec:
+  runtime: local-deterministic
+  allowedWriteGlobs:
+    - outputs/doc-health.txt
+    - outputs/security-boundary.txt
+  forbiddenWriteGlobs:
+    - tests/**
+    - docs/**
+    - ../**

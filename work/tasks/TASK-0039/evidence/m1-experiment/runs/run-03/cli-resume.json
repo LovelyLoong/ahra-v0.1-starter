@@ -1,0 +1,416 @@
+{
+  "command": [
+    "E:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+    "-B",
+    "-m",
+    "ahra.cli",
+    "goal",
+    "resume",
+    "GEXEC-b8a6ddf3162a8881",
+    "--request",
+    "goal-run-request.yaml"
+  ],
+  "cwd": "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03",
+  "exitCode": 0,
+  "payload": {
+    "ok": true,
+    "result": {
+      "goalExecutionId": "GEXEC-b8a6ddf3162a8881",
+      "goalStatus": "succeeded",
+      "inspect": {
+        "artifactFindings": [],
+        "goalExecution": {
+          "active_plan_execution_ref": null,
+          "approval_refs": [],
+          "artifact_refs": [
+            "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\workspace\\outputs\\doc-health.txt",
+            "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\workspace\\outputs\\security-boundary.txt"
+          ],
+          "budget_summary": {
+            "profileRef": "profile/m1-deterministic@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "checkpoint_ref": null,
+          "claim_graph_digest": "sha256:6161616161616161616161616161616161616161616161616161616161616161",
+          "claim_graph_ref": "claim-graph/m1-minimal-loop",
+          "created_at": "2026-06-26T10:58:45.746511Z",
+          "evidence_refs": [
+            "EVD-470b6c90d42fa97d",
+            "EVD-3953d72928752e25",
+            "EVD-60e5faad8a39d277"
+          ],
+          "failure_class": null,
+          "goal_digest": "sha256:5151515151515151515151515151515151515151515151515151515151515151",
+          "goal_execution_id": "GEXEC-b8a6ddf3162a8881",
+          "goal_ref": "GOAL-M1-MINIMAL-LOOP",
+          "max_repair_cycles": 1,
+          "message": "Completion Service accepted the GoalExecution.",
+          "open_defect_refs": [],
+          "plan_execution_refs": [
+            "PEXEC-9c048af84c85c361"
+          ],
+          "repair_cycle": 0,
+          "resolved_defect_refs": [],
+          "schema_version": "ahra/goal-execution/0.1",
+          "status": "succeeded",
+          "status_version": 3,
+          "updated_at": "2026-06-26T10:58:49.538705Z",
+          "usage": {},
+          "workspace_ref": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\workspace"
+        },
+        "idempotencyRecords": [
+          {
+            "created_at": "2026-06-26T10:58:48.058823Z",
+            "idempotency_key": "sha256:71eced3c57e676172afe50376a2c6a2b133359c2487426dc8fa173ceb8bd5afd",
+            "node_run_id": "NRUN-db1f7e6355f1cc61",
+            "plan_execution_id": "PEXEC-9c048af84c85c361",
+            "result": {
+              "apiVersion": "ahra.dev/v1alpha1",
+              "kind": "NodeRun",
+              "metadata": {
+                "executorRelease": "executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "nodeId": "NODE-security-boundary",
+                "nodeRunId": "NRUN-db1f7e6355f1cc61",
+                "planId": "PLAN-0712f3dfe9661038"
+              },
+              "spec": {
+                "artifactRefs": [
+                  "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\workspace\\outputs\\security-boundary.txt"
+                ],
+                "details": {
+                  "artifactRelativePath": "outputs/security-boundary.txt",
+                  "audit": {
+                    "apiVersion": "ahra.dev/v1alpha1",
+                    "kind": "CapabilityAuditRecord",
+                    "metadata": {
+                      "auditId": "AUD-f77de5fd-36a9-49d2-b8ed-8fd494d62191",
+                      "occurredAt": "2026-06-26T10:58:48.055832Z"
+                    },
+                    "spec": {
+                      "action": "filesystem.write",
+                      "actor": "executor",
+                      "allowed": true,
+                      "argumentDigest": "sha256:7025b939f61ac11b1f8216a09fad680a589ac3546cd617bf2763c9bd5295d30d",
+                      "grantDigest": "sha256:c1920d6aff480e7e602470a7b8bdcbe6aecbaf9d8a7fd5b6c32d465f8d25cd89",
+                      "nodeId": "NODE-security-boundary",
+                      "planId": "PLAN-0712f3dfe9661038",
+                      "policyDecisionId": "PDEC-823aea50-53f6-41e3-a699-357037dae8cb",
+                      "reasonCode": "allow",
+                      "resultDigest": "sha256:27b80cfe382e8c91302485e9061f283fabf524b172fa574aef12266e3f81d616"
+                    }
+                  },
+                  "verificationMetadata": {
+                    "claimRefs": [
+                      "CLM-SECURITY-BOUNDARY"
+                    ]
+                  }
+                },
+                "evidenceRefs": [],
+                "gateRefs": [
+                  "GATE-security-boundary"
+                ],
+                "message": "Deterministic Goal operation executor wrote the requested local artifact.",
+                "nodeType": "bounded_task",
+                "status": "accepted",
+                "taskCompletedStateUpdateAttempted": false,
+                "terminalFailureRefs": [],
+                "usage": {
+                  "costUsd": 0.0,
+                  "modelCalls": 0,
+                  "spawnedNodes": 0,
+                  "toolCalls": 1
+                }
+              }
+            }
+          },
+          {
+            "created_at": "2026-06-26T10:58:46.609935Z",
+            "idempotency_key": "sha256:dc16640cf09d9cdde56c15d3905fbdb1a8906b3d2a41c22e278068da9d6f0b00",
+            "node_run_id": "NRUN-2773b486bdf8e831",
+            "plan_execution_id": "PEXEC-9c048af84c85c361",
+            "result": {
+              "apiVersion": "ahra.dev/v1alpha1",
+              "kind": "NodeRun",
+              "metadata": {
+                "executorRelease": "executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "nodeId": "NODE-doc-health",
+                "nodeRunId": "NRUN-2773b486bdf8e831",
+                "planId": "PLAN-0712f3dfe9661038"
+              },
+              "spec": {
+                "artifactRefs": [
+                  "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\workspace\\outputs\\doc-health.txt"
+                ],
+                "details": {
+                  "artifactRelativePath": "outputs/doc-health.txt",
+                  "audit": {
+                    "apiVersion": "ahra.dev/v1alpha1",
+                    "kind": "CapabilityAuditRecord",
+                    "metadata": {
+                      "auditId": "AUD-33dbc507-8b02-4941-a0e6-e36d74bd5490",
+                      "occurredAt": "2026-06-26T10:58:46.606945Z"
+                    },
+                    "spec": {
+                      "action": "filesystem.write",
+                      "actor": "executor",
+                      "allowed": true,
+                      "argumentDigest": "sha256:fb1c091d66033b0f51da3a815b45ff5f9332aae3f8e13df11ca091446a71ce1a",
+                      "grantDigest": "sha256:8b1b4c624ceb0e74d28067d8a3df51c3bed47a5f885b7e28211b8b945ac8f324",
+                      "nodeId": "NODE-doc-health",
+                      "planId": "PLAN-0712f3dfe9661038",
+                      "policyDecisionId": "PDEC-1cefe4d2-0636-4beb-b5b7-90f25494f5ea",
+                      "reasonCode": "allow",
+                      "resultDigest": "sha256:469a96e307cae3d31882d1f4e65bd6391b6bf7f839f039d68dc26904d170cb5b"
+                    }
+                  },
+                  "verificationMetadata": {
+                    "claimRefs": [
+                      "CLM-DOC-HEALTH"
+                    ]
+                  }
+                },
+                "evidenceRefs": [],
+                "gateRefs": [
+                  "GATE-doc-health"
+                ],
+                "message": "Deterministic Goal operation executor wrote the requested local artifact.",
+                "nodeType": "bounded_task",
+                "status": "accepted",
+                "taskCompletedStateUpdateAttempted": false,
+                "terminalFailureRefs": [],
+                "usage": {
+                  "costUsd": 0.0,
+                  "modelCalls": 0,
+                  "spawnedNodes": 0,
+                  "toolCalls": 1
+                }
+              }
+            }
+          }
+        ],
+        "metrics": {
+          "capabilityGrantRefCount": 2,
+          "evidenceRefCount": 3,
+          "goalStatus": "succeeded",
+          "missingArtifactCount": 0,
+          "nodeRunCount": 3,
+          "nodeStatusCounts": {
+            "succeeded": 3
+          },
+          "planExecutionCount": 1
+        },
+        "nodeRuns": [
+          {
+            "admission_decision_refs": [
+              "PDEC-1cefe4d2-0636-4beb-b5b7-90f25494f5ea"
+            ],
+            "artifact_refs": [
+              "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\workspace\\outputs\\doc-health.txt"
+            ],
+            "attempt": 1,
+            "budget": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 1,
+              "maxWallSeconds": 30
+            },
+            "capability_grant_digests": [
+              "sha256:8b1b4c624ceb0e74d28067d8a3df51c3bed47a5f885b7e28211b8b945ac8f324"
+            ],
+            "capability_grant_refs": [
+              "CGRANT-01a7aaf2-1014-4b33-93cb-06cefa4b5095"
+            ],
+            "created_at": "2026-06-26T10:58:45.796477Z",
+            "dependency_node_refs": [],
+            "evidence_refs": [
+              "EVD-470b6c90d42fa97d"
+            ],
+            "executor_release": "executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "failure_class": null,
+            "gate_refs": [
+              "GATE-doc-health"
+            ],
+            "lease": null,
+            "message": "Deterministic Goal operation executor wrote the requested local artifact.",
+            "node_id": "NODE-doc-health",
+            "node_run_id": "NRUN-2773b486bdf8e831",
+            "node_type": "bounded_task",
+            "plan_digest": "sha256:d4fbbdc3d8a7c4ffbb7ec584e154a633c512635a5d58a80d6434d1251f19e680",
+            "plan_execution_id": "PEXEC-9c048af84c85c361",
+            "plan_id": "PLAN-0712f3dfe9661038",
+            "schema_version": "ahra/node-run-state/0.1",
+            "status": "succeeded",
+            "status_version": 6,
+            "terminal_failure_refs": [],
+            "updated_at": "2026-06-26T10:58:46.765521Z",
+            "usage": {
+              "costUsd": 0.0,
+              "modelCalls": 0,
+              "spawnedNodes": 0,
+              "toolCalls": 1
+            }
+          },
+          {
+            "admission_decision_refs": [],
+            "artifact_refs": [],
+            "attempt": 1,
+            "budget": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 1,
+              "maxWallSeconds": 30
+            },
+            "capability_grant_digests": [],
+            "capability_grant_refs": [],
+            "created_at": "2026-06-26T10:58:45.796477Z",
+            "dependency_node_refs": [
+              "NODE-doc-health",
+              "NODE-security-boundary"
+            ],
+            "evidence_refs": [
+              "EVD-60e5faad8a39d277"
+            ],
+            "executor_release": null,
+            "failure_class": null,
+            "gate_refs": [
+              "GATE-goal-complete"
+            ],
+            "lease": null,
+            "message": "Goal completion gate passed.",
+            "node_id": "NODE-goal-verification",
+            "node_run_id": "NRUN-94c4bf1e9b02ea69",
+            "node_type": "goal_verification",
+            "plan_digest": "sha256:d4fbbdc3d8a7c4ffbb7ec584e154a633c512635a5d58a80d6434d1251f19e680",
+            "plan_execution_id": "PEXEC-9c048af84c85c361",
+            "plan_id": "PLAN-0712f3dfe9661038",
+            "schema_version": "ahra/node-run-state/0.1",
+            "status": "succeeded",
+            "status_version": 6,
+            "terminal_failure_refs": [],
+            "updated_at": "2026-06-26T10:58:49.071720Z",
+            "usage": {
+              "costUsd": 0.0,
+              "modelCalls": 1,
+              "spawnedNodes": 0,
+              "toolCalls": 0
+            }
+          },
+          {
+            "admission_decision_refs": [
+              "PDEC-823aea50-53f6-41e3-a699-357037dae8cb"
+            ],
+            "artifact_refs": [
+              "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\workspace\\outputs\\security-boundary.txt"
+            ],
+            "attempt": 1,
+            "budget": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 1,
+              "maxWallSeconds": 30
+            },
+            "capability_grant_digests": [
+              "sha256:c1920d6aff480e7e602470a7b8bdcbe6aecbaf9d8a7fd5b6c32d465f8d25cd89"
+            ],
+            "capability_grant_refs": [
+              "CGRANT-68173478-5829-4ab4-96c2-8d40f79b26a2"
+            ],
+            "created_at": "2026-06-26T10:58:45.796477Z",
+            "dependency_node_refs": [],
+            "evidence_refs": [
+              "EVD-3953d72928752e25"
+            ],
+            "executor_release": "executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "failure_class": null,
+            "gate_refs": [
+              "GATE-security-boundary"
+            ],
+            "lease": null,
+            "message": "Deterministic Goal operation executor wrote the requested local artifact.",
+            "node_id": "NODE-security-boundary",
+            "node_run_id": "NRUN-db1f7e6355f1cc61",
+            "node_type": "bounded_task",
+            "plan_digest": "sha256:d4fbbdc3d8a7c4ffbb7ec584e154a633c512635a5d58a80d6434d1251f19e680",
+            "plan_execution_id": "PEXEC-9c048af84c85c361",
+            "plan_id": "PLAN-0712f3dfe9661038",
+            "schema_version": "ahra/node-run-state/0.1",
+            "status": "succeeded",
+            "status_version": 6,
+            "terminal_failure_refs": [],
+            "updated_at": "2026-06-26T10:58:48.265658Z",
+            "usage": {
+              "costUsd": 0.0,
+              "modelCalls": 0,
+              "spawnedNodes": 0,
+              "toolCalls": 1
+            }
+          }
+        ],
+        "planExecutions": [
+          {
+            "artifact_refs": [
+              "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\workspace\\outputs\\doc-health.txt",
+              "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\workspace\\outputs\\security-boundary.txt"
+            ],
+            "budget_summary": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 3,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 3,
+              "maxWallSeconds": 90,
+              "nodeCount": 3
+            },
+            "cancel_requested": false,
+            "checkpoint_ref": "checkpoint://CHK-6286e033a4d163f5",
+            "created_at": "2026-06-26T10:58:45.796477Z",
+            "deadline_at": null,
+            "evidence_refs": [
+              "EVD-470b6c90d42fa97d",
+              "EVD-3953d72928752e25",
+              "EVD-60e5faad8a39d277"
+            ],
+            "failure_class": null,
+            "goal_execution_ref": "GEXEC-b8a6ddf3162a8881",
+            "goal_ref": "GOAL-M1-MINIMAL-LOOP",
+            "handoff_refs": [
+              "HANDOFF-PEXEC-9c048af84c85c361-review"
+            ],
+            "lease": null,
+            "max_concurrency": 1,
+            "message": "Static PlanIR DAG completed and goal verification passed.",
+            "node_run_refs": [
+              "NRUN-2773b486bdf8e831",
+              "NRUN-db1f7e6355f1cc61",
+              "NRUN-94c4bf1e9b02ea69"
+            ],
+            "parent_plan_digest": null,
+            "parent_plan_execution_ref": null,
+            "plan_digest": "sha256:d4fbbdc3d8a7c4ffbb7ec584e154a633c512635a5d58a80d6434d1251f19e680",
+            "plan_execution_id": "PEXEC-9c048af84c85c361",
+            "plan_id": "PLAN-0712f3dfe9661038",
+            "plan_version": 1,
+            "reused_evidence_refs": [],
+            "reused_node_refs": [],
+            "schema_version": "ahra/plan-execution/0.1",
+            "status": "succeeded",
+            "status_version": 22,
+            "task_ref": null,
+            "trace_refs": [
+              "TRACE-PEXEC-9c048af84c85c361"
+            ],
+            "updated_at": "2026-06-26T10:58:49.380560Z",
+            "validation_report_digest": "sha256:959db8ac25babddd69cb26aa70f7c9e631b09b0af07965744ae75f39bf3916b4",
+            "validation_report_ref": "PLANVAL-3d3fa57fbbf9a967"
+          }
+        ],
+        "recoveryEvents": [],
+        "schema_version": "ahra/goal-operation-inspect/0.1"
+      },
+      "planExecutionId": "PEXEC-9c048af84c85c361",
+      "planStatus": "succeeded",
+      "schema_version": "ahra/goal-operation-resume/0.1"
+    }
+  }
+}

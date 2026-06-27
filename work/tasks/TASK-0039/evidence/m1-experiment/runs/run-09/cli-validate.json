@@ -1,0 +1,48 @@
+{
+  "command": [
+    "E:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+    "-B",
+    "-m",
+    "ahra.cli",
+    "goal",
+    "validate",
+    "goal-run-request.yaml"
+  ],
+  "cwd": "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-09",
+  "exitCode": 0,
+  "payload": {
+    "ok": true,
+    "result": {
+      "executorAdapterRef": "executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "gateRunnerAdapterRef": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "goalExecutionId": "GEXEC-cd922e74529d3b92",
+      "metrics": {
+        "declaredCapabilityCount": 2,
+        "executableNodeCount": 2,
+        "gateRefCount": 3,
+        "planNodeCount": 3
+      },
+      "planValidationReport": {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "PlanValidationReport",
+        "metadata": {
+          "createdBy": "ahra-plan-compiler",
+          "reportId": "PLANVAL-3d3fa57fbbf9a967"
+        },
+        "spec": {
+          "errors": [],
+          "refs": [
+            "PLAN-0712f3dfe9661038"
+          ],
+          "result": "passed",
+          "subjectDigest": "sha256:d4fbbdc3d8a7c4ffbb7ec584e154a633c512635a5d58a80d6434d1251f19e680",
+          "subjectRef": "PLAN-0712f3dfe9661038@v1"
+        }
+      },
+      "plannerAdapterRef": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "profileRef": "profile/m1-deterministic@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "schema_version": "ahra/goal-operation-validation/0.1",
+      "valid": true
+    }
+  }
+}

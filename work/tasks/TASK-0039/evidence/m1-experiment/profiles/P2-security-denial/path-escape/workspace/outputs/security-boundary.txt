@@ -1,0 +1,4 @@
+goal=GOAL-M1-MINIMAL-LOOP
+plan=PLAN-9c0a9e1b07b89d63
+node=NODE-security-boundary
+node_run=NRUN-037c3821545db98a

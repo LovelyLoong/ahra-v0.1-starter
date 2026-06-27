@@ -1,0 +1,73 @@
+{
+  "acceptedNodeRate": 1.0,
+  "capabilityAdmissionCoverage": 1.0,
+  "commands": {
+    "duplicateResume": [
+      "E:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "ahra.cli",
+      "goal",
+      "resume",
+      "GEXEC-4bc4a0bf9516382e",
+      "--request",
+      "goal-run-request.yaml"
+    ],
+    "plan": [
+      "E:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "ahra.cli",
+      "goal",
+      "plan",
+      "goal-run-request.yaml"
+    ],
+    "resume": [
+      "E:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "ahra.cli",
+      "goal",
+      "resume",
+      "GEXEC-4bc4a0bf9516382e",
+      "--request",
+      "goal-run-request.yaml"
+    ],
+    "startRunOnce": [
+      "E:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "ahra.cli",
+      "goal",
+      "start",
+      "goal-run-request.yaml",
+      "--run-once"
+    ],
+    "validate": [
+      "E:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "ahra.cli",
+      "goal",
+      "validate",
+      "goal-run-request.yaml"
+    ]
+  },
+  "currentClaimCoverage": 1.0,
+  "duplicateResumeTerminal": true,
+  "executedEvidenceCount": 3,
+  "gateExecutionIntegrity": 1.0,
+  "goalExecutionId": "GEXEC-4bc4a0bf9516382e",
+  "goalStatus": "succeeded",
+  "nodeRunCount": 3,
+  "normalizedSemanticDigest": "sha256:a0444fb00c2be36f0143876c00265addf5e66231ca8800cb3b671bb08cac456d",
+  "planStatus": "succeeded",
+  "resumeDuplicateEffectCount": 0,
+  "runDir": "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-06",
+  "runIndex": 6,
+  "runOnceLeftGoalNonTerminal": true,
+  "schema_version": "ahra/m1-experiment/0.1",
+  "selectedGateCount": 3,
+  "staleFencingAcceptCount": 0,
+  "unrunGatePassCount": 0
+}

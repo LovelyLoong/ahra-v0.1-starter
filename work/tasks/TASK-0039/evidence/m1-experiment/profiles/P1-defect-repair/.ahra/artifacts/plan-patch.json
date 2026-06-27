@@ -1,0 +1,112 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanPatchDraft",
+  "metadata": {
+    "parentPlanDigest": "sha256:d4fbbdc3d8a7c4ffbb7ec584e154a633c512635a5d58a80d6434d1251f19e680"
+  },
+  "spec": {
+    "addNodes": [
+      {
+        "budgetRequest": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "capabilityRequests": [
+          {
+            "capability": "filesystem.write",
+            "resources": [
+              "outputs/doc-health.txt"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-DOC-HEALTH"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [],
+            "deliveryRole": "evidence",
+            "name": "outputs-doc-health.txt",
+            "schemaRef": "schema/m1-deterministic-output@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+          }
+        ],
+        "gateRefs": [
+          "GATE-doc-health"
+        ],
+        "id": "NODE-repair-doc-health",
+        "inputRefs": [
+          "fixture/m1-minimal-project"
+        ],
+        "nodeType": "repair",
+        "objective": "Produce deterministic output for CLM-DOC-HEALTH.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 30
+      },
+      {
+        "budgetRequest": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "capabilityRequests": [],
+        "claimRefs": [
+          "CLM-DOC-HEALTH",
+          "CLM-GOAL-COMPLETE",
+          "CLM-SECURITY-BOUNDARY"
+        ],
+        "dependsOn": [
+          "NODE-repair-doc-health",
+          "NODE-security-boundary"
+        ],
+        "expectedOutputs": [],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification-v2",
+        "inputRefs": [
+          "NODE-repair-doc-health",
+          "NODE-security-boundary"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify deterministic M1 Goal completion.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 30
+      }
+    ],
+    "defectRefs": [
+      "DEF-M1-DOC-HEALTH"
+    ],
+    "parentPlanDigest": "sha256:d4fbbdc3d8a7c4ffbb7ec584e154a633c512635a5d58a80d6434d1251f19e680",
+    "reusedEvidenceRefs": [
+      "EVD-ed4f922469687094"
+    ],
+    "supersedeNodeRefs": [
+      "NODE-doc-health",
+      "NODE-goal-verification"
+    ],
+    "unchangedNodeRefs": [
+      "NODE-security-boundary"
+    ]
+  }
+}

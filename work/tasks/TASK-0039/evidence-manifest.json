@@ -1,0 +1,100 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0039",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0039-0001",
+      "task_id": "TASK-0039",
+      "kind": "implementation_report",
+      "name": "implementation-report.md",
+      "uri": "local://evidence/implementation-report.md",
+      "sha256": "6098ae58c820b3869fcdbd415d71a6bf14b155d0437aceb7940abf61f4708a94",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "refs": [
+        "ART-TASK-0039-0001",
+        "ART-TASK-0039-0002",
+        "ART-TASK-0039-0003",
+        "ART-TASK-0039-0004",
+        "ART-TASK-0039-0005",
+        "ART-TASK-0039-0006",
+        "ART-TASK-0039-0007",
+        "ART-TASK-0039-0008"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0039-0002",
+      "task_id": "TASK-0039",
+      "kind": "twenty_run_scorecard",
+      "name": "m1-scorecard.json",
+      "uri": "local://evidence/m1-experiment/m1-scorecard.json",
+      "sha256": "d56deeedcf920c84f3ebe8bb4366f130550e9e8d97294a657dfc15c557bfb772",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "refs": [
+        "ART-TASK-0039-0002",
+        "ART-TASK-0039-0003"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0039-0003",
+      "task_id": "TASK-0039",
+      "kind": "full_vs_selective_verification_baseline",
+      "name": "p1-summary.json",
+      "uri": "local://evidence/m1-experiment/profiles/P1-defect-repair/p1-summary.json",
+      "sha256": "cb343610ad2dbfc952aebf95d1c77c9e130faf0699f7fa93b2150ef8ef016b13",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "refs": [
+        "ART-TASK-0039-0004",
+        "ART-TASK-0039-0005",
+        "ART-TASK-0039-0006"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0039-0004",
+      "task_id": "TASK-0039",
+      "kind": "crash_resume_report",
+      "name": "m1-scorecard.json",
+      "uri": "local://evidence/m1-experiment/m1-scorecard.json",
+      "sha256": "d56deeedcf920c84f3ebe8bb4366f130550e9e8d97294a657dfc15c557bfb772",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "refs": [
+        "ART-TASK-0039-0003"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0039-0005",
+      "task_id": "TASK-0039",
+      "kind": "security_report",
+      "name": "p2-summary.json",
+      "uri": "local://evidence/m1-experiment/profiles/P2-security-denial/p2-summary.json",
+      "sha256": "06c8072f52ab0947b9ae7c60b03dd5c227a11ca27aff1fcc4fadcc53cc604e76",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "refs": [
+        "ART-TASK-0039-0007"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0039-0006",
+      "task_id": "TASK-0039",
+      "kind": "m1_fixture_project",
+      "name": "fixture-manifest.json",
+      "uri": "local://evidence/fixture-manifest.json",
+      "sha256": "62547dd4531942c64a8b404b3bcddc52117bc4c5e98ac53166beff450681c7a1",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-26T11:05:40Z",
+      "refs": [
+        "ART-TASK-0039-0008"
+      ]
+    }
+  ]
+}

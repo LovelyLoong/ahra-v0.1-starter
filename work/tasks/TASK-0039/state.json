@@ -1,0 +1,33 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0039",
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "state": "review",
+  "state_version": 3,
+  "owner": null,
+  "attempt": 1,
+  "lease": null,
+  "next_action": "Independent verifier should review TASK-0039 SG-9 evidence and run EvidenceGate; producer must not self-complete.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0039-0001",
+    "ART-TASK-0039-0002",
+    "ART-TASK-0039-0003",
+    "ART-TASK-0039-0004",
+    "ART-TASK-0039-0005",
+    "ART-TASK-0039-0006",
+    "ART-TASK-0039-0007",
+    "ART-TASK-0039-0008",
+    "ART-TASK-0039-HANDOFF-0001"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0039-0001",
+    "EVD-TASK-0039-0002",
+    "EVD-TASK-0039-0003",
+    "EVD-TASK-0039-0004",
+    "EVD-TASK-0039-0005",
+    "EVD-TASK-0039-0006"
+  ],
+  "updated_at": "2026-06-26T11:05:40Z"
+}

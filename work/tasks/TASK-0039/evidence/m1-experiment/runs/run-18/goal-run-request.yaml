@@ -1,0 +1,156 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: m1-minimal-loop-run-18
+  requestId: GREQ-M1-RUN-18
+  idempotencyKey: m1-minimal-loop-run-18
+spec:
+  profileRef: profile/m1-deterministic@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  workspaceRef: workspace
+  artifactDir: .ahra/artifacts
+  store:
+    kind: sqlite
+    path: .ahra/goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-M1-MINIMAL-LOOP
+    goalDigest: sha256:5151515151515151515151515151515151515151515151515151515151515151
+    claimGraphRef: claim-graph/m1-minimal-loop
+    claimGraphDigest: sha256:6161616161616161616161616161616161616161616161616161616161616161
+    requiredClaimRefs:
+    - CLM-DOC-HEALTH
+    - CLM-SECURITY-BOUNDARY
+    - CLM-GOAL-COMPLETE
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      repair: sha256:1212121212121212121212121212121212121212121212121212121212121212
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-doc-health: sha256:3333333333333333333333333333333333333333333333333333333333333333
+      GATE-security-boundary: sha256:3434343434343434343434343434343434343434343434343434343434343434
+      GATE-goal-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+    - filesystem.write
+  execution:
+    maxRepairCycles: 1
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-M1-MINIMAL-LOOP
+      proposedBy: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    spec:
+      rationale: Deterministic M1 minimal live loop fixture with two independent claims
+        and a terminal goal gate.
+      nodes:
+      - id: NODE-doc-health
+        nodeType: bounded_task
+        objective: Produce the deterministic document health output.
+        claimRefs:
+        - CLM-DOC-HEALTH
+        dependsOn: []
+        inputRefs:
+        - goal-contract.yaml
+        - docs/example.md
+        expectedOutputs:
+        - name: doc-health-output
+          schemaRef: schema/m1-deterministic-output@sha256:8888888888888888888888888888888888888888888888888888888888888888
+          consumerNodeRefs: []
+          deliveryRole: evidence
+          artifactRequired: true
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - outputs/doc-health.txt
+        gateRefs:
+        - GATE-doc-health
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 1
+          maxSpawnedNodes: 0
+          maxWallSeconds: 30
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: true
+        timeoutSeconds: 30
+        sideEffect: idempotent
+      - id: NODE-security-boundary
+        nodeType: bounded_task
+        objective: Produce the deterministic security boundary output.
+        claimRefs:
+        - CLM-SECURITY-BOUNDARY
+        dependsOn: []
+        inputRefs:
+        - project-profile.yaml
+        expectedOutputs:
+        - name: security-boundary-output
+          schemaRef: schema/m1-deterministic-output@sha256:8888888888888888888888888888888888888888888888888888888888888888
+          consumerNodeRefs: []
+          deliveryRole: evidence
+          artifactRequired: true
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - outputs/security-boundary.txt
+        gateRefs:
+        - GATE-security-boundary
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 1
+          maxSpawnedNodes: 0
+          maxWallSeconds: 30
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: true
+        timeoutSeconds: 30
+        sideEffect: idempotent
+      - id: NODE-goal-verification
+        nodeType: goal_verification
+        objective: Verify deterministic M1 Goal completion.
+        claimRefs:
+        - CLM-DOC-HEALTH
+        - CLM-SECURITY-BOUNDARY
+        - CLM-GOAL-COMPLETE
+        dependsOn:
+        - NODE-doc-health
+        - NODE-security-boundary
+        inputRefs:
+        - NODE-doc-health
+        - NODE-security-boundary
+        expectedOutputs: []
+        capabilityRequests: []
+        gateRefs:
+        - GATE-goal-complete
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 1
+          maxSpawnedNodes: 0
+          maxWallSeconds: 30
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        timeoutSeconds: 30
+        sideEffect: idempotent
+        terminalGoalVerification: true

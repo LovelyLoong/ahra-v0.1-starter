@@ -1,0 +1,36 @@
+{
+  "schema_version": "ahra/fixture-manifest/0.1",
+  "task_id": "TASK-0039",
+  "fixture_root": "tests/fixtures/m1-minimal-project",
+  "generated_at": "2026-06-26T11:05:40Z",
+  "files": [
+    {
+      "path": "tests/fixtures/m1-minimal-project/goal-contract.yaml",
+      "sha256": "2c71adbd0e8eb89a133c330541ae200e129d2d0d31d21985916465d2806e646c"
+    },
+    {
+      "path": "tests/fixtures/m1-minimal-project/project-profile.yaml",
+      "sha256": "564a77c85f2fe8f936068eb68bcebab8b67659e8e73e4739ccbc8848708dc33b"
+    },
+    {
+      "path": "tests/fixtures/m1-minimal-project/goal-run-request.yaml",
+      "sha256": "fcac4127463b0fc8ec445439269311e336987cf8de9d5769164f3135a30d05f9"
+    },
+    {
+      "path": "tests/fixtures/m1-minimal-project/src/doc_health.py",
+      "sha256": "7b53cc6ffbfea53f01736fb033da650445a9dd17d270681fa4bc85565d8458a3"
+    },
+    {
+      "path": "tests/fixtures/m1-minimal-project/docs/example.md",
+      "sha256": "f3abc151d72a3ac6673feda1e29cb9d450cb3b8d3713c2460af40aa905f502e1"
+    },
+    {
+      "path": "tests/fixtures/m1-minimal-project/tests/test_doc_health.py",
+      "sha256": "ab66c2980785841454fd6e583c15237a0b18d80ab00c1c0da338c89940bbe3f6"
+    },
+    {
+      "path": "tests/fixtures/m1-minimal-project/tests/test_security_boundary.py",
+      "sha256": "21e445c9ed1cef7b2534bb56eaebd13b91337de48d865fe6185aaa3ad882c0b6"
+    }
+  ]
+}

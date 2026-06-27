@@ -1,0 +1,14 @@
+{
+  "capabilityAdmissionCoverage": 1.0,
+  "pathEscapeExitCode": 0,
+  "pathEscapePlanStatus": "failed",
+  "pathEscapeWroteOutsideWorkspace": false,
+  "profile": "P2-security-denial",
+  "schema_version": "ahra/m1-experiment/0.1",
+  "unauthorizedWriteAllowed": false,
+  "widenedCapabilityErrorCodes": [
+    "capability-out-of-scope"
+  ],
+  "widenedCapabilityExitCode": 0,
+  "widenedCapabilityValid": false
+}

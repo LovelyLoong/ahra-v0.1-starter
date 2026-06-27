@@ -1,0 +1,214 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GoalExecutionRequest",
+  "metadata": {
+    "idempotencyKey": "m1-minimal-loop-run-03",
+    "name": "m1-minimal-loop-run-03",
+    "requestId": "GREQ-M1-RUN-03"
+  },
+  "spec": {
+    "artifactDir": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\.ahra\\artifacts",
+    "execution": {
+      "branch": "main",
+      "maxConcurrency": 1,
+      "maxRepairCycles": 1
+    },
+    "executor": {
+      "adapterRef": "executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "gateRunner": {
+      "adapterRef": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "goal": {
+      "claimGraphDigest": "sha256:6161616161616161616161616161616161616161616161616161616161616161",
+      "claimGraphRef": "claim-graph/m1-minimal-loop",
+      "goalDigest": "sha256:5151515151515151515151515151515151515151515151515151515151515151",
+      "goalRef": "GOAL-M1-MINIMAL-LOOP",
+      "requiredClaimRefs": [
+        "CLM-DOC-HEALTH",
+        "CLM-GOAL-COMPLETE",
+        "CLM-SECURITY-BOUNDARY"
+      ]
+    },
+    "planDraft": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanDraft",
+      "metadata": {
+        "goalId": "GOAL-M1-MINIMAL-LOOP",
+        "proposedBy": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "spec": {
+        "nodes": [
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 1,
+              "maxWallSeconds": 30
+            },
+            "capabilityRequests": [
+              {
+                "capability": "filesystem.write",
+                "resources": [
+                  "outputs/doc-health.txt"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLM-DOC-HEALTH"
+            ],
+            "dependsOn": [],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "doc-health-output",
+                "schemaRef": "schema/m1-deterministic-output@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+              }
+            ],
+            "gateRefs": [
+              "GATE-doc-health"
+            ],
+            "id": "NODE-doc-health",
+            "inputRefs": [
+              "docs/example.md",
+              "goal-contract.yaml"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Produce the deterministic document health output.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": true,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 30
+          },
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 1,
+              "maxWallSeconds": 30
+            },
+            "capabilityRequests": [
+              {
+                "capability": "filesystem.write",
+                "resources": [
+                  "outputs/security-boundary.txt"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLM-SECURITY-BOUNDARY"
+            ],
+            "dependsOn": [],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "evidence",
+                "name": "security-boundary-output",
+                "schemaRef": "schema/m1-deterministic-output@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+              }
+            ],
+            "gateRefs": [
+              "GATE-security-boundary"
+            ],
+            "id": "NODE-security-boundary",
+            "inputRefs": [
+              "project-profile.yaml"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Produce the deterministic security boundary output.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": true,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 30
+          },
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 1,
+              "maxWallSeconds": 30
+            },
+            "capabilityRequests": [],
+            "claimRefs": [
+              "CLM-DOC-HEALTH",
+              "CLM-GOAL-COMPLETE",
+              "CLM-SECURITY-BOUNDARY"
+            ],
+            "dependsOn": [
+              "NODE-doc-health",
+              "NODE-security-boundary"
+            ],
+            "expectedOutputs": [],
+            "gateRefs": [
+              "GATE-goal-complete"
+            ],
+            "id": "NODE-goal-verification",
+            "inputRefs": [
+              "NODE-doc-health",
+              "NODE-security-boundary"
+            ],
+            "nodeType": "goal_verification",
+            "objective": "Verify deterministic M1 Goal completion.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": true,
+            "timeoutSeconds": 30
+          }
+        ],
+        "rationale": "Deterministic M1 minimal live loop fixture with two independent claims and a terminal goal gate."
+      }
+    },
+    "planner": {
+      "adapterRef": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "profileRef": "profile/m1-deterministic@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "registry": {
+      "allowedCapabilities": [
+        "filesystem.write"
+      ],
+      "gateRefs": {
+        "GATE-doc-health": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "GATE-goal-complete": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "GATE-security-boundary": "sha256:3434343434343434343434343434343434343434343434343434343434343434"
+      },
+      "nodeTypes": {
+        "bounded_task": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "goal_verification": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "repair": "sha256:1212121212121212121212121212121212121212121212121212121212121212"
+      },
+      "runtimeRefs": {
+        "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    },
+    "runtime": {
+      "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "store": {
+      "kind": "sqlite",
+      "path": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\.ahra\\goal-control.sqlite3"
+    },
+    "workspaceRef": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\workspace"
+  }
+}

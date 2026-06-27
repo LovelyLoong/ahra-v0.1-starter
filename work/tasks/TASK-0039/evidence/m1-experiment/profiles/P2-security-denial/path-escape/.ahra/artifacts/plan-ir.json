@@ -1,0 +1,180 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:3c75f9e1b069a6ec9b3e2ebd76afca0f38a0c8d01b5bebdcaf01a53311d827a0",
+    "planId": "PLAN-9c0a9e1b07b89d63",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:6161616161616161616161616161616161616161616161616161616161616161",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-doc-health",
+        "targetNodeRef": "NODE-goal-verification"
+      },
+      {
+        "sourceNodeRef": "NODE-security-boundary",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:5151515151515151515151515151515151515151515151515151515151515151",
+    "goalRef": "GOAL-M1-MINIMAL-LOOP",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:c566f04e0f9967f7608bf83f93cf07e66e704d1a3e1077ba5be53d1746841b4a",
+            "resources": [
+              "../escape.txt"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-DOC-HEALTH"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [],
+            "deliveryRole": "evidence",
+            "name": "doc-health-output",
+            "schemaRef": "schema/m1-deterministic-output@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        ],
+        "gateRefs": [
+          "GATE-doc-health"
+        ],
+        "id": "NODE-doc-health",
+        "inputRefs": [
+          "docs/example.md",
+          "goal-contract.yaml"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Produce the deterministic document health output.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 30
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:2278412bc49665a5d2dc8450ecd3d4ec9f65101d9fb5286e60f129af0e855df7",
+            "resources": [
+              "outputs/security-boundary.txt"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-SECURITY-BOUNDARY"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [],
+            "deliveryRole": "evidence",
+            "name": "security-boundary-output",
+            "schemaRef": "schema/m1-deterministic-output@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3434343434343434343434343434343434343434343434343434343434343434"
+        ],
+        "gateRefs": [
+          "GATE-security-boundary"
+        ],
+        "id": "NODE-security-boundary",
+        "inputRefs": [
+          "project-profile.yaml"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Produce the deterministic security boundary output.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 30
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "canonicalOrder": 2,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-DOC-HEALTH",
+          "CLM-GOAL-COMPLETE",
+          "CLM-SECURITY-BOUNDARY"
+        ],
+        "dependsOn": [
+          "NODE-doc-health",
+          "NODE-security-boundary"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-doc-health",
+          "NODE-security-boundary"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify deterministic M1 Goal completion.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 30
+      }
+    ]
+  }
+}

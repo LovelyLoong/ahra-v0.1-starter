@@ -1,0 +1,26 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "DefectRecord",
+  "metadata": {
+    "createdAt": "2026-06-26T11:00:39.750583Z",
+    "defectId": "DEF-M1-DOC-HEALTH"
+  },
+  "spec": {
+    "actual": "GATE-doc-health failed deterministically",
+    "affectedClaimRefs": [
+      "CLM-DOC-HEALTH"
+    ],
+    "claimRef": "CLM-DOC-HEALTH",
+    "directClaimRefs": [
+      "CLM-DOC-HEALTH"
+    ],
+    "expected": "GATE-doc-health passes",
+    "gateRef": "GATE-doc-health",
+    "refs": [
+      "EVD-21cb667ff165107c",
+      "GATERUN-21cb667ff165107c"
+    ],
+    "repairBoundary": "node:NODE-doc-health",
+    "status": "open"
+  }
+}

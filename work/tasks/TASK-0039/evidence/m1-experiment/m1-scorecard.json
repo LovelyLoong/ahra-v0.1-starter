@@ -1,0 +1,70 @@
+{
+  "code_commit": "7a65ac64c71c19ec7790346815478be64ffc5848",
+  "executor_metrics": {
+    "acceptedNodeRate": 1.0,
+    "medianNodeRunCount": 3.0
+  },
+  "experiment_id": "EXP-TASK-0039-DETERMINISTIC-M1",
+  "hard_metrics": {
+    "capability_admission_coverage": 1.0,
+    "current_claim_coverage": 1.0,
+    "false_completion_count": 0,
+    "gate_execution_integrity": 1.0,
+    "repair_boundary_compliance": 1.0,
+    "resume_duplicate_effect_count": 0,
+    "stale_fencing_accept_count": 0,
+    "unauthorized_write_allowed": false,
+    "unrun_gate_pass_count": 0
+  },
+  "known_limitations": [
+    "The deterministic profile uses local SQLite and local process execution only.",
+    "The real-Agent pilot remains out of scope for TASK-0039 and belongs to TASK-0040."
+  ],
+  "planner_metrics": {
+    "planDraftFirstPassAdmissionRate": 1.0,
+    "plannerMode": "deterministic-inline-plan-draft"
+  },
+  "profile": "P0-P3 deterministic generic Goal operation",
+  "profiles": {
+    "P0/P3": [
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-01\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-02\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-03\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-04\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-05\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-06\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-07\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-08\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-09\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-10\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-11\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-12\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-13\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-14\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-15\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-16\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-17\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-18\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-19\\run-summary.json",
+      "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\runs\\run-20\\run-summary.json"
+    ],
+    "P1": "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\profiles\\P1-defect-repair\\p1-summary.json",
+    "P2": "work\\tasks\\TASK-0039\\evidence\\m1-experiment\\profiles\\P2-security-denial\\p2-summary.json"
+  },
+  "recovery_metrics": {
+    "duplicateEffectCount": 0,
+    "duplicateResumeCommandCount": 20,
+    "runOnceBeforeResumeCount": 20
+  },
+  "run_count": 20,
+  "schema_version": "ahra/m1-experiment/0.1",
+  "semanticDigestDistribution": {
+    "sha256:a0444fb00c2be36f0143876c00265addf5e66231ca8800cb3b671bb08cac456d": 20
+  },
+  "success_count": 20,
+  "verification_efficiency": {
+    "fullGateBaselineCost": 3,
+    "selectedGateCost": 2,
+    "weightedVerificationSaving": 0.33333333333333337
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "gateRuns": [
+    {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "GateRun",
+      "metadata": {
+        "completedAt": "2026-06-26T11:00:38.674746Z",
+        "gateRunId": "GATERUN-21cb667ff165107c",
+        "startedAt": "2026-06-26T11:00:38.674746Z"
+      },
+      "spec": {
+        "claimRefs": [
+          "CLM-DOC-HEALTH"
+        ],
+        "command": [
+          "deterministic-gate-runner",
+          "GATE-doc-health"
+        ],
+        "dependencies": [],
+        "environment": {
+          "policyDigest": "sha256:27ef88e8326eca5dff217f465eeba4c893e34b3c89ce8ab91373f89d8e6ca49c",
+          "relevantEnvironmentDigest": null,
+          "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "testDefinitionDigest": "sha256:247e21b8a99943ca128927bcdb4ecf68ec52a78d741739734ce0cde248c9bb03",
+          "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "evidenceRef": "EVD-21cb667ff165107c",
+        "fingerprint": "sha256:eabb289fa345bb3f5527776158bb879cc548f40a06723f53eaf9e7a6996c31f9",
+        "gateDefinitionDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "gateRef": "GATE-doc-health",
+        "result": "failed",
+        "subjects": [
+          {
+            "digest": "sha256:85afaadcfbb192eac5d59f56ee6f216812b95404a3cc003f21777b092edffcd9",
+            "ref": "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\profiles\\P1-defect-repair\\workspace\\outputs\\doc-health.txt"
+          }
+        ],
+        "validity": {
+          "state": "current",
+          "validUntil": null
+        }
+      }
+    },
+    {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "GateRun",
+      "metadata": {
+        "completedAt": "2026-06-26T11:00:39.486392Z",
+        "gateRunId": "GATERUN-ed4f922469687094",
+        "startedAt": "2026-06-26T11:00:39.486392Z"
+      },
+      "spec": {
+        "claimRefs": [
+          "CLM-SECURITY-BOUNDARY"
+        ],
+        "command": [
+          "deterministic-gate-runner",
+          "GATE-security-boundary"
+        ],
+        "dependencies": [
+          {
+            "digest": "sha256:1e039c5588e9e08e0105d1438026a764fa343d3238fbc5052ad048c6bff4c150",
+            "ref": "EVD-21cb667ff165107c"
+          }
+        ],
+        "environment": {
+          "policyDigest": "sha256:27ef88e8326eca5dff217f465eeba4c893e34b3c89ce8ab91373f89d8e6ca49c",
+          "relevantEnvironmentDigest": null,
+          "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "testDefinitionDigest": "sha256:247e21b8a99943ca128927bcdb4ecf68ec52a78d741739734ce0cde248c9bb03",
+          "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "evidenceRef": "EVD-ed4f922469687094",
+        "fingerprint": "sha256:105a9342aa94187379c933676e4772b8d2a8b0635a2215a5ceb52c42c653ade8",
+        "gateDefinitionDigest": "sha256:3434343434343434343434343434343434343434343434343434343434343434",
+        "gateRef": "GATE-security-boundary",
+        "result": "passed",
+        "subjects": [
+          {
+            "digest": "sha256:3a22ba0b98e9c864f80a2c8788e7e9283584259cc97da6a5810d80f4f0cdff23",
+            "ref": "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\profiles\\P1-defect-repair\\workspace\\outputs\\security-boundary.txt"
+          }
+        ],
+        "validity": {
+          "state": "current",
+          "validUntil": null
+        }
+      }
+    },
+    {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "GateRun",
+      "metadata": {
+        "completedAt": "2026-06-26T11:00:40.848586Z",
+        "gateRunId": "GATERUN-ddc36843d516728a",
+        "startedAt": "2026-06-26T11:00:40.848586Z"
+      },
+      "spec": {
+        "claimRefs": [
+          "CLM-DOC-HEALTH"
+        ],
+        "command": [
+          "deterministic-gate-runner",
+          "GATE-doc-health"
+        ],
+        "dependencies": [],
+        "environment": {
+          "policyDigest": "sha256:27ef88e8326eca5dff217f465eeba4c893e34b3c89ce8ab91373f89d8e6ca49c",
+          "relevantEnvironmentDigest": null,
+          "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "testDefinitionDigest": "sha256:247e21b8a99943ca128927bcdb4ecf68ec52a78d741739734ce0cde248c9bb03",
+          "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "evidenceRef": "EVD-ddc36843d516728a",
+        "fingerprint": "sha256:eabb289fa345bb3f5527776158bb879cc548f40a06723f53eaf9e7a6996c31f9",
+        "gateDefinitionDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "gateRef": "GATE-doc-health",
+        "result": "passed",
+        "subjects": [
+          {
+            "digest": "sha256:85afaadcfbb192eac5d59f56ee6f216812b95404a3cc003f21777b092edffcd9",
+            "ref": "file://E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0039\\evidence\\m1-experiment\\profiles\\P1-defect-repair\\workspace\\outputs\\doc-health.txt"
+          }
+        ],
+        "validity": {
+          "state": "current",
+          "validUntil": null
+        }
+      }
+    },
+    {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "GateRun",
+      "metadata": {
+        "completedAt": "2026-06-26T11:00:41.453914Z",
+        "gateRunId": "GATERUN-74630316f234ffb7",
+        "startedAt": "2026-06-26T11:00:41.453914Z"
+      },
+      "spec": {
+        "claimRefs": [
+          "CLM-DOC-HEALTH",
+          "CLM-GOAL-COMPLETE",
+          "CLM-SECURITY-BOUNDARY"
+        ],
+        "command": [
+          "deterministic-gate-runner",
+          "GATE-goal-complete"
+        ],
+        "dependencies": [
+          {
+            "digest": "sha256:1e039c5588e9e08e0105d1438026a764fa343d3238fbc5052ad048c6bff4c150",
+            "ref": "EVD-ddc36843d516728a"
+          }
+        ],
+        "environment": {
+          "policyDigest": "sha256:27ef88e8326eca5dff217f465eeba4c893e34b3c89ce8ab91373f89d8e6ca49c",
+          "relevantEnvironmentDigest": null,
+          "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "testDefinitionDigest": "sha256:247e21b8a99943ca128927bcdb4ecf68ec52a78d741739734ce0cde248c9bb03",
+          "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "evidenceRef": "EVD-74630316f234ffb7",
+        "fingerprint": "sha256:d4f3bdbfff8e0cd26c84a1ce4e241aa7a1a470345c3420ab945b9a257903ed7d",
+        "gateDefinitionDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "gateRef": "GATE-goal-complete",
+        "result": "passed",
+        "subjects": [
+          {
+            "digest": "sha256:10cd283f9ed6e30914fc2e4d3014603d4cdb3f212fc5b71cd57ed492764b8287",
+            "ref": "GATE-goal-complete"
+          }
+        ],
+        "validity": {
+          "state": "current",
+          "validUntil": null
+        }
+      }
+    }
+  ]
+}
