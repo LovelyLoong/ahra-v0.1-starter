@@ -1,0 +1,144 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0044",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-sg10-independent-review-0044",
+  "generated_at": "2026-06-28T07:52:09.954288Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent EvidenceGate review approves TASK-0044. The fix is scoped to timeout recovery and audit correctness, not Mode C promotion. TASK-0043 remains completed as a no-go package; isolated timeout handling now prefers durable child-run state over synthetic skipped results, finalizes a running GoalExecution whose active PlanExecution is terminal failed through GoalOperationService semantics, reconstructs Planner status from preserved artifacts, preserves no-state runner_timeout fallback, and keeps unavailable provider token/cost usage null. Focused tests, lint, AWKP lint, diff check, manifest/digest audit, and full tests passed.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "TASK-0043 remains completed as a no-go evidence package and Mode C remains non-default.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0044-0001",
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "TASK-0043 is completed at state_version 4 with an approved no-go EvidenceGate report; TASK-0044 report explicitly states this does not promote Mode C."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Timeout recovery prefers durable child-run evidence over synthetic skipped results when a timed-out isolated child wrote a request and SQLite store.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0044-0001",
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "scripts/run_real_agent_pilot.py TimeoutExpired path calls RealAgentPilotRunner.recover_timeout_run; recovery checks goal-run-request.yaml and .ahra/goal-control.sqlite3 before falling back."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "A GoalExecution left running with an active terminal failed PlanExecution is finalized to failed through the normal service path.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0044-0001",
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "GoalOperationService.finish_active_plan_if_terminal uses PlanExecutionService.finish_active_plan_execution, and tests assert a running GoalExecution with failed active PlanExecution becomes failed."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Recovered timeout run-result includes actual `goalExecutionId`, `planExecutionId`, `goalStatus`, `planStatus`, metrics and failure_class.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "Regression test asserts recovered run-result includes goalExecutionId, planExecutionId, failed goal/plan statuses, metrics, and timeout failure_class."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Planner status is reconstructed from preserved Planner/admission artifacts when wrapper stdout/stderr is unavailable.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "_planner_from_artifacts reconstructs accepted/rejected/blocked Planner state from preserved admission/output/blocker artifacts; regression test asserts accepted Planner reconstruction."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "If no durable state exists, the existing `runner_timeout` blocked behavior is preserved.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "Regression test confirms no durable request/SQLite state preserves the existing blocked runner_timeout synthetic behavior."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Provider token/cost unavailable fields remain null, not fabricated.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0044-0001",
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "Provider usage path is unchanged; existing tests and report confirm unavailable token/cost fields remain null rather than fabricated."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Regression tests cover recovered timeout state and no-state timeout fallback.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "Focused tests cover recovered timeout state, script timeout hook routing, service-level finalization, and no-state fallback."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Local verification runs the focused real-agent/goal-operation tests plus lint and diff checks.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "Independent rerun passed task inspect, custom audit, focused tests, lint, AWKP lint, git diff --check, and full test suite."
+    },
+    {
+      "criterion_index": 10,
+      "criterion": "Producer moves task only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0044-0001",
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "Producer left TASK-0044 in review at state_version 3 with lease released; this independent EvidenceGate approval is the completion authority."
+    }
+  ],
+  "commands": [
+    {
+      "command": "custom TASK-0044 state, manifest, digest, criteria, and implementation hook audit",
+      "status": "passed",
+      "result": "errors 0"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0044",
+      "status": "passed",
+      "result": "Task is in review at state_version=3; manifests parse and local hashes pass inspect."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.test_real_agent_pilot tests.test_goal_operations -v",
+      "status": "passed",
+      "result": "18 tests passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "result": "AWKP lint 0 errors/0 warnings; AHRA lint 0 failures."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "result": "AWKP lint 0 errors/0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "status": "passed",
+      "result": "199 tests passed, 2 skipped."
+    }
+  ]
+}

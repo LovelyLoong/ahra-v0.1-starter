@@ -2,22 +2,24 @@
   "artifact_refs": [
     "ART-TASK-0044-0001",
     "ART-TASK-0044-0002",
-    "ART-TASK-0044-HANDOFF-0001"
+    "ART-TASK-0044-HANDOFF-0001",
+    "ART-TASK-0044-0003"
   ],
   "attempt": 1,
   "blockers": [],
   "context_id": "CTX-ahra-dynamic-kernel",
   "evidence_refs": [
     "EVD-TASK-0044-0001",
-    "EVD-TASK-0044-0002"
+    "EVD-TASK-0044-0002",
+    "EVD-TASK-0044-0003"
   ],
   "lease": null,
-  "next_action": "Await independent EvidenceGate review of the TASK-0044 timeout recovery evidence package; producer did not mark completion.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "owner": null,
   "pause_reason": null,
   "schema_version": "awkp/0.1",
-  "state": "review",
-  "state_version": 3,
+  "state": "completed",
+  "state_version": 4,
   "task_id": "TASK-0044",
-  "updated_at": "2026-06-28T07:45:35.840769Z"
+  "updated_at": "2026-06-28T07:52:09.954288Z"
 }
