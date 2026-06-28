@@ -5,7 +5,7 @@ import json
 import shutil
 import subprocess
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, Mapping
@@ -32,6 +32,7 @@ from .goal_operations import (
 from .planner_contracts import ExecutionPlanningRequest, PlannerBudgetLimits, PlannerContextRequest
 from .planning import AgentDriverExecutionPlannerAdapter, PlannerAdapterError, PlannerContextBuilder, PlannerOutputValidator
 from .ports import AgentDriver, AgentDriverRegistry
+from .reference_runner.models import ExecutionPolicy
 
 
 REAL_AGENT_PILOT_SCHEMA_VERSION = "ahra/real-agent-pilot/0.1"
@@ -56,6 +57,14 @@ class RealAgentPilotConfig:
     allow_combined: bool = False
     risk_level: str = "R1"
     token_budget: int = 4096
+    executor_policy: ExecutionPolicy = field(default_factory=lambda: ExecutionPolicy(
+        max_attempts=1,
+        startup_timeout_seconds=60,
+        idle_timeout_seconds=120,
+        heartbeat_interval_seconds=15,
+        attempt_wall_timeout_seconds=180,
+        run_deadline_seconds=240,
+    ))
 
     def __post_init__(self) -> None:
         if self.repetitions < 1:
@@ -78,7 +87,81 @@ class RealAgentPilotRunner:
 
     def run(self, config: RealAgentPilotConfig) -> dict[str, Any]:
         config.output_dir.mkdir(parents=True, exist_ok=True)
-        runs = [self._run_repetition(config, index) for index in range(1, config.repetitions + 1)]
+        runs = [self.run_one(config, index) for index in range(1, config.repetitions + 1)]
+        return self.write_scorecard(config, runs)
+
+    def run_one(self, config: RealAgentPilotConfig, index: int) -> dict[str, Any]:
+        run_id = f"{config.experiment_id}-R{index:02d}"
+        run_dir = config.output_dir / f"run-{index:02d}"
+        started = time.perf_counter()
+        try:
+            run = self._run_repetition(config, index)
+        except Exception as exc:
+            run_dir.mkdir(parents=True, exist_ok=True)
+            run = _blocked_run(
+                config=config,
+                run_id=run_id,
+                run_dir=run_dir,
+                failure_class="pilot_runner_exception",
+                message=f"{type(exc).__name__}: {exc}",
+                elapsed_seconds=_elapsed(started),
+                request_path=run_dir / "goal-run-request.yaml" if (run_dir / "goal-run-request.yaml").exists() else None,
+                details={"exceptionType": type(exc).__name__},
+            )
+        _write_json(run_dir / "run-result.json", run)
+        return run
+
+    def timeout_run(
+        self,
+        config: RealAgentPilotConfig,
+        index: int,
+        *,
+        elapsed_seconds: float,
+        message: str,
+        details: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        run_id = f"{config.experiment_id}-R{index:02d}"
+        run_dir = config.output_dir / f"run-{index:02d}"
+        run_dir.mkdir(parents=True, exist_ok=True)
+        run = _blocked_run(
+            config=config,
+            run_id=run_id,
+            run_dir=run_dir,
+            failure_class="runner_timeout",
+            message=message,
+            elapsed_seconds=elapsed_seconds,
+            request_path=run_dir / "goal-run-request.yaml" if (run_dir / "goal-run-request.yaml").exists() else None,
+            details=dict(details or {}),
+        )
+        _write_json(run_dir / "run-result.json", run)
+        return run
+
+    def process_failed_run(
+        self,
+        config: RealAgentPilotConfig,
+        index: int,
+        *,
+        elapsed_seconds: float,
+        message: str,
+        details: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        run_id = f"{config.experiment_id}-R{index:02d}"
+        run_dir = config.output_dir / f"run-{index:02d}"
+        run_dir.mkdir(parents=True, exist_ok=True)
+        run = _blocked_run(
+            config=config,
+            run_id=run_id,
+            run_dir=run_dir,
+            failure_class="pilot_child_process_failed",
+            message=message,
+            elapsed_seconds=elapsed_seconds,
+            request_path=run_dir / "goal-run-request.yaml" if (run_dir / "goal-run-request.yaml").exists() else None,
+            details=dict(details or {}),
+        )
+        _write_json(run_dir / "run-result.json", run)
+        return run
+
+    def write_scorecard(self, config: RealAgentPilotConfig, runs: list[dict[str, Any]]) -> dict[str, Any]:
         scorecard = self._scorecard(config, runs)
         _write_json(config.output_dir / "scorecard.json", scorecard)
         return scorecard
@@ -274,6 +357,7 @@ class RealAgentPilotRunner:
         return GoalOperationService(
             real_executor_driver=self.executor_driver,
             real_executor_store_dir=run_dir / ".ahra" / "bounded-task-executor",
+            real_executor_execution_policy=config.executor_policy,
         )
 
     def _scorecard(self, config: RealAgentPilotConfig, runs: list[dict[str, Any]]) -> dict[str, Any]:
@@ -291,6 +375,7 @@ class RealAgentPilotRunner:
             "claim_graph_digest": template.claim_graph_digest,
             "policy_digest": canonical_fingerprint(profile),
             "runtime_digest": LOCAL_GOAL_RUNTIME_DIGEST,
+            "execution_policy": _execution_policy_dict(config.executor_policy),
             "planner_release": profile["plannerAdapterRef"],
             "executor_release": profile["executorAdapterRef"],
             "verifier_releases": [DETERMINISTIC_GATE_RUNNER_REF],
@@ -347,7 +432,7 @@ def _request_document(config: RealAgentPilotConfig, run_id: str) -> dict[str, An
     runtime_refs[LOCAL_GOAL_RUNTIME_REF] = LOCAL_GOAL_RUNTIME_DIGEST
     registry["runtimeRefs"] = runtime_refs
     if _uses_real_executor(config.mode):
-        _expand_real_executor_node_budgets(spec)
+        _expand_real_executor_node_budgets(spec, config.executor_policy)
     return data
 
 
@@ -379,7 +464,7 @@ def _uses_real_executor(mode: PilotMode) -> bool:
     return mode in {PilotMode.REAL_EXECUTOR, PilotMode.COMBINED}
 
 
-def _expand_real_executor_node_budgets(spec: dict[str, Any]) -> None:
+def _expand_real_executor_node_budgets(spec: dict[str, Any], policy: ExecutionPolicy) -> None:
     plan_draft = spec.get("planDraft")
     if not isinstance(plan_draft, dict):
         return
@@ -392,6 +477,8 @@ def _expand_real_executor_node_budgets(spec: dict[str, Any]) -> None:
         budget = node.setdefault("budgetRequest", {})
         budget["maxModelCalls"] = max(int(budget.get("maxModelCalls") or 0), 2)
         budget["maxToolCalls"] = max(int(budget.get("maxToolCalls") or 0), 1)
+        budget["maxWallSeconds"] = max(int(budget.get("maxWallSeconds") or 0), policy.attempt_wall_timeout_seconds)
+        node["timeoutSeconds"] = max(int(node.get("timeoutSeconds") or 0), policy.attempt_wall_timeout_seconds)
 
 
 def _planner_budget_limits(request: Any) -> PlannerBudgetLimits:
@@ -548,6 +635,17 @@ def _execution_failure_class(inspect: Mapping[str, Any]) -> str | None:
     return None
 
 
+def _execution_policy_dict(policy: ExecutionPolicy) -> dict[str, int]:
+    return {
+        "max_attempts": policy.max_attempts,
+        "startup_timeout_seconds": policy.startup_timeout_seconds,
+        "idle_timeout_seconds": policy.idle_timeout_seconds,
+        "heartbeat_interval_seconds": policy.heartbeat_interval_seconds,
+        "attempt_wall_timeout_seconds": policy.attempt_wall_timeout_seconds,
+        "run_deadline_seconds": policy.run_deadline_seconds,
+    }
+
+
 def _blocked_run(
     *,
     config: RealAgentPilotConfig,
@@ -559,6 +657,7 @@ def _blocked_run(
     planner: Mapping[str, Any] | None = None,
     request_path: Path | None = None,
     refs: tuple[str, ...] = (),
+    details: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "schema_version": "ahra/real-agent-pilot-run/0.1",
@@ -574,6 +673,7 @@ def _blocked_run(
         "failure_class": failure_class,
         "message": message,
         "refs": list(refs),
+        "details": dict(details or {}),
         "elapsed_seconds": elapsed_seconds,
     }
 

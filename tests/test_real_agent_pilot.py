@@ -49,6 +49,14 @@ class PilotExecutorDriver:
         )
 
 
+class RaisingService:
+    def validate(self, request_path: Path) -> dict[str, Any]:
+        return {"valid": True}
+
+    def start(self, request_path: Path) -> dict[str, Any]:
+        raise RuntimeError("adapter exploded")
+
+
 class RealAgentPilotTests(unittest.TestCase):
     def test_mode_a_real_planner_output_is_admitted_before_goal_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -148,6 +156,28 @@ class RealAgentPilotTests(unittest.TestCase):
 
             self.assertEqual(raised.exception.code, "real_executor_driver_unavailable")
             self.assertFalse((Path(temp) / ".ahra" / "goal-control.sqlite3").exists())
+
+    def test_pilot_runner_records_unexpected_service_exception_as_blocker(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            scorecard = RealAgentPilotRunner(
+                executor_driver=PilotExecutorDriver(),
+                service_factory=lambda config, run_dir: RaisingService(),
+            ).run(
+                RealAgentPilotConfig(
+                    experiment_id="PILOT-B-EXCEPTION",
+                    mode=PilotMode.REAL_EXECUTOR,
+                    request_template=EXAMPLE,
+                    output_dir=Path(temp),
+                    repetitions=1,
+                )
+            )
+
+            run = scorecard["runs"][0]
+            self.assertEqual(scorecard["success_count"], 0)
+            self.assertEqual(run["status"], "blocked")
+            self.assertEqual(run["failure_class"], "pilot_runner_exception")
+            self.assertIn("RuntimeError", run["message"])
+            self.assertTrue((Path(temp) / "run-01" / "run-result.json").exists())
 
 
 def _template_draft() -> dict[str, Any]:
