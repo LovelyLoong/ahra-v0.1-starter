@@ -18,6 +18,8 @@ from ahra.ports import AgentDriverRegistry  # noqa: E402
 from ahra.reference_runner.models import ExecutionPolicy  # noqa: E402
 from ahra.real_agent_pilot import PilotMode, RealAgentPilotConfig, RealAgentPilotRunner  # noqa: E402
 
+ISOLATED_TIMEOUT_GRACE_SECONDS = 15
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run a bounded real-Agent M1 pilot.")
@@ -99,6 +101,7 @@ def _runner(args: argparse.Namespace) -> RealAgentPilotRunner:
 def _run_isolated_repetitions(args: argparse.Namespace, config: RealAgentPilotConfig) -> dict[str, object]:
     runner = RealAgentPilotRunner()
     runs = []
+    effective_timeout = _effective_repetition_timeout(args, config.mode)
     for index in range(1, config.repetitions + 1):
         started = time.perf_counter()
         try:
@@ -107,7 +110,7 @@ def _run_isolated_repetitions(args: argparse.Namespace, config: RealAgentPilotCo
                 cwd=str(ROOT),
                 text=True,
                 capture_output=True,
-                timeout=args.repetition_timeout_seconds,
+                timeout=effective_timeout,
                 check=False,
             )
         except subprocess.TimeoutExpired as exc:
@@ -116,8 +119,12 @@ def _run_isolated_repetitions(args: argparse.Namespace, config: RealAgentPilotCo
                     config,
                     index,
                     elapsed_seconds=round(time.perf_counter() - started, 6),
-                    message=f"single repetition exceeded process timeout ({args.repetition_timeout_seconds}s)",
+                    message=f"single repetition exceeded process timeout ({effective_timeout}s)",
                     details={
+                        "requestedRepetitionTimeoutSeconds": args.repetition_timeout_seconds,
+                        "effectiveRepetitionTimeoutSeconds": effective_timeout,
+                        "executorRunDeadlineSeconds": args.executor_run_deadline_seconds,
+                        "timeoutPolicy": "isolated watchdog is floored above executor run deadline for real Executor modes",
                         "stdoutTail": _tail(exc.stdout),
                         "stderrTail": _tail(exc.stderr),
                     },
@@ -145,6 +152,14 @@ def _run_isolated_repetitions(args: argparse.Namespace, config: RealAgentPilotCo
             )
         )
     return runner.write_scorecard(config, runs)
+
+
+def _effective_repetition_timeout(args: argparse.Namespace, mode: PilotMode) -> int:
+    requested = int(args.repetition_timeout_seconds)
+    if mode not in {PilotMode.REAL_EXECUTOR, PilotMode.COMBINED}:
+        return requested
+    executor_deadline = int(args.executor_run_deadline_seconds)
+    return max(requested, executor_deadline + ISOLATED_TIMEOUT_GRACE_SECONDS)
 
 
 def _single_repetition_argv(args: argparse.Namespace, index: int) -> list[str]:

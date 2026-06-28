@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import copy
+import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import yaml
@@ -16,6 +18,7 @@ from ahra.reference_runner.models import WorkReport
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / "examples" / "m1" / "goal-run-request.yaml"
+PILOT_SCRIPT = ROOT / "scripts" / "run_real_agent_pilot.py"
 
 
 class PilotPlannerDriver:
@@ -190,9 +193,44 @@ class RealAgentPilotTests(unittest.TestCase):
             self.assertTrue((Path(temp) / "run-01" / "run-result.json").exists())
 
 
+class RealAgentPilotScriptTests(unittest.TestCase):
+    def test_isolated_watchdog_does_not_preempt_real_executor_deadline(self) -> None:
+        script = _load_pilot_script()
+        args = SimpleNamespace(repetition_timeout_seconds=120, executor_run_deadline_seconds=240)
+
+        timeout = script._effective_repetition_timeout(args, PilotMode.REAL_EXECUTOR)
+
+        self.assertEqual(timeout, 255)
+
+    def test_isolated_watchdog_preserves_planner_only_timeout(self) -> None:
+        script = _load_pilot_script()
+        args = SimpleNamespace(repetition_timeout_seconds=120, executor_run_deadline_seconds=240)
+
+        timeout = script._effective_repetition_timeout(args, PilotMode.REAL_PLANNER)
+
+        self.assertEqual(timeout, 120)
+
+    def test_isolated_watchdog_keeps_larger_operator_timeout(self) -> None:
+        script = _load_pilot_script()
+        args = SimpleNamespace(repetition_timeout_seconds=300, executor_run_deadline_seconds=240)
+
+        timeout = script._effective_repetition_timeout(args, PilotMode.REAL_EXECUTOR)
+
+        self.assertEqual(timeout, 300)
+
+
 def _template_draft() -> dict[str, Any]:
     data = yaml.safe_load(EXAMPLE.read_text(encoding="utf-8"))
     return copy.deepcopy(data["spec"]["planDraft"])
+
+
+def _load_pilot_script():
+    spec = importlib.util.spec_from_file_location("run_real_agent_pilot_script", PILOT_SCRIPT)
+    if spec is None or spec.loader is None:
+        raise AssertionError("could not load run_real_agent_pilot.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 if __name__ == "__main__":
