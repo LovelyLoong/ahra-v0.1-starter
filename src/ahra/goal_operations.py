@@ -4,7 +4,7 @@ import asyncio
 import json
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
 
 import yaml
 
@@ -39,11 +39,19 @@ from .verification import (
     VerificationTrigger,
 )
 
+if TYPE_CHECKING:
+    from .ports import AgentDriver
+
 
 GOAL_OPERATION_SCHEMA_VERSION = "ahra/goal-operation/0.1"
 M1_PROFILE_REF = "profile/m1-deterministic@sha256:" + "a" * 64
+M1_REAL_PLANNER_PROFILE_REF = "profile/m1-real-planner@sha256:" + "f" * 64
+M1_REAL_EXECUTOR_PROFILE_REF = "profile/m1-real-executor@sha256:" + "9" * 64
+M1_REAL_COMBINED_PROFILE_REF = "profile/m1-real-combined@sha256:" + "8" * 64
 INLINE_PLANNER_REF = "planner/inline-plan-draft@sha256:" + "b" * 64
+REAL_PLANNER_ADAPTER_REF = "planner/agent-driver-plan-draft@sha256:" + "7" * 64
 DETERMINISTIC_EXECUTOR_REF = "executor/deterministic-file-effect@sha256:" + "c" * 64
+REAL_BOUNDED_EXECUTOR_REF = "executor/bounded-task-agent-driver@sha256:" + "6" * 64
 DETERMINISTIC_GATE_RUNNER_REF = "gate-runner/deterministic@sha256:" + "d" * 64
 LOCAL_GOAL_RUNTIME_REF = "runtime/local-goal@sha256:" + "e" * 64
 LOCAL_GOAL_RUNTIME_DIGEST = "sha256:" + "e" * 64
@@ -201,6 +209,39 @@ class GoalOperationProfileRegistry:
                 executable_node_types=frozenset({"bounded_task", "repair"}),
                 scheduler_node_types=frozenset({"goal_verification", "gate_verification"}),
             ),
+            GoalOperationProfile(
+                profile_ref=M1_REAL_PLANNER_PROFILE_REF,
+                planner_adapter_ref=REAL_PLANNER_ADAPTER_REF,
+                executor_adapter_ref=DETERMINISTIC_EXECUTOR_REF,
+                gate_runner_adapter_ref=DETERMINISTIC_GATE_RUNNER_REF,
+                runtime_ref=LOCAL_GOAL_RUNTIME_REF,
+                runtime_digest=LOCAL_GOAL_RUNTIME_DIGEST,
+                store_kinds=frozenset({"sqlite"}),
+                executable_node_types=frozenset({"bounded_task", "repair"}),
+                scheduler_node_types=frozenset({"goal_verification", "gate_verification"}),
+            ),
+            GoalOperationProfile(
+                profile_ref=M1_REAL_EXECUTOR_PROFILE_REF,
+                planner_adapter_ref=INLINE_PLANNER_REF,
+                executor_adapter_ref=REAL_BOUNDED_EXECUTOR_REF,
+                gate_runner_adapter_ref=DETERMINISTIC_GATE_RUNNER_REF,
+                runtime_ref=LOCAL_GOAL_RUNTIME_REF,
+                runtime_digest=LOCAL_GOAL_RUNTIME_DIGEST,
+                store_kinds=frozenset({"sqlite"}),
+                executable_node_types=frozenset({"bounded_task", "repair"}),
+                scheduler_node_types=frozenset({"goal_verification", "gate_verification"}),
+            ),
+            GoalOperationProfile(
+                profile_ref=M1_REAL_COMBINED_PROFILE_REF,
+                planner_adapter_ref=REAL_PLANNER_ADAPTER_REF,
+                executor_adapter_ref=REAL_BOUNDED_EXECUTOR_REF,
+                gate_runner_adapter_ref=DETERMINISTIC_GATE_RUNNER_REF,
+                runtime_ref=LOCAL_GOAL_RUNTIME_REF,
+                runtime_digest=LOCAL_GOAL_RUNTIME_DIGEST,
+                store_kinds=frozenset({"sqlite"}),
+                executable_node_types=frozenset({"bounded_task", "repair"}),
+                scheduler_node_types=frozenset({"goal_verification", "gate_verification"}),
+            ),
         )
         self._profiles = {profile.profile_ref: profile for profile in default_profiles}
 
@@ -218,8 +259,24 @@ class GoalOperationProfileRegistry:
 
 
 class GoalOperationService:
-    def __init__(self, profiles: GoalOperationProfileRegistry | None = None) -> None:
+    def __init__(
+        self,
+        profiles: GoalOperationProfileRegistry | None = None,
+        *,
+        real_executor_driver: "AgentDriver | None" = None,
+        real_executor_store_dir: Path | str | None = None,
+        real_executor_workspace_provider: Any | None = None,
+        real_executor_runtime_provider: Any | None = None,
+        real_executor_runtime_profile_ref: str | None = None,
+        real_executor_execution_policy: Any | None = None,
+    ) -> None:
         self.profiles = profiles or GoalOperationProfileRegistry()
+        self.real_executor_driver = real_executor_driver
+        self.real_executor_store_dir = Path(real_executor_store_dir) if real_executor_store_dir else None
+        self.real_executor_workspace_provider = real_executor_workspace_provider
+        self.real_executor_runtime_provider = real_executor_runtime_provider
+        self.real_executor_runtime_profile_ref = real_executor_runtime_profile_ref
+        self.real_executor_execution_policy = real_executor_execution_policy
 
     def validate(self, request_path: Path | str) -> dict[str, Any]:
         bundle = self.plan_bundle(request_path)
@@ -256,6 +313,7 @@ class GoalOperationService:
     def start(self, request_path: Path | str, *, run_once: bool = False) -> dict[str, Any]:
         bundle = self._require_admitted_plan(request_path)
         request = bundle.request
+        self._ensure_runtime_dependencies(request)
         request.artifact_dir.mkdir(parents=True, exist_ok=True)
         request.workspace_ref.mkdir(parents=True, exist_ok=True)
         self.plan(request_path)
@@ -329,6 +387,7 @@ class GoalOperationService:
     def resume(self, goal_execution_id: str, *, request_path: Path | str) -> dict[str, Any]:
         bundle = self._require_admitted_plan(request_path)
         request = bundle.request
+        self._ensure_runtime_dependencies(request)
         if request.goal_execution_id != goal_execution_id:
             raise GoalOperationError(
                 "goal_execution_request_mismatch",
@@ -483,8 +542,36 @@ class GoalOperationService:
 
     def _scheduler(self, request: GoalExecutionRequest, store: SQLiteControlStore) -> StaticPlanScheduler:
         registry = NodeExecutorRegistry()
-        for node_type in ("bounded_task", "repair"):
-            registry.register(DeterministicFileEffectExecutor(node_type=node_type, store=store))
+        executor_release_refs = {
+            "bounded_task": DETERMINISTIC_EXECUTOR_REF,
+            "repair": DETERMINISTIC_EXECUTOR_REF,
+        }
+        if request.executor_adapter_ref == REAL_BOUNDED_EXECUTOR_REF:
+            self._ensure_runtime_dependencies(request)
+            from .reference_runner.bounded_task import BoundedTaskExecutor
+            from .reference_runner.store import FileRunStore
+
+            assert self.real_executor_driver is not None
+            run_dir = self.real_executor_store_dir or request.artifact_dir / "bounded-task-executor"
+            registry.register(
+                BoundedTaskExecutor(
+                    self.real_executor_driver,
+                    store=FileRunStore(run_dir),
+                    workspace_provider=self.real_executor_workspace_provider,
+                    runtime_provider=self.real_executor_runtime_provider,
+                    runtime_profile_ref=self.real_executor_runtime_profile_ref,
+                    execution_policy=self.real_executor_execution_policy,
+                    release_ref=REAL_BOUNDED_EXECUTOR_REF,
+                )
+            )
+            registry.register(DeterministicFileEffectExecutor(node_type="repair", store=store))
+            executor_release_refs = {
+                "bounded_task": REAL_BOUNDED_EXECUTOR_REF,
+                "repair": DETERMINISTIC_EXECUTOR_REF,
+            }
+        else:
+            for node_type in ("bounded_task", "repair"):
+                registry.register(DeterministicFileEffectExecutor(node_type=node_type, store=store))
         gate_registry = GateRunnerRegistry()
         gate_registry.register(DeterministicGateRunner())
         verification_executor = VerificationExecutor(gate_registry)
@@ -493,10 +580,7 @@ class GoalOperationService:
         return StaticPlanScheduler(
             service=PlanExecutionService(store),  # type: ignore[arg-type]
             executor_registry=registry,
-            executor_release_refs={
-                "bounded_task": DETERMINISTIC_EXECUTOR_REF,
-                "repair": DETERMINISTIC_EXECUTOR_REF,
-            },
+            executor_release_refs=executor_release_refs,
             verification_service=verification_service,
             verification_executor=verification_executor,
             verification_environment=EvidenceEnvironment(
@@ -510,6 +594,14 @@ class GoalOperationService:
             lease_holder="scheduler:goal-operation-cli",
             lease_ttl_seconds=300,
         )
+
+    def _ensure_runtime_dependencies(self, request: GoalExecutionRequest) -> None:
+        if request.executor_adapter_ref == REAL_BOUNDED_EXECUTOR_REF and self.real_executor_driver is None:
+            raise GoalOperationError(
+                "real_executor_driver_unavailable",
+                "real bounded Executor profile requires an injected AgentDriver before execution starts",
+                refs=(request.profile_ref, request.executor_adapter_ref),
+            )
 
     def _finish_goal_if_ready(
         self,
@@ -907,4 +999,3 @@ def _unique_refs(values: Any) -> tuple[str, ...]:
         if text not in result:
             result.append(text)
     return tuple(result)
-

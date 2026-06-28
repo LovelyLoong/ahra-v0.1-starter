@@ -1,0 +1,28 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0040",
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "state": "working",
+  "state_version": 3,
+  "owner": "agent:codex-dynamic-kernel-operator",
+  "attempt": 1,
+  "lease": {
+    "holder": "agent:codex-dynamic-kernel-operator",
+    "token": "LEASE-TASK-0040-0002",
+    "acquired_at": "2026-06-28T02:24:20Z",
+    "expires_at": "2026-06-28T02:54:20Z"
+  },
+  "next_action": "Run or explicitly authorize five-repetition Mode A and Mode B real-Agent pilots, then publish scorecards and failure taxonomy for independent review.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0040-0001",
+    "ART-TASK-0040-0002",
+    "ART-TASK-0040-HANDOFF-0001"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0040-0001",
+    "EVD-TASK-0040-0002"
+  ],
+  "updated_at": "2026-06-28T02:24:20Z"
+}

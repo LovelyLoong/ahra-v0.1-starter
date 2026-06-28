@@ -1,0 +1,62 @@
+{
+  "schema_version": "ahra/task-verification-progress/0.1",
+  "task_id": "TASK-0040",
+  "created_at": "2026-06-28T02:24:20Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "scope": "first bounded real-Agent pilot implementation increment",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_real_agent_pilot -v",
+      "exit_code": 0,
+      "result": "5 tests passed"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_goal_operations tests.test_planning tests.test_node_executor -v",
+      "exit_code": 0,
+      "result": "18 tests passed"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\run_real_agent_pilot.py --mode mode_a_real_planner --output-dir <temp> --experiment-id SCRIPT-NOCOST --repetitions 1",
+      "exit_code": 0,
+      "result": "no-cost default produced planner-driver-unavailable blocker scorecard without registering CodexSDKDriver"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "result": "AWKP lint 0 errors, 0 warnings; AHRA lint 0 failures"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "no whitespace errors"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "result": "AWKP lint 0 errors, 0 warnings"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "exit_code": 0,
+      "result": "189 tests passed, 2 skipped"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -c \"import importlib.util; print('openai_codex=' + ('installed' if importlib.util.find_spec('openai_codex') else 'missing'))\"",
+      "exit_code": 0,
+      "result": "openai_codex=missing"
+    }
+  ],
+  "accepted_claims_for_this_increment": [
+    "Planner output is admitted or rejected before GoalExecution start in Mode A.",
+    "Real bounded Executor profile fails closed before durable start when no AgentDriver is injected.",
+    "Real bounded Executor execution goes through the normal scheduler and has capability grant coverage.",
+    "Real model execution is gated behind an explicit operator cost flag."
+  ],
+  "not_yet_completed": [
+    "install or otherwise provide the optional openai_codex adapter",
+    "five-repetition real model Mode A pilot",
+    "five-repetition real model Mode B pilot",
+    "Mode C go/no-go decision from actual Mode A/B scorecards",
+    "independent EvidenceGate review for TASK-0040"
+  ]
+}
