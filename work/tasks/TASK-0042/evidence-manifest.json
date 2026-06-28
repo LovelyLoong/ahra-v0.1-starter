@@ -129,6 +129,27 @@
       "sha256": "950d2c8e4090436c47406cc86c7263897b84dbe5f59058aa381439ba9b728f9b",
       "task_id": "TASK-0042",
       "uri": "local://evidence/evidence-gate-response-5.json"
+    },
+    {
+      "evidence_id": "EVD-TASK-0042-0009",
+      "task_id": "TASK-0042",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-7.json",
+      "uri": "local://evidence/evidence-gate-report-7.json",
+      "sha256": "7ccf8778a480e382e191e8b1270f7cc5f9b0c9cbfbc91b880faab84df54349fe",
+      "media_type": "application/json",
+      "created_by": "agent:codex-sg10-independent-rereview-0042",
+      "created_at": "2026-06-28T06:25:18.210340Z",
+      "refs": [
+        "ART-TASK-0042-0009",
+        "EVD-TASK-0042-0001",
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0003",
+        "EVD-TASK-0042-0004",
+        "EVD-TASK-0042-0005",
+        "EVD-TASK-0042-0006",
+        "EVD-TASK-0042-0008"
+      ]
     }
   ],
   "schema_version": "awkp/0.1",

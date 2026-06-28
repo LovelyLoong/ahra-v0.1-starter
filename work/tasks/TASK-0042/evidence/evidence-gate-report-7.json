@@ -1,0 +1,134 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0042",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-sg10-independent-rereview-0042",
+  "generated_at": "2026-06-28T06:25:18.210340Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent SG-10 re-review approves TASK-0042. The prior changes_requested findings are addressed: verification-summary internal SHA claims now match current scorecard, unavailable provider token/cost usage is null and recorded per run, Mode B remains 5/5 successful with hard metrics zero, timeout root cause is classified as adapter process control, and Mode C remains no-go pending separate authorization.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Mode B timeout root causes are classified as model latency, adapter process control, prompt/tool contract, environment setup, or kernel defect.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0001",
+        "EVD-TASK-0042-0004",
+        "EVD-TASK-0042-0008"
+      ],
+      "notes": "Timeout taxonomy classifies TASK-0040 Mode B timeouts as adapter_process_control / outer watchdog preemption, not kernel defect."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Every Executor side effect remains capability-admitted before execution.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0003"
+      ],
+      "notes": "Each Mode B run has capabilityGrantRefCount=1 plus bounded executor and deterministic gate evidence."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "At least five post-change Mode B repetitions are executed, or a setup blocker is classified without weakening criteria.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0005"
+      ],
+      "notes": "Post-change Mode B scorecard records five repetitions."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "At least one Mode B run completes successfully, or the report identifies a reproducible executor/runtime blocker.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0003",
+        "EVD-TASK-0042-0005"
+      ],
+      "notes": "All five Mode B runs completed successfully and independent inspect reports zero missing artifacts."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Hard safety metrics remain zero for false completion, unrun gate pass, unadmitted node execution, stale fencing accept and duplicate resume effect.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0003",
+        "EVD-TASK-0042-0005"
+      ],
+      "notes": "Hard safety metrics are zero/no violation."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Token, cost, latency, executor duration and verification cost are recorded per run when available.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0005",
+        "EVD-TASK-0042-0008"
+      ],
+      "notes": "Executor elapsed duration is recorded per run; provider token/cost usage is null when unavailable and recorded per run; SHA claims match current file bytes."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Final report distinguishes runtime/model reliability from kernel defects.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0001",
+        "EVD-TASK-0042-0004",
+        "EVD-TASK-0042-0006",
+        "EVD-TASK-0042-0008"
+      ],
+      "notes": "Reports distinguish runtime/watchdog reliability from kernel defects and keep Mode C no-go."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Independent verifier approves the TASK-0042 report before completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0008"
+      ],
+      "notes": "Independent re-review approves TASK-0042 after the previous metrics/SHA findings were corrected."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0041",
+      "status": "passed",
+      "result": "Task is in review at state_version=6; manifests parse and local hashes pass inspect."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0042",
+      "status": "passed",
+      "result": "Task is in review at state_version=6; manifests parse and local hashes pass inspect."
+    },
+    {
+      "command": "custom manifest, internal SHA, provider usage null/per-run audit",
+      "status": "passed",
+      "result": "0 errors for TASK-0041 and TASK-0042; internal SHA claims match current files and provider token/cost usage is null per run when unavailable."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "result": "AWKP lint 0 errors/0 warnings; AHRA lint 0 failures."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "result": "AWKP lint 0 errors/0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "status": "passed",
+      "result": "195 tests passed, 2 skipped."
+    }
+  ]
+}
