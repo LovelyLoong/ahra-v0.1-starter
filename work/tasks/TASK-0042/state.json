@@ -1,16 +1,21 @@
 {
-  "schema_version": "awkp/0.1",
-  "task_id": "TASK-0042",
-  "context_id": "CTX-ahra-dynamic-kernel",
-  "state": "ready",
-  "state_version": 1,
-  "owner": null,
-  "attempt": 0,
-  "lease": null,
-  "next_action": "Wait for TASK-0041 to finish or reach review, then handle Mode B real Executor runtime timeout stability as a separate uncertainty.",
-  "pause_reason": null,
-  "blockers": [],
   "artifact_refs": [],
+  "attempt": 1,
+  "blockers": [],
+  "context_id": "CTX-ahra-dynamic-kernel",
   "evidence_refs": [],
-  "updated_at": "2026-06-28T05:11:09.310201Z"
+  "lease": {
+    "acquired_at": "2026-06-28T05:38:08.837492Z",
+    "expires_at": "2026-06-28T06:08:08.837492Z",
+    "holder": "agent:codex-dynamic-kernel-operator",
+    "token": "LEASE-TASK-0042-0001"
+  },
+  "next_action": "Analyze TASK-0040 Mode B timeout evidence, implement the smallest runtime stability fix if justified, run five post-change Mode B repetitions, and publish review evidence.",
+  "owner": "agent:codex-dynamic-kernel-operator",
+  "pause_reason": null,
+  "schema_version": "awkp/0.1",
+  "state": "working",
+  "state_version": 2,
+  "task_id": "TASK-0042",
+  "updated_at": "2026-06-28T05:38:08.837492Z"
 }
