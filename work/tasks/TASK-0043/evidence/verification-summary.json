@@ -1,0 +1,232 @@
+{
+  "schema_version": "ahra/task-evidence/verification-summary/0.1",
+  "task_id": "TASK-0043",
+  "created_at": "2026-06-28T07:16:25.537032Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "code_commit": "c5e5f1d4ad8a05700d3dae94d1a77a9521d2066d",
+  "commands": [
+    {
+      "name": "unit_regression_subset",
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_real_agent_pilot tests.test_goal_operations tests.test_planning tests.test_codex_driver -v",
+      "exit_code": 0,
+      "result": "passed",
+      "notes": "Ran after evidence metadata fix; 30 tests passed."
+    },
+    {
+      "name": "mode_c_combined_pilot",
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\run_real_agent_pilot.py --mode mode_c_combined --output-dir work\\tasks\\TASK-0043\\evidence\\real-agent-pilot\\mode-c --experiment-id TASK-0043-MODE-C --repetitions 3 --allow-model-cost --allow-combined --isolated-repetitions --repetition-timeout-seconds 360",
+      "exit_code": 0,
+      "result": "completed_with_no_go_scorecard",
+      "notes": "Pilot command completed and wrote scorecard, but success_count=0 with two runner timeouts and one budget_exceeded failure."
+    },
+    {
+      "name": "goal_inspect_TASK-0043-MODE-C-R01",
+      "command": "D:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-1889fde96b5c5435 --db D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0043\\evidence\\real-agent-pilot\\mode-c\\run-01\\.ahra\\goal-control.sqlite3 --artifact-dir D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0043\\evidence\\real-agent-pilot\\mode-c\\run-01\\.ahra\\artifacts",
+      "exit_code": 0,
+      "result": "passed",
+      "metrics": {
+        "missingArtifactCount": null,
+        "artifactFindingCount": 0,
+        "capabilityGrantRefCount": null,
+        "observedGoalStatus": null,
+        "observedPlanStatuses": [],
+        "observedPlanFailureClasses": []
+      }
+    },
+    {
+      "name": "goal_inspect_TASK-0043-MODE-C-R02",
+      "command": "D:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-59f70a4723fff77a --db D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0043\\evidence\\real-agent-pilot\\mode-c\\run-02\\.ahra\\goal-control.sqlite3 --artifact-dir D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0043\\evidence\\real-agent-pilot\\mode-c\\run-02\\.ahra\\artifacts",
+      "exit_code": 0,
+      "result": "passed",
+      "metrics": {
+        "missingArtifactCount": null,
+        "artifactFindingCount": 0,
+        "capabilityGrantRefCount": null,
+        "observedGoalStatus": null,
+        "observedPlanStatuses": [],
+        "observedPlanFailureClasses": []
+      }
+    },
+    {
+      "name": "goal_inspect_TASK-0043-MODE-C-R03",
+      "command": "D:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-207232a7d2a43537 --db D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0043\\evidence\\real-agent-pilot\\mode-c\\run-03\\.ahra\\goal-control.sqlite3 --artifact-dir D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0043\\evidence\\real-agent-pilot\\mode-c\\run-03\\.ahra\\artifacts",
+      "exit_code": 0,
+      "result": "passed",
+      "metrics": {
+        "missingArtifactCount": null,
+        "artifactFindingCount": 0,
+        "capabilityGrantRefCount": null,
+        "observedGoalStatus": null,
+        "observedPlanStatuses": [],
+        "observedPlanFailureClasses": []
+      }
+    },
+    {
+      "name": "ahra_lint",
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "result": "passed",
+      "notes": "AWKP lint and embedded profile lint passed after adding required Markdown frontmatter metadata."
+    },
+    {
+      "name": "awkp_lint",
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "result": "passed",
+      "notes": "AWKP lint reported 0 errors and 0 warnings."
+    },
+    {
+      "name": "task_inspect",
+      "command": ".\\.venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0043",
+      "exit_code": 0,
+      "result": "passed",
+      "notes": "Task inspect succeeded after producer-side transition to review v3."
+    },
+    {
+      "name": "git_diff_check",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "passed",
+      "notes": "No whitespace errors reported."
+    }
+  ],
+  "scorecard_digest": {
+    "path": "work/tasks/TASK-0043/evidence/real-agent-pilot/mode-c/scorecard.json",
+    "sha256": "4f55c10a7fa555feaed9cdd687846f409679773a0218bf6133a4eaf1ea73e057"
+  },
+  "artifact_digests": {
+    "work/tasks/TASK-0043/evidence/combined-mode-c-report.md": "7b251fdb1db025fdb1d1c872babcc406c020d803f48dcca36b2add669cf3c724",
+    "work/tasks/TASK-0043/evidence/real-agent-pilot/mode-c/scorecard.json": "4f55c10a7fa555feaed9cdd687846f409679773a0218bf6133a4eaf1ea73e057",
+    "work/tasks/TASK-0043/evidence/goal-inspect-summary.json": "6781053d03eadc9bcf3c1e7ab14a6afd943ea7f60337bc1e7e5229e795a96ba8",
+    "work/tasks/TASK-0043/evidence/failure-taxonomy.json": "6b2b462299d82e0216f759676236de396c71faa0e485e2a88a38b4d8668eb12c",
+    "work/tasks/TASK-0043/evidence/mode-c-decision.json": "9f5cece52836090d6eb3fd1c47ae988c37f7d0808d65d7a94ea1f3b821569799",
+    "work/tasks/TASK-0043/handoffs/HANDOFF-0001.md": "2e57a732396c66ef513870e228323a69478c0c50b2767222845060cb81b16b02"
+  },
+  "provider_usage": {
+    "usage_available": false,
+    "token_usage_available": false,
+    "cost_usage_available": false,
+    "model_provider": "codex-sdk",
+    "model_revision": "unspecified",
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "cost_usd": null,
+    "runs": [
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0043-MODE-C-R01",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0043-MODE-C-R02",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0043-MODE-C-R03",
+        "total_tokens": null,
+        "usage_available": false
+      }
+    ],
+    "policy": "Unavailable provider usage is recorded as null, not 0.0."
+  },
+  "acceptance_criteria": [
+    {
+      "criterion": 1,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0043-0002"
+      ],
+      "notes": "Scorecard was produced after TASK-0041/TASK-0042 completion and command included --allow-combined."
+    },
+    {
+      "criterion": 2,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0043-0002"
+      ],
+      "notes": "Three isolated Mode C repetitions were executed."
+    },
+    {
+      "criterion": 3,
+      "status": "met_with_reporting_caveat",
+      "evidence_refs": [
+        "EVD-TASK-0043-0002",
+        "EVD-TASK-0043-0003"
+      ],
+      "notes": "Run-02 shows accepted Planner admission before Executor side effect; run-01/run-03 left planner/admission artifacts despite wrapper skipped classification, so timeout partial-result recovery needs follow-up."
+    },
+    {
+      "criterion": 4,
+      "status": "met_for_observed_side_effects",
+      "evidence_refs": [
+        "EVD-TASK-0043-0003",
+        "EVD-TASK-0043-0004"
+      ],
+      "notes": "Observed run-02 side effect was admitted and auditable; timed-out runs had no observed side-effect artifact."
+    },
+    {
+      "criterion": 5,
+      "status": "met_as_no_success_runs",
+      "evidence_refs": [
+        "EVD-TASK-0043-0003"
+      ],
+      "notes": "There were zero successful runs; all observed GoalExecution directories were still inspected and had zero missing artifacts and zero artifact findings."
+    },
+    {
+      "criterion": 6,
+      "status": "met_for_named_zero_counters_no_go_for_completion_metrics",
+      "evidence_refs": [
+        "EVD-TASK-0043-0002",
+        "EVD-TASK-0043-0004"
+      ],
+      "notes": "False completion, unrun gate pass, stale fencing accept, and duplicate resume are zero; no unadmitted observed side effect was found. gate_execution_integrity and current_claim_coverage are 0.0 because no run completed, so Mode C remains no-go."
+    },
+    {
+      "criterion": 7,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0043-0002",
+        "EVD-TASK-0043-0005"
+      ],
+      "notes": "Per-run provider token/cost usage is null when unavailable; latency and planner/executor metrics are recorded where available."
+    },
+    {
+      "criterion": 8,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0043-0004"
+      ],
+      "notes": "Each failure is classified by layer and linked to run artifacts."
+    },
+    {
+      "criterion": 9,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0043-0001",
+        "EVD-TASK-0043-0006"
+      ],
+      "notes": "Report distinguishes model/runtime no-go from M1 safety semantics."
+    },
+    {
+      "criterion": 10,
+      "status": "pending_independent_verifier",
+      "evidence_refs": [],
+      "notes": "Producer moved task to review only; EvidenceGate must decide completion."
+    }
+  ],
+  "overall_result": "review_ready_no_go"
+}

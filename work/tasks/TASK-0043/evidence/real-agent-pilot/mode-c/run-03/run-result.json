@@ -1,0 +1,28 @@
+{
+  "artifact_dir": "work\\tasks\\TASK-0043\\evidence\\real-agent-pilot\\mode-c\\run-03",
+  "details": {
+    "effectiveRepetitionTimeoutSeconds": 360,
+    "executorRunDeadlineSeconds": 240,
+    "requestedRepetitionTimeoutSeconds": 360,
+    "stderrTail": "",
+    "stdoutTail": "",
+    "timeoutPolicy": "isolated watchdog is floored above executor run deadline for real Executor modes"
+  },
+  "elapsed_seconds": 360.008291,
+  "execution": {
+    "status": "skipped"
+  },
+  "failure_class": "runner_timeout",
+  "hard_metric_violation": false,
+  "message": "single repetition exceeded process timeout (360s)",
+  "mode": "mode_c_combined",
+  "planner": {
+    "status": "skipped"
+  },
+  "profile": "profile/m1-real-combined@sha256:8888888888888888888888888888888888888888888888888888888888888888",
+  "refs": [],
+  "request_path": "work\\tasks\\TASK-0043\\evidence\\real-agent-pilot\\mode-c\\run-03\\goal-run-request.yaml",
+  "run_id": "TASK-0043-MODE-C-R03",
+  "schema_version": "ahra/real-agent-pilot-run/0.1",
+  "status": "blocked"
+}

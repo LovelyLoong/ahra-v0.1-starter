@@ -1,0 +1,8 @@
+diff --git a/outputs/summary.txt b/outputs/summary.txt
+new file mode 100644
+index 0000000..0dc795d
+--- /dev/null
++++ b/outputs/summary.txt
+@@ -0,0 +1,2 @@
++artifact=CLM-WRITE-ARTIFACT
++goal=GOAL-M1-GENERIC-SMOKE

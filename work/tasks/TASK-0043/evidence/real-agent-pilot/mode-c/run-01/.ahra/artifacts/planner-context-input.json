@@ -1,0 +1,54 @@
+{
+  "artifactId": "PLART-0149d83325b92bcac507e799",
+  "contextManifestDigest": "5cbb1083ea7a6fd59dd905ffdb88e0ba64da13a0db0318862ae0cb5fbff19b8e",
+  "contextManifestRef": "CTXMAN-5cbb1083ea7a6fd59dd905ff",
+  "kind": "planner-context-input",
+  "mediaType": "application/json",
+  "payload": {
+    "agentReleaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+    "allowedCapabilities": [
+      "filesystem.write"
+    ],
+    "budgetLimits": {
+      "maxCostUsd": 1.0,
+      "maxFanOut": 4,
+      "maxModelCalls": 13,
+      "maxPlanDepth": 6,
+      "maxPlanNodes": 6,
+      "maxRepairCycles": 1,
+      "maxSpawnedNodes": 0,
+      "maxToolCalls": 22,
+      "maxWallSeconds": 330
+    },
+    "claimRefs": [
+      "CLM-GOAL-COMPLETE",
+      "CLM-WRITE-ARTIFACT"
+    ],
+    "defects": [],
+    "goalDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "goalRef": "GOAL-M1-GENERIC-SMOKE",
+    "policyDigest": "sha256:5a90b991d834341e2bc5d404200567980db2cda8b709db08dc171ec7881afe3c",
+    "policyRef": "profile/m1-real-combined@sha256:8888888888888888888888888888888888888888888888888888888888888888",
+    "registeredGateRefs": {
+      "GATE-goal-complete": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "GATE-write-artifact": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "registeredNodeTypes": {
+      "bounded_task": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "goal_verification": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "registeredRuntimeRefs": {
+      "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "runId": "TASK-0043-MODE-C-R01",
+    "tokenBudget": 4096
+  },
+  "refs": [
+    "CLM-GOAL-COMPLETE",
+    "CLM-WRITE-ARTIFACT",
+    "GOAL-M1-GENERIC-SMOKE",
+    "profile/m1-real-combined@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+  ],
+  "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+  "sha256": "sha256:0149d83325b92bcac507e799042735f885500de80055a3dce877d1b6148c3e4b"
+}

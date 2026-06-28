@@ -1,0 +1,114 @@
+{
+  "artifactId": "PLART-55fc27e2ffb086080468ca51",
+  "contextManifestDigest": "159df8f7000b5dca0bd2e8e5eaeb8a561790edfb956a45e60e0e5307d34c1203",
+  "contextManifestRef": "CTXMAN-159df8f7000b5dca0bd2e8e5",
+  "kind": "planner-plan-draft",
+  "mediaType": "application/json",
+  "payload": {
+    "apiVersion": "ahra.dev/v1alpha1",
+    "kind": "PlanDraft",
+    "metadata": {
+      "goalId": "GOAL-M1-GENERIC-SMOKE",
+      "proposedBy": "planner/agent-driver@sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db"
+    },
+    "spec": {
+      "nodes": [
+        {
+          "budgetRequest": {
+            "maxCostUsd": 0.0,
+            "maxModelCalls": 1,
+            "maxSpawnedNodes": 0,
+            "maxToolCalls": 1,
+            "maxWallSeconds": 60
+          },
+          "capabilityRequests": [
+            {
+              "capability": "filesystem.write",
+              "resources": [
+                "outputs/summary.txt"
+              ]
+            }
+          ],
+          "claimRefs": [
+            "CLM-WRITE-ARTIFACT"
+          ],
+          "dependsOn": [],
+          "expectedOutputs": [
+            {
+              "artifactRequired": true,
+              "consumerNodeRefs": [
+                "NODE-goal-verification"
+              ],
+              "deliveryRole": "artifact",
+              "name": "deterministic-artifact",
+              "schemaRef": "planner-output-contracts"
+            }
+          ],
+          "gateRefs": [
+            "GATE-write-artifact"
+          ],
+          "id": "NODE-write-artifact",
+          "inputRefs": [
+            "GOAL-M1-GENERIC-SMOKE",
+            "profile/m1-real-combined@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+          ],
+          "nodeType": "bounded_task",
+          "objective": "Create the deterministic smoke artifact required to support CLM-WRITE-ARTIFACT for GOAL-M1-GENERIC-SMOKE.",
+          "retryPolicy": {
+            "idempotencyKeyRequired": true,
+            "maxAttempts": 1,
+            "retryableFailureClasses": []
+          },
+          "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "sideEffect": "idempotent",
+          "terminalGoalVerification": false,
+          "timeoutSeconds": 60
+        },
+        {
+          "budgetRequest": {
+            "maxCostUsd": 0.0,
+            "maxModelCalls": 1,
+            "maxSpawnedNodes": 0,
+            "maxToolCalls": 1,
+            "maxWallSeconds": 60
+          },
+          "capabilityRequests": [],
+          "claimRefs": [
+            "CLM-GOAL-COMPLETE",
+            "CLM-WRITE-ARTIFACT"
+          ],
+          "dependsOn": [
+            "NODE-write-artifact"
+          ],
+          "expectedOutputs": [],
+          "gateRefs": [
+            "GATE-goal-complete"
+          ],
+          "id": "NODE-goal-verification",
+          "inputRefs": [
+            "GOAL-M1-GENERIC-SMOKE",
+            "NODE-write-artifact"
+          ],
+          "nodeType": "goal_verification",
+          "objective": "Verify that the submitted evidence supports CLM-WRITE-ARTIFACT and CLM-GOAL-COMPLETE for GOAL-M1-GENERIC-SMOKE.",
+          "retryPolicy": {
+            "idempotencyKeyRequired": false,
+            "maxAttempts": 1,
+            "retryableFailureClasses": []
+          },
+          "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "sideEffect": "idempotent",
+          "terminalGoalVerification": true,
+          "timeoutSeconds": 60
+        }
+      ],
+      "rationale": "Use one bounded write task followed by terminal goal verification, staying within the supplied claims, gates, runtime, and allowed filesystem.write capability."
+    }
+  },
+  "refs": [
+    "GOAL-M1-GENERIC-SMOKE",
+    "PLART-462deceb80e4622083a2469c"
+  ],
+  "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+  "sha256": "sha256:55fc27e2ffb086080468ca510094a31afa498fc5e7f760470c39678ed5d1bc39"
+}

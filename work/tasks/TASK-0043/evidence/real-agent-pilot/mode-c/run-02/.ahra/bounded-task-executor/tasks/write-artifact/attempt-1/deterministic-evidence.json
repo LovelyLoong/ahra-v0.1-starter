@@ -1,0 +1,15 @@
+{
+  "policy": {
+    "changed_files": [
+      "outputs/summary.txt"
+    ],
+    "sensitive_files": [],
+    "violations": [],
+    "added_lines": 2,
+    "deleted_lines": 0
+  },
+  "checks": [],
+  "verification_mutated_workspace": false,
+  "verification_mutation_files": [],
+  "patch_excerpt": "diff --git a/outputs/summary.txt b/outputs/summary.txt\nnew file mode 100644\nindex 0000000..0dc795d\n--- /dev/null\n+++ b/outputs/summary.txt\n@@ -0,0 +1,2 @@\n+artifact=CLM-WRITE-ARTIFACT\n+goal=GOAL-M1-GENERIC-SMOKE\n"
+}
