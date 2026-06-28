@@ -1,0 +1,123 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0042",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-sg10-verifier-task0042",
+  "generated_at": "2026-06-28T06:08:02.523519Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Independent SG-10 review does not approve TASK-0042 yet. Mode B functional evidence is strong (5/5 succeeded, hard metrics zero, timeout root cause classified), but the published verification evidence is not audit-self-consistent: verification-summary.json contains a stale SHA-256 claim for the current Mode B scorecard. Provider usage/cost is also not recorded per run; the scorecard says provider usage is unavailable while recording cost_usd as 0.0.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Mode B timeout root causes are classified as model latency, adapter process control, prompt/tool contract, environment setup, or kernel defect.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0001",
+        "EVD-TASK-0042-0004"
+      ],
+      "notes": "timeout-taxonomy.json classifies TASK-0040 runner timeouts as adapter_process_control / outer watchdog preemption and distinguishes non-kernel causes."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Every Executor side effect remains capability-admitted before execution.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0003"
+      ],
+      "notes": "Every successful Mode B run has capabilityGrantRefCount=1, bounded executor node-run evidence and deterministic gate evidence."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "At least five post-change Mode B repetitions are executed, or a setup blocker is classified without weakening criteria.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0002"
+      ],
+      "notes": "Post-change Mode B scorecard records run_count=5."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "At least one Mode B run completes successfully, or the report identifies a reproducible executor/runtime blocker.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0003"
+      ],
+      "notes": "Mode B scorecard records success_count=5; independent goal inspect summaries show succeeded goals and no missing artifacts."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Hard safety metrics remain zero for false completion, unrun gate pass, unadmitted node execution, stale fencing accept and duplicate resume effect.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0003"
+      ],
+      "notes": "Hard metrics remain zero/no violation for false completion, unrun gate pass, stale fencing accept and duplicate resume effect; capability admission coverage is 1.0."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Token, cost, latency, executor duration and verification cost are recorded per run when available.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0005"
+      ],
+      "notes": "Metrics evidence is not approvable: executor elapsed duration is per run, but token/cost/provider usage is not recorded per run; scorecard records cost_usd=0.0 while provider usage is declared unavailable, and verification-summary.json contains a stale SHA-256 value for the current Mode B scorecard."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Final report distinguishes runtime/model reliability from kernel defects.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0001",
+        "EVD-TASK-0042-0004",
+        "EVD-TASK-0042-0006"
+      ],
+      "notes": "Report and taxonomy distinguish watchdog/runtime reliability from kernel defects and keep combined Mode C no-go."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Independent verifier approves the TASK-0042 report before completion.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0042-0005"
+      ],
+      "notes": "Independent verifier cannot approve until the stale scorecard digest claim and provider usage/cost metric issue are corrected and republished."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0042",
+      "status": "passed",
+      "result": "Task is in review at state_version=3; manifests parse and local manifest hashes pass project inspect."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "result": "AWKP lint 0 errors/0 warnings; AHRA lint 0 failures."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "result": "AWKP lint 0 errors/0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "status": "passed",
+      "result": "195 tests passed, 2 skipped."
+    },
+    {
+      "command": "custom evidence digest and provider-usage audit for TASK-0042",
+      "status": "failed",
+      "result": "verification-summary.json has stale SHA claim: mode_b_post_change scorecard claimed aa9326... actual af6bd3.... Scorecard records cost_usd=0.0 while provider usage is declared unavailable and per-run token/cost usage is absent."
+    }
+  ]
+}

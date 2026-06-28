@@ -37,7 +37,7 @@
       "kind": "mode_a_scorecard",
       "media_type": "application/json",
       "name": "scorecard.json",
-      "sha256": "947dab91e46cd3ee42dc27b06938ff102286d001385dc5359f07afb14c26dfbb",
+      "sha256": "74d33ab55a3e1f0b2354775963731ab974497139b462def5fadafcb4553dc283",
       "supersedes": null,
       "task_id": "TASK-0041",
       "uri": "local://evidence/real-agent-pilot/mode-a/scorecard.json"
@@ -57,7 +57,7 @@
       "kind": "mode_a_pre_capability_context_scorecard",
       "media_type": "application/json",
       "name": "scorecard.json",
-      "sha256": "3d47738e60e0ba333ec29156430d9031e4bfb0f7fcfee3fc1c473d154629cd1e",
+      "sha256": "41976718aa21355954391924618b4ea5b2ee3c3928de8a9aae35e57715569e31",
       "supersedes": null,
       "task_id": "TASK-0041",
       "uri": "local://evidence/real-agent-pilot/mode-a-before-capability-context-20260628T132437/scorecard.json"
@@ -95,7 +95,7 @@
       "kind": "verification_summary",
       "media_type": "application/json",
       "name": "verification-summary.json",
-      "sha256": "9685d0fa6b702e8937e21a6d082c2182e808944ce3d812bb701df56b4d7ca512",
+      "sha256": "4b59e076a7b4f596b88a4358b426a898a83a414f8d33dbdeeae4235b8e2a2866",
       "supersedes": null,
       "task_id": "TASK-0041",
       "uri": "local://evidence/verification-summary.json"
@@ -164,6 +164,68 @@
       "supersedes": null,
       "task_id": "TASK-0041",
       "uri": "local://handoffs/HANDOFF-0001.md"
+    },
+    {
+      "artifact_id": "ART-TASK-0041-0008",
+      "created_at": "2026-06-28T06:08:02.524609Z",
+      "created_by": "agent:codex-sg10-verifier-task0041",
+      "evidence_refs": [
+        "EVD-TASK-0041-0008"
+      ],
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "kind": "evidence_gate_report",
+      "media_type": "application/json",
+      "name": "evidence-gate-report-4.json",
+      "sha256": "77acd7e423623f115026a008ba730fc4ff32164740224ab0a014e4d9e0d4f206",
+      "supersedes": null,
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/evidence-gate-report-4.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0041-0009",
+      "created_at": "2026-06-28T06:14:17.465006Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0041-0009"
+      ],
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "evidence/evidence-gate-report-4.json",
+        "evidence/verification-summary.json"
+      ],
+      "kind": "evidence_gate_response",
+      "media_type": "application/json",
+      "name": "evidence-gate-response-5.json",
+      "sha256": "cdf756f6cdbfba6c8688216cea691cfd05c385448d3205656ac3f83a948d9da9",
+      "supersedes": null,
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/evidence-gate-response-5.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0041-HANDOFF-0002",
+      "created_at": "2026-06-28T06:14:17.465006Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0041-0009"
+      ],
+      "input_refs": [
+        "task.md",
+        "evidence/evidence-gate-response-5.json",
+        "evidence/verification-summary.json"
+      ],
+      "kind": "handoff",
+      "media_type": "text/markdown",
+      "name": "HANDOFF-0002.md",
+      "sha256": "16e55bd5dc75386f7b17c4a9a612d7bb787f712f958093a96ebc8bc7bdbb5ae3",
+      "supersedes": "ART-TASK-0041-HANDOFF-0001",
+      "task_id": "TASK-0041",
+      "uri": "local://handoffs/HANDOFF-0002.md"
     }
   ],
   "schema_version": "awkp/0.1",

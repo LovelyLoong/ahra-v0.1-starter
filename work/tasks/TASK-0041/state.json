@@ -7,9 +7,12 @@
     "ART-TASK-0041-0005",
     "ART-TASK-0041-0006",
     "ART-TASK-0041-0007",
-    "ART-TASK-0041-HANDOFF-0001"
+    "ART-TASK-0041-HANDOFF-0001",
+    "ART-TASK-0041-0008",
+    "ART-TASK-0041-0009",
+    "ART-TASK-0041-HANDOFF-0002"
   ],
-  "attempt": 1,
+  "attempt": 2,
   "blockers": [],
   "context_id": "CTX-ahra-dynamic-kernel",
   "evidence_refs": [
@@ -19,15 +22,17 @@
     "EVD-TASK-0041-0004",
     "EVD-TASK-0041-0005",
     "EVD-TASK-0041-0006",
-    "EVD-TASK-0041-0007"
+    "EVD-TASK-0041-0007",
+    "EVD-TASK-0041-0008",
+    "EVD-TASK-0041-0009"
   ],
   "lease": null,
-  "next_action": "Await independent EvidenceGate review; producer must not mark TASK-0041 completed.",
+  "next_action": "Await independent EvidenceGate re-review after provider usage null and SHA corrections; producer must not mark completed.",
   "owner": null,
   "pause_reason": null,
   "schema_version": "awkp/0.1",
   "state": "review",
-  "state_version": 3,
+  "state_version": 6,
   "task_id": "TASK-0041",
-  "updated_at": "2026-06-28T05:33:17.055491Z"
+  "updated_at": "2026-06-28T06:14:17.465006Z"
 }

@@ -1,0 +1,140 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0041",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-sg10-verifier-task0041",
+  "generated_at": "2026-06-28T06:08:02.524609Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Independent SG-10 review does not approve TASK-0041 yet. Mode A functional evidence is strong (5/5 succeeded, hard metrics zero, invalid TASK-0040 raw outputs preserved), but the published verification evidence is not audit-self-consistent: verification-summary.json contains stale SHA-256 claims for the post-change scorecard, pre-capability-context scorecard, and goal-inspect summary. In addition, provider usage is described as unavailable while scorecard cost_usd is recorded as 0.0 instead of null and per-run token/cost usage is absent, which conflicts with the TASK-0041 metric criterion.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Real Planner prompt/output contract explicitly names the required PlanDraft fields used by the compiler.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0041-0001",
+        "EVD-TASK-0041-0002"
+      ],
+      "notes": "Prompt/output contract explicitly names PlanDraft required fields and rejects TASK-0040 alias shapes; code and tests confirm schema tightening."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Planner output is still admitted or rejected before any execution.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0041-0002",
+        "EVD-TASK-0041-0004"
+      ],
+      "notes": "Each Mode A run has planner-admission-report.json and execution occurs only after admission passed."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Any adapter normalization is deterministic, minimal, documented and covered by tests; it must not weaken Goal, Claim, Gate, Runtime or capability boundaries.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0041-0001",
+        "EVD-TASK-0041-0005"
+      ],
+      "notes": "Change exposes allowedCapabilities and tightens output contract without widening Goal/Claim/Gate/Runtime/capability boundaries; tests passed."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Invalid raw Planner output and parsed driver output remain preserved as artifacts with digests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0041-0006"
+      ],
+      "notes": "The five TASK-0040 invalid Planner raw/driver artifacts referenced by the index exist and their declared digests match current files; new failure path writes invalid output artifacts."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "At least five post-change Mode A repetitions are executed, or a setup blocker is classified without weakening criteria.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0041-0002"
+      ],
+      "notes": "Post-change Mode A scorecard records run_count=5 and success_count=5."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "At least one Mode A run produces an admitted PlanDraft, or the report identifies a narrower reproducible model/adapter blocker than TASK-0040.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0041-0002"
+      ],
+      "notes": "All five Mode A runs produced admitted PlanDrafts."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Hard safety metrics remain zero for false completion, unrun gate pass, unadmitted node execution, stale fencing accept and duplicate resume effect.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0041-0002",
+        "EVD-TASK-0041-0004"
+      ],
+      "notes": "Hard metrics remain zero/no violation: false completion, unrun gate pass, stale fencing accept and duplicate resume effect are all zero; capability admission coverage is 1.0."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Token, cost, latency, plan size and rejection/admission metrics are recorded per run when available; unavailable provider usage is recorded as null, not fabricated.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0041-0002",
+        "EVD-TASK-0041-0005"
+      ],
+      "notes": "Metrics evidence is not approvable: provider usage is stated unavailable but scorecard cost_usd is 0.0 rather than null, per-run token/cost usage is absent, and verification-summary.json contains stale SHA-256 values for the current scorecard and goal-inspect summary."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Final report distinguishes model contract adherence from kernel defects.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0041-0001",
+        "EVD-TASK-0041-0007"
+      ],
+      "notes": "Report separates Planner contract/context adherence from kernel defects and keeps Mode C no-go."
+    },
+    {
+      "criterion_index": 10,
+      "criterion": "Independent verifier approves the TASK-0041 report before completion.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0041-0005"
+      ],
+      "notes": "Independent verifier cannot approve until the stale digest claims and provider usage/null metric issue are corrected and republished."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0041",
+      "status": "passed",
+      "result": "Task is in review at state_version=3; manifests parse and local manifest hashes pass project inspect."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "result": "AWKP lint 0 errors/0 warnings; AHRA lint 0 failures."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "result": "AWKP lint 0 errors/0 warnings."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "status": "passed",
+      "result": "195 tests passed, 2 skipped."
+    },
+    {
+      "command": "custom evidence digest and provider-usage audit for TASK-0041",
+      "status": "failed",
+      "result": "verification-summary.json has stale SHA claims: mode_a_post_change scorecard claimed 19977b... actual 947dab..., pre_capability_context scorecard claimed b95d73... actual 3d4773..., goal_inspect summary claimed 0767a2... actual 3f0071.... Scorecard records cost_usd=0.0 while provider usage is declared unavailable and per-run token/cost usage is absent."
+    }
+  ]
+}

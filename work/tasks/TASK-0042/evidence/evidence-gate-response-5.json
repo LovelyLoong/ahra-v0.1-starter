@@ -1,0 +1,30 @@
+{
+  "corrected_files": [
+    "work/tasks/TASK-0042/evidence/real-agent-pilot/mode-b/scorecard.json",
+    "work/tasks/TASK-0042/evidence/verification-summary.json"
+  ],
+  "correction_commit": "1685e9583c2e426294abf391286573e2f05e8d0d",
+  "created_at": "2026-06-28T06:14:17.465006Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "functional_evidence_unchanged": true,
+  "pending": "Independent EvidenceGate must re-review; producer does not mark complete.",
+  "responds_to": "evidence/evidence-gate-report-4.json",
+  "run_outcomes_changed": false,
+  "schema_version": "ahra/evidence-gate-response/0.1",
+  "scorecards": [
+    {
+      "all_per_run_costs_null": true,
+      "all_per_run_tokens_null": true,
+      "cost_usd": null,
+      "path": "work/tasks/TASK-0042/evidence/real-agent-pilot/mode-b/scorecard.json",
+      "per_run_usage_count": 5,
+      "sha256": "210c1bdb37b7b54d5f620fb1b637edcb5dd592e8e14967f52b8c6e1ede4574bf"
+    }
+  ],
+  "summary": "Corrected stale Mode B scorecard SHA claim in verification-summary.json and changed unavailable provider token/cost usage to null with per-run usage entries.",
+  "task_id": "TASK-0042",
+  "verification_summary": {
+    "path": "work/tasks/TASK-0042/evidence/verification-summary.json",
+    "sha256": "521305add8600f25b7ab93234304e769a5ae8d951490905b2d04eca1ba59e333"
+  }
+}

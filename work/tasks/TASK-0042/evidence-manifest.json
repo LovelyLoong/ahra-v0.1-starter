@@ -30,7 +30,7 @@
       "refs": [
         "ART-TASK-0042-0002"
       ],
-      "sha256": "af6bd3c9f3c82016f16fcf0385bb33c747851718415f75b7aebbdadb1d87f90f",
+      "sha256": "210c1bdb37b7b54d5f620fb1b637edcb5dd592e8e14967f52b8c6e1ede4574bf",
       "task_id": "TASK-0042",
       "uri": "local://evidence/real-agent-pilot/mode-b/scorecard.json"
     },
@@ -76,7 +76,7 @@
         "EVD-TASK-0042-0002",
         "EVD-TASK-0042-0003"
       ],
-      "sha256": "5dab00ea30bca34d5c1f8998df351e140d9a40e0dd986e036aa4c459e0d5dc29",
+      "sha256": "521305add8600f25b7ab93234304e769a5ae8d951490905b2d04eca1ba59e333",
       "task_id": "TASK-0042",
       "uri": "local://evidence/verification-summary.json"
     },
@@ -94,6 +94,41 @@
       "sha256": "81fc5dce20ea923c2a5bbc03838ca990a4b473c951f5cdf93110ef15eddedce4",
       "task_id": "TASK-0042",
       "uri": "local://evidence/mode-c-decision.json"
+    },
+    {
+      "created_at": "2026-06-28T06:08:02.523519Z",
+      "created_by": "agent:codex-sg10-verifier-task0042",
+      "evidence_id": "EVD-TASK-0042-0007",
+      "kind": "evidence_gate_report",
+      "media_type": "application/json",
+      "name": "evidence-gate-report-4.json",
+      "refs": [
+        "ART-TASK-0042-0007",
+        "EVD-TASK-0042-0001",
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0003",
+        "EVD-TASK-0042-0004",
+        "EVD-TASK-0042-0005",
+        "EVD-TASK-0042-0006"
+      ],
+      "sha256": "570ef742837f43c1c19fa15913d801a20b9074cf734f610da8120f6a8a64a3ee",
+      "task_id": "TASK-0042",
+      "uri": "local://evidence/evidence-gate-report-4.json"
+    },
+    {
+      "created_at": "2026-06-28T06:14:17.465006Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0042-0008",
+      "kind": "evidence_gate_response",
+      "media_type": "application/json",
+      "name": "evidence-gate-response-5.json",
+      "refs": [
+        "ART-TASK-0042-0008",
+        "ART-TASK-0042-HANDOFF-0002"
+      ],
+      "sha256": "950d2c8e4090436c47406cc86c7263897b84dbe5f59058aa381439ba9b728f9b",
+      "task_id": "TASK-0042",
+      "uri": "local://evidence/evidence-gate-response-5.json"
     }
   ],
   "schema_version": "awkp/0.1",

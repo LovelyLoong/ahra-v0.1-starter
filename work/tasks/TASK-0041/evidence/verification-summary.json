@@ -39,7 +39,14 @@
     "all_missing_artifact_counts_zero": true,
     "inspection_count": 5,
     "summary": "work/tasks/TASK-0041/evidence/goal-inspect-summary.json",
-    "summary_sha256": "0767a235cbb2eb08f1336d83d9bfd9a04c43b3e86c3fe3320831f512a19361ac"
+    "summary_sha256": "3f00717139e2097f980e6c05adee558c44dc8b68fd5a97e7184b45085efc6b0d"
+  },
+  "metrics_correction": {
+    "corrected_at": "2026-06-28T06:14:17.465006Z",
+    "corrected_by": "agent:codex-dynamic-kernel-operator",
+    "correction_commit": "1685e9583c2e426294abf391286573e2f05e8d0d",
+    "evidence_gate_report": "evidence/evidence-gate-report-4.json",
+    "summary": "Refreshed internal SHA-256 claims and represented unavailable provider token/cost usage as null per run."
   },
   "mode_a_post_change": {
     "executor_metrics": {
@@ -70,10 +77,57 @@
     },
     "run_count": 5,
     "scorecard": "work/tasks/TASK-0041/evidence/real-agent-pilot/mode-a/scorecard.json",
-    "scorecard_sha256": "19977b93063d5353050734d66cc2b3e070b95c64d12dea792b8c138ec5b0d69d",
+    "scorecard_sha256": "74d33ab55a3e1f0b2354775963731ab974497139b462def5fadafcb4553dc283",
     "success_count": 5
   },
   "mode_c": "no_go; see evidence/mode-c-decision.json",
+  "per_run_provider_usage": [
+    {
+      "cost_usd": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+      "run_id": "TASK-0041-MODE-A-R01",
+      "total_tokens": null,
+      "usage_available": false
+    },
+    {
+      "cost_usd": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+      "run_id": "TASK-0041-MODE-A-R02",
+      "total_tokens": null,
+      "usage_available": false
+    },
+    {
+      "cost_usd": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+      "run_id": "TASK-0041-MODE-A-R03",
+      "total_tokens": null,
+      "usage_available": false
+    },
+    {
+      "cost_usd": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+      "run_id": "TASK-0041-MODE-A-R04",
+      "total_tokens": null,
+      "usage_available": false
+    },
+    {
+      "cost_usd": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+      "run_id": "TASK-0041-MODE-A-R05",
+      "total_tokens": null,
+      "usage_available": false
+    }
+  ],
   "pre_capability_context_narrowing": {
     "code_commit": "0cae25794e7f4b1378dae9e5379fe58d6ac3f31e",
     "failure_classes": {
@@ -81,18 +135,74 @@
     },
     "run_count": 5,
     "scorecard": "work/tasks/TASK-0041/evidence/real-agent-pilot/mode-a-before-capability-context-20260628T132437/scorecard.json",
-    "scorecard_sha256": "b95d730de86e016ef50ee9eb2533e6f1f485b0ae06d338235479d9b8a7fc90ef",
+    "scorecard_sha256": "41976718aa21355954391924618b4ea5b2ee3c3928de8a9aae35e57715569e31",
     "success_count": 0
   },
   "provider_usage": {
-    "cost_usd": 0.0,
+    "corrected_at": "2026-06-28T06:14:17.465006Z",
+    "corrected_by": "agent:codex-dynamic-kernel-operator",
+    "correction_commit": "1685e9583c2e426294abf391286573e2f05e8d0d",
+    "cost_usage_available": false,
+    "cost_usd": null,
+    "input_tokens": null,
     "known_limitations": [
-      "Provider usage is unavailable unless the AgentDriver reports it."
+      "Provider token and cost usage is unavailable unless the AgentDriver reports it."
     ],
     "model_provider": "codex-sdk",
-    "model_revision": "unspecified"
+    "model_revision": "unspecified",
+    "output_tokens": null,
+    "runs": [
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R01",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R02",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R03",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R04",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R05",
+        "total_tokens": null,
+        "usage_available": false
+      }
+    ],
+    "token_usage_available": false,
+    "total_tokens": null,
+    "usage_available": false
   },
   "schema_version": "ahra/task-0041-verification-summary/0.1",
   "task_id": "TASK-0041",
-  "updated_at": "2026-06-28T05:34:47.144498Z"
+  "updated_at": "2026-06-28T06:14:17.465006Z"
 }

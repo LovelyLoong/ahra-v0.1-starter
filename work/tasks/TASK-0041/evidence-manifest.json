@@ -31,7 +31,7 @@
       "refs": [
         "ART-TASK-0041-0002"
       ],
-      "sha256": "947dab91e46cd3ee42dc27b06938ff102286d001385dc5359f07afb14c26dfbb",
+      "sha256": "74d33ab55a3e1f0b2354775963731ab974497139b462def5fadafcb4553dc283",
       "task_id": "TASK-0041",
       "uri": "local://evidence/real-agent-pilot/mode-a/scorecard.json"
     },
@@ -45,7 +45,7 @@
       "refs": [
         "ART-TASK-0041-0003"
       ],
-      "sha256": "3d47738e60e0ba333ec29156430d9031e4bfb0f7fcfee3fc1c473d154629cd1e",
+      "sha256": "41976718aa21355954391924618b4ea5b2ee3c3928de8a9aae35e57715569e31",
       "task_id": "TASK-0041",
       "uri": "local://evidence/real-agent-pilot/mode-a-before-capability-context-20260628T132437/scorecard.json"
     },
@@ -76,7 +76,7 @@
         "EVD-TASK-0041-0002",
         "EVD-TASK-0041-0004"
       ],
-      "sha256": "9685d0fa6b702e8937e21a6d082c2182e808944ce3d812bb701df56b4d7ca512",
+      "sha256": "4b59e076a7b4f596b88a4358b426a898a83a414f8d33dbdeeae4235b8e2a2866",
       "task_id": "TASK-0041",
       "uri": "local://evidence/verification-summary.json"
     },
@@ -109,6 +109,41 @@
       "sha256": "c791549d39640117579ab63207a010e453f1aeca420455bbc9c50e1c17c69986",
       "task_id": "TASK-0041",
       "uri": "local://evidence/mode-c-decision.json"
+    },
+    {
+      "created_at": "2026-06-28T06:08:02.524609Z",
+      "created_by": "agent:codex-sg10-verifier-task0041",
+      "evidence_id": "EVD-TASK-0041-0008",
+      "kind": "evidence_gate_report",
+      "media_type": "application/json",
+      "name": "evidence-gate-report-4.json",
+      "refs": [
+        "ART-TASK-0041-0008",
+        "EVD-TASK-0041-0001",
+        "EVD-TASK-0041-0002",
+        "EVD-TASK-0041-0004",
+        "EVD-TASK-0041-0005",
+        "EVD-TASK-0041-0006",
+        "EVD-TASK-0041-0007"
+      ],
+      "sha256": "77acd7e423623f115026a008ba730fc4ff32164740224ab0a014e4d9e0d4f206",
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/evidence-gate-report-4.json"
+    },
+    {
+      "created_at": "2026-06-28T06:14:17.465006Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0041-0009",
+      "kind": "evidence_gate_response",
+      "media_type": "application/json",
+      "name": "evidence-gate-response-5.json",
+      "refs": [
+        "ART-TASK-0041-0009",
+        "ART-TASK-0041-HANDOFF-0002"
+      ],
+      "sha256": "cdf756f6cdbfba6c8688216cea691cfd05c385448d3205656ac3f83a948d9da9",
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/evidence-gate-response-5.json"
     }
   ],
   "schema_version": "awkp/0.1",

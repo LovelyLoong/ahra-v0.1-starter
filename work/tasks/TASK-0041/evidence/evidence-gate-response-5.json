@@ -1,0 +1,39 @@
+{
+  "corrected_files": [
+    "work/tasks/TASK-0041/evidence/real-agent-pilot/mode-a/scorecard.json",
+    "work/tasks/TASK-0041/evidence/real-agent-pilot/mode-a-before-capability-context-20260628T132437/scorecard.json",
+    "work/tasks/TASK-0041/evidence/verification-summary.json"
+  ],
+  "correction_commit": "1685e9583c2e426294abf391286573e2f05e8d0d",
+  "created_at": "2026-06-28T06:14:17.465006Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "functional_evidence_unchanged": true,
+  "pending": "Independent EvidenceGate must re-review; producer does not mark complete.",
+  "responds_to": "evidence/evidence-gate-report-4.json",
+  "run_outcomes_changed": false,
+  "schema_version": "ahra/evidence-gate-response/0.1",
+  "scorecards": [
+    {
+      "all_per_run_costs_null": true,
+      "all_per_run_tokens_null": true,
+      "cost_usd": null,
+      "path": "work/tasks/TASK-0041/evidence/real-agent-pilot/mode-a/scorecard.json",
+      "per_run_usage_count": 5,
+      "sha256": "74d33ab55a3e1f0b2354775963731ab974497139b462def5fadafcb4553dc283"
+    },
+    {
+      "all_per_run_costs_null": true,
+      "all_per_run_tokens_null": true,
+      "cost_usd": null,
+      "path": "work/tasks/TASK-0041/evidence/real-agent-pilot/mode-a-before-capability-context-20260628T132437/scorecard.json",
+      "per_run_usage_count": 5,
+      "sha256": "41976718aa21355954391924618b4ea5b2ee3c3928de8a9aae35e57715569e31"
+    }
+  ],
+  "summary": "Corrected stale SHA claims in verification-summary.json and changed unavailable provider token/cost usage to null with per-run usage entries.",
+  "task_id": "TASK-0041",
+  "verification_summary": {
+    "path": "work/tasks/TASK-0041/evidence/verification-summary.json",
+    "sha256": "4b59e076a7b4f596b88a4358b426a898a83a414f8d33dbdeeae4235b8e2a2866"
+  }
+}

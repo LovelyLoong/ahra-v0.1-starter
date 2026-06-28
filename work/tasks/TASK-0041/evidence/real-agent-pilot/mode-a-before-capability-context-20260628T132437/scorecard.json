@@ -2,12 +2,68 @@
   "claim_graph_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
   "code_commit": "0cae25794e7f4b1378dae9e5379fe58d6ac3f31e",
   "cost": {
-    "cost_usd": 0.0,
+    "corrected_at": "2026-06-28T06:14:17.465006Z",
+    "corrected_by": "agent:codex-dynamic-kernel-operator",
+    "correction_commit": "1685e9583c2e426294abf391286573e2f05e8d0d",
+    "cost_usage_available": false,
+    "cost_usd": null,
+    "input_tokens": null,
     "known_limitations": [
-      "Provider usage is unavailable unless the AgentDriver reports it."
+      "Provider token and cost usage is unavailable unless the AgentDriver reports it."
     ],
     "model_provider": "codex-sdk",
-    "model_revision": "unspecified"
+    "model_revision": "unspecified",
+    "output_tokens": null,
+    "runs": [
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R01",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R02",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R03",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R04",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R05",
+        "total_tokens": null,
+        "usage_available": false
+      }
+    ],
+    "token_usage_available": false,
+    "total_tokens": null,
+    "usage_available": false
   },
   "evidence_refs": [],
   "execution_policy": {
@@ -52,10 +108,89 @@
   "planner_release": "planner/agent-driver-plan-draft@sha256:7777777777777777777777777777777777777777777777777777777777777777",
   "policy_digest": "sha256:934b2daa411351f03e5e16978b74c9620824b8745cb992a746b3e44f268707ba",
   "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "provider_usage": {
+    "corrected_at": "2026-06-28T06:14:17.465006Z",
+    "corrected_by": "agent:codex-dynamic-kernel-operator",
+    "correction_commit": "1685e9583c2e426294abf391286573e2f05e8d0d",
+    "cost_usage_available": false,
+    "cost_usd": null,
+    "input_tokens": null,
+    "known_limitations": [
+      "Provider token and cost usage is unavailable unless the AgentDriver reports it."
+    ],
+    "model_provider": "codex-sdk",
+    "model_revision": "unspecified",
+    "output_tokens": null,
+    "runs": [
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R01",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R02",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R03",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R04",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0041-MODE-A-R05",
+        "total_tokens": null,
+        "usage_available": false
+      }
+    ],
+    "token_usage_available": false,
+    "total_tokens": null,
+    "usage_available": false
+  },
   "recovery_metrics": {
     "resume_duplicate_effect_count": 0,
     "stale_fencing_accept_count": 0
   },
+  "reporting_corrections": [
+    {
+      "applied_at": "2026-06-28T06:14:17.465006Z",
+      "applied_by": "agent:codex-dynamic-kernel-operator",
+      "changed_fields": [
+        "cost.cost_usd",
+        "cost.runs",
+        "provider_usage",
+        "runs[].provider_usage"
+      ],
+      "commit": "1685e9583c2e426294abf391286573e2f05e8d0d",
+      "reason": "EvidenceGate required unavailable provider token/cost usage to be represented as null and recorded per run instead of fabricated 0.0.",
+      "run_outcomes_changed": false
+    }
+  ],
   "run_count": 5,
   "runs": [
     {
@@ -223,6 +358,16 @@
         }
       },
       "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "provider_usage": {
+        "cost_usd": null,
+        "input_tokens": null,
+        "model_provider": "codex-sdk",
+        "model_revision": "unspecified",
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "total_tokens": null,
+        "usage_available": false
+      },
       "request_path": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-01\\goal-run-request.yaml",
       "run_id": "TASK-0041-MODE-A-R01",
       "schema_version": "ahra/real-agent-pilot-run/0.1",
@@ -393,6 +538,16 @@
         }
       },
       "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "provider_usage": {
+        "cost_usd": null,
+        "input_tokens": null,
+        "model_provider": "codex-sdk",
+        "model_revision": "unspecified",
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "total_tokens": null,
+        "usage_available": false
+      },
       "request_path": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-02\\goal-run-request.yaml",
       "run_id": "TASK-0041-MODE-A-R02",
       "schema_version": "ahra/real-agent-pilot-run/0.1",
@@ -564,6 +719,16 @@
         }
       },
       "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "provider_usage": {
+        "cost_usd": null,
+        "input_tokens": null,
+        "model_provider": "codex-sdk",
+        "model_revision": "unspecified",
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "total_tokens": null,
+        "usage_available": false
+      },
       "request_path": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-03\\goal-run-request.yaml",
       "run_id": "TASK-0041-MODE-A-R03",
       "schema_version": "ahra/real-agent-pilot-run/0.1",
@@ -734,6 +899,16 @@
         }
       },
       "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "provider_usage": {
+        "cost_usd": null,
+        "input_tokens": null,
+        "model_provider": "codex-sdk",
+        "model_revision": "unspecified",
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "total_tokens": null,
+        "usage_available": false
+      },
       "request_path": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-04\\goal-run-request.yaml",
       "run_id": "TASK-0041-MODE-A-R04",
       "schema_version": "ahra/real-agent-pilot-run/0.1",
@@ -905,6 +1080,16 @@
         }
       },
       "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "provider_usage": {
+        "cost_usd": null,
+        "input_tokens": null,
+        "model_provider": "codex-sdk",
+        "model_revision": "unspecified",
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "total_tokens": null,
+        "usage_available": false
+      },
       "request_path": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-05\\goal-run-request.yaml",
       "run_id": "TASK-0041-MODE-A-R05",
       "schema_version": "ahra/real-agent-pilot-run/0.1",
