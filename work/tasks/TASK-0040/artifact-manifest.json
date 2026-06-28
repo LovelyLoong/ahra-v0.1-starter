@@ -193,6 +193,27 @@
       "supersedes": null,
       "task_id": "TASK-0040",
       "uri": "local://handoffs/HANDOFF-0002.md"
+    },
+    {
+      "artifact_id": "ART-TASK-0040-0008",
+      "task_id": "TASK-0040",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-6.json",
+      "uri": "local://evidence/evidence-gate-report-6.json",
+      "sha256": "4669efbc47bef95866a1ec95da032a48059fd23fe036c10cff62173caa8b9252",
+      "media_type": "application/json",
+      "created_by": "agent:codex-independent-verifier",
+      "created_at": "2026-06-28T04:08:47.753907Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0040-0008"
+      ],
+      "supersedes": null
     }
   ],
   "schema_version": "awkp/0.1",
