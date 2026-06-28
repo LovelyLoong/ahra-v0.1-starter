@@ -434,6 +434,17 @@ class GoalOperationService:
         _write_json(request.artifact_dir / "goal-resume-report.json", report)
         return report
 
+    def finish_active_plan_if_terminal(self, goal_execution_id: str, *, db_path: Path | str) -> Any:
+        store = self._existing_store(db_path)
+        service = PlanExecutionService(store)  # type: ignore[arg-type]
+        goal = store.get_goal_execution(goal_execution_id)
+        if not goal.active_plan_execution_ref:
+            return goal
+        execution = store.get_execution(goal.active_plan_execution_ref)
+        if not execution.status.terminal:
+            return goal
+        return self._finish_goal_if_ready(service, goal_execution_id, execution.plan_execution_id)
+
     def inspect(
         self,
         goal_execution_id: str,

@@ -14,6 +14,9 @@ from pathlib import Path
 import yaml
 
 from ahra import cli
+from ahra.goal_operations import GoalOperationService
+from ahra.plan_execution import PlanExecutionService, PlanExecutionStatus
+from ahra.sqlite_control_store import SQLiteControlStore
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -187,6 +190,65 @@ class GoalOperationCliTests(unittest.TestCase):
             self.assertEqual(first_code, 0)
             self.assertEqual(second_code, 2)
             self.assertEqual(second_payload["code"], "duplicate_start_idempotency_key")
+
+    def test_finish_active_plan_if_terminal_finalizes_failed_goal(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            request_path = _copy_request(Path(temp))
+            service = GoalOperationService()
+            service.plan(request_path)
+            bundle = service.plan_bundle(request_path)
+            assert bundle.plan is not None
+            request = bundle.request
+            store = SQLiteControlStore(request.store_path)
+            plan_service = PlanExecutionService(store)  # type: ignore[arg-type]
+            goal = plan_service.create_goal_execution(
+                goal_ref=request.goal_ref,
+                goal_digest=request.goal_digest,
+                claim_graph_digest=request.claim_graph_digest,
+                claim_graph_ref=request.claim_graph_ref,
+                goal_execution_id=request.goal_execution_id,
+                max_repair_cycles=request.max_repair_cycles,
+                budget_summary={"profileRef": request.profile_ref},
+                workspace_ref=str(request.workspace_ref),
+            )
+            execution = plan_service.start_execution(
+                bundle.plan,
+                bundle.validation_report,
+                goal_execution_ref=goal.goal_execution_id,
+                max_concurrency=request.max_concurrency,
+            )
+            plan_service.attach_plan_execution(
+                goal.goal_execution_id,
+                execution.plan_execution_id,
+                expected_version=goal.status_version,
+            )
+            running = plan_service.transition_execution(
+                execution.plan_execution_id,
+                PlanExecutionStatus.RUNNING,
+                expected_version=execution.status_version,
+                message="Static PlanIR DAG scheduling started.",
+            )
+            plan_service.transition_execution(
+                running.plan_execution_id,
+                PlanExecutionStatus.FAILED,
+                expected_version=running.status_version,
+                failure_class="timeout",
+                message="Node executor timed out.",
+            )
+
+            finalized = service.finish_active_plan_if_terminal(
+                request.goal_execution_id,
+                db_path=request.store_path,
+            )
+            second = service.finish_active_plan_if_terminal(
+                request.goal_execution_id,
+                db_path=request.store_path,
+            )
+
+            self.assertEqual(finalized.status.value, "failed")
+            self.assertIsNone(finalized.active_plan_execution_ref)
+            self.assertEqual(finalized.failure_class, "timeout")
+            self.assertEqual(second.status.value, "failed")
 
 
 if __name__ == "__main__":

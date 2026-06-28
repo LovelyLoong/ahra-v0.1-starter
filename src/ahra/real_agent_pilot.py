@@ -136,6 +136,33 @@ class RealAgentPilotRunner:
         _write_json(run_dir / "run-result.json", run)
         return run
 
+    def recover_timeout_run(
+        self,
+        config: RealAgentPilotConfig,
+        index: int,
+        *,
+        elapsed_seconds: float,
+        message: str,
+        details: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        recovered = self._recover_partial_timeout_run(
+            config,
+            index,
+            elapsed_seconds=elapsed_seconds,
+            message=message,
+            details=details,
+        )
+        if recovered is None:
+            return self.timeout_run(
+                config,
+                index,
+                elapsed_seconds=elapsed_seconds,
+                message=message,
+                details=details,
+            )
+        _write_json(config.output_dir / f"run-{index:02d}" / "run-result.json", recovered)
+        return recovered
+
     def process_failed_run(
         self,
         config: RealAgentPilotConfig,
@@ -165,6 +192,86 @@ class RealAgentPilotRunner:
         scorecard = self._scorecard(config, runs)
         _write_json(config.output_dir / "scorecard.json", scorecard)
         return scorecard
+
+    def _recover_partial_timeout_run(
+        self,
+        config: RealAgentPilotConfig,
+        index: int,
+        *,
+        elapsed_seconds: float,
+        message: str,
+        details: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        run_id = f"{config.experiment_id}-R{index:02d}"
+        run_dir = config.output_dir / f"run-{index:02d}"
+        request_path = run_dir / "goal-run-request.yaml"
+        db_path = run_dir / ".ahra" / "goal-control.sqlite3"
+        artifact_dir = run_dir / ".ahra" / "artifacts"
+        if not request_path.exists() or not db_path.exists():
+            return None
+        service = GoalOperationService()
+        try:
+            request = load_goal_execution_request(request_path, profiles=GoalOperationProfileRegistry())
+            service.finish_active_plan_if_terminal(request.goal_execution_id, db_path=db_path)
+            inspect = service.inspect(request.goal_execution_id, db_path=db_path, artifact_dir=artifact_dir)
+        except Exception as exc:
+            return _blocked_run(
+                config=config,
+                run_id=run_id,
+                run_dir=run_dir,
+                failure_class="partial_timeout_recovery_failed",
+                message=f"{type(exc).__name__}: {exc}",
+                elapsed_seconds=elapsed_seconds,
+                request_path=request_path,
+                planner=_planner_from_artifacts(config, artifact_dir),
+                refs=(str(db_path),),
+                details={
+                    **dict(details or {}),
+                    "recoveredPartialRun": False,
+                    "recoveryAttempted": True,
+                    "originalFailureClass": "runner_timeout",
+                    "originalMessage": message,
+                },
+            )
+
+        metrics = inspect.get("metrics", {}) if isinstance(inspect, Mapping) else {}
+        goal_status = str(metrics.get("goalStatus") or "")
+        plan_execution = _latest_plan_execution(inspect)
+        plan_status = str(plan_execution.get("status") or "") if plan_execution else ""
+        execution = {
+            "status": goal_status or "unknown",
+            "goalExecutionId": request.goal_execution_id,
+            "planExecutionId": plan_execution.get("plan_execution_id") if plan_execution else None,
+            "planStatus": plan_status or None,
+            "metrics": metrics,
+        }
+        run_status = _recovered_run_status(goal_status, plan_status)
+        hard_metrics = _observed_hard_metrics(inspect)
+        failure_class = None if run_status == "succeeded" else _execution_failure_class(inspect) or "runner_timeout"
+        return {
+            "schema_version": "ahra/real-agent-pilot-run/0.1",
+            "run_id": run_id,
+            "mode": config.mode.value,
+            "status": run_status,
+            "profile": request.profile_ref,
+            "request_path": str(request_path),
+            "artifact_dir": str(run_dir),
+            "planner": _planner_from_artifacts(config, artifact_dir),
+            "execution": execution,
+            "hard_metrics": hard_metrics,
+            "hard_metric_violation": _has_hard_metric_violation(hard_metrics),
+            "failure_class": failure_class,
+            "message": message,
+            "refs": [ref for ref in (request.goal_execution_id, execution["planExecutionId"]) if ref],
+            "details": {
+                **dict(details or {}),
+                "recoveredPartialRun": True,
+                "recoveryAttempted": True,
+                "originalFailureClass": "runner_timeout",
+                "originalMessage": message,
+            },
+            "elapsed_seconds": elapsed_seconds,
+        }
 
     def _run_repetition(self, config: RealAgentPilotConfig, index: int) -> dict[str, Any]:
         run_id = f"{config.experiment_id}-R{index:02d}"
@@ -670,6 +777,61 @@ def _evidence_refs(runs: list[dict[str, Any]]) -> list[str]:
         if count:
             refs.append(str(execution.get("goalExecutionId")))
     return refs
+
+
+def _planner_from_artifacts(config: RealAgentPilotConfig, artifact_dir: Path) -> dict[str, Any]:
+    if not _uses_real_planner(config.mode):
+        return {"status": "skipped"}
+    blocker_path = artifact_dir / "planner-blocker.json"
+    if blocker_path.exists():
+        blocker = json.loads(blocker_path.read_text(encoding="utf-8"))
+        result: dict[str, Any] = {
+            "status": "blocked",
+            "failureClass": str(blocker.get("code") or "planner_blocked"),
+            "message": str(blocker.get("message") or "Planner blocked before execution."),
+        }
+        invalid_artifact_path = artifact_dir / "planner-invalid-output-artifact.json"
+        if invalid_artifact_path.exists():
+            result["invalidOutputArtifact"] = json.loads(invalid_artifact_path.read_text(encoding="utf-8"))
+        return result
+    admission_path = artifact_dir / "planner-admission-report.json"
+    output_path = artifact_dir / "planner-output-artifact.json"
+    if not admission_path.exists():
+        return {"status": "skipped"}
+    admission = json.loads(admission_path.read_text(encoding="utf-8"))
+    passed = admission.get("spec", {}).get("result") == "passed"
+    if passed:
+        result = {
+            "status": "accepted",
+            "driverRef": config.planner_driver_ref,
+            "modelProvider": config.model_provider,
+            "modelRevision": config.model_revision,
+            "validationReport": admission,
+        }
+        if output_path.exists():
+            result["outputArtifact"] = json.loads(output_path.read_text(encoding="utf-8"))
+        return result
+    return {
+        "status": "rejected",
+        "failureClass": "planner_output_rejected",
+        "message": "Planner output was rejected before execution.",
+        "validationReport": admission,
+    }
+
+
+def _latest_plan_execution(inspect: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    executions = inspect.get("planExecutions", ()) if isinstance(inspect, Mapping) else ()
+    if isinstance(executions, list) and executions:
+        return executions[-1]
+    return None
+
+
+def _recovered_run_status(goal_status: str, plan_status: str) -> str:
+    if goal_status == "succeeded":
+        return "succeeded"
+    if goal_status in {"failed", "canceled"} or plan_status in {"failed", "canceled"}:
+        return "failed"
+    return "blocked"
 
 
 def _execution_failure_class(inspect: Mapping[str, Any]) -> str | None:

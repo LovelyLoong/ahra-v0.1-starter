@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import copy
 import importlib.util
+import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,9 +13,11 @@ from typing import Any
 import yaml
 
 from ahra.goal_operations import REAL_BOUNDED_EXECUTOR_REF, GoalOperationError, GoalOperationService
+from ahra.plan_execution import PlanExecutionService, PlanExecutionStatus
 from ahra.ports import AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
 from ahra.real_agent_pilot import PilotMode, RealAgentPilotConfig, RealAgentPilotRunner
 from ahra.reference_runner.models import WorkReport
+from ahra.sqlite_control_store import SQLiteControlStore
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -198,6 +202,67 @@ class RealAgentPilotTests(unittest.TestCase):
             self.assertIn("RuntimeError", run["message"])
             self.assertTrue((Path(temp) / "run-01" / "run-result.json").exists())
 
+    def test_timeout_recovery_uses_partial_child_state_and_finalizes_goal(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            output_dir = Path(temp)
+            config = RealAgentPilotConfig(
+                experiment_id="PILOT-C-TIMEOUT",
+                mode=PilotMode.COMBINED,
+                request_template=EXAMPLE,
+                output_dir=output_dir,
+                repetitions=1,
+                allow_combined=True,
+            )
+            request_path, goal_execution_id = _prepare_terminal_partial_child_run(output_dir, "PILOT-C-TIMEOUT-R01")
+
+            run = RealAgentPilotRunner().recover_timeout_run(
+                config,
+                1,
+                elapsed_seconds=360.0,
+                message="single repetition exceeded process timeout (360s)",
+                details={"stdoutTail": "", "stderrTail": ""},
+            )
+
+            self.assertEqual(run["status"], "failed")
+            self.assertEqual(run["failure_class"], "timeout")
+            self.assertEqual(run["planner"]["status"], "accepted")
+            self.assertEqual(run["execution"]["goalExecutionId"], goal_execution_id)
+            self.assertEqual(run["execution"]["status"], "failed")
+            self.assertEqual(run["execution"]["planStatus"], "failed")
+            self.assertEqual(run["execution"]["metrics"]["goalStatus"], "failed")
+            self.assertTrue(run["details"]["recoveredPartialRun"])
+            self.assertTrue((output_dir / "run-01" / "run-result.json").exists())
+
+            inspect = GoalOperationService().inspect(
+                goal_execution_id,
+                db_path=request_path.parent / ".ahra" / "goal-control.sqlite3",
+                artifact_dir=request_path.parent / ".ahra" / "artifacts",
+            )
+            self.assertEqual(inspect["metrics"]["goalStatus"], "failed")
+
+    def test_timeout_recovery_preserves_synthetic_timeout_when_no_state_exists(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            config = RealAgentPilotConfig(
+                experiment_id="PILOT-C-NO-STATE",
+                mode=PilotMode.COMBINED,
+                request_template=EXAMPLE,
+                output_dir=Path(temp),
+                repetitions=1,
+                allow_combined=True,
+            )
+
+            run = RealAgentPilotRunner().recover_timeout_run(
+                config,
+                1,
+                elapsed_seconds=360.0,
+                message="single repetition exceeded process timeout (360s)",
+            )
+
+            self.assertEqual(run["status"], "blocked")
+            self.assertEqual(run["failure_class"], "runner_timeout")
+            self.assertEqual(run["planner"]["status"], "skipped")
+            self.assertEqual(run["execution"]["status"], "skipped")
+
 
 class RealAgentPilotScriptTests(unittest.TestCase):
     def test_isolated_watchdog_does_not_preempt_real_executor_deadline(self) -> None:
@@ -224,10 +289,138 @@ class RealAgentPilotScriptTests(unittest.TestCase):
 
         self.assertEqual(timeout, 300)
 
+    def test_isolated_timeout_uses_recovery_hook(self) -> None:
+        script = _load_pilot_script()
+        with tempfile.TemporaryDirectory() as temp:
+            args = SimpleNamespace(
+                mode=PilotMode.COMBINED.value,
+                request=str(EXAMPLE),
+                output_dir=temp,
+                experiment_id="SCRIPT-TIMEOUT",
+                repetitions=1,
+                driver_ref="codex-python-sdk",
+                model_provider="codex-sdk",
+                model=None,
+                allow_model_cost=True,
+                allow_combined=True,
+                repetition_timeout_seconds=1,
+                executor_max_attempts=1,
+                executor_startup_timeout_seconds=60,
+                executor_idle_timeout_seconds=120,
+                executor_heartbeat_interval_seconds=15,
+                executor_attempt_wall_timeout_seconds=180,
+                executor_run_deadline_seconds=1,
+            )
+            config = RealAgentPilotConfig(
+                experiment_id=args.experiment_id,
+                mode=PilotMode.COMBINED,
+                request_template=EXAMPLE,
+                output_dir=Path(temp),
+                repetitions=1,
+                allow_combined=True,
+            )
+            calls: list[dict[str, Any]] = []
+
+            class FakeRunner:
+                def recover_timeout_run(self, config, index, *, elapsed_seconds, message, details):
+                    calls.append({"index": index, "message": message, "details": details})
+                    return {"run_id": "SCRIPT-TIMEOUT-R01", "status": "failed", "failure_class": "timeout"}
+
+                def write_scorecard(self, config, runs):
+                    return {"runs": runs}
+
+            old_runner = script.RealAgentPilotRunner
+            old_run = script.subprocess.run
+            try:
+                script.RealAgentPilotRunner = lambda: FakeRunner()
+
+                def raise_timeout(*args, **kwargs):
+                    raise subprocess.TimeoutExpired(cmd="pilot", timeout=1, output="partial stdout", stderr="partial stderr")
+
+                script.subprocess.run = raise_timeout
+                scorecard = script._run_isolated_repetitions(args, config)
+            finally:
+                script.RealAgentPilotRunner = old_runner
+                script.subprocess.run = old_run
+
+            self.assertEqual(scorecard["runs"][0]["failure_class"], "timeout")
+            self.assertEqual(calls[0]["index"], 1)
+            self.assertIn("single repetition exceeded process timeout", calls[0]["message"])
+            self.assertEqual(calls[0]["details"]["stdoutTail"], "partial stdout")
+            self.assertEqual(calls[0]["details"]["stderrTail"], "partial stderr")
+
 
 def _template_draft() -> dict[str, Any]:
     data = yaml.safe_load(EXAMPLE.read_text(encoding="utf-8"))
     return copy.deepcopy(data["spec"]["planDraft"])
+
+
+def _prepare_terminal_partial_child_run(output_dir: Path, run_id: str) -> tuple[Path, str]:
+    run_dir = output_dir / "run-01"
+    run_dir.mkdir(parents=True)
+    request_path = run_dir / "goal-run-request.yaml"
+    data = yaml.safe_load(EXAMPLE.read_text(encoding="utf-8"))
+    data["metadata"]["name"] = run_id
+    data["metadata"]["requestId"] = run_id
+    data["metadata"]["idempotencyKey"] = run_id
+    request_path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
+    operation_service = GoalOperationService()
+    operation_service.plan(request_path)
+    bundle = operation_service.plan_bundle(request_path)
+    assert bundle.plan is not None
+    request = bundle.request
+    _write_json(
+        request.artifact_dir / "planner-admission-report.json",
+        {"apiVersion": "ahra.dev/v1alpha1", "kind": "PlanValidationReport", "spec": {"result": "passed", "errors": []}},
+    )
+    _write_json(
+        request.artifact_dir / "planner-output-artifact.json",
+        {"artifactId": "PLART-test", "kind": "planner-plan-draft", "payload": request.plan_draft.to_dict()},
+    )
+
+    store = SQLiteControlStore(request.store_path)
+    plan_service = PlanExecutionService(store)  # type: ignore[arg-type]
+    goal = plan_service.create_goal_execution(
+        goal_ref=request.goal_ref,
+        goal_digest=request.goal_digest,
+        claim_graph_digest=request.claim_graph_digest,
+        claim_graph_ref=request.claim_graph_ref,
+        goal_execution_id=request.goal_execution_id,
+        max_repair_cycles=request.max_repair_cycles,
+        budget_summary={"profileRef": request.profile_ref},
+        workspace_ref=str(request.workspace_ref),
+    )
+    execution = plan_service.start_execution(
+        bundle.plan,
+        bundle.validation_report,
+        goal_execution_ref=goal.goal_execution_id,
+        max_concurrency=request.max_concurrency,
+    )
+    plan_service.attach_plan_execution(
+        goal.goal_execution_id,
+        execution.plan_execution_id,
+        expected_version=goal.status_version,
+    )
+    running = plan_service.transition_execution(
+        execution.plan_execution_id,
+        PlanExecutionStatus.RUNNING,
+        expected_version=execution.status_version,
+        message="Static PlanIR DAG scheduling started.",
+    )
+    plan_service.transition_execution(
+        running.plan_execution_id,
+        PlanExecutionStatus.FAILED,
+        expected_version=running.status_version,
+        failure_class="timeout",
+        message="Node executor timed out.",
+    )
+    return request_path, request.goal_execution_id
+
+
+def _write_json(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def _load_pilot_script():

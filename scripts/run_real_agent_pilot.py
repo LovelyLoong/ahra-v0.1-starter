@@ -115,7 +115,7 @@ def _run_isolated_repetitions(args: argparse.Namespace, config: RealAgentPilotCo
             )
         except subprocess.TimeoutExpired as exc:
             runs.append(
-                runner.timeout_run(
+                runner.recover_timeout_run(
                     config,
                     index,
                     elapsed_seconds=round(time.perf_counter() - started, 6),
