@@ -13,10 +13,7 @@
     "ART-TASK-0045-0010"
   ],
   "attempt": 1,
-  "blockers": [
-    "Criterion 9: Local verification evidence is internally inconsistent: verification-summary.json artifact_hashes do not match current bytes or manifest SHA for scorecard, failure-taxonomy, goal-inspect-summary, mode-c-decision, and raw inspect artifacts. This violates the task requirement to record exact SHA-256 digests.",
-    "Criterion 12: EvidenceGate cannot complete the task until the verifier-facing evidence package has self-consistent digest claims."
-  ],
+  "blockers": [],
   "context_id": "CTX-ahra-dynamic-kernel",
   "evidence_refs": [
     "EVD-TASK-0045-0001",
@@ -30,13 +27,17 @@
     "EVD-TASK-0045-0009",
     "EVD-TASK-0045-0010"
   ],
-  "lease": null,
-  "next_action": "Address EvidenceGate verifier findings and return to review.",
-  "owner": null,
+  "lease": {
+    "actor": "agent:codex-dynamic-kernel-operator",
+    "expires_at": "2026-06-28T10:46:57.667262Z",
+    "token": "LEASE-TASK-0045-0002"
+  },
+  "next_action": "Fix verification-summary.json artifact_hashes against current evidence bytes and manifest SHA, rerun digest audits, and return to review without changing the Mode C no-go conclusion.",
+  "owner": "agent:codex-dynamic-kernel-operator",
   "pause_reason": null,
   "schema_version": "awkp/0.1",
-  "state": "changes_requested",
-  "state_version": 4,
+  "state": "working",
+  "state_version": 5,
   "task_id": "TASK-0045",
-  "updated_at": "2026-06-28T08:39:44.847168Z"
+  "updated_at": "2026-06-28T08:46:57.667262Z"
 }
