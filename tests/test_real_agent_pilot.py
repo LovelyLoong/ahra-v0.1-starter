@@ -146,6 +146,12 @@ class RealAgentPilotTests(unittest.TestCase):
             run = scorecard["runs"][0]
             self.assertEqual(run["execution"]["status"], "succeeded")
             self.assertGreaterEqual(run["execution"]["metrics"]["capabilityGrantRefCount"], 1)
+            self.assertIsNone(scorecard["cost"]["cost_usd"])
+            self.assertFalse(scorecard["cost"]["usage_available"])
+            self.assertEqual(len(scorecard["cost"]["runs"]), 1)
+            self.assertIsNone(scorecard["cost"]["runs"][0]["cost_usd"])
+            self.assertIsNone(run["provider_usage"]["total_tokens"])
+            self.assertIsNone(run["provider_usage"]["cost_usd"])
             request_path = Path(run["request_path"])
             inspect = GoalOperationService().inspect(
                 run["execution"]["goalExecutionId"],

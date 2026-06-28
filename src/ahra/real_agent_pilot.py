@@ -372,6 +372,8 @@ class RealAgentPilotRunner:
         template = load_goal_execution_request(config.request_template, profiles=GoalOperationProfileRegistry())
         profile = _profile_for_mode(config.mode)
         hard_metrics = _aggregate_hard_metrics(runs)
+        annotated_runs = [_with_provider_usage(config, run) for run in runs]
+        provider_usage = _provider_usage_summary(config, annotated_runs)
         return {
             "schema_version": REAL_AGENT_PILOT_SCHEMA_VERSION,
             "experiment_id": config.experiment_id,
@@ -399,19 +401,15 @@ class RealAgentPilotRunner:
                 "resume_duplicate_effect_count": hard_metrics["resume_duplicate_effect_count"],
                 "stale_fencing_accept_count": hard_metrics["stale_fencing_accept_count"],
             },
-            "cost": {
-                "model_provider": config.model_provider,
-                "model_revision": config.model_revision,
-                "cost_usd": 0.0,
-                "known_limitations": ["Provider usage is unavailable unless the AgentDriver reports it."],
-            },
+            "cost": provider_usage,
+            "provider_usage": provider_usage,
             "failure_classes": failures,
             "known_limitations": [
                 "This pilot runner records local GoalOperation inspect metrics; independent AWKP EvidenceGate remains a separate verifier step.",
                 "Mode C is intentionally disabled unless explicitly allowed by the operator after Mode A and Mode B review.",
             ],
-            "evidence_refs": _evidence_refs(runs),
-            "runs": runs,
+            "evidence_refs": _evidence_refs(annotated_runs),
+            "runs": annotated_runs,
         }
 
 
@@ -468,6 +466,48 @@ def _uses_real_planner(mode: PilotMode) -> bool:
 
 def _uses_real_executor(mode: PilotMode) -> bool:
     return mode in {PilotMode.REAL_EXECUTOR, PilotMode.COMBINED}
+
+
+def _with_provider_usage(config: RealAgentPilotConfig, run: Mapping[str, Any]) -> dict[str, Any]:
+    data = dict(run)
+    data["provider_usage"] = {
+        "model_provider": config.model_provider,
+        "model_revision": config.model_revision,
+        "usage_available": False,
+        "input_tokens": None,
+        "output_tokens": None,
+        "total_tokens": None,
+        "cost_usd": None,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+    }
+    return data
+
+
+def _provider_usage_summary(config: RealAgentPilotConfig, runs: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "model_provider": config.model_provider,
+        "model_revision": config.model_revision,
+        "usage_available": False,
+        "token_usage_available": False,
+        "cost_usage_available": False,
+        "input_tokens": None,
+        "output_tokens": None,
+        "total_tokens": None,
+        "cost_usd": None,
+        "runs": [
+            {
+                "run_id": str(run.get("run_id")),
+                "input_tokens": None,
+                "output_tokens": None,
+                "total_tokens": None,
+                "cost_usd": None,
+                "usage_available": False,
+                "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+            }
+            for run in runs
+        ],
+        "known_limitations": ["Provider token and cost usage is unavailable unless the AgentDriver reports it."],
+    }
 
 
 def _expand_real_executor_node_budgets(spec: dict[str, Any], policy: ExecutionPolicy) -> None:
