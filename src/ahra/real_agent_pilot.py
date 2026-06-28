@@ -314,12 +314,17 @@ class RealAgentPilotRunner:
             )
         except PlannerAdapterError as exc:
             _write_json(request.artifact_dir / "planner-blocker.json", exc.failure.to_dict())
+            invalid_artifact = exc.output_artifact.to_dict() if exc.output_artifact is not None else None
+            if invalid_artifact is not None:
+                _write_json(request.artifact_dir / "planner-invalid-output-artifact.json", invalid_artifact)
+                _write_json(request.artifact_dir / "planner-invalid-output.json", invalid_artifact["payload"])
             return {
                 "status": "blocked",
                 "failureClass": exc.failure.code,
                 "message": exc.failure.message,
                 "retryable": exc.failure.retryable,
                 "details": list(exc.failure.details),
+                "invalidOutputArtifact": invalid_artifact,
             }
 
         validation = PlannerOutputValidator().validate_execution_draft(

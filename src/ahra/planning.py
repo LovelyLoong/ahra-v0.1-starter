@@ -71,8 +71,18 @@ class PlannerRuntimeBoundaryError(ValueError):
 
 
 class PlannerAdapterError(RuntimeError):
-    def __init__(self, failure: PlannerFailure) -> None:
+    def __init__(
+        self,
+        failure: PlannerFailure,
+        *,
+        raw_output: Any | None = None,
+        driver_output: Any | None = None,
+        output_artifact: PlannerArtifact | None = None,
+    ) -> None:
         self.failure = failure
+        self.raw_output = raw_output
+        self.driver_output = driver_output
+        self.output_artifact = output_artifact
         super().__init__(f"{failure.code}: {failure.message}")
 
 
@@ -275,8 +285,26 @@ class AgentDriverExecutionPlannerAdapter:
             runtime_profile=self.runtime_profile,
             metadata={"driverRef": self.driver_ref, "plannerAdapter": "execution"},
         )
-        result = await _run_driver(driver, run_request)
-        draft = _coerce_plan_draft(result.output)
+        try:
+            result = await _run_driver(driver, run_request)
+        except PlannerAdapterError as exc:
+            raise _with_invalid_output_artifact(
+                exc,
+                context_manifest=request.context_manifest,
+                release_digest=request.context_manifest.agent_release_digest,
+                refs=(request.goal_ref, request.input_artifact.artifact_id),
+            ) from exc
+        try:
+            draft = _coerce_plan_draft(result.output)
+        except PlannerAdapterError as exc:
+            raise _with_invalid_output_artifact(
+                exc,
+                context_manifest=request.context_manifest,
+                release_digest=request.context_manifest.agent_release_digest,
+                refs=(request.goal_ref, request.input_artifact.artifact_id),
+                raw_output=result.raw_output,
+                driver_output=result.output,
+            ) from exc
         artifact = make_planner_artifact(
             kind=PLAN_DRAFT_KIND,
             payload=draft.to_dict(),
@@ -782,7 +810,9 @@ async def _run_driver(driver: AgentDriver, request: AgentRunRequest) -> Any:
         raise
     except AgentOutputContractError as exc:
         raise PlannerAdapterError(
-            PlannerFailure("planner-output-contract-failed", exc.message, retryable=False, details=exc.details)
+            PlannerFailure("planner-output-contract-failed", exc.message, retryable=False, details=exc.details),
+            raw_output=exc.raw_output,
+            driver_output=exc.raw_output,
         ) from exc
     except Exception as exc:
         raise PlannerAdapterError(
@@ -829,8 +859,56 @@ def _planner_driver_payload(context_manifest: Any, input_artifact: PlannerArtifa
     }
 
 
+def _with_invalid_output_artifact(
+    exc: PlannerAdapterError,
+    *,
+    context_manifest: Any,
+    release_digest: str,
+    refs: tuple[str, ...],
+    raw_output: Any | None = None,
+    driver_output: Any | None = None,
+) -> PlannerAdapterError:
+    raw = raw_output if raw_output is not None else exc.raw_output
+    output = driver_output if driver_output is not None else exc.driver_output
+    if raw is None and output is None:
+        return exc
+    payload = {
+        "schema_version": "ahra/planner-invalid-output/0.1",
+        "failure": exc.failure.to_dict(),
+        "rawOutput": _jsonable(raw),
+        "rawOutputSha256": canonical_fingerprint({"rawOutput": _jsonable(raw)}) if raw is not None else None,
+        "driverOutput": _jsonable(output),
+        "driverOutputSha256": canonical_fingerprint({"driverOutput": _jsonable(output)}) if output is not None else None,
+    }
+    artifact = make_planner_artifact(
+        kind="planner-invalid-output",
+        payload=payload,
+        release_digest=release_digest,
+        context_manifest=context_manifest,
+        refs=refs,
+    )
+    return PlannerAdapterError(
+        exc.failure,
+        raw_output=raw,
+        driver_output=output,
+        output_artifact=artifact,
+    )
+
+
 def _copy_mapping(value: Mapping[str, Any]) -> dict[str, Any]:
     return json.loads(json.dumps(value, ensure_ascii=False, sort_keys=True))
+
+
+def _jsonable(value: Any) -> Any:
+    if value is None:
+        return None
+    if hasattr(value, "to_dict"):
+        return value.to_dict()
+    try:
+        json.dumps(value, ensure_ascii=False, sort_keys=True)
+    except TypeError:
+        return repr(value)
+    return value
 
 
 def _json_bytes(value: Mapping[str, Any]) -> bytes:

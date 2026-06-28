@@ -141,6 +141,14 @@ class RealAgentPilotTests(unittest.TestCase):
             run = scorecard["runs"][0]
             self.assertEqual(run["execution"]["status"], "succeeded")
             self.assertGreaterEqual(run["execution"]["metrics"]["capabilityGrantRefCount"], 1)
+            request_path = Path(run["request_path"])
+            inspect = GoalOperationService().inspect(
+                run["execution"]["goalExecutionId"],
+                db_path=request_path.parent / ".ahra" / "goal-control.sqlite3",
+                artifact_dir=request_path.parent / ".ahra" / "artifacts",
+            )
+            self.assertEqual(inspect["metrics"]["missingArtifactCount"], 0)
+            self.assertEqual(inspect["artifactFindings"], [])
 
     def test_goal_operation_real_executor_profile_fails_before_sqlite_without_driver(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

@@ -910,16 +910,58 @@ def _looks_like_legacy_profile(profile_ref: str) -> bool:
 
 def _artifact_findings(artifact_refs: tuple[str, ...], artifact_dir: Path | None) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
+    manifest_index = _artifact_manifest_index(artifact_dir)
     for ref in artifact_refs:
-        if ref.startswith("file://"):
-            path = Path(ref.removeprefix("file://"))
-        elif artifact_dir is not None:
-            path = artifact_dir / ref
-        else:
+        path = _artifact_ref_path(ref, artifact_dir, manifest_index)
+        if path is None:
             continue
         if not path.exists():
             findings.append({"code": "missing_artifact", "severity": "error", "ref": ref, "path": str(path)})
     return findings
+
+
+def _artifact_ref_path(ref: str, artifact_dir: Path | None, manifest_index: Mapping[str, Path]) -> Path | None:
+    if ref.startswith("file://"):
+        return Path(ref.removeprefix("file://"))
+    if ref in manifest_index:
+        return manifest_index[ref]
+    if artifact_dir is not None:
+        return artifact_dir / ref
+    return None
+
+
+def _artifact_manifest_index(artifact_dir: Path | None) -> dict[str, Path]:
+    if artifact_dir is None:
+        return {}
+    manifests = [artifact_dir / "artifact-manifest.json"]
+    if artifact_dir.parent.exists():
+        manifests.extend(sorted(path for path in artifact_dir.parent.glob("*/artifact-manifest.json") if path not in manifests))
+    index: dict[str, Path] = {}
+    for manifest in manifests:
+        if not manifest.exists():
+            continue
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(data, Mapping):
+            continue
+        for record in data.get("artifacts", ()):
+            if not isinstance(record, Mapping):
+                continue
+            artifact_id = record.get("artifact_id")
+            uri = record.get("uri")
+            if isinstance(artifact_id, str) and isinstance(uri, str):
+                index[artifact_id] = _manifest_artifact_path(manifest.parent, uri)
+    return index
+
+
+def _manifest_artifact_path(base: Path, uri: str) -> Path:
+    if uri.startswith("file://"):
+        return Path(uri.removeprefix("file://"))
+    if uri.startswith("local://"):
+        return base / uri.removeprefix("local://")
+    return base / uri
 
 
 def _plan_metrics(plan: PlanIR | None) -> dict[str, Any]:

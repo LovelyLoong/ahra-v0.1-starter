@@ -245,6 +245,12 @@ class PlanningTests(unittest.TestCase):
         with self.assertRaises(PlannerAdapterError) as incomplete:
             asyncio.run(AgentDriverExecutionPlannerAdapter(incomplete_mapping_registry, "incomplete").propose_plan(request))
         self.assertEqual(incomplete.exception.failure.code, "planner-output-invalid")
+        self.assertIsNotNone(incomplete.exception.output_artifact)
+        assert incomplete.exception.output_artifact is not None
+        payload = incomplete.exception.output_artifact.payload
+        self.assertEqual(payload["failure"]["code"], "planner-output-invalid")
+        self.assertIn("driverOutput", payload)
+        self.assertIn("driverOutputSha256", payload)
 
     def test_defect_repair_patch_is_bounded_and_reuses_unchanged_nodes_and_evidence(self) -> None:
         bundle = _context_bundle()
