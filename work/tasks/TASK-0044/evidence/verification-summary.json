@@ -1,0 +1,137 @@
+{
+  "schema_version": "ahra/task-evidence/verification-summary/0.1",
+  "task_id": "TASK-0044",
+  "created_at": "2026-06-28T07:45:35.840769Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "code_commit": "11a31f51c6a63aa177ce01b3b8b9dfbe6e64613e",
+  "changed_files": [
+    "scripts/run_real_agent_pilot.py",
+    "src/ahra/goal_operations.py",
+    "src/ahra/real_agent_pilot.py",
+    "tests/test_real_agent_pilot.py",
+    "tests/test_goal_operations.py"
+  ],
+  "commands": [
+    {
+      "name": "focused_timeout_recovery_tests",
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_real_agent_pilot tests.test_goal_operations -v",
+      "exit_code": 0,
+      "result": "passed",
+      "notes": "18 tests passed."
+    },
+    {
+      "name": "ahra_lint",
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "result": "passed",
+      "notes": "AWKP lint 0 errors/0 warnings; AHRA lint 0 failures."
+    },
+    {
+      "name": "awkp_lint",
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "result": "passed",
+      "notes": "AWKP lint 0 errors/0 warnings."
+    },
+    {
+      "name": "full_test_suite",
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "exit_code": 0,
+      "result": "passed",
+      "notes": "199 tests passed, 2 skipped."
+    },
+    {
+      "name": "git_diff_check",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "passed",
+      "notes": "No whitespace errors."
+    }
+  ],
+  "artifact_digests": {
+    "work/tasks/TASK-0044/evidence/timeout-recovery-report.md": "bebe32439b50ce4bed908de79eef73f2f4b558796cd660ba8f29ec028b4a3da4",
+    "work/tasks/TASK-0044/handoffs/HANDOFF-0001.md": "40bd6a33167439271d2349ff7bb4436a044483643d18da92330611e8f8370925"
+  },
+  "acceptance_criteria": [
+    {
+      "criterion": 1,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0044-0001"
+      ],
+      "notes": "TASK-0043 remains completed no-go; this task does not change Mode C default policy."
+    },
+    {
+      "criterion": 2,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0044-0001",
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "TimeoutExpired path now calls recover_timeout_run and prefers durable request/SQLite state."
+    },
+    {
+      "criterion": 3,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "finish_active_plan_if_terminal test finalizes running GoalExecution with failed active PlanExecution."
+    },
+    {
+      "criterion": 4,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "Recovered run-result test asserts goalExecutionId, planExecutionId, statuses, metrics and timeout failure_class."
+    },
+    {
+      "criterion": 5,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "Regression test reconstructs accepted Planner status from preserved admission/output artifacts."
+    },
+    {
+      "criterion": 6,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "No-state timeout fallback keeps runner_timeout blocked behavior."
+    },
+    {
+      "criterion": 7,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0044-0001"
+      ],
+      "notes": "Provider usage code path is unchanged and continues to emit null unavailable usage."
+    },
+    {
+      "criterion": 8,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "Regression tests cover recovered timeout state, script hook routing, and no-state fallback."
+    },
+    {
+      "criterion": 9,
+      "status": "met",
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "notes": "Focused tests, lint, AWKP lint, full tests and diff check passed."
+    },
+    {
+      "criterion": 10,
+      "status": "pending_independent_verifier",
+      "evidence_refs": [],
+      "notes": "Producer moves to review only; EvidenceGate decides completion."
+    }
+  ],
+  "overall_result": "review_ready"
+}

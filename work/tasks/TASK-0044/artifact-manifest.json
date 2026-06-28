@@ -1,5 +1,67 @@
 {
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0044",
-  "artifacts": []
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0044-0001",
+      "task_id": "TASK-0044",
+      "kind": "timeout_recovery_report",
+      "name": "timeout-recovery-report.md",
+      "uri": "local://evidence/timeout-recovery-report.md",
+      "sha256": "bebe32439b50ce4bed908de79eef73f2f4b558796cd660ba8f29ec028b4a3da4",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-28T07:45:35.840769Z",
+      "input_refs": [
+        "task.md",
+        "../../../scripts/run_real_agent_pilot.py",
+        "../../../src/ahra/real_agent_pilot.py",
+        "../../../src/ahra/goal_operations.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0044-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0044-0002",
+      "task_id": "TASK-0044",
+      "kind": "verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "9d93a7442f3178fe2b0bc71d20238b42c07cd9bb335e9503b628109c0c7b518e",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-28T07:45:35.840769Z",
+      "input_refs": [
+        "task.md",
+        "evidence/timeout-recovery-report.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0044-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0044-HANDOFF-0001",
+      "task_id": "TASK-0044",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "40bd6a33167439271d2349ff7bb4436a044483643d18da92330611e8f8370925",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-28T07:45:35.840769Z",
+      "input_refs": [
+        "task.md",
+        "evidence/timeout-recovery-report.md",
+        "evidence/verification-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0044-0001",
+        "EVD-TASK-0044-0002"
+      ],
+      "supersedes": null
+    }
+  ]
 }
