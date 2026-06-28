@@ -1,16 +1,21 @@
 {
   "artifact_refs": [],
-  "attempt": 0,
+  "attempt": 1,
   "blockers": [],
   "context_id": "CTX-ahra-dynamic-kernel",
   "evidence_refs": [],
-  "lease": null,
-  "next_action": "Claim TASK-0043 to run the separately authorized bounded Mode C pilot.",
-  "owner": null,
+  "lease": {
+    "acquired_at": "2026-06-28T06:55:36.467951Z",
+    "expires_at": "2026-06-28T08:55:36.467951Z",
+    "holder": "agent:codex-dynamic-kernel-operator",
+    "token": "LEASE-TASK-0043-0001"
+  },
+  "next_action": "Run the separately authorized bounded Mode C pilot, classify results, and publish review evidence without producer-side completion.",
+  "owner": "agent:codex-dynamic-kernel-operator",
   "pause_reason": null,
   "schema_version": "awkp/0.1",
-  "state": "ready",
-  "state_version": 1,
+  "state": "working",
+  "state_version": 2,
   "task_id": "TASK-0043",
-  "updated_at": "2026-06-28T06:53:26.989119Z"
+  "updated_at": "2026-06-28T06:55:36.467951Z"
 }

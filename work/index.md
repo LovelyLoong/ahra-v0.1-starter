@@ -42,7 +42,7 @@ Current dynamic-kernel stage tasks:
 | [TASK-0040](tasks/TASK-0040/task.md) | completed | unassigned | 9 | Completed by EvidenceGate verifier approval. |
 | [TASK-0041](tasks/TASK-0041/task.md) | completed | unassigned | 7 | Completed by EvidenceGate verifier approval. |
 | [TASK-0042](tasks/TASK-0042/task.md) | completed | unassigned | 7 | Completed by EvidenceGate verifier approval. |
-| [TASK-0043](tasks/TASK-0043/task.md) | ready | unassigned | 1 | Claim TASK-0043 to run the separately authorized bounded Mode C pilot. |
+| [TASK-0043](tasks/TASK-0043/task.md) | working | agent:codex-dynamic-kernel-operator | 2 | Run the separately authorized bounded Mode C pilot, classify results, and publish review evidence without producer-side completion. |
 
 # Proposed Next Sequence
 
