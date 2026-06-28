@@ -1,0 +1,122 @@
+{
+  "elapsed_seconds": 32.604568,
+  "execution": {
+    "status": "skipped"
+  },
+  "failure_class": "planner-output-invalid",
+  "hard_metric_violation": false,
+  "mode": "mode_a_real_planner",
+  "planner": {
+    "details": [
+      "'goalId'"
+    ],
+    "elapsedSeconds": 32.604554,
+    "failureClass": "planner-output-invalid",
+    "invalidOutputArtifact": {
+      "artifactId": "PLART-4fdfca4f12fefedfadc5dfc0",
+      "contextManifestDigest": "7688e015100d6b7b9dd7969c919f94005548fe3b54235415dd80d7ad3aa35b82",
+      "contextManifestRef": "CTXMAN-7688e015100d6b7b9dd7969c",
+      "kind": "planner-invalid-output",
+      "mediaType": "application/json",
+      "payload": {
+        "driverOutput": {
+          "apiVersion": "ahra.dev/v1alpha1",
+          "kind": "PlanDraft",
+          "metadata": {
+            "contextManifestRef": "CTXMAN-7688e015100d6b7b9dd7969c",
+            "goalRef": "GOAL-M1-GENERIC-SMOKE",
+            "plannerInputArtifactId": "PLART-5801a4b7f5b4e212c8f4794f",
+            "runId": "TASK-0040-MODE-A-R04"
+          },
+          "spec": {
+            "escalationPolicy": "Escalate with a question if the executor cannot identify the required smoke artifact shape from GOAL-M1-GENERIC-SMOKE or if registered gate evidence cannot be produced without capabilities outside the runtime profile.",
+            "limits": {
+              "maxFanOut": 1,
+              "maxPlanDepth": 2,
+              "maxPlanNodes": 2,
+              "maxRepairCycles": 1,
+              "maxSpawnedNodes": 0
+            },
+            "planNodes": [
+              {
+                "acceptance": [
+                  "A write-artifact evidence candidate is produced for CLM-WRITE-ARTIFACT.",
+                  "The artifact is scoped to GOAL-M1-GENERIC-SMOKE and this run id.",
+                  "No task acceptance condition is lowered or removed."
+                ],
+                "bounds": {
+                  "maxModelCalls": 6,
+                  "maxToolCalls": 10,
+                  "maxWallSeconds": 90,
+                  "spawnedNodes": 0
+                },
+                "claimRefs": [
+                  "CLM-WRITE-ARTIFACT"
+                ],
+                "gateRefs": [
+                  "GATE-write-artifact"
+                ],
+                "id": "plan-node-1",
+                "nodeType": "bounded_task",
+                "objective": "Produce the minimal smoke-run artifact required by GOAL-M1-GENERIC-SMOKE using only registered runtime capabilities.",
+                "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+              },
+              {
+                "acceptance": [
+                  "GATE-write-artifact evidence is available before goal verification.",
+                  "A goal-complete evidence candidate is produced for CLM-GOAL-COMPLETE.",
+                  "Any missing or ambiguous evidence is reported as a blocker instead of declaring completion."
+                ],
+                "bounds": {
+                  "maxModelCalls": 4,
+                  "maxToolCalls": 8,
+                  "maxWallSeconds": 60,
+                  "spawnedNodes": 0
+                },
+                "claimRefs": [
+                  "CLM-GOAL-COMPLETE"
+                ],
+                "dependsOn": [
+                  "plan-node-1"
+                ],
+                "gateRefs": [
+                  "GATE-goal-complete"
+                ],
+                "id": "plan-node-2",
+                "nodeType": "goal_verification",
+                "objective": "Verify the smoke goal only after the artifact evidence candidate exists.",
+                "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+              }
+            ]
+          }
+        },
+        "driverOutputSha256": "sha256:a04353b400c38a96e88653f25557ce3a94a051ecd56f4a229515444c454d9c70",
+        "failure": {
+          "code": "planner-output-invalid",
+          "details": [
+            "'goalId'"
+          ],
+          "message": "'goalId'",
+          "retryable": false
+        },
+        "rawOutput": "{\"apiVersion\":\"ahra.dev/v1alpha1\",\"kind\":\"PlanDraft\",\"metadata\":{\"runId\":\"TASK-0040-MODE-A-R04\",\"goalRef\":\"GOAL-M1-GENERIC-SMOKE\",\"contextManifestRef\":\"CTXMAN-7688e015100d6b7b9dd7969c\",\"plannerInputArtifactId\":\"PLART-5801a4b7f5b4e212c8f4794f\"},\"spec\":{\"planNodes\":[{\"id\":\"plan-node-1\",\"nodeType\":\"bounded_task\",\"runtimeRef\":\"runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"claimRefs\":[\"CLM-WRITE-ARTIFACT\"],\"gateRefs\":[\"GATE-write-artifact\"],\"objective\":\"Produce the minimal smoke-run artifact required by GOAL-M1-GENERIC-SMOKE using only registered runtime capabilities.\",\"bounds\":{\"maxModelCalls\":6,\"maxToolCalls\":10,\"maxWallSeconds\":90,\"spawnedNodes\":0},\"acceptance\":[\"A write-artifact evidence candidate is produced for CLM-WRITE-ARTIFACT.\",\"The artifact is scoped to GOAL-M1-GENERIC-SMOKE and this run id.\",\"No task acceptance condition is lowered or removed.\"]},{\"id\":\"plan-node-2\",\"nodeType\":\"goal_verification\",\"runtimeRef\":\"runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"dependsOn\":[\"plan-node-1\"],\"claimRefs\":[\"CLM-GOAL-COMPLETE\"],\"gateRefs\":[\"GATE-goal-complete\"],\"objective\":\"Verify the smoke goal only after the artifact evidence candidate exists.\",\"bounds\":{\"maxModelCalls\":4,\"maxToolCalls\":8,\"maxWallSeconds\":60,\"spawnedNodes\":0},\"acceptance\":[\"GATE-write-artifact evidence is available before goal verification.\",\"A goal-complete evidence candidate is produced for CLM-GOAL-COMPLETE.\",\"Any missing or ambiguous evidence is reported as a blocker instead of declaring completion.\"]}],\"limits\":{\"maxPlanNodes\":2,\"maxPlanDepth\":2,\"maxRepairCycles\":1,\"maxFanOut\":1,\"maxSpawnedNodes\":0},\"escalationPolicy\":\"Escalate with a question if the executor cannot identify the required smoke artifact shape from GOAL-M1-GENERIC-SMOKE or if registered gate evidence cannot be produced without capabilities outside the runtime profile.\"}}",
+        "rawOutputSha256": "sha256:978f0d762af7a78635fbc0e5cb1c8e46c8ed6a34eb00a8b4365db2eb24c373ed",
+        "schema_version": "ahra/planner-invalid-output/0.1"
+      },
+      "refs": [
+        "GOAL-M1-GENERIC-SMOKE",
+        "PLART-5801a4b7f5b4e212c8f4794f"
+      ],
+      "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+      "sha256": "sha256:4fdfca4f12fefedfadc5dfc032e0bb63486cf37aae624dde85de53903c633a0d"
+    },
+    "message": "'goalId'",
+    "retryable": false,
+    "status": "blocked"
+  },
+  "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-04\\goal-run-request.yaml",
+  "run_id": "TASK-0040-MODE-A-R04",
+  "schema_version": "ahra/real-agent-pilot-run/0.1",
+  "status": "blocked"
+}

@@ -1,0 +1,112 @@
+{
+  "elapsed_seconds": 31.865822,
+  "execution": {
+    "status": "skipped"
+  },
+  "failure_class": "planner-output-invalid",
+  "hard_metric_violation": false,
+  "mode": "mode_a_real_planner",
+  "planner": {
+    "details": [
+      "'goalId'"
+    ],
+    "elapsedSeconds": 31.865806,
+    "failureClass": "planner-output-invalid",
+    "invalidOutputArtifact": {
+      "artifactId": "PLART-8388391597bb49ed85565547",
+      "contextManifestDigest": "bfea9d50deff1fe7245ac318a29945a8f0cd7124374778180cf7e24df5ff911b",
+      "contextManifestRef": "CTXMAN-bfea9d50deff1fe7245ac318",
+      "kind": "planner-invalid-output",
+      "mediaType": "application/json",
+      "payload": {
+        "driverOutput": {
+          "apiVersion": "ahra.dev/v1alpha1",
+          "kind": "PlanDraft",
+          "metadata": {
+            "contextManifestRef": "CTXMAN-bfea9d50deff1fe7245ac318",
+            "goalRef": "GOAL-M1-GENERIC-SMOKE",
+            "plannerRole": "planner",
+            "runId": "TASK-0040-MODE-A-R01"
+          },
+          "spec": {
+            "escalation": null,
+            "limits": {
+              "maxPlanDepth": 2,
+              "maxPlanNodes": 2,
+              "maxRepairCycles": 1,
+              "maxSpawnedNodes": 0
+            },
+            "nodes": [
+              {
+                "bounds": {
+                  "maxModelCalls": 4,
+                  "maxToolCalls": 8,
+                  "maxWallSeconds": 90
+                },
+                "claims": [
+                  "CLM-WRITE-ARTIFACT"
+                ],
+                "dependsOn": [],
+                "description": "Produce the minimal smoke artifact required by GOAL-M1-GENERIC-SMOKE using only the provided goal context.",
+                "gateRefs": [
+                  "GATE-write-artifact"
+                ],
+                "id": "node-1",
+                "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "type": "bounded_task"
+              },
+              {
+                "bounds": {
+                  "maxModelCalls": 3,
+                  "maxToolCalls": 6,
+                  "maxWallSeconds": 60
+                },
+                "claims": [
+                  "CLM-GOAL-COMPLETE"
+                ],
+                "dependsOn": [
+                  "node-1"
+                ],
+                "description": "Verify the produced artifact against the generic smoke goal and record whether the goal-complete claim is supported by evidence.",
+                "gateRefs": [
+                  "GATE-goal-complete"
+                ],
+                "id": "node-2",
+                "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                "type": "goal_verification"
+              }
+            ],
+            "rationale": "Goal scope is a generic M1 smoke path with registered bounded_task and goal_verification node types. The plan keeps one bounded artifact-producing task and one verification task within the provided budgets and registered gates.",
+            "status": "proposed"
+          }
+        },
+        "driverOutputSha256": "sha256:0e1e5c492b15319d5578512b27beedd32a9a04e6c2cdfc5dabe6a4d8e56625b9",
+        "failure": {
+          "code": "planner-output-invalid",
+          "details": [
+            "'goalId'"
+          ],
+          "message": "'goalId'",
+          "retryable": false
+        },
+        "rawOutput": "{\"apiVersion\":\"ahra.dev/v1alpha1\",\"kind\":\"PlanDraft\",\"metadata\":{\"runId\":\"TASK-0040-MODE-A-R01\",\"goalRef\":\"GOAL-M1-GENERIC-SMOKE\",\"plannerRole\":\"planner\",\"contextManifestRef\":\"CTXMAN-bfea9d50deff1fe7245ac318\"},\"spec\":{\"status\":\"proposed\",\"rationale\":\"Goal scope is a generic M1 smoke path with registered bounded_task and goal_verification node types. The plan keeps one bounded artifact-producing task and one verification task within the provided budgets and registered gates.\",\"nodes\":[{\"id\":\"node-1\",\"type\":\"bounded_task\",\"runtimeRef\":\"runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"claims\":[\"CLM-WRITE-ARTIFACT\"],\"gateRefs\":[\"GATE-write-artifact\"],\"description\":\"Produce the minimal smoke artifact required by GOAL-M1-GENERIC-SMOKE using only the provided goal context.\",\"bounds\":{\"maxModelCalls\":4,\"maxToolCalls\":8,\"maxWallSeconds\":90},\"dependsOn\":[]},{\"id\":\"node-2\",\"type\":\"goal_verification\",\"runtimeRef\":\"runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"claims\":[\"CLM-GOAL-COMPLETE\"],\"gateRefs\":[\"GATE-goal-complete\"],\"description\":\"Verify the produced artifact against the generic smoke goal and record whether the goal-complete claim is supported by evidence.\",\"bounds\":{\"maxModelCalls\":3,\"maxToolCalls\":6,\"maxWallSeconds\":60},\"dependsOn\":[\"node-1\"]}],\"limits\":{\"maxPlanNodes\":2,\"maxPlanDepth\":2,\"maxSpawnedNodes\":0,\"maxRepairCycles\":1},\"escalation\":null}}",
+        "rawOutputSha256": "sha256:259015d5e1414ba709b2f93181d013a608138582566c65e238adf855fadf608c",
+        "schema_version": "ahra/planner-invalid-output/0.1"
+      },
+      "refs": [
+        "GOAL-M1-GENERIC-SMOKE",
+        "PLART-7e5234f53cbf787d2ff26a9f"
+      ],
+      "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+      "sha256": "sha256:8388391597bb49ed855655477a5cb6991ec1e26f10ef413f99bcf5c60aa07b13"
+    },
+    "message": "'goalId'",
+    "retryable": false,
+    "status": "blocked"
+  },
+  "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-01\\goal-run-request.yaml",
+  "run_id": "TASK-0040-MODE-A-R01",
+  "schema_version": "ahra/real-agent-pilot-run/0.1",
+  "status": "blocked"
+}

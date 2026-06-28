@@ -1,0 +1,88 @@
+{
+  "artifactId": "PLART-9e1ec97f9f35f3383f768071",
+  "contextManifestDigest": "31afa647bdbe916ee3ad814a2fbe94fcc6817bc569fb03113e8c6ddea426cd70",
+  "contextManifestRef": "CTXMAN-31afa647bdbe916ee3ad814a",
+  "kind": "planner-invalid-output",
+  "mediaType": "application/json",
+  "payload": {
+    "driverOutput": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanDraft",
+      "metadata": {
+        "goalRef": "GOAL-M1-GENERIC-SMOKE",
+        "plannerRole": "planner",
+        "runId": "TASK-0040-MODE-A-R02"
+      },
+      "spec": {
+        "limits": {
+          "maxCostUsd": 1.0,
+          "maxFanOut": 1,
+          "maxModelCalls": 8,
+          "maxPlanDepth": 2,
+          "maxPlanNodes": 2,
+          "maxRepairCycles": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 16,
+          "maxWallSeconds": 135
+        },
+        "nodes": [
+          {
+            "bounds": {
+              "maxModelCalls": 6,
+              "maxToolCalls": 12,
+              "maxWallSeconds": 90
+            },
+            "claimRefs": [
+              "CLM-WRITE-ARTIFACT"
+            ],
+            "gateRefs": [
+              "GATE-write-artifact"
+            ],
+            "id": "node-1-write-artifact",
+            "objective": "Produce the bounded smoke-goal artifact required by CLM-WRITE-ARTIFACT without modifying task contracts or authority state.",
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "type": "bounded_task"
+          },
+          {
+            "bounds": {
+              "maxModelCalls": 2,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 45
+            },
+            "claimRefs": [
+              "CLM-GOAL-COMPLETE"
+            ],
+            "dependsOn": [
+              "node-1-write-artifact"
+            ],
+            "gateRefs": [
+              "GATE-goal-complete"
+            ],
+            "id": "node-2-verify-goal",
+            "objective": "Verify the written artifact against the generic smoke goal and report pass/fail evidence through the registered goal-complete gate.",
+            "type": "goal_verification"
+          }
+        ],
+        "questions": []
+      }
+    },
+    "driverOutputSha256": "sha256:0c79a685c22c198e46a891fa73a806132bda450a42f51442641d7ab0b3a7dbd8",
+    "failure": {
+      "code": "planner-output-invalid",
+      "details": [
+        "'goalId'"
+      ],
+      "message": "'goalId'",
+      "retryable": false
+    },
+    "rawOutput": "{\"apiVersion\":\"ahra.dev/v1alpha1\",\"kind\":\"PlanDraft\",\"metadata\":{\"runId\":\"TASK-0040-MODE-A-R02\",\"goalRef\":\"GOAL-M1-GENERIC-SMOKE\",\"plannerRole\":\"planner\"},\"spec\":{\"nodes\":[{\"id\":\"node-1-write-artifact\",\"type\":\"bounded_task\",\"runtimeRef\":\"runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"claimRefs\":[\"CLM-WRITE-ARTIFACT\"],\"gateRefs\":[\"GATE-write-artifact\"],\"bounds\":{\"maxModelCalls\":6,\"maxToolCalls\":12,\"maxWallSeconds\":90},\"objective\":\"Produce the bounded smoke-goal artifact required by CLM-WRITE-ARTIFACT without modifying task contracts or authority state.\"},{\"id\":\"node-2-verify-goal\",\"type\":\"goal_verification\",\"dependsOn\":[\"node-1-write-artifact\"],\"claimRefs\":[\"CLM-GOAL-COMPLETE\"],\"gateRefs\":[\"GATE-goal-complete\"],\"bounds\":{\"maxModelCalls\":2,\"maxToolCalls\":4,\"maxWallSeconds\":45},\"objective\":\"Verify the written artifact against the generic smoke goal and report pass/fail evidence through the registered goal-complete gate.\"}],\"limits\":{\"maxPlanNodes\":2,\"maxPlanDepth\":2,\"maxModelCalls\":8,\"maxToolCalls\":16,\"maxSpawnedNodes\":0,\"maxRepairCycles\":1,\"maxFanOut\":1,\"maxWallSeconds\":135,\"maxCostUsd\":1.0},\"questions\":[]}}",
+    "rawOutputSha256": "sha256:59cfcb6ef48c931290d99a270aee8428ae4b69ab9cdd716d885313021f8841bc",
+    "schema_version": "ahra/planner-invalid-output/0.1"
+  },
+  "refs": [
+    "GOAL-M1-GENERIC-SMOKE",
+    "PLART-d83d2c5e79114a34a7328d51"
+  ],
+  "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+  "sha256": "sha256:9e1ec97f9f35f3383f7680713071d7797c3f94e1885895727169dcd526e3be52"
+}

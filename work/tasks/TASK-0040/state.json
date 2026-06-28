@@ -9,14 +9,12 @@
     "ART-TASK-0040-0006",
     "ART-TASK-0040-0007",
     "ART-TASK-0040-HANDOFF-0002",
-    "ART-TASK-0040-0008"
+    "ART-TASK-0040-0008",
+    "ART-TASK-0040-0009",
+    "ART-TASK-0040-HANDOFF-0003"
   ],
-  "attempt": 1,
-  "blockers": [
-    "Criterion 3: Mode B run 05 has capabilityGrantRefCount=1 and bounded executor evidence, but independent goal inspect with artifact-dir reports missingArtifactCount=3 for ART refs. The report claim of no missing artifact findings is therefore not audit-safe until the artifact lineage is made resolvable or the report explicitly classifies this limitation.",
-    "Criterion 6: Failure classes are summarized, but Mode A run artifacts preserve only planner-blocker.json with the short detail goalId; the invalid real Planner raw output/output artifact is absent, so the blocker is not linked to sufficiently inspectable output evidence.",
-    "Criterion 10: Independent verifier does not approve this report yet; changes are requested for audit-grade artifact lineage and raw Planner failure evidence."
-  ],
+  "attempt": 2,
+  "blockers": [],
   "context_id": "CTX-ahra-dynamic-kernel",
   "evidence_refs": [
     "EVD-TASK-0040-0001",
@@ -26,15 +24,16 @@
     "EVD-TASK-0040-0005",
     "EVD-TASK-0040-0006",
     "EVD-TASK-0040-0007",
-    "EVD-TASK-0040-0008"
+    "EVD-TASK-0040-0008",
+    "EVD-TASK-0040-0009"
   ],
   "lease": null,
-  "next_action": "Address EvidenceGate verifier findings and return to review.",
+  "next_action": "Independent SG-10 EvidenceGate re-review should inspect TASK-0040 EvidenceGate response, updated report, Mode A invalid output artifacts, and Mode B run 05 inspect lineage; producer does not mark complete.",
   "owner": null,
   "pause_reason": null,
   "schema_version": "awkp/0.1",
-  "state": "changes_requested",
-  "state_version": 6,
+  "state": "review",
+  "state_version": 8,
   "task_id": "TASK-0040",
-  "updated_at": "2026-06-28T04:08:47.753907Z"
+  "updated_at": "2026-06-28T04:30:25.191422Z"
 }

@@ -1,0 +1,120 @@
+{
+  "schema_version": "ahra/evidence-gate-response/0.1",
+  "task_id": "TASK-0040",
+  "created_at": "2026-06-28T04:30:25.191422Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "responds_to_event": "EVT-TASK-0040-0007",
+  "responds_to_evidence": "EVD-TASK-0040-0008",
+  "code_commit": "51418dee4cb85b83ca6d523e874cf68c75d9a05f",
+  "state_version_input": 6,
+  "findings_addressed": [
+    {
+      "finding": "Mode B run 05 goal inspect with --artifact-dir reported missingArtifactCount=3.",
+      "status": "addressed",
+      "implementation_change": "GoalOperationService artifact inspection now resolves ART refs through artifact-manifest.json in the artifact dir and sibling run directories before falling back to direct artifact-dir paths.",
+      "code_refs": [
+        "src/ahra/goal_operations.py",
+        "tests/test_real_agent_pilot.py"
+      ],
+      "verification": {
+        "code_commit": "51418dee4cb85b83ca6d523e874cf68c75d9a05f",
+        "command": ".\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-130c5ba6602a532d --db work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-05\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-05\\.ahra\\artifacts",
+        "exit_code": 0,
+        "missingArtifactCount": 0,
+        "artifactFindings": []
+      }
+    },
+    {
+      "finding": "Mode A planner failures preserved only planner-blocker.json without invalid raw output/output artifact.",
+      "status": "addressed",
+      "implementation_change": "PlannerAdapterError now carries raw output, driver output and an invalid-output PlannerArtifact; real_agent_pilot writes planner-invalid-output.json and planner-invalid-output-artifact.json for blocked planner runs.",
+      "code_refs": [
+        "src/ahra/planning.py",
+        "src/ahra/real_agent_pilot.py",
+        "tests/test_planning.py"
+      ],
+      "verification": {
+        "mode_a_code_commit": "51418dee4cb85b83ca6d523e874cf68c75d9a05f",
+        "run_count": 5,
+        "blocked_count": 5,
+        "invalid_output_artifact_count": 5,
+        "invalid_output_artifacts": [
+          {
+            "run_id": "TASK-0040-MODE-A-R01",
+            "payload_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-01\\.ahra\\artifacts\\planner-invalid-output.json",
+            "artifact_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-01\\.ahra\\artifacts\\planner-invalid-output-artifact.json",
+            "raw_output_sha256": "sha256:259015d5e1414ba709b2f93181d013a608138582566c65e238adf855fadf608c",
+            "driver_output_sha256": "sha256:0e1e5c492b15319d5578512b27beedd32a9a04e6c2cdfc5dabe6a4d8e56625b9"
+          },
+          {
+            "run_id": "TASK-0040-MODE-A-R02",
+            "payload_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-02\\.ahra\\artifacts\\planner-invalid-output.json",
+            "artifact_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-02\\.ahra\\artifacts\\planner-invalid-output-artifact.json",
+            "raw_output_sha256": "sha256:59cfcb6ef48c931290d99a270aee8428ae4b69ab9cdd716d885313021f8841bc",
+            "driver_output_sha256": "sha256:0c79a685c22c198e46a891fa73a806132bda450a42f51442641d7ab0b3a7dbd8"
+          },
+          {
+            "run_id": "TASK-0040-MODE-A-R03",
+            "payload_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-03\\.ahra\\artifacts\\planner-invalid-output.json",
+            "artifact_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-03\\.ahra\\artifacts\\planner-invalid-output-artifact.json",
+            "raw_output_sha256": "sha256:01dd33e3758ba4689cadd1bdb3c60925d7b676157adfd010eb6d892999262357",
+            "driver_output_sha256": "sha256:e19e7fc329580ac47fc53fec78d5b7f0f036809e10ff1e80a12a29fe91bfd15b"
+          },
+          {
+            "run_id": "TASK-0040-MODE-A-R04",
+            "payload_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-04\\.ahra\\artifacts\\planner-invalid-output.json",
+            "artifact_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-04\\.ahra\\artifacts\\planner-invalid-output-artifact.json",
+            "raw_output_sha256": "sha256:978f0d762af7a78635fbc0e5cb1c8e46c8ed6a34eb00a8b4365db2eb24c373ed",
+            "driver_output_sha256": "sha256:a04353b400c38a96e88653f25557ce3a94a051ecd56f4a229515444c454d9c70"
+          },
+          {
+            "run_id": "TASK-0040-MODE-A-R05",
+            "payload_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-05\\.ahra\\artifacts\\planner-invalid-output.json",
+            "artifact_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-05\\.ahra\\artifacts\\planner-invalid-output-artifact.json",
+            "raw_output_sha256": "sha256:536fe2f657c462609a43841d7c01f02f77026fa3b919d2106d5992d8545aad08",
+            "driver_output_sha256": "sha256:12f21986d8d6b14c9cd7247865a0e7990855e1e50582f852ca0b0d1d55e21a0b"
+          }
+        ]
+      }
+    }
+  ],
+  "producer_position": "Return TASK-0040 to independent review. The producer does not mark the task complete.",
+  "verification_commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_real_agent_pilot tests.test_planning tests.test_goal_operations -v",
+      "exit_code": 0,
+      "result": "18 tests passed"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-130c5ba6602a532d --db work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-05\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-05\\.ahra\\artifacts",
+      "exit_code": 0,
+      "result": "missingArtifactCount=0 and artifactFindings=[]"
+    },
+    {
+      "command": "Mode A invalid planner artifact audit script",
+      "exit_code": 0,
+      "result": "5/5 runs have planner-invalid-output.json and planner-invalid-output-artifact.json with rawOutputSha256 and driverOutputSha256"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "result": "AWKP lint 0 errors, 0 warnings; AHRA lint 0 failures"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "result": "AWKP lint 0 errors, 0 warnings"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "no whitespace errors; Git reported CRLF/LF normalization warnings for changed text files"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "exit_code": 0,
+      "result": "190 tests passed, 2 skipped"
+    }
+  ],
+  "verification_updated_at": "2026-06-28T04:33:08.152569Z"
+}

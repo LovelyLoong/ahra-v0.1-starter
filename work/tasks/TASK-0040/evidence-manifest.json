@@ -44,9 +44,10 @@
         "ART-TASK-0040-0005",
         "ART-TASK-0040-0006",
         "ART-TASK-0040-0007",
-        "ART-TASK-0040-HANDOFF-0002"
+        "ART-TASK-0040-HANDOFF-0002",
+        "EVD-TASK-0040-0009"
       ],
-      "sha256": "c2b81ceb67cdf11b998f8686c69a9d5e5d1b982b7b8f7ea79cc604cc96ec69b5",
+      "sha256": "d29c3aa1bc5eae0dc44372bf47a11ffd3846b517f09075b425d73d4ceba0ea21",
       "task_id": "TASK-0040",
       "uri": "local://evidence/real-agent-pilot-report.md"
     },
@@ -60,7 +61,7 @@
       "refs": [
         "ART-TASK-0040-0005"
       ],
-      "sha256": "5ec50de2b97a8270d6a13a9dfdf221913399abac57f390c6447b3534fc416356",
+      "sha256": "886ef7e1b62d5de4138fe56d14bcb23a9190ecb9acb71f78412ab5e359a413f4",
       "task_id": "TASK-0040",
       "uri": "local://evidence/real-agent-pilot/mode-a/scorecard.json"
     },
@@ -88,7 +89,7 @@
       "refs": [
         "ART-TASK-0040-0007"
       ],
-      "sha256": "3f65e2546828fff731c0a013c0bea7873d2d5c78e3056e3a8699e16efd59e2ab",
+      "sha256": "3320d2a4e9b57a9437d4ff8c96a071dc84c3e651119324f2497c4640e4bf8963",
       "task_id": "TASK-0040",
       "uri": "local://evidence/mode-c-decision.json"
     },
@@ -102,7 +103,7 @@
       "refs": [
         "ART-TASK-0040-0004"
       ],
-      "sha256": "1ec7669f0f4ae9984038c4f562964012ff948ee52fdeba4eb5ef9ac059f85ab2",
+      "sha256": "2d339ed2944943cccb11a9cc622ee52a0da6dfdb1e20e8facf8213b7e100494a",
       "task_id": "TASK-0040",
       "uri": "local://evidence/real-agent-pilot-summary.json"
     },
@@ -118,6 +119,27 @@
       "created_at": "2026-06-28T04:08:47.753907Z",
       "refs": [
         "ART-TASK-0040-0008",
+        "EVD-TASK-0040-0003",
+        "EVD-TASK-0040-0004",
+        "EVD-TASK-0040-0005",
+        "EVD-TASK-0040-0006",
+        "EVD-TASK-0040-0007"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0040-0009",
+      "task_id": "TASK-0040",
+      "kind": "evidence_gate_response",
+      "name": "evidence-gate-response-7.json",
+      "uri": "local://evidence/evidence-gate-response-7.json",
+      "sha256": "5a80fe161d6775c729292726819c92855ea065065b261e2f6242a68e453d6ec9",
+      "media_type": "application/json",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "created_at": "2026-06-28T04:30:25.191422Z",
+      "refs": [
+        "ART-TASK-0040-0009",
+        "ART-TASK-0040-HANDOFF-0003",
+        "EVD-TASK-0040-0008",
         "EVD-TASK-0040-0003",
         "EVD-TASK-0040-0004",
         "EVD-TASK-0040-0005",

@@ -1,0 +1,75 @@
+{
+  "driverOutput": {
+    "apiVersion": "ahra.dev/v1alpha1",
+    "kind": "PlanDraft",
+    "metadata": {
+      "contextManifestRef": "CTXMAN-bfea9d50deff1fe7245ac318",
+      "goalRef": "GOAL-M1-GENERIC-SMOKE",
+      "plannerRole": "planner",
+      "runId": "TASK-0040-MODE-A-R01"
+    },
+    "spec": {
+      "escalation": null,
+      "limits": {
+        "maxPlanDepth": 2,
+        "maxPlanNodes": 2,
+        "maxRepairCycles": 1,
+        "maxSpawnedNodes": 0
+      },
+      "nodes": [
+        {
+          "bounds": {
+            "maxModelCalls": 4,
+            "maxToolCalls": 8,
+            "maxWallSeconds": 90
+          },
+          "claims": [
+            "CLM-WRITE-ARTIFACT"
+          ],
+          "dependsOn": [],
+          "description": "Produce the minimal smoke artifact required by GOAL-M1-GENERIC-SMOKE using only the provided goal context.",
+          "gateRefs": [
+            "GATE-write-artifact"
+          ],
+          "id": "node-1",
+          "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "type": "bounded_task"
+        },
+        {
+          "bounds": {
+            "maxModelCalls": 3,
+            "maxToolCalls": 6,
+            "maxWallSeconds": 60
+          },
+          "claims": [
+            "CLM-GOAL-COMPLETE"
+          ],
+          "dependsOn": [
+            "node-1"
+          ],
+          "description": "Verify the produced artifact against the generic smoke goal and record whether the goal-complete claim is supported by evidence.",
+          "gateRefs": [
+            "GATE-goal-complete"
+          ],
+          "id": "node-2",
+          "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "type": "goal_verification"
+        }
+      ],
+      "rationale": "Goal scope is a generic M1 smoke path with registered bounded_task and goal_verification node types. The plan keeps one bounded artifact-producing task and one verification task within the provided budgets and registered gates.",
+      "status": "proposed"
+    }
+  },
+  "driverOutputSha256": "sha256:0e1e5c492b15319d5578512b27beedd32a9a04e6c2cdfc5dabe6a4d8e56625b9",
+  "failure": {
+    "code": "planner-output-invalid",
+    "details": [
+      "'goalId'"
+    ],
+    "message": "'goalId'",
+    "retryable": false
+  },
+  "rawOutput": "{\"apiVersion\":\"ahra.dev/v1alpha1\",\"kind\":\"PlanDraft\",\"metadata\":{\"runId\":\"TASK-0040-MODE-A-R01\",\"goalRef\":\"GOAL-M1-GENERIC-SMOKE\",\"plannerRole\":\"planner\",\"contextManifestRef\":\"CTXMAN-bfea9d50deff1fe7245ac318\"},\"spec\":{\"status\":\"proposed\",\"rationale\":\"Goal scope is a generic M1 smoke path with registered bounded_task and goal_verification node types. The plan keeps one bounded artifact-producing task and one verification task within the provided budgets and registered gates.\",\"nodes\":[{\"id\":\"node-1\",\"type\":\"bounded_task\",\"runtimeRef\":\"runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"claims\":[\"CLM-WRITE-ARTIFACT\"],\"gateRefs\":[\"GATE-write-artifact\"],\"description\":\"Produce the minimal smoke artifact required by GOAL-M1-GENERIC-SMOKE using only the provided goal context.\",\"bounds\":{\"maxModelCalls\":4,\"maxToolCalls\":8,\"maxWallSeconds\":90},\"dependsOn\":[]},{\"id\":\"node-2\",\"type\":\"goal_verification\",\"runtimeRef\":\"runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"claims\":[\"CLM-GOAL-COMPLETE\"],\"gateRefs\":[\"GATE-goal-complete\"],\"description\":\"Verify the produced artifact against the generic smoke goal and record whether the goal-complete claim is supported by evidence.\",\"bounds\":{\"maxModelCalls\":3,\"maxToolCalls\":6,\"maxWallSeconds\":60},\"dependsOn\":[\"node-1\"]}],\"limits\":{\"maxPlanNodes\":2,\"maxPlanDepth\":2,\"maxSpawnedNodes\":0,\"maxRepairCycles\":1},\"escalation\":null}}",
+  "rawOutputSha256": "sha256:259015d5e1414ba709b2f93181d013a608138582566c65e238adf855fadf608c",
+  "schema_version": "ahra/planner-invalid-output/0.1"
+}

@@ -7,9 +7,9 @@ description: Generated-style view of current dynamic-kernel tasks; task state fi
 status: active
 owner: harness:dispatcher
 source_refs: [tasks/TASK-0021/state.json, tasks/TASK-0022/state.json, tasks/TASK-0023/state.json, tasks/TASK-0024/state.json, tasks/TASK-0025/state.json, tasks/TASK-0026/state.json, tasks/TASK-0027/state.json, tasks/TASK-0028/state.json, tasks/TASK-0029/state.json, tasks/TASK-0030/state.json, tasks/TASK-0031/state.json, tasks/TASK-0032/state.json, tasks/TASK-0033/state.json, tasks/TASK-0034/state.json, tasks/TASK-0035/state.json, tasks/TASK-0036/state.json, tasks/TASK-0037/state.json, tasks/TASK-0038/state.json, tasks/TASK-0039/state.json, tasks/TASK-0040/state.json]
-evidence_refs: [EVD-TASK-0040-0007, EVD-TASK-0040-0006, EVD-TASK-0040-0005, EVD-TASK-0040-0004, EVD-TASK-0040-0003, EVD-TASK-0040-0002, EVD-TASK-0040-0001, EVD-TASK-0031-0001, EVD-TASK-0031-0002, EVD-TASK-0031-0003, EVD-TASK-0032-0001, EVD-TASK-0032-0002, EVD-TASK-0032-0003, EVD-TASK-0032-0004, EVD-TASK-0033-0001, EVD-TASK-0033-0002, EVD-TASK-0033-0003, EVD-TASK-0033-0004, EVD-TASK-0034-0001, EVD-TASK-0034-0002, EVD-TASK-0034-0003, EVD-TASK-0034-0004, EVD-TASK-0035-0001, EVD-TASK-0035-0002, EVD-TASK-0035-0003, EVD-TASK-0035-0004, EVD-TASK-0036-0001, EVD-TASK-0036-0002, EVD-TASK-0036-0003, EVD-TASK-0036-0004, EVD-TASK-0037-0001, EVD-TASK-0037-0002, EVD-TASK-0037-0003, EVD-TASK-0037-0004, EVD-TASK-0037-0005, EVD-TASK-0038-0001, EVD-TASK-0038-0002, EVD-TASK-0038-0003, EVD-TASK-0038-0004, EVD-TASK-0038-0005, EVD-TASK-0039-0001, EVD-TASK-0039-0002, EVD-TASK-0039-0003, EVD-TASK-0039-0004, EVD-TASK-0039-0005, EVD-TASK-0039-0006, EVD-TASK-0039-0007]
+evidence_refs: [EVD-TASK-0040-0009, EVD-TASK-0040-0008, EVD-TASK-0040-0007, EVD-TASK-0040-0006, EVD-TASK-0040-0005, EVD-TASK-0040-0004, EVD-TASK-0040-0003, EVD-TASK-0040-0002, EVD-TASK-0040-0001, EVD-TASK-0031-0001, EVD-TASK-0031-0002, EVD-TASK-0031-0003, EVD-TASK-0032-0001, EVD-TASK-0032-0002, EVD-TASK-0032-0003, EVD-TASK-0032-0004, EVD-TASK-0033-0001, EVD-TASK-0033-0002, EVD-TASK-0033-0003, EVD-TASK-0033-0004, EVD-TASK-0034-0001, EVD-TASK-0034-0002, EVD-TASK-0034-0003, EVD-TASK-0034-0004, EVD-TASK-0035-0001, EVD-TASK-0035-0002, EVD-TASK-0035-0003, EVD-TASK-0035-0004, EVD-TASK-0036-0001, EVD-TASK-0036-0002, EVD-TASK-0036-0003, EVD-TASK-0036-0004, EVD-TASK-0037-0001, EVD-TASK-0037-0002, EVD-TASK-0037-0003, EVD-TASK-0037-0004, EVD-TASK-0037-0005, EVD-TASK-0038-0001, EVD-TASK-0038-0002, EVD-TASK-0038-0003, EVD-TASK-0038-0004, EVD-TASK-0038-0005, EVD-TASK-0039-0001, EVD-TASK-0039-0002, EVD-TASK-0039-0003, EVD-TASK-0039-0004, EVD-TASK-0039-0005, EVD-TASK-0039-0006, EVD-TASK-0039-0007]
 confidence: reviewed
-last_verified_at: 2026-06-28T03:55:24.849927Z
+last_verified_at: 2026-06-28T04:30:25.191422Z
 review_after: 2026-09-25T00:00:00Z
 tags: [work, index, dynamic-kernel]
 ---
@@ -39,7 +39,7 @@ Current dynamic-kernel stage tasks:
 | [TASK-0037](tasks/TASK-0037/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
 | [TASK-0038](tasks/TASK-0038/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
 | [TASK-0039](tasks/TASK-0039/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
-| [TASK-0040](tasks/TASK-0040/task.md) | review | unassigned | 5 | Independent SG-10 EvidenceGate review should inspect TASK-0040 real-Agent pilot report, scorecards, manifests, and Mode B run 05 lineage; producer does not mark complete. |
+| [TASK-0040](tasks/TASK-0040/task.md) | review | unassigned | 8 | Independent SG-10 EvidenceGate re-review should inspect TASK-0040 EvidenceGate response, updated report, Mode A invalid output artifacts, and Mode B run 05 inspect lineage; producer does not mark complete. |
 
 # Proposed Next Sequence
 

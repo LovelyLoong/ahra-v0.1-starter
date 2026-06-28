@@ -4,21 +4,30 @@
   "decision": "skipped",
   "hard_metric_violation": false,
   "mode_a": {
+    "run_count": 5,
+    "success_count": 0,
     "failure_classes": {
       "planner-output-invalid": 5
     },
-    "run_count": 5,
-    "success_count": 0
+    "invalid_output_artifact_count": 5
   },
   "mode_b": {
+    "run_count": 5,
+    "success_count": 1,
     "failure_classes": {
       "runner_timeout": 4
     },
-    "run_count": 5,
-    "success_count": 1
+    "run_05_independent_inspect_after_fix": {
+      "code_commit": "51418dee4cb85b83ca6d523e874cf68c75d9a05f",
+      "command": ".\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-130c5ba6602a532d --db work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-05\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-05\\.ahra\\artifacts",
+      "exit_code": 0,
+      "missingArtifactCount": 0,
+      "artifactFindings": []
+    }
   },
-  "next_condition_for_mode_c": "Rerun Mode C only after the real Planner produces admitted output or the blocker is fixed, and after real Executor timeout reliability is reviewed.",
-  "reason": "Mode A produced a reproducible planner-output-invalid blocker in all five runs, and Mode B produced four process-level runner timeouts. Combined Mode C would mix known failure layers and is not admitted for this review increment.",
+  "next_condition_for_mode_c": "Rerun Mode C only after the real Planner produces admitted output or the blocker is fixed, and after real Executor timeout reliability is reviewed; this response does not change the no-go decision.",
+  "reason": "Mode A still produced a reproducible planner-output-invalid blocker in all five runs, now with preserved invalid raw/driver output artifacts, and Mode B produced four process-level runner timeouts. Combined Mode C remains skipped for this review increment.",
   "schema_version": "ahra/real-agent-pilot-mode-c-decision/0.1",
-  "task_id": "TASK-0040"
+  "task_id": "TASK-0040",
+  "updated_at": "2026-06-28T04:30:25.191422Z"
 }

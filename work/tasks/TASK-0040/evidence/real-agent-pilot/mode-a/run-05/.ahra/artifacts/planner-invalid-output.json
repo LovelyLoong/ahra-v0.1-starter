@@ -1,0 +1,83 @@
+{
+  "driverOutput": {
+    "apiVersion": "ahra.dev/v1alpha1",
+    "kind": "PlanDraft",
+    "metadata": {
+      "contextManifestRef": "CTXMAN-007a0efca5bd8cfb0ebac81b",
+      "plannerInputArtifactId": "PLART-bf2f072c6c0b042cdd40c9c4",
+      "runId": "TASK-0040-MODE-A-R05"
+    },
+    "spec": {
+      "budget": {
+        "maxCostUsd": 1.0,
+        "maxFanOut": 1,
+        "maxModelCalls": 2,
+        "maxPlanDepth": 2,
+        "maxPlanNodes": 2,
+        "maxRepairCycles": 1,
+        "maxSpawnedNodes": 0,
+        "maxToolCalls": 16,
+        "maxWallSeconds": 150
+      },
+      "escalation": null,
+      "goalRef": "GOAL-M1-GENERIC-SMOKE",
+      "nodes": [
+        {
+          "claimRefs": [
+            "CLM-WRITE-ARTIFACT"
+          ],
+          "gateRefs": [
+            "GATE-write-artifact"
+          ],
+          "id": "node-1",
+          "inputs": [
+            "GOAL-M1-GENERIC-SMOKE",
+            "TASK-0040-MODE-A-R05"
+          ],
+          "limits": {
+            "maxToolCalls": 10,
+            "maxWallSeconds": 90
+          },
+          "objective": "Produce the bounded smoke-run artifact required by the generic M1 smoke goal without modifying repository source files.",
+          "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "type": "bounded_task"
+        },
+        {
+          "claimRefs": [
+            "CLM-GOAL-COMPLETE"
+          ],
+          "dependsOn": [
+            "node-1"
+          ],
+          "gateRefs": [
+            "GATE-goal-complete"
+          ],
+          "id": "node-2",
+          "inputs": [
+            "node-1"
+          ],
+          "limits": {
+            "maxToolCalls": 6,
+            "maxWallSeconds": 60
+          },
+          "objective": "Verify that the smoke-run artifact is present, traceable to this run, and sufficient for the generic M1 smoke goal evidence gate.",
+          "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "type": "goal_verification"
+        }
+      ],
+      "status": "proposed"
+    }
+  },
+  "driverOutputSha256": "sha256:12f21986d8d6b14c9cd7247865a0e7990855e1e50582f852ca0b0d1d55e21a0b",
+  "failure": {
+    "code": "planner-output-invalid",
+    "details": [
+      "'goalId'"
+    ],
+    "message": "'goalId'",
+    "retryable": false
+  },
+  "rawOutput": "{\"apiVersion\":\"ahra.dev/v1alpha1\",\"kind\":\"PlanDraft\",\"metadata\":{\"runId\":\"TASK-0040-MODE-A-R05\",\"contextManifestRef\":\"CTXMAN-007a0efca5bd8cfb0ebac81b\",\"plannerInputArtifactId\":\"PLART-bf2f072c6c0b042cdd40c9c4\"},\"spec\":{\"goalRef\":\"GOAL-M1-GENERIC-SMOKE\",\"status\":\"proposed\",\"nodes\":[{\"id\":\"node-1\",\"type\":\"bounded_task\",\"runtimeRef\":\"runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"claimRefs\":[\"CLM-WRITE-ARTIFACT\"],\"gateRefs\":[\"GATE-write-artifact\"],\"objective\":\"Produce the bounded smoke-run artifact required by the generic M1 smoke goal without modifying repository source files.\",\"inputs\":[\"GOAL-M1-GENERIC-SMOKE\",\"TASK-0040-MODE-A-R05\"],\"limits\":{\"maxToolCalls\":10,\"maxWallSeconds\":90}},{\"id\":\"node-2\",\"type\":\"goal_verification\",\"runtimeRef\":\"runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"claimRefs\":[\"CLM-GOAL-COMPLETE\"],\"gateRefs\":[\"GATE-goal-complete\"],\"dependsOn\":[\"node-1\"],\"objective\":\"Verify that the smoke-run artifact is present, traceable to this run, and sufficient for the generic M1 smoke goal evidence gate.\",\"inputs\":[\"node-1\"],\"limits\":{\"maxToolCalls\":6,\"maxWallSeconds\":60}}],\"budget\":{\"maxPlanNodes\":2,\"maxPlanDepth\":2,\"maxModelCalls\":2,\"maxToolCalls\":16,\"maxSpawnedNodes\":0,\"maxRepairCycles\":1,\"maxFanOut\":1,\"maxWallSeconds\":150,\"maxCostUsd\":1.0},\"escalation\":null}}",
+  "rawOutputSha256": "sha256:536fe2f657c462609a43841d7c01f02f77026fa3b919d2106d5992d8545aad08",
+  "schema_version": "ahra/planner-invalid-output/0.1"
+}
