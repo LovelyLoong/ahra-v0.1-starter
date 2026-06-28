@@ -1,0 +1,167 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0045",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-sg10-independent-rereview-0045",
+  "generated_at": "2026-06-28T08:57:30.803741Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent EvidenceGate re-review approves TASK-0045 after the digest correction. This approval is limited to the closeout/no-go evidence package and to TASK-0044 timeout recovery audit correctness under live Mode C conditions. It does not approve Mode C default-path promotion. The corrected verification summary hashes now match current file bytes and manifest SHA values; three isolated Mode C runs still have success_count=0 with timeout:3, all stateful timeouts recovered to terminal failed GoalExecution/PlanExecution state, independent goal inspect evidence is clean, unavailable provider token/cost usage remains null, and Mode C remains no-go for the default path.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "TASK-0043 and TASK-0044 are completed by EvidenceGate and Mode C remains non-default.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0001",
+        "EVD-TASK-0045-0008",
+        "EVD-TASK-0045-0009"
+      ],
+      "notes": "TASK-0043 and TASK-0044 are completed by prior EvidenceGate approvals, and TASK-0045 decision evidence keeps Mode C non-default/no-go."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Mode C is run only with explicit `--allow-combined` and `--allow-model-cost`.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0002",
+        "EVD-TASK-0045-0009"
+      ],
+      "notes": "Recorded closeout command includes --allow-combined, --allow-model-cost, --isolated-repetitions, and --repetitions 3."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Three bounded isolated Mode C repetitions are executed, or a provider/setup blocker is classified without weakening criteria.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0002"
+      ],
+      "notes": "Scorecard records three bounded isolated Mode C repetitions: run_count=3, success_count=0, failure_classes={timeout:3}."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Every run with durable GoalExecution state has independent `goal inspect --artifact-dir` evidence with zero missing artifacts and no artifact findings, or any exception is explicitly classified.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0003",
+        "EVD-TASK-0045-0004",
+        "EVD-TASK-0045-0005",
+        "EVD-TASK-0045-0006"
+      ],
+      "notes": "All three independent goal inspect outputs report missingArtifactCount=0 and artifactFindings=[]; the summary reports all_inspects_clean=true."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Stateful isolated timeouts are recovered through TASK-0044 behavior: no synthetic skipped `runner_timeout` result is published when request and SQLite state exist.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0002",
+        "EVD-TASK-0045-0006"
+      ],
+      "notes": "All three stateful isolated timeouts have recoveryAttempted=true and recoveredPartialRun=true; no synthetic skipped runner_timeout result is used for runs with request and SQLite state."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "No recovered timeout leaves GoalExecution running while its active PlanExecution is terminal.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0006"
+      ],
+      "notes": "All recovered runs have terminal failed GoalExecution and PlanExecution state with active_plan_execution_ref=null; no running goal with terminal plan remains."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Every real Planner output is admitted or rejected before any Executor side effect.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0002"
+      ],
+      "notes": "Each real Planner output was accepted by Planner admission before Executor side effects were observed."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Every observed Executor side effect is capability-admitted and auditable before execution.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0006",
+        "EVD-TASK-0045-0007"
+      ],
+      "notes": "Observed bounded_task side effects have admission decision refs and capability grant refs; capability_admission_coverage=1.0."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Hard safety counters remain zero for false completion, unrun gate pass, unadmitted node execution, stale fencing accept and duplicate resume effect.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0002",
+        "EVD-TASK-0045-0006",
+        "EVD-TASK-0045-0007",
+        "EVD-TASK-0045-0009"
+      ],
+      "notes": "False completion, unrun gate pass, stale fencing accept, and duplicate resume effect counters are zero; no unadmitted observed side effect was found. Corrected digest audit now passes."
+    },
+    {
+      "criterion_index": 10,
+      "criterion": "Provider token/cost usage is recorded per run when available; unavailable usage remains null, not fabricated.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0002",
+        "EVD-TASK-0045-0009"
+      ],
+      "notes": "Provider usage is recorded per run as unavailable with input/output/total token and cost fields null; no fabricated 0.0 cost/token values are used."
+    },
+    {
+      "criterion_index": 11,
+      "criterion": "The final decision distinguishes timeout/audit correctness from combined model/runtime quality and gives a clear go/no-go recommendation.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0001",
+        "EVD-TASK-0045-0007",
+        "EVD-TASK-0045-0008"
+      ],
+      "notes": "Final decision separates timeout recovery audit correctness from combined model/runtime quality and recommends no-go for Mode C default path."
+    },
+    {
+      "criterion_index": 12,
+      "criterion": "Producer moves task only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0045-0009",
+        "EVD-TASK-0045-0010"
+      ],
+      "notes": "Producer returned the task to review after correction; this independent EvidenceGate evaluation is the completion authority."
+    }
+  ],
+  "commands": [
+    {
+      "command": "custom TASK-0045 state, manifest, verification-summary digest, scorecard, goal-inspect, recovery, provider-usage and no-go audit",
+      "status": "passed",
+      "result": "errors 0; state=review version=6; artifact/evidence manifests hash-checked; verification-summary artifact_hashes=7 rows match current bytes and manifest SHA; run_count=3 success_count=0 timeout:3; default path false."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0045",
+      "status": "passed",
+      "result": "Task is in review at state_version=6 with lease null and blockers empty; manifests parse and local hashes pass inspect."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "result": "AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "result": "AWKP lint 0 errors/0 warnings; AHRA lint 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "status": "passed",
+      "result": "199 tests passed, 2 skipped."
+    }
+  ]
+}
