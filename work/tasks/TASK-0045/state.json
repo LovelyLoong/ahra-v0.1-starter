@@ -9,10 +9,14 @@
     "ART-TASK-0045-0007",
     "ART-TASK-0045-0008",
     "ART-TASK-0045-0009",
-    "ART-TASK-0045-HANDOFF-0001"
+    "ART-TASK-0045-HANDOFF-0001",
+    "ART-TASK-0045-0010"
   ],
   "attempt": 1,
-  "blockers": [],
+  "blockers": [
+    "Criterion 9: Local verification evidence is internally inconsistent: verification-summary.json artifact_hashes do not match current bytes or manifest SHA for scorecard, failure-taxonomy, goal-inspect-summary, mode-c-decision, and raw inspect artifacts. This violates the task requirement to record exact SHA-256 digests.",
+    "Criterion 12: EvidenceGate cannot complete the task until the verifier-facing evidence package has self-consistent digest claims."
+  ],
   "context_id": "CTX-ahra-dynamic-kernel",
   "evidence_refs": [
     "EVD-TASK-0045-0001",
@@ -23,15 +27,16 @@
     "EVD-TASK-0045-0006",
     "EVD-TASK-0045-0007",
     "EVD-TASK-0045-0008",
-    "EVD-TASK-0045-0009"
+    "EVD-TASK-0045-0009",
+    "EVD-TASK-0045-0010"
   ],
   "lease": null,
-  "next_action": "Await independent EvidenceGate review of the TASK-0045 post-fix Mode C closeout evidence package; producer did not mark completion.",
+  "next_action": "Address EvidenceGate verifier findings and return to review.",
   "owner": null,
   "pause_reason": null,
   "schema_version": "awkp/0.1",
-  "state": "review",
-  "state_version": 3,
+  "state": "changes_requested",
+  "state_version": 4,
   "task_id": "TASK-0045",
-  "updated_at": "2026-06-28T08:31:21.256634Z"
+  "updated_at": "2026-06-28T08:39:44.847168Z"
 }
