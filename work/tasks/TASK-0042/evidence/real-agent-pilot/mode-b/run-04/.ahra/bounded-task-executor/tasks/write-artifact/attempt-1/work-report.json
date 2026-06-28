@@ -1,0 +1,14 @@
+{
+  "summary": "Created outputs/summary.txt containing the deterministic artifact marker CLM-WRITE-ARTIFACT.",
+  "changed_files": [
+    "outputs/summary.txt"
+  ],
+  "verification_commands_run": [
+    "Get-Content -Raw outputs/summary.txt",
+    "git status --short"
+  ],
+  "known_risks": [
+    "No automated acceptance check was provided in the task payload; verification was limited to direct file content and git status inspection."
+  ],
+  "unresolved_items": []
+}

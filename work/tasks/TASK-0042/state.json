@@ -1,21 +1,31 @@
 {
-  "artifact_refs": [],
+  "artifact_refs": [
+    "ART-TASK-0042-0001",
+    "ART-TASK-0042-0002",
+    "ART-TASK-0042-0003",
+    "ART-TASK-0042-0004",
+    "ART-TASK-0042-0005",
+    "ART-TASK-0042-0006",
+    "ART-TASK-0042-HANDOFF-0001"
+  ],
   "attempt": 1,
   "blockers": [],
   "context_id": "CTX-ahra-dynamic-kernel",
-  "evidence_refs": [],
-  "lease": {
-    "acquired_at": "2026-06-28T05:38:08.837492Z",
-    "expires_at": "2026-06-28T06:08:08.837492Z",
-    "holder": "agent:codex-dynamic-kernel-operator",
-    "token": "LEASE-TASK-0042-0001"
-  },
-  "next_action": "Analyze TASK-0040 Mode B timeout evidence, implement the smallest runtime stability fix if justified, run five post-change Mode B repetitions, and publish review evidence.",
-  "owner": "agent:codex-dynamic-kernel-operator",
+  "evidence_refs": [
+    "EVD-TASK-0042-0001",
+    "EVD-TASK-0042-0002",
+    "EVD-TASK-0042-0003",
+    "EVD-TASK-0042-0004",
+    "EVD-TASK-0042-0005",
+    "EVD-TASK-0042-0006"
+  ],
+  "lease": null,
+  "next_action": "Await independent EvidenceGate review; producer must not mark TASK-0042 completed.",
+  "owner": null,
   "pause_reason": null,
   "schema_version": "awkp/0.1",
-  "state": "working",
-  "state_version": 2,
+  "state": "review",
+  "state_version": 3,
   "task_id": "TASK-0042",
-  "updated_at": "2026-06-28T05:38:08.837492Z"
+  "updated_at": "2026-06-28T05:50:40.802247Z"
 }

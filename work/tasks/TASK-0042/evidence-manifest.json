@@ -1,5 +1,101 @@
 {
+  "evidence": [
+    {
+      "created_at": "2026-06-28T05:50:40.802247Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0042-0001",
+      "kind": "executor_runtime_stability_report",
+      "media_type": "text/markdown",
+      "name": "executor-runtime-stability-report.md",
+      "refs": [
+        "ART-TASK-0042-0001",
+        "ART-TASK-0042-0002",
+        "ART-TASK-0042-0003",
+        "ART-TASK-0042-0004",
+        "ART-TASK-0042-0005",
+        "ART-TASK-0042-0006",
+        "ART-TASK-0042-HANDOFF-0001"
+      ],
+      "sha256": "acb5ffccfafc7fa71f9f8401e1a30f12ff6bda80075ebb16c577267e98277fd4",
+      "task_id": "TASK-0042",
+      "uri": "local://evidence/executor-runtime-stability-report.md"
+    },
+    {
+      "created_at": "2026-06-28T05:50:40.802247Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0042-0002",
+      "kind": "mode_b_scorecard",
+      "media_type": "application/json",
+      "name": "scorecard.json",
+      "refs": [
+        "ART-TASK-0042-0002"
+      ],
+      "sha256": "af6bd3c9f3c82016f16fcf0385bb33c747851718415f75b7aebbdadb1d87f90f",
+      "task_id": "TASK-0042",
+      "uri": "local://evidence/real-agent-pilot/mode-b/scorecard.json"
+    },
+    {
+      "created_at": "2026-06-28T05:50:40.802247Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0042-0003",
+      "kind": "goal_inspect_summary",
+      "media_type": "application/json",
+      "name": "goal-inspect-summary.json",
+      "refs": [
+        "ART-TASK-0042-0003",
+        "ART-TASK-0042-0002"
+      ],
+      "sha256": "c13f6595a3b14283e77289f0e54862f163ac6fdcb3de4449731c23e852e855c5",
+      "task_id": "TASK-0042",
+      "uri": "local://evidence/goal-inspect-summary.json"
+    },
+    {
+      "created_at": "2026-06-28T05:50:40.802247Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0042-0004",
+      "kind": "timeout_taxonomy",
+      "media_type": "application/json",
+      "name": "timeout-taxonomy.json",
+      "refs": [
+        "ART-TASK-0042-0004",
+        "EVD-TASK-0042-0002"
+      ],
+      "sha256": "eae049236197f8df7741f65ea4dfe41b14703c972435890e0fc717a59658f40e",
+      "task_id": "TASK-0042",
+      "uri": "local://evidence/timeout-taxonomy.json"
+    },
+    {
+      "created_at": "2026-06-28T05:50:40.802247Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0042-0005",
+      "kind": "local_verification_summary",
+      "media_type": "application/json",
+      "name": "verification-summary.json",
+      "refs": [
+        "ART-TASK-0042-0005",
+        "EVD-TASK-0042-0002",
+        "EVD-TASK-0042-0003"
+      ],
+      "sha256": "5dab00ea30bca34d5c1f8998df351e140d9a40e0dd986e036aa4c459e0d5dc29",
+      "task_id": "TASK-0042",
+      "uri": "local://evidence/verification-summary.json"
+    },
+    {
+      "created_at": "2026-06-28T05:50:40.802247Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0042-0006",
+      "kind": "mode_c_go_no_go_decision",
+      "media_type": "application/json",
+      "name": "mode-c-decision.json",
+      "refs": [
+        "ART-TASK-0042-0006",
+        "EVD-TASK-0042-0002"
+      ],
+      "sha256": "81fc5dce20ea923c2a5bbc03838ca990a4b473c951f5cdf93110ef15eddedce4",
+      "task_id": "TASK-0042",
+      "uri": "local://evidence/mode-c-decision.json"
+    }
+  ],
   "schema_version": "awkp/0.1",
-  "task_id": "TASK-0042",
-  "evidence": []
+  "task_id": "TASK-0042"
 }

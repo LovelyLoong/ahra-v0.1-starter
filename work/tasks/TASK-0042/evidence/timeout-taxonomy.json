@@ -1,0 +1,102 @@
+{
+  "classification": "adapter_process_control",
+  "created_at": "2026-06-28T05:50:40.802247Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "implementation": {
+    "change": "For real Executor isolated repetitions, effective subprocess timeout is max(requested timeout, executor run deadline + 15 seconds). Planner-only Mode A keeps the requested timeout unchanged.",
+    "commit": "355e0e0f9ecccda8dbf520837ad7b8fe768bcae4",
+    "files": [
+      "scripts/run_real_agent_pilot.py",
+      "tests/test_real_agent_pilot.py"
+    ],
+    "safety_boundary": "No capability, filesystem, PlanIR, GateRunner, Evidence, Completion or Planner behavior was widened."
+  },
+  "not_classified_as": [
+    "kernel_defect",
+    "capability_admission_failure",
+    "gate_runner_failure",
+    "evidence_semantics_failure",
+    "environment_setup_blocker"
+  ],
+  "post_change_evidence": {
+    "code_commit": "355e0e0f9ecccda8dbf520837ad7b8fe768bcae4",
+    "effective_repetition_timeout_seconds": 255,
+    "elapsed_seconds": [
+      130.756317,
+      66.643256,
+      54.942074,
+      53.497244,
+      73.1075
+    ],
+    "failure_classes": {},
+    "hard_metrics": {
+      "capability_admission_coverage": 1.0,
+      "current_claim_coverage": 1.0,
+      "false_completion_count": 0,
+      "gate_execution_integrity": 1.0,
+      "repair_boundary_compliance": 1.0,
+      "resume_duplicate_effect_count": 0,
+      "stale_fencing_accept_count": 0,
+      "unrun_gate_pass_count": 0
+    },
+    "requested_repetition_timeout_seconds": 120,
+    "run_count": 5,
+    "run_exceeding_requested_timeout": [
+      "TASK-0042-MODE-B-R01"
+    ],
+    "scorecard": "work/tasks/TASK-0042/evidence/real-agent-pilot/mode-b/scorecard.json",
+    "success_count": 5
+  },
+  "root_cause": "The isolated pilot subprocess watchdog used the requested 120 second timeout even though the inner real Executor policy allowed run_deadline_seconds=240. The outer watchdog killed slow real Executor child processes before the inner policy could record structured timeout evidence.",
+  "schema_version": "ahra/task-0042-timeout-taxonomy/0.1",
+  "task_0040_evidence": {
+    "blocked_elapsed_seconds": [
+      120.008727,
+      120.011394,
+      120.009235,
+      120.008891
+    ],
+    "code_commit": "94d3d84cfbd6f96dc5e843f2c938e280da1ccfef",
+    "execution_policy": {
+      "attempt_wall_timeout_seconds": 60,
+      "heartbeat_interval_seconds": 15,
+      "idle_timeout_seconds": 45,
+      "max_attempts": 1,
+      "run_deadline_seconds": 75,
+      "startup_timeout_seconds": 30
+    },
+    "failure_classes": {
+      "runner_timeout": 4
+    },
+    "partial_runs": [
+      {
+        "eventCount": 4,
+        "eventsPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-b-timeout-partial-20260628T113953/run-01/.ahra/bounded-task-executor/events.jsonl",
+        "lastEventType": "dev.ahra.workflow.executor_started.v1",
+        "run": "run-01"
+      },
+      {
+        "eventCount": 4,
+        "eventsPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-b-timeout-partial-20260628T113953/run-02/.ahra/bounded-task-executor/events.jsonl",
+        "lastEventType": "dev.ahra.workflow.executor_started.v1",
+        "run": "run-02"
+      },
+      {
+        "eventCount": 4,
+        "eventsPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-b-timeout-partial-20260628T113953/run-03/.ahra/bounded-task-executor/events.jsonl",
+        "lastEventType": "dev.ahra.workflow.executor_started.v1",
+        "run": "run-03"
+      },
+      {
+        "eventCount": 4,
+        "eventsPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-b-timeout-partial-20260628T113953/run-04/.ahra/bounded-task-executor/events.jsonl",
+        "lastEventType": "dev.ahra.workflow.executor_started.v1",
+        "run": "run-04"
+      }
+    ],
+    "run_count": 5,
+    "scorecard": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-b/scorecard.json",
+    "success_count": 1
+  },
+  "task_id": "TASK-0042"
+}

@@ -1,0 +1,13 @@
+{
+  "summary": "Created the deterministic goal artifact required for CLM-WRITE-ARTIFACT.",
+  "changed_files": [
+    "outputs/summary.txt"
+  ],
+  "verification_commands_run": [
+    "Get-Content -Raw outputs\\summary.txt",
+    "git status --short",
+    "git diff -- outputs/summary.txt"
+  ],
+  "known_risks": [],
+  "unresolved_items": []
+}
