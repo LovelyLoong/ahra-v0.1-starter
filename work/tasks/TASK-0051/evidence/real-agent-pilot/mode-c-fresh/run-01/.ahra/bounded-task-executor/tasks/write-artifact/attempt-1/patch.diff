@@ -1,0 +1,7 @@
+diff --git a/outputs/summary.txt b/outputs/summary.txt
+new file mode 100644
+index 0000000..5dd4b23
+--- /dev/null
++++ b/outputs/summary.txt
+@@ -0,0 +1 @@
++deterministic-artifact

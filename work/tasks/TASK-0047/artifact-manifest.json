@@ -1,0 +1,115 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0047-0001",
+      "created_at": "2026-06-28T12:46:34.939083Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0047-0001"
+      ],
+      "input_refs": [
+        "task.md",
+        "../TASK-0045/evidence/failure-taxonomy.json",
+        "../TASK-0045/evidence/mode-c-decision.json",
+        "../TASK-0045/evidence/real-agent-pilot/mode-c/scorecard.json",
+        "../../../src/ahra/reference_runner/standard_harness.py",
+        "../../../tests/test_reference_runner.py"
+      ],
+      "kind": "root_cause_report",
+      "media_type": "text/markdown",
+      "name": "root-cause-report.md",
+      "sha256": "90e96e710519ea223ab77b3593941992807d6f7bff5ca3344f9c0027371e7a40",
+      "supersedes": null,
+      "task_id": "TASK-0047",
+      "uri": "local://evidence/root-cause-report.md"
+    },
+    {
+      "artifact_id": "ART-TASK-0047-0002",
+      "created_at": "2026-06-28T12:46:34.939083Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0047-0002"
+      ],
+      "input_refs": [
+        "task.md",
+        "evidence/root-cause-report.md",
+        "evidence/real-agent-pilot/mode-c-daemon-executor/scorecard.json",
+        "evidence/real-agent-pilot/mode-c-daemon-executor/run-01/run-result.json"
+      ],
+      "kind": "mode_c_rerun_report",
+      "media_type": "application/json",
+      "name": "mode-c-rerun-report.json",
+      "sha256": "49741e33530830f136a67b6c621f158c4a51380f398fbfae84f574d2892d18d4",
+      "supersedes": null,
+      "task_id": "TASK-0047",
+      "uri": "local://evidence/mode-c-rerun-report.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0047-0003",
+      "created_at": "2026-06-28T12:46:34.939083Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0047-0003"
+      ],
+      "input_refs": [
+        "task.md",
+        "evidence/root-cause-report.md",
+        "evidence/mode-c-rerun-report.json",
+        "handoffs/HANDOFF-0001.md"
+      ],
+      "kind": "verification_summary",
+      "media_type": "application/json",
+      "name": "verification-summary.json",
+      "sha256": "33659c0c72fd8aeab4a92a725e6d1ab0e90bd49c738aee7cfd8b97c8797cfd38",
+      "supersedes": null,
+      "task_id": "TASK-0047",
+      "uri": "local://evidence/verification-summary.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0047-HANDOFF-0001",
+      "created_at": "2026-06-28T12:46:34.939083Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0047-0001",
+        "EVD-TASK-0047-0002",
+        "EVD-TASK-0047-0003"
+      ],
+      "input_refs": [
+        "task.md",
+        "evidence/root-cause-report.md",
+        "evidence/mode-c-rerun-report.json",
+        "evidence/verification-summary.json"
+      ],
+      "kind": "handoff",
+      "media_type": "text/markdown",
+      "name": "HANDOFF-0001.md",
+      "sha256": "bf0808612a4bd4c404e7f43aedb2c476fc1c0c8aeb33aab018e78d3adf1d5bd5",
+      "supersedes": null,
+      "task_id": "TASK-0047",
+      "uri": "local://handoffs/HANDOFF-0001.md"
+    },
+    {
+      "artifact_id": "ART-TASK-0047-0004",
+      "task_id": "TASK-0047",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-4.json",
+      "uri": "local://evidence/evidence-gate-report-4.json",
+      "sha256": "c4918b682b45b256ffad0794fb3862fa3feae1ff9720bd6734582dc528dde79b",
+      "media_type": "application/json",
+      "created_by": "agent:codex-independent-verifier",
+      "created_at": "2026-06-28T12:59:33.321797Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0047-0004"
+      ],
+      "supersedes": null
+    }
+  ],
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0047"
+}

@@ -1,0 +1,89 @@
+{
+  "schema_version": "awkp/verification-summary/0.1",
+  "task_id": "TASK-0047",
+  "created_at": "2026-06-28T12:42:39.282929Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "summary": "Classified and repaired the Mode C process-boundary timeout root cause. Mode C still fails bounded execution and remains no-go.",
+  "changed_files": [
+    "src/ahra/reference_runner/standard_harness.py",
+    "tests/test_reference_runner.py",
+    "work/index.md",
+    "work/tasks/TASK-0047/task.md",
+    "work/tasks/TASK-0047/state.json",
+    "work/tasks/TASK-0047/events.jsonl",
+    "work/tasks/TASK-0047/artifact-manifest.json",
+    "work/tasks/TASK-0047/evidence-manifest.json",
+    "work/tasks/TASK-0047/evidence/root-cause-report.md",
+    "work/tasks/TASK-0047/evidence/mode-c-rerun-report.json",
+    "work/tasks/TASK-0047/evidence/verification-summary.json",
+    "work/tasks/TASK-0047/handoffs/HANDOFF-0001.md"
+  ],
+  "verification_commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_reference_runner tests.test_node_executor tests.test_plan_execution",
+      "status": "passed",
+      "details": "52 tests passed in 57.493s, skipped=1."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_codex_driver tests.test_real_agent_pilot",
+      "status": "passed",
+      "details": "19 tests passed in 4.942s."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "details": "AWKP lint 0, AHRA lint 0."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "details": "No whitespace errors."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\run_real_agent_pilot.py --mode mode_c_combined --output-dir work\\tasks\\TASK-0047\\evidence\\real-agent-pilot\\mode-c-daemon-executor --experiment-id TASK-0047-MODE-C-DAEMON --repetitions 1 --allow-model-cost --allow-combined --isolated-repetitions --repetition-timeout-seconds 180 --executor-idle-timeout-seconds 45 --executor-heartbeat-interval-seconds 10 --executor-attempt-wall-timeout-seconds 60 --executor-run-deadline-seconds 90",
+      "status": "completed_with_expected_mode_c_failure",
+      "details": "Process exited before isolated watchdog; scorecard still reports run_count=1, success_count=0, failure_classes.timeout=1."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "criterion": "TASK-0045 timeout classified with concrete root cause and evidence references.",
+      "status": "met",
+      "evidence": "evidence/root-cause-report.md"
+    },
+    {
+      "criterion": "Deterministic regression test proves non-cancellable AgentDriver failure mode.",
+      "status": "met",
+      "evidence": "tests.test_reference_runner cancellation-resistant and to_thread fake-driver tests."
+    },
+    {
+      "criterion": "Minimal runtime patch returns terminal failure evidence without waiting indefinitely for stuck AgentDriver cleanup.",
+      "status": "met",
+      "evidence": "src/ahra/reference_runner/standard_harness.py AgentDriver phase isolation and cancellation grace handling."
+    },
+    {
+      "criterion": "Existing deterministic tests still pass.",
+      "status": "met",
+      "evidence": "verification_commands"
+    },
+    {
+      "criterion": "One bounded Mode C rerun executed and reported.",
+      "status": "met_with_failure_preserved",
+      "evidence": "evidence/mode-c-rerun-report.json"
+    },
+    {
+      "criterion": "Producer moves TASK-0047 only to review.",
+      "status": "met",
+      "evidence": "state.json"
+    }
+  ],
+  "residual_risks": [
+    "Mode C real Executor still times out and has zero successful post-fix bounded executions.",
+    "The daemon phase runner deliberately allows abandoned provider work to stop blocking AHRA process exit; provider-level cleanup may still need a future SDK-specific improvement.",
+    "Independent EvidenceGate review has not yet completed for TASK-0047."
+  ],
+  "decision": {
+    "ready_for_evidence_gate_review": true,
+    "mode_c_default_allowed": false
+  }
+}

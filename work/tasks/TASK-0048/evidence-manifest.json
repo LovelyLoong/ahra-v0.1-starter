@@ -1,0 +1,71 @@
+{
+  "evidence": [
+    {
+      "created_at": "2026-06-28T13:34:57.686892Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0048-0001",
+      "kind": "executor_timeout_root_cause_report",
+      "media_type": "text/markdown",
+      "name": "executor-timeout-root-cause-report.md",
+      "refs": [
+        "ART-TASK-0048-0001"
+      ],
+      "sha256": "04ce53a4d40d1ee77e8ee8bf917e6bf9733363c3460d57a08a7f20354e617eae",
+      "task_id": "TASK-0048",
+      "updated_at": "2026-06-28T13:51:02.6503656Z",
+      "updated_by": "agent:codex-independent-verifier",
+      "update_reason": "Added required AWKP Markdown frontmatter during independent review; technical body unchanged.",
+      "uri": "local://evidence/executor-timeout-root-cause-report.md"
+    },
+    {
+      "created_at": "2026-06-28T13:34:57.686892Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0048-0002",
+      "kind": "mode_c_bounded_write_rerun_report",
+      "media_type": "application/json",
+      "name": "mode-c-bounded-write-rerun-report.json",
+      "refs": [
+        "ART-TASK-0048-0002",
+        "EVD-TASK-0048-0001"
+      ],
+      "sha256": "5826b0e4395834461a5de68860367b40cee36fb92d91f71929de088786ed27f4",
+      "task_id": "TASK-0048",
+      "uri": "local://evidence/mode-c-bounded-write-rerun-report.json"
+    },
+    {
+      "created_at": "2026-06-28T13:34:57.686892Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0048-0003",
+      "kind": "local_verification_summary",
+      "media_type": "application/json",
+      "name": "verification-summary.json",
+      "refs": [
+        "ART-TASK-0048-0003",
+        "EVD-TASK-0048-0001",
+        "EVD-TASK-0048-0002"
+      ],
+      "sha256": "2ca8bcb090e7a8e38730a24b71aa5916a97b74e21fb1994373861d3d636858d5",
+      "task_id": "TASK-0048",
+      "uri": "local://evidence/verification-summary.json"
+    },
+    {
+      "evidence_id": "EVD-TASK-0048-0004",
+      "task_id": "TASK-0048",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-4.json",
+      "uri": "local://evidence/evidence-gate-report-4.json",
+      "sha256": "c47dd18d07035e5944c002882fcce717c6d882bb99c83baf28cee79753ec4abf",
+      "media_type": "application/json",
+      "created_by": "agent:codex-independent-verifier",
+      "created_at": "2026-06-28T13:53:24.213343Z",
+      "refs": [
+        "ART-TASK-0048-0004",
+        "EVD-TASK-0048-0001",
+        "EVD-TASK-0048-0002",
+        "EVD-TASK-0048-0003"
+      ]
+    }
+  ],
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0048"
+}

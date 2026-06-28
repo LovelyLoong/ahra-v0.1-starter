@@ -7,6 +7,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 import unittest
 from pathlib import Path
 
@@ -54,7 +56,7 @@ from ahra.reference_runner.models import (
 )
 from ahra.reference_runner.policy import ChangeSummary, evaluate_policy
 from ahra.reference_runner.review_contracts import enforce_task_review_contract
-from ahra.reference_runner.standard_harness import TaskHarness
+from ahra.reference_runner.task_harness import TaskHarness
 from ahra.reference_runner.store import FileRunStore
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -218,6 +220,51 @@ class SlowExecutorDriver(AgentDriver):
         raise AssertionError(f"unexpected role: {request.role}")
 
 
+class CancellationResistantExecutorDriver(AgentDriver):
+    def __init__(self, *, cancel_delay_seconds: float = 5.0) -> None:
+        self.cancel_delay_seconds = cancel_delay_seconds
+
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role == AgentRole.EXECUTOR:
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                await asyncio.sleep(self.cancel_delay_seconds)
+                raise
+        if request.role == AgentRole.TASK_REVIEWER:
+            return AgentRunResult(
+                output=ReviewResult(
+                    verdict=ReviewVerdict.PASS,
+                    summary="not reached",
+                    confidence=1.0,
+                )
+            )
+        raise AssertionError(f"unexpected role: {request.role}")
+
+
+class ToThreadExecutorDriver(FakeDriver):
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role == AgentRole.EXECUTOR:
+            await asyncio.to_thread(lambda: None)
+        return await super().run(request)
+
+
+class ToThreadBlockingExecutorDriver(AgentDriver):
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role == AgentRole.EXECUTOR:
+            await asyncio.to_thread(time.sleep, 5.0)
+            return AgentRunResult(output=WorkReport(summary="too late"))
+        if request.role == AgentRole.TASK_REVIEWER:
+            return AgentRunResult(
+                output=ReviewResult(
+                    verdict=ReviewVerdict.PASS,
+                    summary="not reached",
+                    confidence=1.0,
+                )
+            )
+        raise AssertionError(f"unexpected role: {request.role}")
+
+
 class FlakyExecutorDriver(FakeDriver):
     def __init__(self) -> None:
         self.executor_calls = 0
@@ -285,6 +332,23 @@ def _git(repo: Path, *args: str) -> str:
         capture_output=True,
     )
     return result.stdout.strip()
+
+
+def _live_asyncio_default_executor_threads() -> list[str]:
+    return sorted(
+        thread.name
+        for thread in threading.enumerate()
+        if thread.name.startswith("asyncio_") and thread.is_alive() and not thread.daemon
+    )
+
+
+def _live_non_daemon_agent_phase_threads() -> list[str]:
+    prefixes = ("asyncio_", "ahra-agent-phase", "ahra-agent-phase-io")
+    return sorted(
+        thread.name
+        for thread in threading.enumerate()
+        if thread.name.startswith(prefixes) and thread.is_alive() and not thread.daemon
+    )
 
 
 def _init_repo(root: Path) -> Path:
@@ -708,6 +772,88 @@ class StandardHarnessTests(unittest.TestCase):
                 event for event in events if event["type"] == "dev.ahra.workflow.attempt_error.v1"
             )
             self.assertTrue(first_error["data"]["retryable"])
+
+    def test_agent_phase_timeout_does_not_wait_for_unresponsive_cancel_cleanup(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            started = time.perf_counter()
+            result = asyncio.run(
+                TaskHarness(
+                    CancellationResistantExecutorDriver(cancel_delay_seconds=5.0),
+                    execution_policy=ExecutionPolicy(
+                        max_attempts=1,
+                        idle_timeout_seconds=1,
+                        heartbeat_interval_seconds=1,
+                        attempt_wall_timeout_seconds=1,
+                        run_deadline_seconds=2,
+                    ),
+                ).run_task(
+                    task=_task(),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-unresponsive-cancel",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+            elapsed = time.perf_counter() - started
+
+            self.assertEqual(result.status, WorkflowOutcome.ERROR)
+            self.assertLess(elapsed, 3.0)
+            events = [
+                json.loads(line)
+                for line in (Path(result.artifact_dir) / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertTrue(
+                any(event["type"] == "dev.ahra.workflow.agent_phase_cancel_grace_exceeded.v1" for event in events)
+            )
+
+    def test_agent_phase_shutdown_closes_default_executor_threads(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            result = asyncio.run(
+                TaskHarness(ToThreadExecutorDriver()).run_task(
+                    task=_task(),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-to-thread",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+
+            self.assertEqual(result.status, WorkflowOutcome.ACCEPTED)
+            deadline = time.perf_counter() + 1.0
+            while _live_asyncio_default_executor_threads() and time.perf_counter() < deadline:
+                time.sleep(0.01)
+            self.assertEqual(_live_asyncio_default_executor_threads(), [])
+
+    def test_agent_phase_timeout_does_not_leave_non_daemon_to_thread_worker(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            started = time.perf_counter()
+            result = asyncio.run(
+                TaskHarness(
+                    ToThreadBlockingExecutorDriver(),
+                    execution_policy=ExecutionPolicy(
+                        max_attempts=1,
+                        idle_timeout_seconds=1,
+                        heartbeat_interval_seconds=1,
+                        attempt_wall_timeout_seconds=1,
+                        run_deadline_seconds=2,
+                    ),
+                ).run_task(
+                    task=_task(),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-to-thread-timeout",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+            elapsed = time.perf_counter() - started
+
+            self.assertEqual(result.status, WorkflowOutcome.ERROR)
+            self.assertLess(elapsed, 3.0)
+            self.assertEqual(_live_non_daemon_agent_phase_threads(), [])
 
     def test_local_project_python_check_uses_uv_environment(self) -> None:
         if shutil.which("uv") is None:

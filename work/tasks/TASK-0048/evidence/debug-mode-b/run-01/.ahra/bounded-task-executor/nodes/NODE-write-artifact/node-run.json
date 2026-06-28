@@ -1,0 +1,41 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "NodeRun",
+  "metadata": {
+    "nodeRunId": "NRUN-4af354cc747a41468597362eec32279e",
+    "planId": "PLAN-96089b34263f0645",
+    "nodeId": "NODE-write-artifact",
+    "executorRelease": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "spec": {
+    "nodeType": "bounded_task",
+    "status": "accepted",
+    "artifactRefs": [
+      "ART-99e34adc2ffe4fbc938db81c98a528aa",
+      "ART-7c91087f8f1d4266904c4098c73cbea3"
+    ],
+    "evidenceRefs": [
+      "EVD-6ba6f8f234164b1d99b89885b198b358",
+      "EVD-a53840bb336f4903991ac534227cb3c3",
+      "EVD-003b96f8b83044b29bacbb9a54a2da15"
+    ],
+    "gateRefs": [
+      "GATE-write-artifact"
+    ],
+    "terminalFailureRefs": [],
+    "taskCompletedStateUpdateAttempted": false,
+    "usage": {
+      "modelCalls": 2,
+      "toolCalls": 2,
+      "spawnedNodes": 0,
+      "costUsd": 0.0
+    },
+    "message": "Task passed deterministic and independent semantic gates.",
+    "details": {
+      "taskId": "write-artifact",
+      "taskStatus": "accepted",
+      "commit": "2802aa9dd3eba481a620d1e8407b91c1de146805",
+      "semanticReviewEnabled": false
+    }
+  }
+}

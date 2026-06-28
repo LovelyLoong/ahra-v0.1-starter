@@ -1,0 +1,58 @@
+{
+  "schema_version": "ahra/task-evidence/verification-summary/0.1",
+  "task_id": "TASK-0051",
+  "created_at": "2026-06-28T15:21:57.720061Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "mode_c_defaultization": false,
+  "production_or_arbitrary_project_claim": false,
+  "checks": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\run_real_agent_pilot.py --mode mode_c_combined --output-dir work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh --experiment-id TASK-0051-MODE-C --repetitions 3 --allow-model-cost --allow-combined --isolated-repetitions --repetition-timeout-seconds 180 --executor-idle-timeout-seconds 45 --executor-heartbeat-interval-seconds 10 --executor-attempt-wall-timeout-seconds 60 --executor-run-deadline-seconds 90",
+      "status": "passed",
+      "summary": "Fresh Mode C pilot passed: run_count=3, success_count=3, failure_classes={}, planner admission rate=1.0, executor accepted rate=1.0."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal inspect GEXEC-458409999dbc6a3c --db work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-01\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-01\\.ahra\\artifacts",
+      "status": "passed",
+      "summary": "run-01 inspect passed: goalStatus=succeeded, nodeStatusCounts={succeeded: 2}, missingArtifactCount=0, artifactFindings=[]."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal inspect GEXEC-ea42583341bc04a6 --db work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-02\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-02\\.ahra\\artifacts",
+      "status": "passed",
+      "summary": "run-02 inspect passed: goalStatus=succeeded, nodeStatusCounts={succeeded: 2}, missingArtifactCount=0, artifactFindings=[]."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal inspect GEXEC-98e18eebee0bdad8 --db work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-03\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-03\\.ahra\\artifacts",
+      "status": "passed",
+      "summary": "run-03 inspect passed: goalStatus=succeeded, nodeStatusCounts={succeeded: 2}, missingArtifactCount=0, artifactFindings=[]."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_real_agent_pilot tests.test_node_executor tests.test_codex_driver tests.test_reference_runner",
+      "status": "passed",
+      "summary": "Ran 58 tests in 42.932s; OK; skipped=1."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors reported after evidence publication."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "summary": "AHRA lint 0 failures; AWKP lint 0 errors, 0 warnings."
+    }
+  ],
+  "result": {
+    "current_mode_c_blocker_found": false,
+    "fresh_mode_c_run_count": 3,
+    "fresh_mode_c_success_count": 3,
+    "fresh_mode_c_failure_classes": {},
+    "default_path_allowed": false,
+    "evidence_gate_required": true
+  },
+  "remaining_limits": [
+    "Mode C remains non-default until independent EvidenceGate review decides TASK-0051.",
+    "This proves only the tested local M1 bounded Goal scenario, not arbitrary project orchestration.",
+    "Provider token and cost usage were unavailable from the AgentDriver."
+  ]
+}

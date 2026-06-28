@@ -1,0 +1,19 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanValidationReport",
+  "metadata": {
+    "createdBy": "ahra-planner-admission/0.1",
+    "reportId": "PLANVAL-8ec302ffa244562f"
+  },
+  "spec": {
+    "errors": [],
+    "refs": [
+      "CTXMAN-7514113c32e7b56a3d3ed294",
+      "PLANVAL-c139280c88db0e97",
+      "PLART-69f51cf3a9ab12e25d6bb487"
+    ],
+    "result": "passed",
+    "subjectDigest": "sha256:69f51cf3a9ab12e25d6bb487735decaa0070836072566d4abe108537f0073f81",
+    "subjectRef": "PLART-69f51cf3a9ab12e25d6bb487"
+  }
+}

@@ -1,0 +1,7 @@
+diff --git a/bounded-write-artifact b/bounded-write-artifact
+new file mode 100644
+index 0000000..f256bfd
+--- /dev/null
++++ b/bounded-write-artifact
+@@ -0,0 +1 @@
++bounded artifact for GOAL-M1-GENERIC-SMOKE

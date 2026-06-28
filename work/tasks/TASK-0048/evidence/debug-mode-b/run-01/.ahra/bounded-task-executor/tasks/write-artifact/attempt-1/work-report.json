@@ -1,0 +1,9 @@
+{
+  "summary": "Pilot executor wrote the bounded output.",
+  "changed_files": [
+    "outputs/summary.txt"
+  ],
+  "verification_commands_run": [],
+  "known_risks": [],
+  "unresolved_items": []
+}

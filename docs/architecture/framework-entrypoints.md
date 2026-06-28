@@ -11,9 +11,9 @@ source_refs:
   - ../../README.md
   - ../../skills/ahra-dynamic-kernel/SKILL.md
   - component-inventory.json
-evidence_refs: []
+evidence_refs: [EVD-TASK-0051-0003]
 confidence: reviewed
-last_verified_at: 2026-06-26T09:38:02Z
+last_verified_at: 2026-06-28T15:31:16Z
 review_after: 2026-09-25T00:00:00Z
 tags: [architecture, entrypoint, cli, skill, dynamic-kernel]
 ---
@@ -66,6 +66,19 @@ The default local operation surface is:
 On the maintainer workstation, `.venv\Scripts\python.exe` or `uv run python`
 may be used for the same commands when the bare Python launcher is affected by
 host encryption tooling.
+
+# Explicit Mode C Pilot Surface
+
+`TASK-0051` approved one non-default live Mode C pilot surface for the tested
+local M1 bounded path:
+
+- `python -B scripts/run_real_agent_pilot.py --mode mode_c_combined ... --allow-combined --allow-model-cost`
+
+That surface runs a real Planner plus real bounded Executor and must remain an
+explicit pilot command. The TASK-0051 approval covers the fresh three-repetition
+local M1 bounded evidence set only. It does not make Mode C the default
+entrypoint and does not prove production-grade orchestration for arbitrary
+projects.
 
 # CLI Boundary
 

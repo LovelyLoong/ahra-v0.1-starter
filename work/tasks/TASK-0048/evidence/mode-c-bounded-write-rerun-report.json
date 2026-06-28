@@ -1,0 +1,67 @@
+{
+  "schema_version": "ahra/task-evidence/mode-c-bounded-write-rerun/0.1",
+  "task_id": "TASK-0048",
+  "created_at": "2026-06-28T13:34:57.686892Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "purpose": "Bounded live Mode C rerun for real Executor bounded-write completion repair verification only.",
+  "mode_c_default_status": "no-go",
+  "rerun_executed": true,
+  "command": ".\\.venv\\Scripts\\python.exe -B scripts\\run_real_agent_pilot.py --mode mode_c_combined --output-dir work\\tasks\\TASK-0048\\evidence\\real-agent-pilot\\mode-c-bounded-write-4 --experiment-id TASK-0048-MODE-C-BOUNDED-WRITE-4 --repetitions 1 --allow-model-cost --allow-combined --isolated-repetitions --repetition-timeout-seconds 180 --executor-idle-timeout-seconds 45 --executor-heartbeat-interval-seconds 10 --executor-attempt-wall-timeout-seconds 60 --executor-run-deadline-seconds 90",
+  "scorecard_path": "work/tasks/TASK-0048/evidence/real-agent-pilot/mode-c-bounded-write-4/scorecard.json",
+  "run_result_path": "work/tasks/TASK-0048/evidence/real-agent-pilot/mode-c-bounded-write-4/run-01/run-result.json",
+  "bounded_executor_node_run_path": "work/tasks/TASK-0048/evidence/real-agent-pilot/mode-c-bounded-write-4/run-01/.ahra/bounded-task-executor/nodes/NODE-write-artifact/node-run.json",
+  "planner_budget_normalization_path": "work/tasks/TASK-0048/evidence/real-agent-pilot/mode-c-bounded-write-4/run-01/.ahra/artifacts/planner-budget-normalization.json",
+  "workspace_artifact_path": "work/tasks/TASK-0048/evidence/real-agent-pilot/mode-c-bounded-write-4/run-01/workspace/outputs/summary.txt",
+  "result": {
+    "run_count": 1,
+    "success_count": 1,
+    "failure_classes": {},
+    "elapsed_seconds": 79.62405,
+    "executor_metrics": {
+      "run_count": 1,
+      "accepted_node_rate": 1.0,
+      "failed_count": 0
+    },
+    "node_status_counts": {
+      "succeeded": 2
+    },
+    "hard_metrics": {
+      "capability_admission_coverage": 1.0,
+      "current_claim_coverage": 1.0,
+      "false_completion_count": 0,
+      "gate_execution_integrity": 1.0,
+      "repair_boundary_compliance": 1.0,
+      "resume_duplicate_effect_count": 0,
+      "stale_fencing_accept_count": 0,
+      "unrun_gate_pass_count": 0
+    },
+    "bounded_write_node": {
+      "status": "accepted",
+      "model_calls": 1,
+      "tool_calls": 1,
+      "semantic_review_enabled": false,
+      "artifact_written": true,
+      "artifact_text": "bounded-smoke-artifact"
+    }
+  },
+  "prior_task0048_runs": [
+    {
+      "path": "work/tasks/TASK-0048/evidence/real-agent-pilot/mode-c-bounded-write/scorecard.json",
+      "summary": "Failed with executor idle timeout after no changed files within 45s."
+    },
+    {
+      "path": "work/tasks/TASK-0048/evidence/real-agent-pilot/mode-c-bounded-write-2/scorecard.json",
+      "summary": "Executor accepted bounded artifact, then failed due skipped semantic review being counted as a model call."
+    },
+    {
+      "path": "work/tasks/TASK-0048/evidence/real-agent-pilot/mode-c-bounded-write-3/scorecard.json",
+      "summary": "Failed because real Planner emitted a 30s bounded node timeout."
+    }
+  ],
+  "decision": {
+    "bounded_write_completion_repaired_for_this_rerun": true,
+    "mode_c_execution_quality_default_ready": false,
+    "default_path_allowed": false,
+    "reason": "One bounded live Mode C repetition succeeded after the repair. Broader Mode C quality/stability and defaultization remain outside TASK-0048 and require separate EvidenceGate approval."
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": "ahra/task-evidence/verification-summary/0.1",
+  "task_id": "TASK-0049",
+  "created_at": "2026-06-28T14:08:31.980419Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal validate <temp-request>",
+      "result": "passed",
+      "summary": "Copied examples/m1/goal-run-request.yaml to a temporary directory and validated it successfully; validate.ok=true and validate.result.valid=true."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal plan <temp-request>",
+      "result": "passed",
+      "summary": "The default M1 copied request planned successfully and wrote plan artifacts under the temporary artifact directory."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal start <temp-request>",
+      "result": "passed",
+      "summary": "The default M1 copied request started and completed successfully: goalStatus=succeeded, planStatus=succeeded, nodeRunCount=2, evidenceRefCount=2, capabilityGrantRefCount=1, missingArtifactCount=0."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "result": "passed",
+      "summary": "AWKP lint reported 0 errors and 0 warnings; AHRA lint reported 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "summary": "No whitespace or patch format errors reported."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli task inspect TASK-0049",
+      "result": "passed",
+      "summary": "TASK-0049 is in review at state_version=3 with lease null; manifests, events, and acceptance criteria parse."
+    },
+    {
+      "command": "TASK-0049 manifest hash audit",
+      "result": "passed",
+      "summary": "All local artifact and evidence hashes in artifact-manifest.json and evidence-manifest.json match the current files."
+    }
+  ],
+  "environment_notes": [
+    "Verification used the repository .venv Python entrypoint.",
+    "The default M1 smoke used a copied request in a system temporary directory and did not write default example runtime artifacts.",
+    "No live Mode C rerun was executed in TASK-0049 because the task scope is workflow integrity preview, not broad Mode C stability testing."
+  ],
+  "audit_result": {
+    "default_m1_path": "intact_under_fresh_smoke",
+    "mode_c_path": "non_default_single_bounded_write_success_only",
+    "awkp_evidencegate_path": "operational_for_recent_task_completion",
+    "remaining_p0_workflow_blockers": 0,
+    "remaining_p1_workflow_risks": [
+      "BoundedTaskExecutor depends on TaskHarness from a legacy-classified standard-harness component.",
+      "Pilot scorecard hard metrics are too coarse to be the only evidence for broad Mode C stability.",
+      "Real Executor budget normalization is currently pilot-specific and should be made an explicit invariant before wider use.",
+      "Literal bounded-write artifact mapping is covered, but non-literal filesystem.write and multi-output contracts need explicit invariant coverage before wider Mode C pilots."
+    ],
+    "mode_c_default_allowed": false
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "summary": "Created the required deterministic smoke artifact at outputs/summary.txt.",
+  "changed_files": [
+    "outputs/summary.txt"
+  ],
+  "verification_commands_run": [],
+  "known_risks": [],
+  "unresolved_items": []
+}

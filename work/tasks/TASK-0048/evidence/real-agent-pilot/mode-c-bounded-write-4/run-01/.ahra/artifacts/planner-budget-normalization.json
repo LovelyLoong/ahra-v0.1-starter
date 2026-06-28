@@ -1,0 +1,212 @@
+{
+  "after": {
+    "apiVersion": "ahra.dev/v1alpha1",
+    "kind": "PlanDraft",
+    "metadata": {
+      "goalId": "GOAL-M1-GENERIC-SMOKE",
+      "proposedBy": "planner/agent-driver@sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db"
+    },
+    "spec": {
+      "nodes": [
+        {
+          "budgetRequest": {
+            "maxCostUsd": 0.0,
+            "maxModelCalls": 2,
+            "maxSpawnedNodes": 0,
+            "maxToolCalls": 1,
+            "maxWallSeconds": 60
+          },
+          "capabilityRequests": [
+            {
+              "capability": "filesystem.write",
+              "resources": [
+                "outputs/summary.txt"
+              ]
+            }
+          ],
+          "claimRefs": [
+            "CLM-WRITE-ARTIFACT"
+          ],
+          "dependsOn": [],
+          "expectedOutputs": [
+            {
+              "artifactRequired": true,
+              "consumerNodeRefs": [
+                "NODE-goal-verification"
+              ],
+              "deliveryRole": "artifact",
+              "name": "bounded-smoke-artifact",
+              "schemaRef": "planner-output-contracts"
+            }
+          ],
+          "gateRefs": [
+            "GATE-write-artifact"
+          ],
+          "id": "NODE-write-artifact",
+          "inputRefs": [
+            "GOAL-M1-GENERIC-SMOKE",
+            "profile/m1-real-combined@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+          ],
+          "nodeType": "bounded_task",
+          "objective": "Write the required bounded smoke artifact inside the governed workspace for GOAL-M1-GENERIC-SMOKE.",
+          "retryPolicy": {
+            "idempotencyKeyRequired": true,
+            "maxAttempts": 1,
+            "retryableFailureClasses": []
+          },
+          "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "sideEffect": "idempotent",
+          "terminalGoalVerification": false,
+          "timeoutSeconds": 60
+        },
+        {
+          "budgetRequest": {
+            "maxCostUsd": 0.0,
+            "maxModelCalls": 1,
+            "maxSpawnedNodes": 0,
+            "maxToolCalls": 1,
+            "maxWallSeconds": 60
+          },
+          "capabilityRequests": [],
+          "claimRefs": [
+            "CLM-GOAL-COMPLETE",
+            "CLM-WRITE-ARTIFACT"
+          ],
+          "dependsOn": [
+            "NODE-write-artifact"
+          ],
+          "expectedOutputs": [],
+          "gateRefs": [
+            "GATE-goal-complete"
+          ],
+          "id": "NODE-goal-verification",
+          "inputRefs": [
+            "NODE-write-artifact"
+          ],
+          "nodeType": "goal_verification",
+          "objective": "Verify that the produced bounded smoke artifact satisfies CLM-WRITE-ARTIFACT and supports CLM-GOAL-COMPLETE.",
+          "retryPolicy": {
+            "idempotencyKeyRequired": false,
+            "maxAttempts": 1,
+            "retryableFailureClasses": []
+          },
+          "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "sideEffect": "idempotent",
+          "terminalGoalVerification": true,
+          "timeoutSeconds": 60
+        }
+      ],
+      "rationale": "Use one bounded write node to produce the smoke artifact, then one terminal goal verification node gated by the supplied write and goal-complete gates."
+    }
+  },
+  "before": {
+    "apiVersion": "ahra.dev/v1alpha1",
+    "kind": "PlanDraft",
+    "metadata": {
+      "goalId": "GOAL-M1-GENERIC-SMOKE",
+      "proposedBy": "planner/agent-driver@sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db"
+    },
+    "spec": {
+      "nodes": [
+        {
+          "budgetRequest": {
+            "maxCostUsd": 0.0,
+            "maxModelCalls": 1,
+            "maxSpawnedNodes": 0,
+            "maxToolCalls": 1,
+            "maxWallSeconds": 60
+          },
+          "capabilityRequests": [
+            {
+              "capability": "filesystem.write",
+              "resources": [
+                "outputs/summary.txt"
+              ]
+            }
+          ],
+          "claimRefs": [
+            "CLM-WRITE-ARTIFACT"
+          ],
+          "dependsOn": [],
+          "expectedOutputs": [
+            {
+              "artifactRequired": true,
+              "consumerNodeRefs": [
+                "NODE-goal-verification"
+              ],
+              "deliveryRole": "artifact",
+              "name": "bounded-smoke-artifact",
+              "schemaRef": "planner-output-contracts"
+            }
+          ],
+          "gateRefs": [
+            "GATE-write-artifact"
+          ],
+          "id": "NODE-write-artifact",
+          "inputRefs": [
+            "GOAL-M1-GENERIC-SMOKE",
+            "profile/m1-real-combined@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+          ],
+          "nodeType": "bounded_task",
+          "objective": "Write the required bounded smoke artifact inside the governed workspace for GOAL-M1-GENERIC-SMOKE.",
+          "retryPolicy": {
+            "idempotencyKeyRequired": true,
+            "maxAttempts": 1,
+            "retryableFailureClasses": []
+          },
+          "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "sideEffect": "idempotent",
+          "terminalGoalVerification": false,
+          "timeoutSeconds": 60
+        },
+        {
+          "budgetRequest": {
+            "maxCostUsd": 0.0,
+            "maxModelCalls": 1,
+            "maxSpawnedNodes": 0,
+            "maxToolCalls": 1,
+            "maxWallSeconds": 60
+          },
+          "capabilityRequests": [],
+          "claimRefs": [
+            "CLM-GOAL-COMPLETE",
+            "CLM-WRITE-ARTIFACT"
+          ],
+          "dependsOn": [
+            "NODE-write-artifact"
+          ],
+          "expectedOutputs": [],
+          "gateRefs": [
+            "GATE-goal-complete"
+          ],
+          "id": "NODE-goal-verification",
+          "inputRefs": [
+            "NODE-write-artifact"
+          ],
+          "nodeType": "goal_verification",
+          "objective": "Verify that the produced bounded smoke artifact satisfies CLM-WRITE-ARTIFACT and supports CLM-GOAL-COMPLETE.",
+          "retryPolicy": {
+            "idempotencyKeyRequired": false,
+            "maxAttempts": 1,
+            "retryableFailureClasses": []
+          },
+          "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "sideEffect": "idempotent",
+          "terminalGoalVerification": true,
+          "timeoutSeconds": 60
+        }
+      ],
+      "rationale": "Use one bounded write node to produce the smoke artifact, then one terminal goal verification node gated by the supplied write and goal-complete gates."
+    }
+  },
+  "executor_policy": {
+    "attempt_wall_timeout_seconds": 60,
+    "heartbeat_interval_seconds": 10,
+    "idle_timeout_seconds": 45,
+    "max_attempts": 1,
+    "run_deadline_seconds": 90,
+    "startup_timeout_seconds": 60
+  },
+  "reason": "Real Executor bounded nodes must use the configured Executor bounded wall-time window after real Planner output is admitted.",
+  "schema_version": "ahra/real-agent-pilot/planner-budget-normalization/0.1"
+}

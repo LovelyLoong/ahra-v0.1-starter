@@ -1,0 +1,26 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "write-artifact",
+  "artifacts": [
+    {
+      "artifact_id": "ART-fdd65d73db724f7d9890d21aa25bc10f",
+      "task_id": "write-artifact",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-write-artifact/node-run.json",
+      "sha256": "39f61d0618f46d1c95871c2437a6d889846c705c7c87f1dc20070219fc66007f",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-06-28T13:19:38.272656Z",
+      "input_refs": [
+        "PLAN-a57e713f7c93f8dc",
+        "NODE-write-artifact",
+        "NRUN-694085b4e7580471"
+      ],
+      "evidence_refs": [
+        "EVD-3332c1c3f1ae45999009459b2a2afecd"
+      ],
+      "supersedes": null
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": "ahra/task-evidence/verification-summary/0.1",
+  "task_id": "TASK-0048",
+  "created_at": "2026-06-28T13:34:57.686892Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_real_agent_pilot tests.test_node_executor tests.test_codex_driver",
+      "result": "passed",
+      "summary": "27 tests passed."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "result": "passed",
+      "summary": "204 tests passed; 2 tests skipped for environment conditions."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "result": "passed",
+      "summary": "AWKP lint reported 0 errors and 0 warnings; AHRA lint reported 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "summary": "No whitespace or patch format errors reported."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\run_real_agent_pilot.py --mode mode_c_combined --output-dir work\\tasks\\TASK-0048\\evidence\\real-agent-pilot\\mode-c-bounded-write-4 --experiment-id TASK-0048-MODE-C-BOUNDED-WRITE-4 --repetitions 1 --allow-model-cost --allow-combined --isolated-repetitions --repetition-timeout-seconds 180 --executor-idle-timeout-seconds 45 --executor-heartbeat-interval-seconds 10 --executor-attempt-wall-timeout-seconds 60 --executor-run-deadline-seconds 90",
+      "result": "passed",
+      "summary": "One bounded live Mode C rerun succeeded with success_count=1 and both nodes succeeded."
+    }
+  ],
+  "environment_notes": [
+    "The bare uv command was not available in this PowerShell session; verification used the repository .venv Python entrypoint.",
+    "Mode C remains non-default; this summary is not an EvidenceGate completion decision."
+  ]
+}

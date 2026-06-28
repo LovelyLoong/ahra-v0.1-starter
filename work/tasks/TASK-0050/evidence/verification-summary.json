@@ -1,0 +1,71 @@
+{
+  "schema_version": "ahra/task-evidence/verification-summary/0.1",
+  "task_id": "TASK-0050",
+  "created_at": "2026-06-28T14:45:09.826267Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "mode_c_defaultization": false,
+  "broad_live_mode_c_pilot_run": false,
+  "checks": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_real_agent_pilot tests.test_node_executor tests.test_reference_runner",
+      "status": "passed",
+      "summary": "Ran 51 tests in 42.430s; OK; skipped=1."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "summary": "AHRA lint: 0 failure(s); AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "status": "passed",
+      "summary": "Ran 206 tests in 65.199s; OK; skipped=2."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors reported."
+    }
+  ],
+  "resolved_p1_risks": [
+    {
+      "risk": "BoundedTaskExecutor TaskHarness dependency lifecycle ambiguity",
+      "status": "mitigated",
+      "evidence": [
+        "src/ahra/reference_runner/task_harness.py",
+        "src/ahra/reference_runner/bounded_task.py",
+        "docs/architecture/component-inventory.json"
+      ]
+    },
+    {
+      "risk": "Mode C pilot failure classification too coarse",
+      "status": "mitigated",
+      "evidence": [
+        "src/ahra/real_agent_pilot.py",
+        "tests/test_real_agent_pilot.py"
+      ]
+    },
+    {
+      "risk": "Real Executor budget invariant only implicit in pilot code",
+      "status": "mitigated",
+      "evidence": [
+        "src/ahra/real_agent_pilot.py",
+        "tests/test_real_agent_pilot.py"
+      ]
+    },
+    {
+      "risk": "Non-literal and multi-output expectedOutputs coverage missing",
+      "status": "mitigated",
+      "evidence": [
+        "src/ahra/reference_runner/bounded_task.py",
+        "tests/test_node_executor.py"
+      ]
+    }
+  ],
+  "remaining_limits": [
+    "Mode C remains explicit and non-default.",
+    "No broad live Mode C stability approval is claimed.",
+    "TaskHarness implementation is still hosted in standard_harness.py for compatibility, with default-visible imports routed through task_harness.py.",
+    "Glob resource expansion into concrete filesystem write grants is not added by this task."
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "artifact_refs": [
+    "ART-TASK-0046-0001",
+    "ART-TASK-0046-0002",
+    "ART-TASK-0046-HANDOFF-0001",
+    "ART-TASK-0046-0003"
+  ],
+  "attempt": 1,
+  "blockers": [],
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "evidence_refs": [
+    "EVD-TASK-0046-0001",
+    "EVD-TASK-0046-0002",
+    "EVD-TASK-0046-0003"
+  ],
+  "lease": null,
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "owner": null,
+  "pause_reason": null,
+  "schema_version": "awkp/0.1",
+  "state": "completed",
+  "state_version": 4,
+  "task_id": "TASK-0046",
+  "updated_at": "2026-06-28T12:06:55.824207Z"
+}

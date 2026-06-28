@@ -10,9 +10,9 @@ source_refs:
   - ../../AHRA_dynamic_kernel_m1_master_plan_2026-06-26.md
   - ../architecture/gate-execution-pipeline.md
   - ../architecture/goal-execution-lifecycle.md
-evidence_refs: []
-confidence: draft
-last_verified_at: 2026-06-26T00:00:00Z
+evidence_refs: [EVD-TASK-0051-0003]
+confidence: reviewed
+last_verified_at: 2026-06-28T15:31:16Z
 review_after: 2026-09-26T00:00:00Z
 tags: [policy, metrics, evaluation, m1]
 ---
@@ -133,6 +133,12 @@ Real Planner + real Executor only after Modes A and B have:
 - zero hard-metric violations;
 - at least one successful completion;
 - no unexplained state divergence.
+
+Current approved scope: `TASK-0051` satisfies this policy only for the tested
+local M1 bounded Mode C pilot, with three isolated live repetitions and no hard
+metric violations. It remains an explicit non-default pilot path; default-route
+promotion and arbitrary-project production orchestration require separate
+authorization and EvidenceGate approval.
 
 Quality thresholds are experimental; safety thresholds are absolute.
 

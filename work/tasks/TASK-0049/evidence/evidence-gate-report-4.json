@@ -1,0 +1,123 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0049",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-verifier",
+  "generated_at": "2026-06-28T14:26:42.387655Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent EvidenceGate review approves TASK-0049 for the narrow workflow integrity preview and latent defect audit only. The review confirms that the default M1 Goal path, explicit Mode C pilot path, and AWKP EvidenceGate path are separately mapped with code and document evidence; a fresh temporary M1 smoke passed validate, plan, and start; the latent defect matrix classifies TASK-0045 through TASK-0048 signals; and the remaining P1 risks block broader Mode C work. This approval does not approve Mode C defaultization or broad Mode C stability.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A workflow map separately describes the default M1 Goal path, the Mode C pilot path, and the AWKP EvidenceGate path with code/doc evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0049-0001",
+        "EVD-TASK-0049-0002"
+      ],
+      "notes": "workflow-integrity-map.md separately maps the default deterministic M1 Goal path, explicit Mode C real-Agent pilot path, and AWKP task/EvidenceGate completion path with references to framework-entrypoints, component-inventory, goal_operations.py, plan_execution.py, real_agent_pilot.py, bounded_task.py, and evidence_gate.py."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "The audit states whether the current default M1 path appears intact, with fresh smoke evidence or a concrete blocker.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0049-0001",
+        "EVD-TASK-0049-0003"
+      ],
+      "notes": "The audit states that the default M1 path is intact under fresh smoke. Independent rerun against a copied temporary request passed goal validate, goal plan, and goal start with goalStatus=succeeded, planStatus=succeeded, nodeRunCount=2, and missingArtifactCount=0."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "A latent-defect matrix classifies TASK-0045 through TASK-0048 failure signals as workflow, adapter, provider/runtime, model-behavior, or evidence boundary issues.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0049-0002",
+        "EVD-TASK-0049-0001"
+      ],
+      "notes": "latent-defect-matrix.json classifies TASK-0045 through TASK-0048 signals across workflow runtime boundary, workflow contract transfer, adapter prompt contract, workflow budget semantics, workflow accounting, evidence boundary, contract generalization, and scope overclaim risk."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The matrix identifies remaining P0/P1 workflow risks and whether they block broader Mode C work.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0049-0002",
+        "EVD-TASK-0049-0003"
+      ],
+      "notes": "The matrix records remaining_p0_workflow_blockers=0 and four remaining P1 risks. It marks broader_mode_c_work_blocked_until_p1_risks_are_resolved_or_explicitly_accepted=true."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Any proposed TASK-0050 follow-up is narrow and preserves Mode C non-default status.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0049-0002",
+        "EVD-TASK-0049-0003"
+      ],
+      "notes": "The proposed TASK-0050 scope is narrow: align real bounded Executor dependency/lifecycle, add Mode C pilot invariant dimensions, and cover non-literal or multi-output expectedOutputs. Its non-goals explicitly reject Mode C defaultization, broad live Mode C pilot, and release packaging."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "No Mode C default-path claim is made.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0049-0001",
+        "EVD-TASK-0049-0002"
+      ],
+      "notes": "The workflow map, matrix, verification summary, and handoff all preserve that Mode C is non-default and broad stability is not approved. No default-path claim is made."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Producer moves TASK-0049 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0049-0003"
+      ],
+      "notes": "Producer left TASK-0049 in review at state_version=3 with lease null and no blockers. Independent verifier actor is distinct from the producer; EvidenceGate is the completion authority."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal validate C:\\Users\\13075\\AppData\\Local\\Temp\\ahra-task0049-review-36396d77554e4180a2b8ca55d0331a7f\\goal-run-request.yaml",
+      "status": "passed",
+      "result": "validate.ok=true; valid=true; PlanValidationReport result=passed; planNodeCount=2; gateRefCount=2; executableNodeCount=1."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal plan C:\\Users\\13075\\AppData\\Local\\Temp\\ahra-task0049-review-36396d77554e4180a2b8ca55d0331a7f\\goal-run-request.yaml",
+      "status": "passed",
+      "result": "goal plan succeeded and wrote plan artifacts to the temporary artifact directory; executedNodeCount=0."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal start C:\\Users\\13075\\AppData\\Local\\Temp\\ahra-task0049-review-36396d77554e4180a2b8ca55d0331a7f\\goal-run-request.yaml",
+      "status": "passed",
+      "result": "goalStatus=succeeded; planStatus=succeeded; nodeRunCount=2; nodeStatusCounts.succeeded=2; evidenceRefCount=2; capabilityGrantRefCount=1; missingArtifactCount=0."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "result": "AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s)."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli task inspect TASK-0049",
+      "status": "passed",
+      "result": "TASK-0049 is in review at state_version=3 with lease null; manifests, events, and acceptance criteria parse."
+    },
+    {
+      "command": "Get-FileHash SHA256 for TASK-0049 workflow map, latent defect matrix, verification summary, and handoff",
+      "status": "passed",
+      "result": "All four hashes match artifact-manifest.json and evidence-manifest.json entries: 76c884ec..., 83a1138e..., d06ab289..., 57eb3623...."
+    },
+    {
+      "command": "manual evidence and authority review",
+      "status": "passed",
+      "result": "Reviewed AGENTS.md, authority-map.md, framework-entrypoints.md, component-inventory.json, TASK-0049 task/state/events/manifests, workflow-integrity-map.md, latent-defect-matrix.json, verification-summary.json, and handoff. Approval scope is limited to TASK-0049's audit."
+    }
+  ]
+}

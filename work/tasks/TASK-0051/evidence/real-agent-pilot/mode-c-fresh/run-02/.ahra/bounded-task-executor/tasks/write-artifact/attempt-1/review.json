@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "Semantic review was skipped because no semantic review gate was declared.",
+  "criteria": [
+    {
+      "criterion": "CLM-WRITE-ARTIFACT",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: outputs/summary.txt",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: smoke-artifact",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [],
+  "non_blocking_issues": [],
+  "confidence": 1.0
+}

@@ -21,8 +21,9 @@ from .models import (
 from .policy import ChangeSummary, evaluate_policy
 from .review_contracts import enforce_goal_review_contract
 from .runtime import LocalRuntimeProvider
-from .standard_harness import PATCH_EXCERPT_CHARS, TaskHarness, _excerpt
+from .standard_harness import PATCH_EXCERPT_CHARS, _excerpt
 from .store import ReferenceRunStore
+from .task_harness import TaskHarness
 
 
 class LoopEngine:

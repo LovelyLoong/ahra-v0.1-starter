@@ -1,0 +1,98 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0046",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-sg10-independent-review-0046",
+  "generated_at": "2026-06-28T12:06:55.824207Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent EvidenceGate review approves TASK-0046. The work index now reflects TASK-0045 completed at state_version 7, records the SG-10 boundary accurately, and keeps Mode C no-go/non-default due to three Mode C timeouts and zero successes. The change set is docs/AWKP task records only; producer left TASK-0046 in review and did not self-complete.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "TASK-0045 authoritative state is completed at `state_version=7`, and its approved EvidenceGate report preserves Mode C no-go/non-default status.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0046-0001",
+        "EVD-TASK-0046-0002"
+      ],
+      "notes": "TASK-0045 state.json reports completed at state_version=7, and evidence-gate-report-7 preserves Mode C no-go/non-default status."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "`work/index.md` no longer says TASK-0045 is in review at v6 and instead records TASK-0045 completed at v7.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0046-0001",
+        "EVD-TASK-0046-0002"
+      ],
+      "notes": "work/index.md no longer contains the stale TASK-0045 review v6 row and now lists TASK-0045 completed v7."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "`work/index.md` states the current boundary accurately: M1 default safety path is complete, SG-10 safety/audit closeout is approved, and real Mode C remains no-go due to `run_count=3`, `success_count=0`, `failure_classes={timeout: 3}`.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0046-0001",
+        "EVD-TASK-0046-0002"
+      ],
+      "notes": "work/index.md states M1 default safety path complete, SG-10 safety/audit closeout approved, and real Mode C no-go with run_count=3, success_count=0, failure_classes={timeout: 3}."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The change set is limited to work index, TASK-0046 task records, evidence, and handoff documentation; no runtime code, tests, contracts, schemas, or policy files are modified.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0046-0001",
+        "EVD-TASK-0046-0002"
+      ],
+      "notes": "Changed paths are limited to work/index.md and work/tasks/TASK-0046; no src, tests, contracts, schemas, or policy files changed."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Local verification includes task inspection, AWKP lint, manifest/hash checks, and `git diff --check`; runtime tests are explicitly not rerun because no runtime code changed.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0046-0002"
+      ],
+      "notes": "Task inspect, AWKP lint, manifest/hash audit, and git diff --check passed. Runtime tests were correctly not rerun because runtime code did not change."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Producer moves TASK-0046 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0046-0001",
+        "EVD-TASK-0046-0002"
+      ],
+      "notes": "Producer left TASK-0046 in review at state_version=3; this EvidenceGate evaluation is the completion authority."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0045",
+      "status": "passed",
+      "result": "TASK-0045 state is completed at state_version=7."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0046",
+      "status": "passed",
+      "result": "TASK-0046 is in review at state_version=3 with manifests and criteria present."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "result": "AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "custom manifest/hash and work-index closeout audit",
+      "status": "passed",
+      "result": "errors 0; TASK-0045 completed v7; work/index boundary synced; changed paths limited to work/index.md and TASK-0046; artifact/evidence hashes match."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    }
+  ]
+}

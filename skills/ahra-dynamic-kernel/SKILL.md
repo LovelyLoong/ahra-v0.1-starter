@@ -28,6 +28,17 @@ GoalExecution state, executes through the shared Scheduler and Capability
 Admission path, and supports inspect, resume, and cancel. It does not claim to
 be a production orchestrator for arbitrary projects.
 
+`TASK-0051` also approves an explicit non-default live Mode C pilot for the
+tested local M1 bounded path only:
+
+```bash
+python -B scripts/run_real_agent_pilot.py --mode mode_c_combined --allow-combined --allow-model-cost
+```
+
+Use that command only when the user explicitly asks for the Mode C pilot path or
+an active task authorizes it. Do not treat it as the default Goal operation path
+or as production-grade arbitrary-project orchestration.
+
 ## Default Commands
 
 Use these commands for current local operation and verification:

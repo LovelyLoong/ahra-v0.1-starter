@@ -1,0 +1,50 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "write-artifact",
+  "evidence": [
+    {
+      "evidence_id": "EVD-c5606dc18155457794b94fc20bdf152f",
+      "task_id": "write-artifact",
+      "kind": "deterministic_gate",
+      "name": "deterministic-evidence.json",
+      "uri": "local://tasks/write-artifact/attempt-1/deterministic-evidence.json",
+      "sha256": "91a01f6f81a58c07fecdd23499eaf10c1056d3b62dac6df2cbbf9bcc954e4f62",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-06-28T15:20:25.040448Z",
+      "refs": [
+        "ART-3feb25f69e724dc7b7855306649ce049",
+        "ART-c06c3ef8a82e4159b1e8f4933b9dceed"
+      ]
+    },
+    {
+      "evidence_id": "EVD-c5f6354e103742be80749ee90838142d",
+      "task_id": "write-artifact",
+      "kind": "semantic_review_skipped",
+      "name": "review.json",
+      "uri": "local://tasks/write-artifact/attempt-1/review.json",
+      "sha256": "e86a9dad7d95805386323a4c76bbd239f07fedbc384fe0338cde39566d1bffe6",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-06-28T15:20:25.041973Z",
+      "refs": [
+        "EVD-c5606dc18155457794b94fc20bdf152f"
+      ]
+    },
+    {
+      "evidence_id": "EVD-f71a1f65ddcc4d57bb7fb14dbd04b7d8",
+      "task_id": "write-artifact",
+      "kind": "node_gate_summary",
+      "name": "node-gates.json",
+      "uri": "local://nodes/NODE-write-artifact/node-gates.json",
+      "sha256": "91dc2201ecd317a521eb217b0b3d3565861cfe7f4dffb5a34a2633d401ecae00",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-06-28T15:20:25.205415Z",
+      "refs": [
+        "NODE-write-artifact",
+        "PLAN-f5f3994e86ff94f7"
+      ]
+    }
+  ]
+}

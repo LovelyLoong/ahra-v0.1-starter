@@ -1,0 +1,180 @@
+{
+  "elapsed_seconds": 79.62405,
+  "execution": {
+    "goalExecutionId": "GEXEC-e58986227602cca3",
+    "metrics": {
+      "capabilityGrantRefCount": 1,
+      "evidenceRefCount": 2,
+      "goalStatus": "succeeded",
+      "missingArtifactCount": 0,
+      "nodeRunCount": 2,
+      "nodeStatusCounts": {
+        "succeeded": 2
+      },
+      "planExecutionCount": 1
+    },
+    "planExecutionId": "PEXEC-01ef885207a2f19f",
+    "planStatus": "succeeded",
+    "status": "succeeded"
+  },
+  "failure_class": null,
+  "hard_metric_violation": false,
+  "hard_metrics": {
+    "capability_admission_coverage": 1.0,
+    "current_claim_coverage": 1.0,
+    "false_completion_count": 0,
+    "gate_execution_integrity": 1.0,
+    "repair_boundary_compliance": 1.0,
+    "resume_duplicate_effect_count": 0,
+    "stale_fencing_accept_count": 0,
+    "unrun_gate_pass_count": 0
+  },
+  "mode": "mode_c_combined",
+  "planner": {
+    "budgetNormalization": {
+      "applied": true,
+      "artifact": "D:\\Work\\ahra-v0.1-starter\\work\\tasks\\TASK-0048\\evidence\\real-agent-pilot\\mode-c-bounded-write-4\\run-01\\.ahra\\artifacts\\planner-budget-normalization.json"
+    },
+    "driverRef": "codex-python-sdk",
+    "modelProvider": "codex-sdk",
+    "modelRevision": "unspecified",
+    "outputArtifact": {
+      "artifactId": "PLART-a78ad3338d7d063de5046875",
+      "contextManifestDigest": "e938ffc2a119b7a34990486242bf40da20b1bf58097f18c24f735ecdbc979b22",
+      "contextManifestRef": "CTXMAN-e938ffc2a119b7a349904862",
+      "kind": "planner-plan-draft",
+      "mediaType": "application/json",
+      "payload": {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "PlanDraft",
+        "metadata": {
+          "goalId": "GOAL-M1-GENERIC-SMOKE",
+          "proposedBy": "planner/agent-driver@sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db"
+        },
+        "spec": {
+          "nodes": [
+            {
+              "budgetRequest": {
+                "maxCostUsd": 0.0,
+                "maxModelCalls": 1,
+                "maxSpawnedNodes": 0,
+                "maxToolCalls": 1,
+                "maxWallSeconds": 60
+              },
+              "capabilityRequests": [
+                {
+                  "capability": "filesystem.write",
+                  "resources": [
+                    "outputs/summary.txt"
+                  ]
+                }
+              ],
+              "claimRefs": [
+                "CLM-WRITE-ARTIFACT"
+              ],
+              "dependsOn": [],
+              "expectedOutputs": [
+                {
+                  "artifactRequired": true,
+                  "consumerNodeRefs": [
+                    "NODE-goal-verification"
+                  ],
+                  "deliveryRole": "artifact",
+                  "name": "bounded-smoke-artifact",
+                  "schemaRef": "planner-output-contracts"
+                }
+              ],
+              "gateRefs": [
+                "GATE-write-artifact"
+              ],
+              "id": "NODE-write-artifact",
+              "inputRefs": [
+                "GOAL-M1-GENERIC-SMOKE",
+                "profile/m1-real-combined@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+              ],
+              "nodeType": "bounded_task",
+              "objective": "Write the required bounded smoke artifact inside the governed workspace for GOAL-M1-GENERIC-SMOKE.",
+              "retryPolicy": {
+                "idempotencyKeyRequired": true,
+                "maxAttempts": 1,
+                "retryableFailureClasses": []
+              },
+              "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "sideEffect": "idempotent",
+              "terminalGoalVerification": false,
+              "timeoutSeconds": 60
+            },
+            {
+              "budgetRequest": {
+                "maxCostUsd": 0.0,
+                "maxModelCalls": 1,
+                "maxSpawnedNodes": 0,
+                "maxToolCalls": 1,
+                "maxWallSeconds": 60
+              },
+              "capabilityRequests": [],
+              "claimRefs": [
+                "CLM-GOAL-COMPLETE",
+                "CLM-WRITE-ARTIFACT"
+              ],
+              "dependsOn": [
+                "NODE-write-artifact"
+              ],
+              "expectedOutputs": [],
+              "gateRefs": [
+                "GATE-goal-complete"
+              ],
+              "id": "NODE-goal-verification",
+              "inputRefs": [
+                "NODE-write-artifact"
+              ],
+              "nodeType": "goal_verification",
+              "objective": "Verify that the produced bounded smoke artifact satisfies CLM-WRITE-ARTIFACT and supports CLM-GOAL-COMPLETE.",
+              "retryPolicy": {
+                "idempotencyKeyRequired": false,
+                "maxAttempts": 1,
+                "retryableFailureClasses": []
+              },
+              "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "sideEffect": "idempotent",
+              "terminalGoalVerification": true,
+              "timeoutSeconds": 60
+            }
+          ],
+          "rationale": "Use one bounded write node to produce the smoke artifact, then one terminal goal verification node gated by the supplied write and goal-complete gates."
+        }
+      },
+      "refs": [
+        "GOAL-M1-GENERIC-SMOKE",
+        "PLART-639eebc5c5ff94abb809652f"
+      ],
+      "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+      "sha256": "sha256:a78ad3338d7d063de504687580bd69ba03593d1d4ac77a2eb63abba2373344f5"
+    },
+    "status": "accepted",
+    "validationReport": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanValidationReport",
+      "metadata": {
+        "createdBy": "ahra-planner-admission/0.1",
+        "reportId": "PLANVAL-b944466f1179b559"
+      },
+      "spec": {
+        "errors": [],
+        "refs": [
+          "CTXMAN-e938ffc2a119b7a349904862",
+          "PLANVAL-c6b8fb8f913ef093",
+          "PLART-6728784b0c228877780bae25"
+        ],
+        "result": "passed",
+        "subjectDigest": "sha256:6728784b0c228877780bae25abb932b3fefcd9c203bcc0ede29b174641324f22",
+        "subjectRef": "PLART-6728784b0c228877780bae25"
+      }
+    }
+  },
+  "profile": "profile/m1-real-combined@sha256:8888888888888888888888888888888888888888888888888888888888888888",
+  "request_path": "work\\tasks\\TASK-0048\\evidence\\real-agent-pilot\\mode-c-bounded-write-4\\run-01\\goal-run-request.yaml",
+  "run_id": "TASK-0048-MODE-C-BOUNDED-WRITE-4-R01",
+  "schema_version": "ahra/real-agent-pilot-run/0.1",
+  "status": "succeeded"
+}

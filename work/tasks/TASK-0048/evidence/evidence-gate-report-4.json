@@ -1,0 +1,122 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0048",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-verifier",
+  "generated_at": "2026-06-28T13:53:24.213343Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent EvidenceGate review approves TASK-0048 for the narrow bounded-write Executor completion repair only. The review confirms that the remaining live Mode C bounded-write timeout was classified with concrete code and run evidence, deterministic regression coverage exists for the corrected bounded Executor contract and accounting behavior, full local verification passed, and one bounded live Mode C rerun succeeded with success_count=1 and both nodes succeeded. During review, missing AWKP Markdown frontmatter on the root-cause report and handoff was corrected and manifest hashes were synchronized; the technical evidence body was unchanged. This approval does not approve Mode C defaultization or broader Mode C stability.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "The remaining live bounded-write timeout is classified with concrete code/evidence references.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0048-0001",
+        "EVD-TASK-0048-0002"
+      ],
+      "notes": "The root-cause report classifies the remaining timeout as a three-part live contract issue: PlanIR write/expected output obligations were not preserved into TaskSpec, artifact-only Executor prompting allowed shell verification before return, and real Planner output could reintroduce too-small bounded node budgets. The rerun report preserves the failed-run sequence and final passing run."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "A deterministic regression test covers the classified failure mode or the corrected bounded Executor contract.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0048-0001",
+        "EVD-TASK-0048-0003"
+      ],
+      "notes": "Regression coverage verifies the native bounded PlanIR-to-TaskSpec write contract, internal artifact check behavior, Codex Executor prompt contract, skipped semantic review accounting, and real Planner budget normalization for real Executor profiles."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The minimal patch makes the bounded-write Executor produce the required artifact/evidence in a bounded run, or proves with precise evidence that the provider/runtime is the blocker.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0048-0002",
+        "EVD-TASK-0048-0003"
+      ],
+      "notes": "The final bounded live Mode C rerun reports success_count=1, nodeStatusCounts.succeeded=2, bounded write node accepted, semanticReviewEnabled=false, modelCalls=1, toolCalls=1, and workspace artifact outputs/summary.txt containing bounded-smoke-artifact."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Existing deterministic tests for bounded task execution, plan execution, Codex adapter behavior, and real-agent pilot handling still pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0048-0003"
+      ],
+      "notes": "Independent rerun passed the targeted task suite, full scripts/check.py --test, scripts/check.py --lint after reviewer-side metadata repair, task inspect, hash audit, and git diff --check."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "One bounded live Mode C rerun is executed and reported, or blocked with a concrete provider/setup/cost reason.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0048-0002"
+      ],
+      "notes": "One bounded live Mode C rerun was executed and reported at evidence/real-agent-pilot/mode-c-bounded-write-4 with success_count=1 and no failure classes. This is a single bounded rerun, not a broad stability pilot."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "No Mode C default-path claim is made.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0048-0001",
+        "EVD-TASK-0048-0002"
+      ],
+      "notes": "Both the root-cause report and rerun report preserve the Mode C boundary: mode_c_default_status remains no-go, default_path_allowed=false, and broader Mode C quality/defaultization is outside TASK-0048."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Producer moves TASK-0048 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0048-0001",
+        "EVD-TASK-0048-0003"
+      ],
+      "notes": "Producer left TASK-0048 in review at state_version=3 with lease null and no blockers. Independent verifier actor is distinct from the producer; EvidenceGate is the completion authority."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_node_executor tests.test_plan_execution tests.test_codex_driver tests.test_real_agent_pilot",
+      "status": "passed",
+      "result": "Ran 44 tests in 13.975s; OK."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "status": "passed",
+      "result": "Ran 204 tests in 72.706s; OK; skipped=2."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "result": "AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s) after reviewer-side Markdown frontmatter metadata repair."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0048",
+      "status": "passed",
+      "result": "TASK-0048 is in review at state_version=3 with lease null; manifests, events, and acceptance criteria parse. Reviewer metadata correction event EVT-TASK-0048-0004 is append-only and state remains review."
+    },
+    {
+      "command": "Get-FileHash SHA256 for TASK-0048 root-cause report, rerun report, verification summary, and handoff",
+      "status": "passed",
+      "result": "All four hashes match artifact-manifest.json and evidence-manifest.json entries: 04ce53a4..., 5826b0e4..., 2ca8bcb0..., 006ef38e...."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    },
+    {
+      "command": "manual source/evidence review",
+      "status": "passed",
+      "result": "Reviewed bounded_task.py, checks.py, codex_sdk.py, real_agent_pilot.py, targeted tests, scorecard, run-result, node-run, planner-budget-normalization artifact, and workspace outputs/summary.txt. The approval scope is limited to the bounded-write completion repair."
+    },
+    {
+      "command": "reviewer metadata correction",
+      "status": "passed",
+      "result": "Added required AWKP Markdown frontmatter to executor-timeout-root-cause-report.md and HANDOFF-0001.md, synchronized manifest hashes, and appended EVT-TASK-0048-0004. Technical evidence body unchanged."
+    }
+  ]
+}

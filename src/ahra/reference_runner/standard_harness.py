@@ -3,7 +3,11 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
+import threading
 import time
+import weakref
+from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures.thread import _worker
 from dataclasses import replace
 from pathlib import Path
 from typing import Awaitable, TypeVar
@@ -34,7 +38,81 @@ from .store import ReferenceRunStore
 
 PATCH_EXCERPT_CHARS = 60_000
 CONTRACT_ERROR_EXCERPT_CHARS = 20_000
+AGENT_PHASE_CANCEL_GRACE_SECONDS = 1.0
 T = TypeVar("T")
+
+
+class _AgentPhaseRunner:
+    """Run an AgentDriver phase outside the scheduler event loop.
+
+    Some provider SDK calls may not finish cancellation promptly. A daemon
+    thread keeps the scheduler timeout path able to return terminal state while
+    still requesting cooperative cancellation for responsive drivers.
+    """
+
+    def __init__(self, awaitable: Awaitable[T]) -> None:
+        self.future: Future[T] = Future()
+        self._awaitable = awaitable
+        self._loop: asyncio.AbstractEventLoop | None = None
+        self._task: asyncio.Task[T] | None = None
+        self._started = threading.Event()
+        self._thread = threading.Thread(target=self._run, name="ahra-agent-phase", daemon=True)
+
+    def start(self) -> None:
+        self._thread.start()
+        self._started.wait(timeout=1.0)
+
+    def cancel(self) -> None:
+        loop = self._loop
+        task = self._task
+        if loop is None or task is None or task.done():
+            return
+        loop.call_soon_threadsafe(task.cancel)
+
+    def _run(self) -> None:
+        loop = asyncio.new_event_loop()
+        loop.set_default_executor(_DaemonThreadPoolExecutor(thread_name_prefix="ahra-agent-phase-io"))
+        self._loop = loop
+        asyncio.set_event_loop(loop)
+        task = loop.create_task(self._awaitable)
+        self._task = task
+        self._started.set()
+        try:
+            result = loop.run_until_complete(task)
+        except BaseException as exc:
+            if not self.future.done():
+                self.future.set_exception(exc)
+        else:
+            if not self.future.done():
+                self.future.set_result(result)
+        finally:
+            if task.done():
+                with contextlib.suppress(BaseException):
+                    loop.run_until_complete(loop.shutdown_asyncgens())
+                with contextlib.suppress(BaseException):
+                    loop.run_until_complete(loop.shutdown_default_executor())
+                loop.close()
+
+
+class _DaemonThreadPoolExecutor(ThreadPoolExecutor):
+    def _adjust_thread_count(self) -> None:
+        if self._idle_semaphore.acquire(timeout=0):
+            return
+
+        def weakref_cb(_, q=self._work_queue):
+            q.put(None)
+
+        num_threads = len(self._threads)
+        if num_threads < self._max_workers:
+            name = "%s_%d" % (self._thread_name_prefix or self, num_threads)
+            thread = threading.Thread(
+                name=name,
+                target=_worker,
+                args=(weakref.ref(self, weakref_cb), self._work_queue, self._initializer, self._initargs),
+                daemon=True,
+            )
+            thread.start()
+            self._threads.add(thread)
 
 
 def _excerpt(text: str, limit: int = PATCH_EXCERPT_CHARS, *, label: str = "patch") -> str:
@@ -566,7 +644,10 @@ class TaskHarness:
         run_started = self._run_started_monotonic or phase_started
         last_progress = phase_started
         last_files = self._changed_files_or_empty(workspace_ref, checkpoint)
-        worker = asyncio.create_task(awaitable)
+        runner = _AgentPhaseRunner(awaitable)
+        runner.start()
+        worker = asyncio.wrap_future(runner.future)
+        abandoned = False
         try:
             while True:
                 now = time.monotonic()
@@ -584,47 +665,107 @@ class TaskHarness:
                         idle_remaining,
                     ),
                 )
-                try:
-                    return await asyncio.wait_for(asyncio.shield(worker), timeout=next_wait)
-                except TimeoutError:
-                    now = time.monotonic()
-                    files = self._changed_files_or_empty(workspace_ref, checkpoint)
-                    if files != last_files:
-                        last_files = files
-                        last_progress = now
-                    idle_elapsed = now - last_progress
-                    store.event(
-                        "agent_heartbeat",
-                        task_id=task.id,
-                        attempt=attempt,
+                done, _ = await asyncio.wait({worker}, timeout=next_wait)
+                if done:
+                    return worker.result()
+                now = time.monotonic()
+                files = self._changed_files_or_empty(workspace_ref, checkpoint)
+                if files != last_files:
+                    last_files = files
+                    last_progress = now
+                idle_elapsed = now - last_progress
+                store.event(
+                    "agent_heartbeat",
+                    task_id=task.id,
+                    attempt=attempt,
+                    phase=phase,
+                    elapsed_seconds=round(now - phase_started, 3),
+                    idle_seconds=round(idle_elapsed, 3),
+                    changed_files=list(files),
+                    heartbeat_interval_seconds=policy.heartbeat_interval_seconds,
+                    idle_timeout_seconds=policy.idle_timeout_seconds,
+                    attempt_wall_timeout_seconds=policy.attempt_wall_timeout_seconds,
+                    run_deadline_seconds=policy.run_deadline_seconds,
+                )
+                if now - phase_started >= policy.attempt_wall_timeout_seconds:
+                    abandoned = await self._cancel_agent_phase(
+                        runner,
+                        worker,
                         phase=phase,
-                        elapsed_seconds=round(now - phase_started, 3),
-                        idle_seconds=round(idle_elapsed, 3),
-                        changed_files=list(files),
-                        heartbeat_interval_seconds=policy.heartbeat_interval_seconds,
-                        idle_timeout_seconds=policy.idle_timeout_seconds,
-                        attempt_wall_timeout_seconds=policy.attempt_wall_timeout_seconds,
-                        run_deadline_seconds=policy.run_deadline_seconds,
+                        task=task,
+                        attempt=attempt,
+                        store=store,
+                        reason="attempt_wall_timeout",
                     )
-                    if now - phase_started >= policy.attempt_wall_timeout_seconds:
-                        raise TimeoutError(
-                            f"{phase} exceeded attempt wall timeout "
-                            f"({policy.attempt_wall_timeout_seconds}s)"
-                        )
-                    if now - run_started >= policy.run_deadline_seconds:
-                        raise TimeoutError(
-                            f"{phase} exceeded run deadline ({policy.run_deadline_seconds}s)"
-                        )
-                    if idle_elapsed >= policy.idle_timeout_seconds:
-                        raise TimeoutError(
-                            f"{phase} exceeded idle timeout ({policy.idle_timeout_seconds}s)"
-                        )
+                    raise TimeoutError(
+                        f"{phase} exceeded attempt wall timeout "
+                        f"({policy.attempt_wall_timeout_seconds}s)"
+                    )
+                if now - run_started >= policy.run_deadline_seconds:
+                    abandoned = await self._cancel_agent_phase(
+                        runner,
+                        worker,
+                        phase=phase,
+                        task=task,
+                        attempt=attempt,
+                        store=store,
+                        reason="run_deadline",
+                    )
+                    raise TimeoutError(
+                        f"{phase} exceeded run deadline ({policy.run_deadline_seconds}s)"
+                    )
+                if idle_elapsed >= policy.idle_timeout_seconds:
+                    abandoned = await self._cancel_agent_phase(
+                        runner,
+                        worker,
+                        phase=phase,
+                        task=task,
+                        attempt=attempt,
+                        store=store,
+                        reason="idle_timeout",
+                    )
+                    raise TimeoutError(
+                        f"{phase} exceeded idle timeout ({policy.idle_timeout_seconds}s)"
+                    )
         except BaseException:
-            if not worker.done():
-                worker.cancel()
-                with contextlib.suppress(asyncio.CancelledError):
-                    await worker
+            if not worker.done() and not abandoned:
+                await self._cancel_agent_phase(
+                    runner,
+                    worker,
+                    phase=phase,
+                    task=task,
+                    attempt=attempt,
+                    store=store,
+                    reason="external_cancellation",
+                )
             raise
+
+    async def _cancel_agent_phase(
+        self,
+        runner: _AgentPhaseRunner,
+        worker: asyncio.Future[T],
+        *,
+        phase: str,
+        task: TaskSpec,
+        attempt: int,
+        store: ReferenceRunStore,
+        reason: str,
+    ) -> bool:
+        runner.cancel()
+        done, _ = await asyncio.wait({worker}, timeout=AGENT_PHASE_CANCEL_GRACE_SECONDS)
+        if done:
+            with contextlib.suppress(BaseException):
+                worker.result()
+            return True
+        store.event(
+            "agent_phase_cancel_grace_exceeded",
+            task_id=task.id,
+            attempt=attempt,
+            phase=phase,
+            reason=reason,
+            cancel_grace_seconds=AGENT_PHASE_CANCEL_GRACE_SECONDS,
+        )
+        return True
 
     def _changed_files_or_empty(self, workspace_ref: str, checkpoint: str) -> tuple[str, ...]:
         try:

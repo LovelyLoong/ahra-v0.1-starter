@@ -1,0 +1,21 @@
+{
+  "schema_version": "ahra/node-gate-summary/0.1",
+  "plan_id": "PLAN-f5f3994e86ff94f7",
+  "node_id": "NODE-write-artifact",
+  "node_type": "bounded_task",
+  "gate_refs": [
+    "GATE-write-artifact"
+  ],
+  "l0_gates": [],
+  "semantic_review_enabled": false,
+  "status": "accepted",
+  "attempts": [
+    {
+      "attempt": 1,
+      "deterministicPassed": true,
+      "requiredChecksPassed": true,
+      "reviewVerdict": "pass",
+      "error": null
+    }
+  ]
+}

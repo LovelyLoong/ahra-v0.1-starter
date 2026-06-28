@@ -1,0 +1,9 @@
+{
+  "summary": "Created the required non-empty bounded artifact.",
+  "changed_files": [
+    "bounded-write-artifact"
+  ],
+  "verification_commands_run": [],
+  "known_risks": [],
+  "unresolved_items": []
+}

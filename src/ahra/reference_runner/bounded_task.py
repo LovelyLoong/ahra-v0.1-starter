@@ -28,7 +28,7 @@ from ahra.plan_ir import (
 )
 from ahra.ports import AgentDriver
 
-from .checks import effective_check_argv
+from .checks import INTERNAL_ARTIFACT_EXISTS_COMMAND, effective_check_argv
 from .git_ops import LocalGitWorkspaceProvider
 from .models import (
     DEFAULT_MAX_ATTEMPTS,
@@ -40,8 +40,8 @@ from .models import (
     WorkflowOutcome,
 )
 from .runtime import LocalRuntimeProvider
-from .standard_harness import TaskHarness
 from .store import ReferenceRunStore
+from .task_harness import TaskHarness
 
 
 BOUNDED_TASK_EXECUTOR_RELEASE = (
@@ -226,7 +226,11 @@ class BoundedTaskExecutor:
             gate_refs=request.node.gate_refs,
             terminal_failure_refs=terminal_failure_refs,
             task_completed_state_update_attempted=False,
-            usage=_node_usage(task_result, task),
+            usage=_node_usage(
+                task_result,
+                task,
+                semantic_review_enabled=semantic_review_enabled,
+            ),
             message=task_result.message,
             details={
                 "taskId": task_result.task_id,
@@ -301,7 +305,11 @@ def compatibility_plan_for_task(
     runtime_ref: str | None = None,
 ) -> tuple[PlanIR, PlanNodeIR]:
     runtime = runtime_ref or "runtime/local-worktree@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-    command_resources = tuple(" ".join(effective_check_argv(workspace, check.argv)) for check in task.checks)
+    command_resources = tuple(
+        " ".join(effective_check_argv(workspace, check.argv))
+        for check in task.checks
+        if check.argv[0] != INTERNAL_ARTIFACT_EXISTS_COMMAND
+    )
     capability_grants = [PlanCapabilityGrant.from_request(PlanCapabilityRequest("filesystem.write", task.policy.allowed_globs))]
     if command_resources:
         capability_grants.append(
@@ -407,24 +415,118 @@ def _task_from_request(request: NodeExecutionRequest) -> TaskSpec:
     task = request.payload.get("task")
     if isinstance(task, TaskSpec):
         return task
+    write_resources = _filesystem_write_resources(request.node)
+    artifact_paths = _literal_artifact_paths(write_resources)
+    output_requirements = _expected_output_requirements(request.node)
+    required_artifacts = tuple(f"Create a non-empty artifact file at {path}." for path in artifact_paths)
+    acceptance = _unique(
+        (
+            *(request.node.claim_refs or (request.node.objective,)),
+            *(f"Required artifact exists and is non-empty: {path}" for path in artifact_paths),
+            *(f"Expected output is delivered: {output.name}" for output in request.node.expected_outputs),
+        )
+    )
+    requirements = _unique(
+        (
+            *required_artifacts,
+            *output_requirements,
+            *(
+                (f"Return WorkReport.changed_files containing: {', '.join(artifact_paths)}",)
+                if artifact_paths
+                else ()
+            ),
+            *(
+                (
+                    "Do not run shell or process verification commands; AHRA deterministic gates verify required artifacts after WorkReport.",
+                )
+                if artifact_paths
+                else ()
+            ),
+            *(
+                (f"Modify only granted filesystem.write resources: {', '.join(write_resources)}",)
+                if write_resources
+                else ()
+            ),
+        )
+    )
+    objective = request.node.objective
+    if artifact_paths:
+        objective = f"{objective} Required artifact path(s): {', '.join(artifact_paths)}."
     return TaskSpec(
         id=request.node.node_id.removeprefix("NODE-"),
         title=request.node.objective,
-        objective=request.node.objective,
-        acceptance_criteria=request.node.claim_refs or (request.node.objective,),
-        checks=(),
-        policy=ChangePolicy(
-            allowed_globs=tuple(
-                resource
-                for grant in request.node.capability_grants
-                if grant.capability == "filesystem.write"
-                for resource in grant.resources
+        objective=objective,
+        acceptance_criteria=acceptance,
+        scope=_unique(
+            (
+                f"plan:{request.plan.plan_id}",
+                f"node:{request.node.node_id}",
+                *(f"input:{input_ref}" for input_ref in request.node.input_refs),
             )
-            or ("**",),
+        ),
+        requirements=requirements,
+        checks=tuple(_required_artifact_check(path) for path in artifact_paths),
+        policy=ChangePolicy(
+            allowed_globs=write_resources or ("**",),
             protected_globs=(),
             sensitive_globs=(),
         ),
     )
+
+
+def _filesystem_write_resources(node: PlanNodeIR) -> tuple[str, ...]:
+    return _unique(
+        tuple(
+            resource.replace("\\", "/").strip().lstrip("/")
+            for grant in node.capability_grants
+            if grant.capability == "filesystem.write"
+            for resource in grant.resources
+            if resource
+        )
+    )
+
+
+def _literal_artifact_paths(resources: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(
+        resource
+        for resource in resources
+        if resource
+        and resource != "**"
+        and not resource.endswith("/")
+        and not any(char in resource for char in "*?[]")
+    )
+
+
+def _expected_output_requirements(node: PlanNodeIR) -> tuple[str, ...]:
+    requirements: list[str] = []
+    for output in node.expected_outputs:
+        parts = [f"Expected output {output.name}"]
+        if output.schema_ref:
+            parts.append(f"schemaRef={output.schema_ref}")
+        if output.delivery_role:
+            parts.append(f"deliveryRole={output.delivery_role}")
+        parts.append(f"artifactRequired={output.artifact_required}")
+        requirements.append(", ".join(parts) + ".")
+    return _unique(tuple(requirements))
+
+
+def _required_artifact_check(path: str) -> CheckSpec:
+    return CheckSpec(
+        name=f"required artifact exists: {path}",
+        argv=(INTERNAL_ARTIFACT_EXISTS_COMMAND, path),
+        timeout_seconds=30,
+    )
+
+
+def _unique(items: tuple[str, ...]) -> tuple[str, ...]:
+    unique: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        value = item.strip()
+        if value and value not in seen:
+            unique.append(value)
+            seen.add(value)
+    return tuple(unique)
 
 
 def _validate_runtime_grants(request: NodeExecutionRequest) -> None:
@@ -453,16 +555,24 @@ def _node_status(status: WorkflowOutcome) -> NodeExecutionStatus:
     }[status]
 
 
-def _node_usage(result: TaskRunResult, task: TaskSpec) -> NodeExecutionUsage:
+def _node_usage(
+    result: TaskRunResult,
+    task: TaskSpec,
+    *,
+    semantic_review_enabled: bool,
+) -> NodeExecutionUsage:
     model_calls = 0
     for attempt in result.attempts:
         if attempt.work_report is not None:
             model_calls += 1
-        if attempt.review is not None:
+        if semantic_review_enabled and attempt.review is not None:
             model_calls += 1
+    external_check_count = sum(
+        1 for check in task.checks if check.argv[0] != INTERNAL_ARTIFACT_EXISTS_COMMAND
+    )
     return NodeExecutionUsage(
         model_calls=model_calls,
-        tool_calls=max(1, len(task.checks) + 1),
+        tool_calls=max(1, external_check_count + 1),
         spawned_nodes=0,
         cost_usd=0.0,
     )

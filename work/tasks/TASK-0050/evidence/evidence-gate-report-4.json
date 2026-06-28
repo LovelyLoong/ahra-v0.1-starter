@@ -1,0 +1,116 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0050",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-verifier",
+  "generated_at": "2026-06-28T14:56:19.387135Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent EvidenceGate review approves TASK-0050 for the narrow workflow-invariant closeout only. The review confirms that BoundedTaskExecutor imports the default-visible TaskHarness adapter entrypoint, component lifecycle documentation no longer leaves the dependency ambiguous, Mode C scorecards expose workflow failure dimensions, real Executor budget normalization is represented as an invariant with targeted coverage, and non-literal plus multi-output output contracts have deterministic coverage. This approval does not approve Mode C defaultization or broad live Mode C stability.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "The BoundedTaskExecutor to TaskHarness dependency is no longer ambiguous in code imports and component lifecycle documentation.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0050-0001",
+        "EVD-TASK-0050-0002"
+      ],
+      "notes": "Code review confirmed src/ahra/reference_runner/task_harness.py is the default-visible TaskHarness entrypoint, BoundedTaskExecutor imports TaskHarness from that adapter, and component-inventory.json documents the default-visible adapter plus legacy standard_harness compatibility boundary. The implementation still keeps the underlying TaskHarness class in standard_harness.py for compatibility, which the resolution report states as a remaining non-blocking limit rather than a completed extraction."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Mode C pilot scorecards include workflow failure dimensions sufficient to distinguish contract, gate, budget, scheduler, provider/runtime, and model-behavior failures.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0050-0001",
+        "EVD-TASK-0050-0002"
+      ],
+      "notes": "real_agent_pilot.py now emits per-run workflow_failure_dimension and scorecard workflow_failure_dimensions with the requested classes: contract, gate, budget, scheduler, provider_runtime, model_behavior, unknown, and none. Targeted tests exercise provider/runtime, model-behavior, scheduler, and budget-related paths; manual code review confirmed contract and gate mappings are present."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The real Executor budget normalization invariant is documented or exposed in evidence and has targeted test coverage.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0050-0001",
+        "EVD-TASK-0050-0002"
+      ],
+      "notes": "The real Executor budget invariant is exposed in scorecards as real_executor_budget_invariant and in planner normalization evidence. tests.test_real_agent_pilot includes targeted coverage for real executor profile requirements and Mode C planner/executor budget normalization."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Non-literal output resources and multi-output expectedOutputs have deterministic invariant coverage without weakening literal artifact checks.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0050-0001",
+        "EVD-TASK-0050-0002"
+      ],
+      "notes": "bounded_task.py preserves directory resource trailing slashes and only creates exact artifact existence checks for literal file resources. tests.test_node_executor covers multiple literal artifacts and non-literal/directory resources without weakening literal artifact checks."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "A workflow-invariant resolution report maps each TASK-0049 P1 risk to the implemented mitigation and states any remaining no-go boundary.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0050-0001"
+      ],
+      "notes": "workflow-invariant-resolution.md maps all four TASK-0049 P1 risks to implemented mitigations and states the remaining no-go boundaries: no Mode C defaultization and no broad live Mode C stability approval."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Targeted tests, lint, and diff checks pass, or any failure is recorded as a blocker with exact command output.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0050-0002"
+      ],
+      "notes": "Independent verification reran the targeted unittest suite, full test suite, lint, git diff check, task inspect, and manifest hash audit. All passed."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Producer moves TASK-0050 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0050-0002"
+      ],
+      "notes": "Producer left TASK-0050 in review at state_version=3 with lease null and no blockers. The verifier actor is independent from the producer identity; EvidenceGate remains the completion authority."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_real_agent_pilot tests.test_node_executor tests.test_reference_runner",
+      "status": "passed",
+      "result": "Ran 51 tests in 42.218s; OK (skipped=1)."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "status": "passed",
+      "result": "Ran 206 tests in 65.554s; OK (skipped=2)."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "result": "AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s)."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli task inspect TASK-0050",
+      "status": "passed",
+      "result": "TASK-0050 is in review at state_version=3 with lease null; manifests, events, and acceptance criteria parse."
+    },
+    {
+      "command": "Get-FileHash SHA256 for TASK-0050 workflow-invariant-resolution.md, verification-summary.json, and HANDOFF-0001.md",
+      "status": "passed",
+      "result": "All three hashes match artifact-manifest.json and evidence-manifest.json entries: 5e1215b7..., 554dc636..., c74c33bb...."
+    },
+    {
+      "command": "manual evidence, code, and authority review",
+      "status": "passed",
+      "result": "Reviewed AGENTS.md, authority-map.md, framework-entrypoints.md, component-inventory.json, TASK-0050 task/state/events/manifests, workflow-invariant-resolution.md, verification-summary.json, handoff, relevant code diffs, and targeted tests. Approval scope is limited to TASK-0050's narrow workflow-invariant closeout."
+    }
+  ]
+}

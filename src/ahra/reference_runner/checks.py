@@ -11,6 +11,7 @@ from .models import CheckEvidence, CheckSpec
 from .runtime import LocalRuntimeProvider
 
 MAX_CAPTURE_CHARS = 24_000
+INTERNAL_ARTIFACT_EXISTS_COMMAND = "ahra.internal.artifact_exists.v1"
 
 
 def _truncate(text: str) -> str:
@@ -36,6 +37,8 @@ def run_check(workspace: Path, check: CheckSpec, runtime=None) -> CheckEvidence:
             duration_seconds=0.0,
             stderr=f"check cwd does not exist: {cwd}",
         )
+    if check.argv[0] == INTERNAL_ARTIFACT_EXISTS_COMMAND:
+        return _run_internal_artifact_exists(workspace, cwd, check)
 
     started = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="ahra-check-") as scratch:
@@ -96,3 +99,53 @@ def _effective_check_argv(workspace: Path, argv: tuple[str, ...]) -> tuple[str, 
     if command in {"python", "python.exe"} and has_project_env and shutil.which("uv"):
         return ("uv", "run", "python", "-B", *argv[1:])
     return argv
+
+
+def _run_internal_artifact_exists(workspace: Path, cwd: Path, check: CheckSpec) -> CheckEvidence:
+    started = time.monotonic()
+    if len(check.argv) != 2:
+        return CheckEvidence(
+            name=check.name,
+            argv=check.argv,
+            required=check.required,
+            exit_code=2,
+            duration_seconds=round(time.monotonic() - started, 3),
+            stderr="internal artifact check requires exactly one relative path argument",
+        )
+    target = (cwd / check.argv[1]).resolve()
+    try:
+        target.relative_to(workspace.resolve())
+    except ValueError:
+        return CheckEvidence(
+            name=check.name,
+            argv=check.argv,
+            required=check.required,
+            exit_code=2,
+            duration_seconds=round(time.monotonic() - started, 3),
+            stderr=f"internal artifact check path escapes workspace: {check.argv[1]}",
+        )
+    if not target.is_file():
+        return CheckEvidence(
+            name=check.name,
+            argv=check.argv,
+            required=check.required,
+            exit_code=1,
+            duration_seconds=round(time.monotonic() - started, 3),
+            stderr=f"missing artifact file: {target}",
+        )
+    if target.stat().st_size <= 0:
+        return CheckEvidence(
+            name=check.name,
+            argv=check.argv,
+            required=check.required,
+            exit_code=1,
+            duration_seconds=round(time.monotonic() - started, 3),
+            stderr=f"empty artifact file: {target}",
+        )
+    return CheckEvidence(
+        name=check.name,
+        argv=check.argv,
+        required=check.required,
+        exit_code=0,
+        duration_seconds=round(time.monotonic() - started, 3),
+    )

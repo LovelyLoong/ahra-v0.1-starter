@@ -1,0 +1,60 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "write-artifact",
+  "artifacts": [
+    {
+      "artifact_id": "ART-3feb25f69e724dc7b7855306649ce049",
+      "task_id": "write-artifact",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/write-artifact/attempt-1/patch.diff",
+      "sha256": "6df6fb88e70e29c21a395dabd23cda69c1bfb73932ec6966ce0c5845926c066e",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-06-28T15:20:25.037801Z",
+      "input_refs": [
+        "write-artifact",
+        "NRUN-0cfaeed173128e39"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-c06c3ef8a82e4159b1e8f4933b9dceed",
+      "task_id": "write-artifact",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/write-artifact/attempt-1/work-report.json",
+      "sha256": "880346040b481e9fe3ef9125f7a3adfdcf7e0b8c64844ba57522a84cc43c4dd2",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-06-28T15:20:25.040448Z",
+      "input_refs": [
+        "write-artifact",
+        "NRUN-0cfaeed173128e39"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-3981f376f1e24076979e28153a642501",
+      "task_id": "write-artifact",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-write-artifact/node-run.json",
+      "sha256": "8b96358e39a9f15d4b239833f847115bac0d4a0cf9d1ae138fe3867352427ba4",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-06-28T15:20:25.208556Z",
+      "input_refs": [
+        "PLAN-f5f3994e86ff94f7",
+        "NODE-write-artifact",
+        "NRUN-0cfaeed173128e39"
+      ],
+      "evidence_refs": [
+        "EVD-f71a1f65ddcc4d57bb7fb14dbd04b7d8"
+      ],
+      "supersedes": null
+    }
+  ]
+}

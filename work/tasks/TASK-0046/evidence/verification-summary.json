@@ -1,0 +1,72 @@
+{
+  "artifact_hashes": {
+    "evidence/closeout-sync-report.md": "70d04700a347e832382ee8ab2eaf40db536b77ed81ba2c5144903df82fe63925",
+    "handoffs/HANDOFF-0001.md": "252cfdbfd30f9f75d6027a1310217e5255b18a332baa569968798fc4266631d6"
+  },
+  "changed_file_policy": {
+    "allowed_prefixes": [
+      "work/index.md",
+      "work/tasks/TASK-0046/"
+    ],
+    "forbidden_prefixes_checked": [
+      "src/",
+      "tests/",
+      "contracts/",
+      "schemas/",
+      "docs/policies/",
+      "docs/architecture/",
+      "README.md",
+      "AGENTS.md",
+      "WORKFLOW.md",
+      "SPEC.md"
+    ],
+    "runtime_code_changed": false
+  },
+  "commands": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0045",
+      "status": "passed",
+      "result": "State is completed at version 7; EvidenceGate report 7 preserves Mode C no-go/non-default boundary."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0046",
+      "status": "passed",
+      "result": "Task is in review at state_version=3; manifests parse and acceptance criteria are present."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "result": "AWKP lint: 0 error(s), 0 warning(s). Initial missing-frontmatter issue was fixed before final verification."
+    },
+    {
+      "command": "custom manifest/hash and work-index closeout audit",
+      "status": "passed",
+      "result": "errors 0; TASK-0045 completed v7; work/index boundary synced; changed paths limited to work/index.md and TASK-0046; artifact hashes match."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    }
+  ],
+  "mode_c_boundary": {
+    "approved_default_path": false,
+    "failure_classes": {
+      "timeout": 3
+    },
+    "mode": "mode_c_combined",
+    "run_count": 3,
+    "success_count": 0
+  },
+  "runtime_tests": {
+    "reason": "No runtime code, tests, contracts, schemas, policies, or runtime entrypoints changed in TASK-0046.",
+    "run": false
+  },
+  "schema_version": "ahra/task-0046-verification-summary/0.1",
+  "task_0045_authority": {
+    "evidence_gate_report": "work/tasks/TASK-0045/evidence/evidence-gate-report-7.json",
+    "state": "completed",
+    "state_version": 7
+  },
+  "task_id": "TASK-0046"
+}

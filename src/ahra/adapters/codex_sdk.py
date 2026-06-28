@@ -148,9 +148,14 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
     role_instructions = {
         AgentRole.EXECUTOR: (
             "Executor duty: modify only the provided workspace to satisfy the task. "
-            "Respect the task scope, policy, protected files, and feedback. "
-            "Do not claim success unless the workspace was actually updated or no "
-            "change is required by the task."
+            "Use payload.task.requirements and payload.task.acceptance_criteria as "
+            "the authoritative bounded-work contract. Create required files before "
+            "the final JSON response, and list those paths exactly in "
+            "WorkReport.changed_files. If payload.task.checks is empty or contains "
+            "only AHRA internal checks, do not run shell or process verification; "
+            "the harness verifies after you return. Respect the task scope, policy, "
+            "protected files, and feedback. Do not claim success unless the workspace "
+            "was actually updated or no change is required by the task."
         ),
         AgentRole.TASK_REVIEWER: (
             "Task reviewer duty: perform an independent read-only review of the "

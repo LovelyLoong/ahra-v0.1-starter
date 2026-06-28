@@ -1,0 +1,107 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0051",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-28T15:31:16.733640Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent EvidenceGate review approves TASK-0051. Fresh Mode C evidence satisfies the task acceptance criteria for the tested local M1 bounded Mode C path only; it does not promote Mode C to the default path or claim production-grade arbitrary-project orchestration.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A fresh post-TASK-0050 Mode C run is executed with at least three isolated repetitions, or is blocked with an exact provider/setup/cost reason.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0051-0001",
+        "EVD-TASK-0051-0002"
+      ],
+      "notes": "The published scorecard records a fresh post-TASK-0050 Mode C run with three isolated repetitions, run_count=3, success_count=3, failure_classes={}; verification summary records the exact pilot command."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Every failed repetition, if any, is classified with concrete artifacts, run result, scorecard, and code-path references.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0051-0001",
+        "EVD-TASK-0051-0002"
+      ],
+      "notes": "No failed repetitions occurred. The report and scorecard still record concrete run artifacts, run results, failure_classes={}, and workflow_failure_dimensions none=3."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Any implemented repair is the smallest change needed for the classified failure and has deterministic regression coverage.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0051-0001",
+        "EVD-TASK-0051-0002"
+      ],
+      "notes": "No TASK-0051 repair was implemented because the fresh evidence found no current blocker; targeted regression checks passed."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "If all repetitions pass, the report states exactly what this proves and what it does not prove.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0051-0001"
+      ],
+      "notes": "The stability report states that the tested local M1 bounded Mode C path passed and explicitly excludes default-route promotion, production-grade orchestration, arbitrary-project stability, and known provider token/cost usage."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Targeted tests, lint, and diff checks pass, or failures are recorded as blockers with exact command output.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0051-0002"
+      ],
+      "notes": "Verification summary records the targeted unittest run, lint, and git diff check as passed; independent review re-ran goal inspect, unittest, lint, and git diff check successfully."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Producer moves TASK-0051 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0051-0001",
+        "EVD-TASK-0051-0002"
+      ],
+      "notes": "Task state was review at state_version=3 before this gate, producer released the lease, and the report preserves EvidenceGate as the completion authority."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\run_real_agent_pilot.py --mode mode_c_combined --output-dir work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh --experiment-id TASK-0051-MODE-C --repetitions 3 --allow-model-cost --allow-combined --isolated-repetitions --repetition-timeout-seconds 180 --executor-idle-timeout-seconds 45 --executor-heartbeat-interval-seconds 10 --executor-attempt-wall-timeout-seconds 60 --executor-run-deadline-seconds 90",
+      "status": "passed",
+      "summary": "Published TASK-0051 evidence records run_count=3, success_count=3, failure_classes={}, planner admission rate=1.0, executor accepted node rate=1.0."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal inspect GEXEC-458409999dbc6a3c --db work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-01\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-01\\.ahra\\artifacts",
+      "status": "passed",
+      "summary": "Independent review confirmed run-01 goalStatus=succeeded, nodeStatusCounts={succeeded: 2}, missingArtifactCount=0, artifactFindings=[]."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal inspect GEXEC-ea42583341bc04a6 --db work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-02\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-02\\.ahra\\artifacts",
+      "status": "passed",
+      "summary": "Independent review confirmed run-02 goalStatus=succeeded, nodeStatusCounts={succeeded: 2}, missingArtifactCount=0, artifactFindings=[]."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m ahra.cli goal inspect GEXEC-98e18eebee0bdad8 --db work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-03\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0051\\evidence\\real-agent-pilot\\mode-c-fresh\\run-03\\.ahra\\artifacts",
+      "status": "passed",
+      "summary": "Independent review confirmed run-03 goalStatus=succeeded, nodeStatusCounts={succeeded: 2}, missingArtifactCount=0, artifactFindings=[]."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_real_agent_pilot tests.test_node_executor tests.test_codex_driver tests.test_reference_runner",
+      "status": "passed",
+      "summary": "Independent review rerun passed: Ran 58 tests in 42.229s; OK; skipped=1."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "summary": "Independent review rerun passed: AWKP lint 0 errors, 0 warnings; AHRA lint 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "Independent review rerun passed with no whitespace errors."
+    }
+  ]
+}

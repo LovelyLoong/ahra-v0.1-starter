@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import json
 import shutil
 import subprocess
@@ -30,12 +31,26 @@ from .goal_operations import (
     load_goal_execution_request,
 )
 from .planner_contracts import ExecutionPlanningRequest, PlannerBudgetLimits, PlannerContextRequest
+from .plan_ir import PlanDraft
 from .planning import AgentDriverExecutionPlannerAdapter, PlannerAdapterError, PlannerContextBuilder, PlannerOutputValidator
 from .ports import AgentDriver, AgentDriverRegistry
 from .reference_runner.models import ExecutionPolicy
 
 
 REAL_AGENT_PILOT_SCHEMA_VERSION = "ahra/real-agent-pilot/0.1"
+REAL_EXECUTOR_MIN_MODEL_CALLS = 2
+REAL_EXECUTOR_MIN_TOOL_CALLS = 1
+
+FAILURE_DIMENSION_LEGEND = {
+    "none": "Run succeeded or has no recorded failure.",
+    "contract": "Static request, PlanIR, output contract, or validation boundary failure.",
+    "gate": "Quality, approval, capability admission, or verification gate failure.",
+    "budget": "Configured model, tool, cost, or wall-time budget exhaustion.",
+    "scheduler": "Scheduler, watchdog, timeout recovery, or lifecycle transition failure.",
+    "provider_runtime": "External driver, process, runtime, or provider availability failure.",
+    "model_behavior": "Real model output was malformed, rejected, or unusable.",
+    "unknown": "Failure is present but not yet classified into a stable workflow dimension.",
+}
 
 
 class PilotMode(StrEnum):
@@ -108,6 +123,7 @@ class RealAgentPilotRunner:
                 request_path=run_dir / "goal-run-request.yaml" if (run_dir / "goal-run-request.yaml").exists() else None,
                 details={"exceptionType": type(exc).__name__},
             )
+        run = _with_failure_dimension(run)
         _write_json(run_dir / "run-result.json", run)
         return run
 
@@ -133,6 +149,7 @@ class RealAgentPilotRunner:
             request_path=run_dir / "goal-run-request.yaml" if (run_dir / "goal-run-request.yaml").exists() else None,
             details=dict(details or {}),
         )
+        run = _with_failure_dimension(run)
         _write_json(run_dir / "run-result.json", run)
         return run
 
@@ -160,6 +177,7 @@ class RealAgentPilotRunner:
                 message=message,
                 details=details,
             )
+        recovered = _with_failure_dimension(recovered)
         _write_json(config.output_dir / f"run-{index:02d}" / "run-result.json", recovered)
         return recovered
 
@@ -185,6 +203,7 @@ class RealAgentPilotRunner:
             request_path=run_dir / "goal-run-request.yaml" if (run_dir / "goal-run-request.yaml").exists() else None,
             details=dict(details or {}),
         )
+        run = _with_failure_dimension(run)
         _write_json(run_dir / "run-result.json", run)
         return run
 
@@ -435,14 +454,21 @@ class RealAgentPilotRunner:
                 "invalidOutputArtifact": invalid_artifact,
             }
 
+        admitted_draft, normalization = _normalize_real_executor_plan_draft(
+            planning_result.draft,
+            mode=config.mode,
+            policy=config.executor_policy,
+        )
         validation = PlannerOutputValidator().validate_execution_draft(
-            draft=planning_result.draft,
+            draft=admitted_draft,
             config=request.compiler_config(),
             context_manifest=context_bundle.context_manifest,
             budget_limits=budget_limits,
             risk_level=config.risk_level,
         )
         _write_json(request.artifact_dir / "planner-output-artifact.json", planning_result.output_artifact.to_dict())
+        if normalization is not None:
+            _write_json(request.artifact_dir / "planner-budget-normalization.json", normalization)
         _write_json(request.artifact_dir / "planner-admission-report.json", validation.report.to_dict())
         if not validation.accepted:
             return {
@@ -453,9 +479,9 @@ class RealAgentPilotRunner:
             }
 
         data = yaml.safe_load(request_path.read_text(encoding="utf-8"))
-        data["spec"]["planDraft"] = planning_result.draft.to_dict()
+        data["spec"]["planDraft"] = admitted_draft.to_dict()
         _write_yaml(request_path, data)
-        return {
+        result = {
             "status": "accepted",
             "driverRef": config.planner_driver_ref,
             "modelProvider": config.model_provider,
@@ -463,6 +489,12 @@ class RealAgentPilotRunner:
             "outputArtifact": planning_result.output_artifact.to_dict(),
             "validationReport": validation.report.to_dict(),
         }
+        if normalization is not None:
+            result["budgetNormalization"] = {
+                "artifact": str(request.artifact_dir / "planner-budget-normalization.json"),
+                "applied": True,
+            }
+        return result
 
     def _service(self, config: RealAgentPilotConfig, run_dir: Path) -> GoalOperationService:
         if self.service_factory is not None:
@@ -479,7 +511,7 @@ class RealAgentPilotRunner:
         template = load_goal_execution_request(config.request_template, profiles=GoalOperationProfileRegistry())
         profile = _profile_for_mode(config.mode)
         hard_metrics = _aggregate_hard_metrics(runs)
-        annotated_runs = [_with_provider_usage(config, run) for run in runs]
+        annotated_runs = [_with_failure_dimension(_with_provider_usage(config, run)) for run in runs]
         provider_usage = _provider_usage_summary(config, annotated_runs)
         return {
             "schema_version": REAL_AGENT_PILOT_SCHEMA_VERSION,
@@ -491,6 +523,7 @@ class RealAgentPilotRunner:
             "policy_digest": canonical_fingerprint(profile),
             "runtime_digest": LOCAL_GOAL_RUNTIME_DIGEST,
             "execution_policy": _execution_policy_dict(config.executor_policy),
+            "real_executor_budget_invariant": _real_executor_budget_invariant(config.mode, config.executor_policy),
             "planner_release": profile["plannerAdapterRef"],
             "executor_release": profile["executorAdapterRef"],
             "verifier_releases": [DETERMINISTIC_GATE_RUNNER_REF],
@@ -511,6 +544,7 @@ class RealAgentPilotRunner:
             "cost": provider_usage,
             "provider_usage": provider_usage,
             "failure_classes": failures,
+            "workflow_failure_dimensions": _failure_dimensions(annotated_runs),
             "known_limitations": [
                 "This pilot runner records local GoalOperation inspect metrics; independent AWKP EvidenceGate remains a separate verifier step.",
                 "Mode C is intentionally disabled unless explicitly allowed by the operator after Mode A and Mode B review.",
@@ -575,6 +609,33 @@ def _uses_real_executor(mode: PilotMode) -> bool:
     return mode in {PilotMode.REAL_EXECUTOR, PilotMode.COMBINED}
 
 
+def _real_executor_budget_minimums(policy: ExecutionPolicy) -> dict[str, Any]:
+    return {
+        "budgetRequest": {
+            "maxModelCalls": REAL_EXECUTOR_MIN_MODEL_CALLS,
+            "maxToolCalls": REAL_EXECUTOR_MIN_TOOL_CALLS,
+            "maxWallSeconds": policy.attempt_wall_timeout_seconds,
+        },
+        "timeoutSeconds": policy.attempt_wall_timeout_seconds,
+    }
+
+
+def _real_executor_budget_invariant(mode: PilotMode, policy: ExecutionPolicy) -> dict[str, Any]:
+    required = _uses_real_executor(mode)
+    enforcement_points = []
+    if required:
+        enforcement_points.append("request_template_expansion")
+        if _uses_real_planner(mode):
+            enforcement_points.append("real_planner_admission_writeback")
+    return {
+        "schema_version": "ahra/real-agent-pilot/real-executor-budget-invariant/0.1",
+        "required": required,
+        "minimums": _real_executor_budget_minimums(policy) if required else None,
+        "enforcement_points": enforcement_points,
+        "normalization_artifact": "planner-budget-normalization.json" if _uses_real_planner(mode) else None,
+    }
+
+
 def _with_provider_usage(config: RealAgentPilotConfig, run: Mapping[str, Any]) -> dict[str, Any]:
     data = dict(run)
     data["provider_usage"] = {
@@ -588,6 +649,60 @@ def _with_provider_usage(config: RealAgentPilotConfig, run: Mapping[str, Any]) -
         "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
     }
     return data
+
+
+def _with_failure_dimension(run: Mapping[str, Any]) -> dict[str, Any]:
+    data = dict(run)
+    data["workflow_failure_dimension"] = _failure_dimension(data)
+    return data
+
+
+def _failure_dimension(run: Mapping[str, Any]) -> str:
+    if run.get("status") == "succeeded":
+        return "none"
+
+    failure = str(run.get("failure_class") or "").strip().lower()
+    planner = run.get("planner", {}) if isinstance(run.get("planner"), Mapping) else {}
+    planner_status = str(planner.get("status") or "").lower()
+    execution = run.get("execution", {}) if isinstance(run.get("execution"), Mapping) else {}
+    execution_status = str(execution.get("status") or "").lower()
+    plan_status = str(execution.get("planStatus") or "").lower()
+
+    if failure:
+        if "budget" in failure or "cost" in failure:
+            return "budget"
+        if "timeout" in failure or failure == "pilot_child_process_failed":
+            return "scheduler"
+        if failure in {"real_executor_driver_unavailable", "pilot_runner_exception"}:
+            return "provider_runtime"
+        if failure in {"planner_output_rejected", "planner_output_invalid"} or "invalid_output" in failure:
+            return "model_behavior"
+        if "capability" in failure or "gate" in failure or failure == "mode_c_requires_mode_a_b_clearance":
+            return "gate"
+        if "validation" in failure or "contract" in failure or failure.startswith("goal_request"):
+            return "contract"
+        if "model" in failure:
+            return "model_behavior"
+
+    if planner_status in {"blocked", "rejected"}:
+        return "model_behavior"
+    if run.get("hard_metric_violation"):
+        return "gate"
+    if execution_status in {"failed", "canceled"} or plan_status in {"failed", "canceled"}:
+        return "scheduler"
+    return "unknown"
+
+
+def _failure_dimensions(runs: list[dict[str, Any]]) -> dict[str, Any]:
+    counts = {dimension: 0 for dimension in FAILURE_DIMENSION_LEGEND}
+    for run in runs:
+        dimension = str(run.get("workflow_failure_dimension") or _failure_dimension(run))
+        counts[dimension if dimension in counts else "unknown"] += 1
+    return {
+        "schema_version": "ahra/real-agent-pilot/failure-dimensions/0.1",
+        "counts": counts,
+        "legend": FAILURE_DIMENSION_LEGEND,
+    }
 
 
 def _provider_usage_summary(config: RealAgentPilotConfig, runs: list[dict[str, Any]]) -> dict[str, Any]:
@@ -624,14 +739,41 @@ def _expand_real_executor_node_budgets(spec: dict[str, Any], policy: ExecutionPo
     draft_spec = plan_draft.get("spec")
     if not isinstance(draft_spec, dict):
         return
+    minimums = _real_executor_budget_minimums(policy)
     for node in draft_spec.get("nodes", ()):
         if not isinstance(node, dict) or node.get("nodeType") != "bounded_task":
             continue
         budget = node.setdefault("budgetRequest", {})
-        budget["maxModelCalls"] = max(int(budget.get("maxModelCalls") or 0), 2)
-        budget["maxToolCalls"] = max(int(budget.get("maxToolCalls") or 0), 1)
-        budget["maxWallSeconds"] = max(int(budget.get("maxWallSeconds") or 0), policy.attempt_wall_timeout_seconds)
-        node["timeoutSeconds"] = max(int(node.get("timeoutSeconds") or 0), policy.attempt_wall_timeout_seconds)
+        budget["maxModelCalls"] = max(int(budget.get("maxModelCalls") or 0), minimums["budgetRequest"]["maxModelCalls"])
+        budget["maxToolCalls"] = max(int(budget.get("maxToolCalls") or 0), minimums["budgetRequest"]["maxToolCalls"])
+        budget["maxWallSeconds"] = max(int(budget.get("maxWallSeconds") or 0), minimums["budgetRequest"]["maxWallSeconds"])
+        node["timeoutSeconds"] = max(int(node.get("timeoutSeconds") or 0), minimums["timeoutSeconds"])
+
+
+def _normalize_real_executor_plan_draft(
+    draft: PlanDraft,
+    *,
+    mode: PilotMode,
+    policy: ExecutionPolicy,
+) -> tuple[PlanDraft, dict[str, Any] | None]:
+    if not _uses_real_executor(mode):
+        return draft, None
+    before = draft.to_dict()
+    after = copy.deepcopy(before)
+    _expand_real_executor_node_budgets({"planDraft": after}, policy)
+    if after == before:
+        return draft, None
+    return (
+        PlanDraft.from_mapping(after),
+        {
+            "schema_version": "ahra/real-agent-pilot/planner-budget-normalization/0.1",
+            "reason": "Real Executor bounded nodes must use the configured Executor bounded wall-time window after real Planner output is admitted.",
+            "executor_policy": _execution_policy_dict(policy),
+            "budget_invariant": _real_executor_budget_invariant(mode, policy),
+            "before": before,
+            "after": after,
+        },
+    )
 
 
 def _planner_budget_limits(request: Any) -> PlannerBudgetLimits:

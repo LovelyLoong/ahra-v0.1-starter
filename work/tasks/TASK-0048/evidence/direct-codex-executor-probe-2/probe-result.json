@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "elapsed_seconds": 35.293269,
+  "output": "WorkReport(summary='Created the required direct-bounded-artifact file.', changed_files=('outputs/summary.txt',), verification_commands_run=(), known_risks=(), unresolved_items=())",
+  "raw_output": "{\"summary\":\"Created the required direct-bounded-artifact file.\",\"changed_files\":[\"outputs/summary.txt\"],\"verification_commands_run\":[],\"known_risks\":[],\"unresolved_items\":[]}",
+  "workspace": "D:\\Work\\ahra-v0.1-starter\\work\\tasks\\TASK-0048\\evidence\\direct-codex-executor-probe-2\\workspace",
+  "target_exists": true,
+  "target_size": 24,
+  "target_text": "direct-bounded-artifact\n",
+  "workspace_files": [
+    ".gitkeep",
+    "outputs/summary.txt"
+  ]
+}

@@ -24,6 +24,9 @@
     "regression_only": [
       "ahra fixture dynamic-repair"
     ],
+    "explicit_non_default_pilots": [
+      "python -B scripts/run_real_agent_pilot.py --mode mode_c_combined --allow-combined --allow-model-cost (TASK-0051 approved for the tested local M1 bounded path only)"
+    ],
     "legacy_not_default": [
       "ahra workflow ...",
       "src/ahra/mcp_server.py",
@@ -201,14 +204,31 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/reference_runner/bounded_task.py"],
+      "paths": ["src/ahra/reference_runner/bounded_task.py", "src/ahra/reference_runner/task_harness.py"],
       "serves": ["NodeExecutor", "Artifact", "Evidence"],
       "entrypoints": ["BoundedTaskExecutor"],
-      "consumers": ["StaticPlanIRScheduler", "dynamic repair fixture"],
-      "tests": ["tests/test_node_executor.py", "tests/test_plan_execution.py"],
+      "consumers": ["StaticPlanIRScheduler", "GoalOperationService real Executor profile", "dynamic repair fixture"],
+      "tests": ["tests/test_node_executor.py", "tests/test_plan_execution.py", "tests/test_real_agent_pilot.py"],
       "security_class": "selected local executor adapter behind NodeExecutor port",
       "side_effects": "mutates only paths granted by the admitted PlanIR node",
       "artifact_evidence": "NodeRun results and task evidence records"
+    },
+    {
+      "id": "adapter:task-harness-agent-phase",
+      "kind": "adapter",
+      "lifecycle_class": "adapter",
+      "default_visible": true,
+      "owner": "team:platform",
+      "review_after": "2026-09-25T00:00:00Z",
+      "paths": ["src/ahra/reference_runner/task_harness.py", "src/ahra/reference_runner/standard_harness.py"],
+      "serves": ["TaskHarness", "AgentDriver phase execution", "Task artifact and evidence records"],
+      "entrypoints": ["ahra.reference_runner.task_harness.TaskHarness"],
+      "consumers": ["BoundedTaskExecutor", "legacy LoopEngine compatibility"],
+      "tests": ["tests/test_node_executor.py", "tests/test_reference_runner.py"],
+      "security_class": "shared bounded task AgentDriver phase adapter behind caller-supplied runtime and capability boundaries",
+      "side_effects": "mutates only the caller-provided workspace through the caller-provided runtime and policy checks",
+      "artifact_evidence": "task attempt artifacts, deterministic evidence, semantic review records, and WorkReport output",
+      "compatibility_scope": "TaskHarness implementation remains hosted in standard_harness.py for compatibility; default-visible bounded Executor code imports it through task_harness.py until a future extraction task moves the implementation."
     },
     {
       "id": "adapter:fixture-planner",
@@ -356,7 +376,7 @@
       "security_class": "legacy bounded task workflow",
       "side_effects": "mutates run-owned worktree only when legacy workflow is explicitly invoked",
       "artifact_evidence": "workflow run artifacts",
-      "compatibility_scope": "Historical standard task workflow contract; frozen, no default-route features.",
+      "compatibility_scope": "Historical standard task workflow module and YAML contract; frozen, no default-route features. Shared TaskHarness Agent phase support is tracked separately as adapter:task-harness-agent-phase, and default-visible code imports that adapter entrypoint instead of this legacy workflow boundary.",
       "removal_trigger": "Remove or move to an optional package after dynamic Goal CLI covers formal task execution and migration tests no longer require it."
     },
     {

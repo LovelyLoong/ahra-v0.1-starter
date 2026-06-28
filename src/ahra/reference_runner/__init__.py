@@ -18,7 +18,7 @@ from .invocation import (
     workflow_run_request_from_document,
     workflow_resume_request_from_document,
 )
-from .standard_harness import TaskHarness
+from .task_harness import TaskHarness
 
 __all__ = [
     "LoopEngine",

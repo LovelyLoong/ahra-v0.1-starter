@@ -1,0 +1,29 @@
+{
+  "policy": {
+    "changed_files": [
+      "outputs/summary.txt"
+    ],
+    "sensitive_files": [],
+    "violations": [],
+    "added_lines": 1,
+    "deleted_lines": 0
+  },
+  "checks": [
+    {
+      "name": "required artifact exists: outputs/summary.txt",
+      "argv": [
+        "ahra.internal.artifact_exists.v1",
+        "outputs/summary.txt"
+      ],
+      "required": true,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "verification_mutated_workspace": false,
+  "verification_mutation_files": [],
+  "patch_excerpt": "diff --git a/outputs/summary.txt b/outputs/summary.txt\nnew file mode 100644\nindex 0000000..8e3f9c1\n--- /dev/null\n+++ b/outputs/summary.txt\n@@ -0,0 +1 @@\n+bounded-smoke-artifact\n"
+}

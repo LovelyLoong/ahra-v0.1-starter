@@ -13,10 +13,11 @@ from typing import Any
 import yaml
 
 from ahra.goal_operations import REAL_BOUNDED_EXECUTOR_REF, GoalOperationError, GoalOperationService
+from ahra.plan_ir import PlanDraft
 from ahra.plan_execution import PlanExecutionService, PlanExecutionStatus
 from ahra.ports import AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
-from ahra.real_agent_pilot import PilotMode, RealAgentPilotConfig, RealAgentPilotRunner
-from ahra.reference_runner.models import WorkReport
+from ahra.real_agent_pilot import PilotMode, RealAgentPilotConfig, RealAgentPilotRunner, _normalize_real_executor_plan_draft
+from ahra.reference_runner.models import ExecutionPolicy, WorkReport
 from ahra.sqlite_control_store import SQLiteControlStore
 
 
@@ -114,6 +115,8 @@ class RealAgentPilotTests(unittest.TestCase):
             self.assertEqual(scorecard["success_count"], 0)
             self.assertEqual(run["status"], "rejected")
             self.assertEqual(run["planner"]["failureClass"], "planner_output_rejected")
+            self.assertEqual(run["workflow_failure_dimension"], "model_behavior")
+            self.assertEqual(scorecard["workflow_failure_dimensions"]["counts"]["model_behavior"], 1)
             self.assertFalse((Path(temp) / "run-01" / ".ahra" / "goal-control.sqlite3").exists())
 
     def test_mode_b_records_adapter_blocker_when_real_executor_driver_is_missing(self) -> None:
@@ -130,6 +133,8 @@ class RealAgentPilotTests(unittest.TestCase):
 
             self.assertEqual(scorecard["success_count"], 0)
             self.assertEqual(scorecard["failure_classes"], {"real_executor_driver_unavailable": 1})
+            self.assertEqual(scorecard["workflow_failure_dimensions"]["counts"]["provider_runtime"], 1)
+            self.assertEqual(scorecard["runs"][0]["workflow_failure_dimension"], "provider_runtime")
             self.assertEqual(scorecard["runs"][0]["status"], "blocked")
 
     def test_mode_b_real_executor_uses_goal_scheduler_capability_admission(self) -> None:
@@ -152,6 +157,11 @@ class RealAgentPilotTests(unittest.TestCase):
             self.assertGreaterEqual(run["execution"]["metrics"]["capabilityGrantRefCount"], 1)
             self.assertIsNone(scorecard["cost"]["cost_usd"])
             self.assertFalse(scorecard["cost"]["usage_available"])
+            self.assertTrue(scorecard["real_executor_budget_invariant"]["required"])
+            self.assertEqual(
+                scorecard["real_executor_budget_invariant"]["minimums"]["budgetRequest"]["maxWallSeconds"],
+                180,
+            )
             self.assertEqual(len(scorecard["cost"]["runs"]), 1)
             self.assertIsNone(scorecard["cost"]["runs"][0]["cost_usd"])
             self.assertIsNone(run["provider_usage"]["total_tokens"])
@@ -179,6 +189,35 @@ class RealAgentPilotTests(unittest.TestCase):
 
             self.assertEqual(raised.exception.code, "real_executor_driver_unavailable")
             self.assertFalse((Path(temp) / ".ahra" / "goal-control.sqlite3").exists())
+
+    def test_mode_c_normalizes_real_planner_executor_budget_to_policy_window(self) -> None:
+        draft = PlanDraft.from_mapping(_template_draft())
+        policy = ExecutionPolicy(
+            max_attempts=1,
+            startup_timeout_seconds=60,
+            idle_timeout_seconds=45,
+            heartbeat_interval_seconds=10,
+            attempt_wall_timeout_seconds=60,
+            run_deadline_seconds=90,
+        )
+
+        normalized, normalization = _normalize_real_executor_plan_draft(
+            draft,
+            mode=PilotMode.COMBINED,
+            policy=policy,
+        )
+
+        self.assertIsNotNone(normalization)
+        normalized_write_node = normalized.to_dict()["spec"]["nodes"][0]
+        self.assertEqual(normalized_write_node["budgetRequest"]["maxModelCalls"], 2)
+        self.assertEqual(normalized_write_node["budgetRequest"]["maxWallSeconds"], 60)
+        self.assertEqual(normalized_write_node["timeoutSeconds"], 60)
+        assert normalization is not None
+        self.assertTrue(normalization["budget_invariant"]["required"])
+        self.assertEqual(
+            normalization["budget_invariant"]["enforcement_points"],
+            ["request_template_expansion", "real_planner_admission_writeback"],
+        )
 
     def test_pilot_runner_records_unexpected_service_exception_as_blocker(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -225,6 +264,7 @@ class RealAgentPilotTests(unittest.TestCase):
 
             self.assertEqual(run["status"], "failed")
             self.assertEqual(run["failure_class"], "timeout")
+            self.assertEqual(run["workflow_failure_dimension"], "scheduler")
             self.assertEqual(run["planner"]["status"], "accepted")
             self.assertEqual(run["execution"]["goalExecutionId"], goal_execution_id)
             self.assertEqual(run["execution"]["status"], "failed")

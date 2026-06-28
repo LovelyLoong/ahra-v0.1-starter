@@ -1,0 +1,107 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0047",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-verifier",
+  "generated_at": "2026-06-28T12:59:33.321797Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent EvidenceGate review approves TASK-0047 for the narrow process-boundary timeout root-cause repair only. The review confirms that TASK-0045's Mode C timeout was classified with code and evidence references, the minimal daemon AgentDriver phase runner patch is covered by deterministic fake-driver regression tests, deterministic verification passed, and the bounded post-fix Mode C rerun exited before the isolated watchdog. This approval does not approve Mode C defaultization or live Mode C execution quality: the post-fix live rerun still has success_count=0 and failure_classes={timeout:1}.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "The TASK-0045 timeout is classified with a concrete root cause and supporting code/evidence references.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0047-0001",
+        "EVD-TASK-0047-0002"
+      ],
+      "notes": "root-cause-report.md ties the TASK-0045 timeout baseline to accepted planner output, bounded Executor timeout, Codex SDK cancellation/to_thread cleanup behavior, and isolated watchdog containment; mode-c-rerun-report.json preserves the post-fix comparison."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "A deterministic regression test fails before the fix or otherwise proves the failure mode using a fake/non-cancellable AgentDriver.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0047-0001",
+        "EVD-TASK-0047-0003"
+      ],
+      "notes": "tests/test_reference_runner.py adds fake AgentDriver coverage for cancellation-resistant cleanup and blocking asyncio.to_thread workers; the 52-test runner/plan/node suite passed with one expected skip."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The minimal runtime patch ensures node/attempt timeout paths return terminal failure evidence without waiting indefinitely for a stuck real AgentDriver cancellation cleanup.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0047-0001",
+        "EVD-TASK-0047-0003"
+      ],
+      "notes": "standard_harness.py now runs AgentDriver phases in a daemon phase runner, requests cancellation, gives a one-second grace window, emits agent_phase_cancel_grace_exceeded on abandonment, and keeps timeout paths returning terminal failure instead of waiting indefinitely for provider cleanup."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Existing deterministic tests for plan execution, node execution, Codex adapter behavior, and real-agent pilot timeout recovery still pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0047-0003"
+      ],
+      "notes": "Independent rerun passed: 52 runner/plan/node tests with one skip; 19 Codex/real-agent pilot tests; scripts/check.py --lint; task inspect; git diff --check."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "A bounded Mode C rerun is either executed once and reported, or blocked with a concrete provider/setup/cost reason; no default-path claim is made.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0047-0002"
+      ],
+      "notes": "A bounded post-fix Mode C rerun is reported. It exited before the isolated watchdog and did not require partial-run recovery, but success_count remains 0 and failure_classes remains timeout:1, so no default-path claim is made."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Producer moves TASK-0047 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0047-0001",
+        "EVD-TASK-0047-0003"
+      ],
+      "notes": "Producer left TASK-0047 in review at state_version=3 with lease null and next_action awaiting independent EvidenceGate review; this verifier is distinct from the producer."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_reference_runner tests.test_node_executor tests.test_plan_execution",
+      "status": "passed",
+      "result": "Ran 52 tests in 46.989s; OK; skipped=1."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_codex_driver tests.test_real_agent_pilot",
+      "status": "passed",
+      "result": "Ran 19 tests in 4.816s; OK."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "result": "AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s)."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0047",
+      "status": "passed",
+      "result": "TASK-0047 is in review at state_version=3 with lease null; manifests and acceptance criteria parse."
+    },
+    {
+      "command": "Get-FileHash SHA256 for TASK-0047 root-cause, rerun, verification-summary, and handoff artifacts",
+      "status": "passed",
+      "result": "All four hashes match artifact-manifest.json and evidence-manifest.json entries."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "No whitespace errors."
+    },
+    {
+      "command": "manual source/evidence review",
+      "status": "passed",
+      "result": "Diff is limited to the legacy standard-harness process-boundary patch, regression tests, work index, and TASK-0047 records; reports preserve Mode C no-go/non-default status."
+    }
+  ]
+}

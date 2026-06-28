@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "elapsed_seconds": 67.406989,
+  "output": "WorkReport(summary='Created the required non-empty artifact at outputs/summary.txt.', changed_files=('outputs/summary.txt',), verification_commands_run=(), known_risks=('Shell verification did not complete because exec_command failed before process spawn; file creation was confirmed by apply_patch success.',), unresolved_items=())",
+  "raw_output": "{\"summary\":\"Created the required non-empty artifact at outputs/summary.txt.\",\"changed_files\":[\"outputs/summary.txt\"],\"verification_commands_run\":[],\"known_risks\":[\"Shell verification did not complete because exec_command failed before process spawn; file creation was confirmed by apply_patch success.\"],\"unresolved_items\":[]}",
+  "workspace": "D:\\Work\\ahra-v0.1-starter\\work\\tasks\\TASK-0048\\evidence\\direct-codex-executor-probe\\workspace",
+  "target_exists": true,
+  "target_size": 24,
+  "target_text": "direct-bounded-artifact\n",
+  "workspace_files": [
+    ".gitkeep",
+    "outputs/summary.txt"
+  ]
+}

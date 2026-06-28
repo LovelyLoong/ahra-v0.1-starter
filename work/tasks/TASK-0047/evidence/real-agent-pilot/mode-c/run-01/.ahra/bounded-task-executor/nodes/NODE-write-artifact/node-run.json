@@ -1,0 +1,39 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "NodeRun",
+  "metadata": {
+    "nodeRunId": "NRUN-d915ae772bf84746a5fe14b2f3fc03fa",
+    "planId": "PLAN-085526f2f4e5ed7b",
+    "nodeId": "NODE-write-artifact",
+    "executorRelease": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "spec": {
+    "nodeType": "bounded_task",
+    "status": "error",
+    "artifactRefs": [],
+    "evidenceRefs": [
+      "EVD-be420c5cb63c4efab68cac659b9e5822",
+      "EVD-0a244fb44bbc483ca76cf2fc6e435604"
+    ],
+    "gateRefs": [
+      "GATE-write-artifact"
+    ],
+    "terminalFailureRefs": [
+      "tasks/write-artifact/terminal-failure.json"
+    ],
+    "taskCompletedStateUpdateAttempted": false,
+    "usage": {
+      "modelCalls": 0,
+      "toolCalls": 1,
+      "spawnedNodes": 0,
+      "costUsd": 0.0
+    },
+    "message": "Task failed with an execution error and was rolled back: TimeoutError('executor exceeded idle timeout (45s)')",
+    "details": {
+      "taskId": "write-artifact",
+      "taskStatus": "error",
+      "commit": null,
+      "semanticReviewEnabled": false
+    }
+  }
+}

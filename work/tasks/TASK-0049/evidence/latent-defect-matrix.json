@@ -1,0 +1,238 @@
+{
+  "schema_version": "ahra/task-evidence/latent-defect-matrix/0.1",
+  "task_id": "TASK-0049",
+  "created_at": "2026-06-28T14:04:34.285055Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "summary": {
+    "default_m1_path_current_status": "intact_under_fresh_smoke",
+    "mode_c_current_status": "non_default_not_broad_stability_approved",
+    "remaining_p0_workflow_blockers": 0,
+    "remaining_p1_workflow_risks": 4,
+    "broader_mode_c_work_blocked_until_p1_risks_are_resolved_or_explicitly_accepted": true
+  },
+  "workflow_chains": [
+    {
+      "chain_id": "CHAIN-default-m1-goal",
+      "description": "Default deterministic local Goal operation path through GoalOperationService, PlanExecutionService, StaticPlanScheduler, CapabilityAdmission, deterministic executor, deterministic gates, and GoalExecution completion.",
+      "current_status": "fresh_smoke_passed",
+      "default_visible": true,
+      "mode_c_dependency": false,
+      "evidence_refs": [
+        "docs/architecture/framework-entrypoints.md",
+        "README.md",
+        "skills/ahra-dynamic-kernel/SKILL.md",
+        "src/ahra/goal_operations.py",
+        "src/ahra/plan_execution.py",
+        "verification-summary.json"
+      ]
+    },
+    {
+      "chain_id": "CHAIN-mode-c-pilot",
+      "description": "Explicit real-Agent pilot path using run_real_agent_pilot.py, real Planner output validation, real Executor budget normalization, GoalOperationService, BoundedTaskExecutor, TaskHarness, Codex AgentDriver, and pilot scorecard.",
+      "current_status": "single_bounded_write_rerun_passed_after_repairs_but_broad_stability_not_approved",
+      "default_visible": false,
+      "mode_c_dependency": true,
+      "evidence_refs": [
+        "scripts/run_real_agent_pilot.py",
+        "src/ahra/real_agent_pilot.py",
+        "src/ahra/reference_runner/bounded_task.py",
+        "work/tasks/TASK-0048/evidence/evidence-gate-report-4.json"
+      ]
+    },
+    {
+      "chain_id": "CHAIN-awkp-evidencegate",
+      "description": "Task governance path from task.md/state/events/manifests to review and independent EvidenceGate completion.",
+      "current_status": "operational_for_task_0048_completion",
+      "default_visible": true,
+      "mode_c_dependency": false,
+      "evidence_refs": [
+        "WORKFLOW.md",
+        "SPEC.md",
+        "src/ahra/evidence_gate.py",
+        "work/tasks/TASK-0048/events.jsonl",
+        "work/tasks/TASK-0048/state.json"
+      ]
+    }
+  ],
+  "defects": [
+    {
+      "defect_id": "DEF-TASK-0049-001",
+      "source_tasks": ["TASK-0045", "TASK-0047"],
+      "signal": "Mode C repetitions reached internal bounded Executor timeout and the isolated child process could remain alive until the outer watchdog.",
+      "primary_classification": "workflow_runtime_boundary",
+      "layer": "scheduler/provider-cancellation-boundary",
+      "status": "resolved_by_task_0047",
+      "severity_when_found": "P0",
+      "current_severity": "resolved",
+      "default_m1_blocker": false,
+      "broader_mode_c_blocker": false,
+      "evidence_refs": [
+        "work/tasks/TASK-0045/evidence/failure-taxonomy.json",
+        "work/tasks/TASK-0047/evidence/root-cause-report.md"
+      ],
+      "current_handling": "AgentDriver phases now run outside the scheduler event loop with bounded cancellation grace and daemon default-executor isolation.",
+      "recommended_next_action": "Keep regression coverage; no separate follow-up needed unless new cancellation evidence appears."
+    },
+    {
+      "defect_id": "DEF-TASK-0049-002",
+      "source_tasks": ["TASK-0048"],
+      "signal": "Bounded-write Executor task construction did not preserve exact PlanIR filesystem.write and expectedOutputs obligations.",
+      "primary_classification": "workflow_contract_transfer",
+      "layer": "PlanIR-to-TaskSpec",
+      "status": "resolved_for_literal_bounded_write_by_task_0048",
+      "severity_when_found": "P0",
+      "current_severity": "resolved_for_current_fixture",
+      "default_m1_blocker": false,
+      "broader_mode_c_blocker": false,
+      "evidence_refs": [
+        "work/tasks/TASK-0048/evidence/executor-timeout-root-cause-report.md",
+        "src/ahra/reference_runner/bounded_task.py"
+      ],
+      "current_handling": "Literal filesystem.write resources and expectedOutputs now become TaskSpec requirements, acceptance criteria, and internal artifact checks.",
+      "recommended_next_action": "Audit non-literal glob and multi-output cases before wider Mode C pilots."
+    },
+    {
+      "defect_id": "DEF-TASK-0049-003",
+      "source_tasks": ["TASK-0048"],
+      "signal": "Artifact-only Executor prompt allowed shell/process verification before returning WorkReport, pushing first completion beyond the idle window.",
+      "primary_classification": "adapter_prompt_contract",
+      "layer": "Codex AgentDriver prompt boundary",
+      "status": "resolved_by_task_0048",
+      "severity_when_found": "P1",
+      "current_severity": "resolved",
+      "default_m1_blocker": false,
+      "broader_mode_c_blocker": false,
+      "evidence_refs": [
+        "work/tasks/TASK-0048/evidence/executor-timeout-root-cause-report.md",
+        "src/ahra/adapters/codex_sdk.py"
+      ],
+      "current_handling": "Executor prompt now states that required files must be created before final JSON and that shell/process verification is skipped for artifact-only/internal-check tasks.",
+      "recommended_next_action": "Keep prompt-contract regression tests."
+    },
+    {
+      "defect_id": "DEF-TASK-0049-004",
+      "source_tasks": ["TASK-0048"],
+      "signal": "Real Planner output could reintroduce bounded node timeout/budget values smaller than the observed real Executor completion window.",
+      "primary_classification": "workflow_budget_semantics",
+      "layer": "real Planner output to real Executor admission",
+      "status": "resolved_for_real_agent_pilot_by_task_0048",
+      "severity_when_found": "P1",
+      "current_severity": "P1_residual_scope_risk",
+      "default_m1_blocker": false,
+      "broader_mode_c_blocker": true,
+      "evidence_refs": [
+        "work/tasks/TASK-0048/evidence/executor-timeout-root-cause-report.md",
+        "src/ahra/real_agent_pilot.py"
+      ],
+      "current_handling": "The pilot normalizes real Executor bounded node budgets after real Planner output and before validation/writeback.",
+      "recommended_next_action": "Promote the real Executor budget invariant from pilot-only behavior into a documented admission/profile invariant, or document why the pilot is the only caller."
+    },
+    {
+      "defect_id": "DEF-TASK-0049-005",
+      "source_tasks": ["TASK-0048"],
+      "signal": "Internal artifact checks were counted as external process.exec requirements, and skipped semantic review was counted as a model call.",
+      "primary_classification": "workflow_accounting",
+      "layer": "capability and usage accounting",
+      "status": "resolved_by_task_0048",
+      "severity_when_found": "P1",
+      "current_severity": "resolved",
+      "default_m1_blocker": false,
+      "broader_mode_c_blocker": false,
+      "evidence_refs": [
+        "work/tasks/TASK-0048/evidence/executor-timeout-root-cause-report.md",
+        "src/ahra/reference_runner/checks.py",
+        "src/ahra/reference_runner/bounded_task.py"
+      ],
+      "current_handling": "AHRA internal artifact checks do not consume process.exec capability; model call usage counts semantic review only when it actually ran.",
+      "recommended_next_action": "Keep accounting regression tests."
+    },
+    {
+      "defect_id": "DEF-TASK-0049-006",
+      "source_tasks": ["TASK-0049"],
+      "signal": "Component inventory classifies standard-harness as legacy/non-default, but default-visible BoundedTaskExecutor imports and uses TaskHarness from standard_harness for real-Agent execution.",
+      "primary_classification": "workflow_lifecycle_alignment",
+      "layer": "component lifecycle and real Executor dependency chain",
+      "status": "open",
+      "severity_when_found": "P1",
+      "current_severity": "P1",
+      "default_m1_blocker": false,
+      "broader_mode_c_blocker": true,
+      "evidence_refs": [
+        "docs/architecture/component-inventory.json",
+        "src/ahra/reference_runner/bounded_task.py",
+        "src/ahra/reference_runner/standard_harness.py"
+      ],
+      "current_handling": "No runtime break found in default M1. The risk is lifecycle ambiguity and accidental feature work in a documented legacy component.",
+      "recommended_next_action": "Open a narrow follow-up to either extract the Agent phase runner into a non-legacy bounded-agent component or reclassify/document the shared dependency explicitly."
+    },
+    {
+      "defect_id": "DEF-TASK-0049-007",
+      "source_tasks": ["TASK-0049"],
+      "signal": "Pilot hard metrics are coarse summaries derived largely from Goal status and fixed counters; they are insufficient as the sole evidence for broad Mode C stability.",
+      "primary_classification": "evidence_boundary",
+      "layer": "pilot scorecard and quality interpretation",
+      "status": "open",
+      "severity_when_found": "P1",
+      "current_severity": "P1",
+      "default_m1_blocker": false,
+      "broader_mode_c_blocker": true,
+      "evidence_refs": [
+        "src/ahra/real_agent_pilot.py",
+        "work/tasks/TASK-0048/evidence/evidence-gate-report-4.json"
+      ],
+      "current_handling": "EvidenceGate already limits TASK-0048 approval to one bounded rerun and rejects defaultization.",
+      "recommended_next_action": "Before broader Mode C pilots, add scorecard dimensions that separate contract, gate, budget, scheduler, provider, and model-behavior failures."
+    },
+    {
+      "defect_id": "DEF-TASK-0049-008",
+      "source_tasks": ["TASK-0049"],
+      "signal": "The repaired TaskSpec artifact obligation path currently treats only literal filesystem.write resources as required artifact paths.",
+      "primary_classification": "workflow_contract_generalization",
+      "layer": "PlanIR expectedOutputs and artifact path mapping",
+      "status": "open",
+      "severity_when_found": "P1",
+      "current_severity": "P1",
+      "default_m1_blocker": false,
+      "broader_mode_c_blocker": true,
+      "evidence_refs": [
+        "src/ahra/reference_runner/bounded_task.py",
+        "work/tasks/TASK-0048/evidence/executor-timeout-root-cause-report.md"
+      ],
+      "current_handling": "Literal bounded-write smoke is covered. Globs, directories, and richer expectedOutputs need explicit mapping rules before wider live use.",
+      "recommended_next_action": "Add a narrow invariant audit/test for non-literal outputs and multi-output contracts before a broad Mode C run."
+    },
+    {
+      "defect_id": "DEF-TASK-0049-009",
+      "source_tasks": ["TASK-0049"],
+      "signal": "Default M1 deterministic GoalVerificationService returns completion coverage for the M1 fixture profile, which is appropriate for M1 but must not be described as production semantic completion.",
+      "primary_classification": "scope_overclaim_risk",
+      "layer": "default path documentation and interpretation",
+      "status": "controlled",
+      "severity_when_found": "P2",
+      "current_severity": "controlled",
+      "default_m1_blocker": false,
+      "broader_mode_c_blocker": false,
+      "evidence_refs": [
+        "README.md",
+        "docs/architecture/framework-entrypoints.md",
+        "src/ahra/goal_operations.py"
+      ],
+      "current_handling": "Current docs repeatedly state that M1 is deterministic/local and not production-grade distributed orchestration.",
+      "recommended_next_action": "Keep the boundary language; no code change needed in TASK-0049."
+    }
+  ],
+  "proposed_follow_up": {
+    "task_id": "TASK-0050-proposed",
+    "title": "Align real bounded Executor workflow dependencies and Mode C pilot invariants",
+    "scope": [
+      "Resolve or explicitly document the BoundedTaskExecutor dependency on TaskHarness from a legacy-classified component.",
+      "Add tests or reports that make Mode C pilot failures separable across contract, gate, budget, scheduler, provider, and model-behavior classes.",
+      "Add invariant coverage for non-literal filesystem.write and multi-output expectedOutputs before wider Mode C pilots."
+    ],
+    "non_goals": [
+      "Do not defaultize Mode C.",
+      "Do not run a broad live Mode C pilot.",
+      "Do not package a release checkpoint."
+    ]
+  }
+}

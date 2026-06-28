@@ -17,10 +17,12 @@ from ahra.node_executor import (
     NodeExecutionStatus,
     NodeExecutorRegistry,
 )
+from ahra.plan_ir import PlanOutputContract
 from ahra.ports import AgentDriver, AgentRole, AgentRunRequest, AgentRunResult
 from ahra.reference_runner.bounded_task import (
     BOUNDED_TASK_EXECUTOR_RELEASE,
     BoundedTaskExecutor,
+    _task_from_request,
     build_standard_harness_compatibility_request,
     compatibility_plan_for_task,
     runtime_grants_for_node,
@@ -70,6 +72,29 @@ class NodeWritingDriver(AgentDriver):
                 )
             )
         raise AssertionError(f"unexpected role: {request.role}")
+
+
+class ContractCapturingDriver(AgentDriver):
+    def __init__(self, outputs: tuple[tuple[str, str], ...] = (("outputs/summary.txt", "bounded artifact\n"),)) -> None:
+        self.executor_task: TaskSpec | None = None
+        self.outputs = outputs
+
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role != AgentRole.EXECUTOR:
+            raise AssertionError(f"unexpected role: {request.role}")
+        task = request.payload["task"]
+        self.executor_task = task
+        workspace = Path(str(request.workspace_ref))
+        for relative_path, content in self.outputs:
+            target = workspace / relative_path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(content, encoding="utf-8")
+        return AgentRunResult(
+            output=WorkReport(
+                summary="Wrote bounded artifact.",
+                changed_files=tuple(relative_path for relative_path, _ in self.outputs),
+            )
+        )
 
 
 class DummyNodeExecutor:
@@ -135,6 +160,217 @@ class NodeExecutorTests(unittest.TestCase):
             event_types = _event_types(artifact_dir)
             self.assertIn("dev.ahra.workflow.node_run_started.v1", event_types)
             self.assertIn("dev.ahra.workflow.node_run_finished.v1", event_types)
+
+    def test_native_plan_node_generates_precise_bounded_write_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task = replace(
+                _task(),
+                policy=ChangePolicy(
+                    allowed_globs=("outputs/summary.txt",),
+                    protected_globs=(),
+                    sensitive_globs=(),
+                    max_changed_files=1,
+                    max_added_lines=10,
+                    max_deleted_lines=0,
+                ),
+            )
+            plan, node = compatibility_plan_for_task(task=task, workspace=repo, run_id="RUN-artifact")
+            node = replace(
+                node,
+                node_id="NODE-write-artifact",
+                objective="Produce bounded artifact.",
+                claim_refs=("CLAIM-write-artifact",),
+                input_refs=("input/context@sha256:" + "7" * 64,),
+                expected_outputs=(
+                    PlanOutputContract(
+                        name="deterministic-artifact",
+                        schema_ref="schema/m1-deterministic-artifact@sha256:" + "8" * 64,
+                        delivery_role="artifact",
+                        artifact_required=True,
+                    ),
+                ),
+                gate_refs=("GATE-bounded-task-l0",),
+                gate_digests=(canonical_fingerprint({"gateRef": "GATE-bounded-task-l0"}),),
+                timeout_seconds=30,
+            )
+            plan = replace(plan, nodes=(node,))
+            request = NodeExecutionRequest(
+                plan=plan,
+                node=node,
+                capability_grants=runtime_grants_for_node(plan, node),
+                workspace_ref=str(repo),
+                branch="test-branch",
+                run_id="RUN-artifact",
+                payload={},
+            )
+            driver = ContractCapturingDriver()
+
+            task_result, node_result = asyncio.run(
+                BoundedTaskExecutor(
+                    driver,
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                ).execute_task(request)
+            )
+
+            self.assertEqual(task_result.status, WorkflowOutcome.ACCEPTED)
+            self.assertEqual(node_result.status, NodeExecutionStatus.ACCEPTED)
+            self.assertIsNotNone(driver.executor_task)
+            generated_task = driver.executor_task
+            assert generated_task is not None
+            contract_text = "\n".join(
+                (
+                    generated_task.objective,
+                    *generated_task.acceptance_criteria,
+                    *generated_task.requirements,
+                    *(check.name for check in generated_task.checks),
+                )
+            )
+            self.assertIn("outputs/summary.txt", contract_text)
+            self.assertIn("deterministic-artifact", contract_text)
+            self.assertIn(
+                "Return WorkReport.changed_files containing: outputs/summary.txt",
+                generated_task.requirements,
+            )
+            self.assertIn(
+                "Do not run shell or process verification commands; AHRA deterministic gates verify required artifacts after WorkReport.",
+                generated_task.requirements,
+            )
+            self.assertEqual(generated_task.policy.allowed_globs, ("outputs/summary.txt",))
+            self.assertTrue(generated_task.checks)
+            self.assertIn("outputs/summary.txt", " ".join(generated_task.checks[0].argv))
+
+    def test_native_plan_node_generates_checks_for_multiple_literal_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task = replace(
+                _task(),
+                checks=(),
+                policy=ChangePolicy(
+                    allowed_globs=("outputs/summary.txt", "reports/details.txt"),
+                    protected_globs=(),
+                    sensitive_globs=(),
+                    max_changed_files=2,
+                    max_added_lines=20,
+                    max_deleted_lines=0,
+                ),
+            )
+            plan, node = compatibility_plan_for_task(task=task, workspace=repo, run_id="RUN-multi-artifact")
+            node = replace(
+                node,
+                node_id="NODE-multi-artifact",
+                objective="Produce two bounded artifacts.",
+                expected_outputs=(
+                    PlanOutputContract(
+                        name="summary-artifact",
+                        schema_ref="schema/summary@sha256:" + "8" * 64,
+                        delivery_role="artifact",
+                        artifact_required=True,
+                    ),
+                    PlanOutputContract(
+                        name="details-artifact",
+                        schema_ref="schema/details@sha256:" + "9" * 64,
+                        delivery_role="artifact",
+                        artifact_required=True,
+                    ),
+                ),
+                gate_refs=("GATE-bounded-task-l0",),
+                gate_digests=(canonical_fingerprint({"gateRef": "GATE-bounded-task-l0"}),),
+            )
+            plan = replace(plan, nodes=(node,))
+            request = NodeExecutionRequest(
+                plan=plan,
+                node=node,
+                capability_grants=runtime_grants_for_node(plan, node),
+                workspace_ref=str(repo),
+                branch="test-branch",
+                run_id="RUN-multi-artifact",
+                payload={},
+            )
+            driver = ContractCapturingDriver(
+                outputs=(
+                    ("outputs/summary.txt", "summary\n"),
+                    ("reports/details.txt", "details\n"),
+                )
+            )
+
+            task_result, node_result = asyncio.run(
+                BoundedTaskExecutor(
+                    driver,
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                ).execute_task(request)
+            )
+
+            self.assertEqual(task_result.status, WorkflowOutcome.ACCEPTED)
+            self.assertEqual(node_result.status, NodeExecutionStatus.ACCEPTED)
+            generated_task = driver.executor_task
+            assert generated_task is not None
+            self.assertEqual(len(generated_task.checks), 2)
+            check_argv = "\n".join(" ".join(check.argv) for check in generated_task.checks)
+            self.assertIn("outputs/summary.txt", check_argv)
+            self.assertIn("reports/details.txt", check_argv)
+            self.assertIn(
+                "Return WorkReport.changed_files containing: outputs/summary.txt, reports/details.txt",
+                generated_task.requirements,
+            )
+
+    def test_native_plan_node_preserves_non_literal_output_contract_without_artifact_checks(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task = replace(
+                _task(),
+                checks=(),
+                policy=ChangePolicy(
+                    allowed_globs=("outputs/*.txt", "reports/"),
+                    protected_globs=(),
+                    sensitive_globs=(),
+                    max_changed_files=1,
+                    max_added_lines=10,
+                    max_deleted_lines=0,
+                ),
+            )
+            plan, node = compatibility_plan_for_task(task=task, workspace=repo, run_id="RUN-glob-artifact")
+            node = replace(
+                node,
+                node_id="NODE-glob-artifact",
+                objective="Produce a glob-scoped artifact.",
+                expected_outputs=(
+                    PlanOutputContract(
+                        name="glob-artifact",
+                        schema_ref="schema/glob-output@sha256:" + "8" * 64,
+                        delivery_role="artifact",
+                        artifact_required=True,
+                    ),
+                    PlanOutputContract(
+                        name="review-note",
+                        schema_ref=None,
+                        delivery_role="evidence",
+                        artifact_required=False,
+                    ),
+                ),
+                gate_refs=("GATE-bounded-task-l0",),
+                gate_digests=(canonical_fingerprint({"gateRef": "GATE-bounded-task-l0"}),),
+            )
+            plan = replace(plan, nodes=(node,))
+            request = NodeExecutionRequest(
+                plan=plan,
+                node=node,
+                capability_grants=runtime_grants_for_node(plan, node),
+                workspace_ref=str(repo),
+                branch="test-branch",
+                run_id="RUN-glob-artifact",
+                payload={},
+            )
+            generated_task = _task_from_request(request)
+            self.assertEqual(generated_task.policy.allowed_globs, ("outputs/*.txt", "reports/"))
+            self.assertEqual(generated_task.checks, ())
+            self.assertIn("Expected output glob-artifact", "\n".join(generated_task.requirements))
+            self.assertIn("Expected output review-note", "\n".join(generated_task.requirements))
+            self.assertNotIn(
+                "Return WorkReport.changed_files containing",
+                "\n".join(generated_task.requirements),
+            )
+            self.assertNotIn("required artifact exists", "\n".join(generated_task.acceptance_criteria))
 
     def test_process_exec_without_grant_fails_before_check_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -232,6 +468,9 @@ class NodeExecutorTests(unittest.TestCase):
             self.assertEqual(task_result.status, WorkflowOutcome.ACCEPTED)
             self.assertEqual(node_result.status, NodeExecutionStatus.ACCEPTED)
             self.assertEqual(driver.reviewer_calls, 0)
+            self.assertIsNotNone(node_result.usage)
+            assert node_result.usage is not None
+            self.assertEqual(node_result.usage.model_calls, 1)
             evidence_manifest = json.loads((Path(task_result.artifact_dir) / "evidence-manifest.json").read_text(encoding="utf-8"))
             kinds = {record["kind"] for record in evidence_manifest["evidence"]}
             self.assertIn("semantic_review_skipped", kinds)

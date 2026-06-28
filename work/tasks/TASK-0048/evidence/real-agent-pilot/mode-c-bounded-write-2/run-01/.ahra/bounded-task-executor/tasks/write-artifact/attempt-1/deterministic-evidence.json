@@ -1,0 +1,29 @@
+{
+  "policy": {
+    "changed_files": [
+      "bounded-write-artifact"
+    ],
+    "sensitive_files": [],
+    "violations": [],
+    "added_lines": 1,
+    "deleted_lines": 0
+  },
+  "checks": [
+    {
+      "name": "required artifact exists: bounded-write-artifact",
+      "argv": [
+        "ahra.internal.artifact_exists.v1",
+        "bounded-write-artifact"
+      ],
+      "required": true,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "verification_mutated_workspace": false,
+  "verification_mutation_files": [],
+  "patch_excerpt": "diff --git a/bounded-write-artifact b/bounded-write-artifact\nnew file mode 100644\nindex 0000000..f256bfd\n--- /dev/null\n+++ b/bounded-write-artifact\n@@ -0,0 +1 @@\n+bounded artifact for GOAL-M1-GENERIC-SMOKE\n"
+}

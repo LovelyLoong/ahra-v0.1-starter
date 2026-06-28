@@ -65,6 +65,10 @@ class CodexSDKDriverTests(unittest.TestCase):
         self.assertEqual(client.calls[0]["sandbox"], "workspace_write")
         self.assertEqual(client.calls[0]["model"], "gpt-5.4")
         self.assertIn("Expected output type: WorkReport", client.calls[0]["prompt"])
+        self.assertIn("payload.task.requirements", client.calls[0]["prompt"])
+        self.assertIn("Create required files before the final JSON response", client.calls[0]["prompt"])
+        self.assertIn("WorkReport.changed_files", client.calls[0]["prompt"])
+        self.assertIn("do not run shell or process verification", client.calls[0]["prompt"])
 
     def test_planner_response_parses_next_step_decision(self) -> None:
         client = FakeCodexClient(
