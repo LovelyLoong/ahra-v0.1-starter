@@ -1,0 +1,21 @@
+{
+  "artifact_refs": [],
+  "attempt": 1,
+  "blockers": [],
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "evidence_refs": [],
+  "lease": {
+    "acquired_at": "2026-06-28T07:35:49.642192Z",
+    "expires_at": "2026-06-28T09:35:49.642192Z",
+    "holder": "agent:codex-dynamic-kernel-operator",
+    "token": "LEASE-TASK-0044-0001"
+  },
+  "next_action": "Implement isolated timeout partial-run recovery and GoalExecution finalization regression coverage.",
+  "owner": "agent:codex-dynamic-kernel-operator",
+  "pause_reason": null,
+  "schema_version": "awkp/0.1",
+  "state": "working",
+  "state_version": 2,
+  "task_id": "TASK-0044",
+  "updated_at": "2026-06-28T07:35:49.642192Z"
+}
