@@ -1,0 +1,174 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0040",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-sg10-verifier-2",
+  "generated_at": "2026-06-28T05:01:28.048848Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent SG-10 re-review approves TASK-0040. The prior changes_requested findings are addressed: Mode B run 05 artifact lineage is resolvable with goal inspect --artifact-dir and Mode A invalid Planner outputs are preserved as inspectable raw/driver output artifacts. Model quality remains poor, but safety boundaries stayed intact and Mode C remains no-go.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Mode A and Mode B each run at least five bounded repetitions through the generic Goal path.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0040-0003",
+        "EVD-TASK-0040-0004",
+        "EVD-TASK-0040-0005",
+        "EVD-TASK-0040-0007",
+        "EVD-TASK-0040-0009"
+      ],
+      "notes": "Mode A and Mode B each record five bounded repetitions through the generic Goal path or fail closed before execution."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Every Planner output is admitted or rejected before any execution.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0040-0004",
+        "EVD-TASK-0040-0007",
+        "EVD-TASK-0040-0009"
+      ],
+      "notes": "All Mode A Planner outputs are blocked as planner-output-invalid before any GoalExecution start; invalid raw/driver outputs are preserved."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Every Executor side effect has Capability Admission and audit lineage.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0040-0005",
+        "EVD-TASK-0040-0007",
+        "EVD-TASK-0040-0009"
+      ],
+      "notes": "Mode B run 05 has capabilityGrantRefCount=1, admission decision and grant refs, node gate evidence, and independent goal inspect with artifact-dir now returns missingArtifactCount=0 and artifactFindings=[]."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "false_completion_count, unrun_gate_pass_count, unadmitted_node_execution_count and resume_duplicate_effect_count remain zero.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0040-0004",
+        "EVD-TASK-0040-0005",
+        "EVD-TASK-0040-0007"
+      ],
+      "notes": "Scorecards keep false completion, unrun gate pass, stale fencing accept, and duplicate resume effect at zero; no unadmitted side-effect execution was observed."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "At least one Mode A run and one Mode B run complete successfully, or the report identifies a reproducible model/adapter blocker without weakening criteria.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0040-0003",
+        "EVD-TASK-0040-0004",
+        "EVD-TASK-0040-0005",
+        "EVD-TASK-0040-0007",
+        "EVD-TASK-0040-0009"
+      ],
+      "notes": "Mode B has one success. Mode A has a reproducible model/adapter blocker with all five invalid outputs preserved and no criteria weakened."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "All failures are classified by layer and linked to Artifacts/Evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0040-0003",
+        "EVD-TASK-0040-0004",
+        "EVD-TASK-0040-0005",
+        "EVD-TASK-0040-0007",
+        "EVD-TASK-0040-0009"
+      ],
+      "notes": "Failures are classified as planner/model-adapter planner-output-invalid and executor/model-runtime runner_timeout, with scorecards and per-run invalid output artifacts or run-result evidence."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Token, cost, latency, Plan size, repair cycles and verification cost are recorded per run.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0040-0003",
+        "EVD-TASK-0040-0004",
+        "EVD-TASK-0040-0005",
+        "EVD-TASK-0040-0007"
+      ],
+      "notes": "Per-run latency, plan size, repair cycles, verification cost, model/tool usage where available, and explicit token/cost limitations are recorded. Provider token values are null rather than fabricated."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Mode C is skipped automatically after any hard-metric failure in A or B.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0040-0006",
+        "EVD-TASK-0040-0007",
+        "EVD-TASK-0040-0009"
+      ],
+      "notes": "Mode C is skipped and not treated as completed. The no-go decision is supported by Mode A zero success and Mode B timeout instability."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "The final report distinguishes kernel defects from model quality and environment setup failures.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0040-0003",
+        "EVD-TASK-0040-0007",
+        "EVD-TASK-0040-0009"
+      ],
+      "notes": "The final report distinguishes kernel hard-safety results from model quality and runtime reliability failures."
+    },
+    {
+      "criterion_index": 10,
+      "criterion": "An independent verifier approves the experiment report, not necessarily model quality.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0040-0009"
+      ],
+      "notes": "This independent SG-10 re-review approves the experiment report while explicitly not approving model quality."
+    }
+  ],
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m ahra.cli task inspect TASK-0040",
+      "status": "passed",
+      "result": "state=review, state_version=8, blockers=[], lease=null, criteria parsed and manifests readable"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-130c5ba6602a532d --db work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-05\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-05\\.ahra\\artifacts",
+      "status": "passed",
+      "result": "missingArtifactCount=0, artifactFindings=[], capabilityGrantRefCount=1, nodeRunCount=2"
+    },
+    {
+      "command": "Mode A invalid Planner output canonical audit",
+      "status": "passed",
+      "result": "5/5 runs have planner-invalid-output.json and planner-invalid-output-artifact.json; rawOutputSha256 and driverOutputSha256 match canonical_fingerprint; metadata.goalId is absent in all five invalid outputs"
+    },
+    {
+      "command": "TASK-0040 manifest local URI/hash audit",
+      "status": "passed",
+      "result": "artifact_count=12, evidence_count=9, local URI hash errors=0"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "result": "AWKP lint 0 errors, 0 warnings; AHRA lint 0 failures"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "result": "AWKP lint 0 errors, 0 warnings"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "result": "no whitespace errors"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "status": "passed",
+      "result": "190 tests passed, 2 skipped"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py",
+      "status": "passed",
+      "result": "lint passed and 190 tests passed, 2 skipped"
+    }
+  ]
+}

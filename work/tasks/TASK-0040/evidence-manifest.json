@@ -146,6 +146,26 @@
         "EVD-TASK-0040-0006",
         "EVD-TASK-0040-0007"
       ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0040-0010",
+      "task_id": "TASK-0040",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-9.json",
+      "uri": "local://evidence/evidence-gate-report-9.json",
+      "sha256": "7da351c3a2084ebc2f6c0987a1a3e24170469a18f3874a16d6798ee3fef9d6c3",
+      "media_type": "application/json",
+      "created_by": "agent:codex-sg10-verifier-2",
+      "created_at": "2026-06-28T05:01:28.048848Z",
+      "refs": [
+        "ART-TASK-0040-0010",
+        "EVD-TASK-0040-0003",
+        "EVD-TASK-0040-0004",
+        "EVD-TASK-0040-0005",
+        "EVD-TASK-0040-0006",
+        "EVD-TASK-0040-0007",
+        "EVD-TASK-0040-0009"
+      ]
     }
   ],
   "schema_version": "awkp/0.1",

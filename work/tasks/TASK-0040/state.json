@@ -11,7 +11,8 @@
     "ART-TASK-0040-HANDOFF-0002",
     "ART-TASK-0040-0008",
     "ART-TASK-0040-0009",
-    "ART-TASK-0040-HANDOFF-0003"
+    "ART-TASK-0040-HANDOFF-0003",
+    "ART-TASK-0040-0010"
   ],
   "attempt": 2,
   "blockers": [],
@@ -25,15 +26,16 @@
     "EVD-TASK-0040-0006",
     "EVD-TASK-0040-0007",
     "EVD-TASK-0040-0008",
-    "EVD-TASK-0040-0009"
+    "EVD-TASK-0040-0009",
+    "EVD-TASK-0040-0010"
   ],
   "lease": null,
-  "next_action": "Independent SG-10 EvidenceGate re-review should inspect TASK-0040 EvidenceGate response, updated report, Mode A invalid output artifacts, and Mode B run 05 inspect lineage; producer does not mark complete.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "owner": null,
   "pause_reason": null,
   "schema_version": "awkp/0.1",
-  "state": "review",
-  "state_version": 8,
+  "state": "completed",
+  "state_version": 9,
   "task_id": "TASK-0040",
-  "updated_at": "2026-06-28T04:30:25.191422Z"
+  "updated_at": "2026-06-28T05:01:28.048848Z"
 }
