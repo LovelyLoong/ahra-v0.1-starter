@@ -1,0 +1,16 @@
+{
+  "artifact_refs": [],
+  "attempt": 0,
+  "blockers": [],
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "evidence_refs": [],
+  "lease": null,
+  "next_action": "Claim TASK-0043 to run the separately authorized bounded Mode C pilot.",
+  "owner": null,
+  "pause_reason": null,
+  "schema_version": "awkp/0.1",
+  "state": "ready",
+  "state_version": 1,
+  "task_id": "TASK-0043",
+  "updated_at": "2026-06-28T06:53:26.989119Z"
+}
