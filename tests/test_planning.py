@@ -230,6 +230,22 @@ class PlanningTests(unittest.TestCase):
             asyncio.run(AgentDriverExecutionPlannerAdapter(malformed_registry, "malformed").propose_plan(request))
         self.assertEqual(malformed.exception.failure.code, "planner-output-invalid")
 
+        incomplete_mapping_registry = AgentDriverRegistry()
+        incomplete_mapping_registry.register(
+            "incomplete",
+            CapturingDriver(
+                {
+                    "apiVersion": "ahra.dev/v1alpha1",
+                    "kind": "PlanDraft",
+                    "metadata": {},
+                    "spec": {"nodes": []},
+                }
+            ),
+        )
+        with self.assertRaises(PlannerAdapterError) as incomplete:
+            asyncio.run(AgentDriverExecutionPlannerAdapter(incomplete_mapping_registry, "incomplete").propose_plan(request))
+        self.assertEqual(incomplete.exception.failure.code, "planner-output-invalid")
+
     def test_defect_repair_patch_is_bounded_and_reuses_unchanged_nodes_and_evidence(self) -> None:
         bundle = _context_bundle()
         validator = PlannerOutputValidator()

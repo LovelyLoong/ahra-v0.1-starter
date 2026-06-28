@@ -797,7 +797,7 @@ def _coerce_plan_draft(value: Any) -> PlanDraft:
         try:
             validate_agent_output(plan_draft_output_contract(), dict(value), raw_output=value)
             return PlanDraft.from_mapping(value)
-        except (AgentOutputContractError, TypeError, ValueError) as exc:
+        except (AgentOutputContractError, KeyError, TypeError, ValueError) as exc:
             raise PlannerAdapterError(
                 PlannerFailure("planner-output-invalid", str(exc), retryable=False, details=(str(exc),))
             ) from exc
@@ -813,7 +813,7 @@ def _coerce_plan_patch(value: Any) -> PlanPatchDraft:
         try:
             validate_agent_output(plan_patch_output_contract(), dict(value), raw_output=value)
             return PlanPatchDraft.from_mapping(value)
-        except (AgentOutputContractError, TypeError, ValueError) as exc:
+        except (AgentOutputContractError, KeyError, TypeError, ValueError) as exc:
             raise PlannerAdapterError(
                 PlannerFailure("planner-output-invalid", str(exc), retryable=False, details=(str(exc),))
             ) from exc
