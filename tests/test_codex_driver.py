@@ -102,15 +102,7 @@ class CodexSDKDriverTests(unittest.TestCase):
         self.assertEqual(client.calls[0]["sandbox"], "read_only")
 
     def test_plan_draft_response_passes_through_after_contract_validation(self) -> None:
-        draft = {
-            "apiVersion": "ahra.dev/v1alpha1",
-            "kind": "PlanDraft",
-            "metadata": {
-                "goalId": "GOAL-plan-ir",
-                "proposedBy": "REL-planner@sha256:" + "a" * 64,
-            },
-            "spec": {"nodes": []},
-        }
+        draft = _minimal_plan_draft()
         client = FakeCodexClient({"PlanDraft": json.dumps(draft)})
         driver = CodexSDKDriver(client=client)
 
@@ -128,6 +120,10 @@ class CodexSDKDriverTests(unittest.TestCase):
 
         self.assertEqual(result.output, draft)
         self.assertEqual(client.calls[0]["sandbox"], "read_only")
+        self.assertIn('"goalId"', client.calls[0]["prompt"])
+        self.assertIn('"nodeType"', client.calls[0]["prompt"])
+        self.assertIn("metadata.goalId", client.calls[0]["prompt"])
+        self.assertIn("nodes[].nodeType", client.calls[0]["prompt"])
 
     def test_plan_draft_response_requires_explicit_output_contract(self) -> None:
         client = FakeCodexClient({"PlanDraft": json.dumps({"kind": "PlanDraft"})})
@@ -260,6 +256,47 @@ class CodexSDKDriverTests(unittest.TestCase):
         self.assertEqual(captured["thread_kwargs"]["cwd"], "C:/repo")
         self.assertEqual(captured["thread_kwargs"]["model"], "gpt-test")
         self.assertEqual(captured["thread_kwargs"]["sandbox"], "workspace_write")
+
+
+def _minimal_plan_draft() -> dict[str, object]:
+    return {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "PlanDraft",
+        "metadata": {
+            "goalId": "GOAL-plan-ir",
+            "proposedBy": "REL-planner@sha256:" + "a" * 64,
+        },
+        "spec": {
+            "nodes": [
+                {
+                    "id": "NODE-terminal-goal-verification",
+                    "nodeType": "goal_verification",
+                    "objective": "Verify the goal from current Evidence.",
+                    "claimRefs": ["CLAIM-plan-validation-fail-closed"],
+                    "dependsOn": [],
+                    "inputRefs": ["input/context@sha256:" + "b" * 64],
+                    "expectedOutputs": [],
+                    "capabilityRequests": [],
+                    "gateRefs": ["GATE-plan-tests"],
+                    "runtimeRef": "runtime/local-worktree@sha256:" + "c" * 64,
+                    "budgetRequest": {
+                        "maxModelCalls": 1,
+                        "maxToolCalls": 1,
+                        "maxSpawnedNodes": 0,
+                        "maxWallSeconds": 30,
+                    },
+                    "retryPolicy": {
+                        "maxAttempts": 1,
+                        "retryableFailureClasses": [],
+                        "idempotencyKeyRequired": False,
+                    },
+                    "timeoutSeconds": 30,
+                    "sideEffect": "idempotent",
+                    "terminalGoalVerification": True,
+                }
+            ]
+        },
+    }
 
 if __name__ == "__main__":
     unittest.main()

@@ -167,6 +167,16 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
             "scope, or escalate with questions. Do not modify files."
         ),
     }
+    role_instruction = role_instructions[request.role]
+    if request.role == AgentRole.PLANNER and request.expected_output == "PlanDraft":
+        role_instruction += (
+            " For PlanDraft output, use the exact AHRA PlanDraft field names: "
+            "metadata.goalId, metadata.proposedBy, spec.nodes, nodes[].nodeType, "
+            "nodes[].claimRefs, nodes[].dependsOn, nodes[].inputRefs, "
+            "nodes[].expectedOutputs, nodes[].gateRefs, and nodes[].budgetRequest. "
+            "Do not use aliases such as goalRef, type, claims, gates, bounds, "
+            "limits, budget, objective-only nodes, or planNodes."
+        )
     return (
         "You are an AHRA AgentDriver adapter.\n"
         f"Role: {request.role.value}\n"
@@ -174,7 +184,7 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
         f"Workspace ref: {request.workspace_ref or '<none>'}\n"
         f"Expected output type: {request.expected_output}\n"
         f"{runtime}"
-        f"{role_instructions[request.role]}\n"
+        f"{role_instruction}\n"
         "Return only one JSON object. Do not include markdown or prose.\n"
         "Do not add fields outside the output contract.\n"
         "Output contract:\n"

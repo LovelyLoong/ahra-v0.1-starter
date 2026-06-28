@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from ahra.plan_ir import PlanCompilerConfig, PlanDraft, PlanPatchDraft, compile_plan_draft
+from ahra.agent_contracts import validate_agent_output
 from ahra.planner_contracts import (
     ExecutionPlanningRequest,
     PlannerBudgetLimits,
@@ -25,9 +26,10 @@ from ahra.planning import (
     PlannerOutputValidator,
     PlannerRuntimeBoundaryError,
     ensure_planner_runtime_profile,
+    plan_draft_output_contract,
     planner_read_only_runtime_profile,
 )
-from ahra.ports import AgentDriverRegistry, AgentRunRequest, AgentRunResult, AgentRuntimeProfile
+from ahra.ports import AgentDriverRegistry, AgentOutputContractError, AgentRunRequest, AgentRunResult, AgentRuntimeProfile
 from ahra.validation import load_document
 from ahra.verification import DefectRecord
 
@@ -251,6 +253,36 @@ class PlanningTests(unittest.TestCase):
         self.assertEqual(payload["failure"]["code"], "planner-output-invalid")
         self.assertIn("driverOutput", payload)
         self.assertIn("driverOutputSha256", payload)
+
+    def test_plan_draft_output_contract_rejects_task0040_alias_shape(self) -> None:
+        task0040_like_output = {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "PlanDraft",
+            "metadata": {
+                "runId": "TASK-0041-MODE-A-R01",
+                "goalRef": "GOAL-M1-GENERIC-SMOKE",
+            },
+            "spec": {
+                "nodes": [
+                    {
+                        "id": "node-1",
+                        "type": "bounded_task",
+                        "claims": ["CLM-WRITE-ARTIFACT"],
+                        "gates": ["GATE-write-artifact"],
+                        "bounds": {"maxModelCalls": 2, "maxToolCalls": 2},
+                    }
+                ]
+            },
+        }
+
+        with self.assertRaises(AgentOutputContractError) as raised:
+            validate_agent_output(plan_draft_output_contract(), task0040_like_output)
+
+        details = "\n".join(raised.exception.details)
+        self.assertIn("goalId", details)
+        self.assertIn("proposedBy", details)
+        self.assertIn("nodeType", details)
+        self.assertIn("budgetRequest", details)
 
     def test_defect_repair_patch_is_bounded_and_reuses_unchanged_nodes_and_evidence(self) -> None:
         bundle = _context_bundle()

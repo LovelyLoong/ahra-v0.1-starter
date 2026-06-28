@@ -17,6 +17,7 @@ from .plan_ir import (
     PlanPatchDraft,
     PlanValidationError,
     PlanValidationReport,
+    SUPPORTED_API_VERSION,
     compile_plan_draft,
     compile_plan_patch,
 )
@@ -147,6 +148,35 @@ class PlannerContextBuilder:
                         "planDraftKind": "PlanDraft",
                         "planPatchKind": "PlanPatchDraft",
                         "claimRefs": sorted(request.claim_refs),
+                        "planDraftRequiredShape": {
+                            "metadata": {
+                                "goalId": request.goal_ref,
+                                "proposedBy": request.agent_release_digest,
+                            },
+                            "nodeFields": [
+                                "id",
+                                "nodeType",
+                                "objective",
+                                "claimRefs",
+                                "dependsOn",
+                                "inputRefs",
+                                "expectedOutputs",
+                                "gateRefs",
+                                "budgetRequest",
+                            ],
+                            "registeredNodeTypes": sorted(request.registered_node_types),
+                            "registeredGateRefs": sorted(request.registered_gate_refs),
+                            "registeredRuntimeRefs": sorted(request.registered_runtime_refs),
+                            "rejectedAliases": {
+                                "metadata.goalRef": "metadata.goalId",
+                                "spec.goalRef": "metadata.goalId",
+                                "nodes[].type": "nodes[].nodeType",
+                                "nodes[].claims": "nodes[].claimRefs",
+                                "nodes[].gates": "nodes[].gateRefs",
+                                "nodes[].bounds": "nodes[].budgetRequest",
+                                "spec.planNodes": "spec.nodes",
+                            },
+                        },
                     }
                 ),
                 trust="system-authoritative",
@@ -587,16 +617,15 @@ class PlannerOutputValidator:
 def plan_draft_output_contract() -> AgentOutputContract:
     return AgentOutputContract(
         name="PlanDraft",
-        schema={
-            "type": "object",
-            "required": ["apiVersion", "kind", "metadata", "spec"],
-            "properties": {
-                "apiVersion": {"const": "ahra.dev/v1alpha1"},
-                "kind": {"const": "PlanDraft"},
-                "metadata": {"type": "object"},
-                "spec": {"type": "object"},
-            },
-        },
+        schema=_plan_draft_output_schema(),
+        example=_plan_draft_output_example(),
+        instructions=(
+            "Use metadata.goalId exactly; do not use metadata.goalRef or spec.goalRef.",
+            "Use metadata.proposedBy for the Planner release or driver identity.",
+            "Use nodes[].nodeType, nodes[].claimRefs, nodes[].budgetRequest and nodes[].expectedOutputs exactly; do not use type, claims, bounds, limits, budget or planNodes aliases.",
+            "Use only Goal, Claim, Gate, Runtime and capability refs supplied in the payload.",
+            "Planner output is read-only intent; it must not claim execution success or grant capabilities.",
+        ),
     )
 
 
@@ -629,6 +658,208 @@ def acceptance_output_contract() -> AgentOutputContract:
             },
         },
     )
+
+
+def _plan_draft_output_schema() -> dict[str, Any]:
+    string_list = {"type": "array", "items": {"type": "string", "minLength": 1}}
+    budget = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["maxModelCalls", "maxToolCalls"],
+        "properties": {
+            "maxModelCalls": {"type": "integer", "minimum": 1},
+            "maxToolCalls": {"type": "integer", "minimum": 1},
+            "maxSpawnedNodes": {"type": "integer", "minimum": 0},
+            "maxWallSeconds": {"type": "integer", "minimum": 1},
+            "maxCostUsd": {"type": "number", "minimum": 0},
+        },
+    }
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["apiVersion", "kind", "metadata", "spec"],
+        "properties": {
+            "apiVersion": {"const": SUPPORTED_API_VERSION},
+            "kind": {"const": "PlanDraft"},
+            "metadata": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["goalId", "proposedBy"],
+                "properties": {
+                    "goalId": {"type": "string", "minLength": 1},
+                    "proposedBy": {"type": "string", "minLength": 1},
+                },
+            },
+            "spec": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["nodes"],
+                "properties": {
+                    "rationale": {"type": "string"},
+                    "nodes": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "required": [
+                                "id",
+                                "nodeType",
+                                "objective",
+                                "claimRefs",
+                                "dependsOn",
+                                "inputRefs",
+                                "expectedOutputs",
+                                "gateRefs",
+                                "budgetRequest",
+                            ],
+                            "properties": {
+                                "id": {"type": "string", "minLength": 1},
+                                "nodeType": {
+                                    "enum": [
+                                        "bounded_task",
+                                        "gate_verification",
+                                        "goal_verification",
+                                        "repair",
+                                    ]
+                                },
+                                "objective": {"type": "string", "minLength": 1},
+                                "claimRefs": string_list,
+                                "dependsOn": string_list,
+                                "inputRefs": string_list,
+                                "expectedOutputs": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": False,
+                                        "required": ["name", "schemaRef"],
+                                        "properties": {
+                                            "name": {"type": "string", "minLength": 1},
+                                            "schemaRef": {"type": "string", "minLength": 1},
+                                            "consumerNodeRefs": string_list,
+                                            "deliveryRole": {
+                                                "enum": ["artifact", "evidence", "handoff", "terminal"]
+                                            },
+                                            "artifactRequired": {"type": "boolean"},
+                                        },
+                                    },
+                                },
+                                "capabilityRequests": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": False,
+                                        "required": ["capability", "resources"],
+                                        "properties": {
+                                            "capability": {"type": "string", "minLength": 1},
+                                            "resources": string_list,
+                                        },
+                                    },
+                                },
+                                "gateRefs": string_list,
+                                "runtimeRef": {"type": "string", "minLength": 1},
+                                "budgetRequest": budget,
+                                "retryPolicy": {
+                                    "type": "object",
+                                    "additionalProperties": False,
+                                    "properties": {
+                                        "maxAttempts": {"type": "integer", "minimum": 1},
+                                        "retryableFailureClasses": string_list,
+                                        "idempotencyKeyRequired": {"type": "boolean"},
+                                    },
+                                },
+                                "timeoutSeconds": {"type": "integer", "minimum": 1},
+                                "compensationRef": {"type": "string", "minLength": 1},
+                                "sideEffect": {"enum": ["idempotent", "non_idempotent"]},
+                                "terminalGoalVerification": {"type": "boolean"},
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    }
+
+
+def _plan_draft_output_example() -> dict[str, Any]:
+    return {
+        "apiVersion": SUPPORTED_API_VERSION,
+        "kind": "PlanDraft",
+        "metadata": {
+            "goalId": "GOAL-M1-GENERIC-SMOKE",
+            "proposedBy": "planner/agent-driver-plan-draft@sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        },
+        "spec": {
+            "rationale": "Use one bounded task and one terminal goal verification node.",
+            "nodes": [
+                {
+                    "id": "NODE-write-artifact",
+                    "nodeType": "bounded_task",
+                    "objective": "Write the required bounded artifact inside the governed workspace.",
+                    "claimRefs": ["CLM-WRITE-ARTIFACT"],
+                    "dependsOn": [],
+                    "inputRefs": ["input/m1-generic-smoke@sha256:7777777777777777777777777777777777777777777777777777777777777777"],
+                    "expectedOutputs": [
+                        {
+                            "name": "deterministic-artifact",
+                            "schemaRef": "schema/m1-deterministic-artifact@sha256:8888888888888888888888888888888888888888888888888888888888888888",
+                            "consumerNodeRefs": ["NODE-goal-verification"],
+                            "artifactRequired": True,
+                        }
+                    ],
+                    "capabilityRequests": [
+                        {
+                            "capability": "filesystem.write",
+                            "resources": ["outputs/summary.txt"],
+                        }
+                    ],
+                    "gateRefs": ["GATE-write-artifact"],
+                    "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                    "budgetRequest": {
+                        "maxModelCalls": 1,
+                        "maxToolCalls": 1,
+                        "maxSpawnedNodes": 0,
+                        "maxWallSeconds": 30,
+                        "maxCostUsd": 0.0,
+                    },
+                    "retryPolicy": {
+                        "maxAttempts": 1,
+                        "retryableFailureClasses": [],
+                        "idempotencyKeyRequired": True,
+                    },
+                    "timeoutSeconds": 30,
+                    "sideEffect": "idempotent",
+                },
+                {
+                    "id": "NODE-goal-verification",
+                    "nodeType": "goal_verification",
+                    "objective": "Verify the goal-complete claim from current Evidence.",
+                    "claimRefs": ["CLM-WRITE-ARTIFACT", "CLM-GOAL-COMPLETE"],
+                    "dependsOn": ["NODE-write-artifact"],
+                    "inputRefs": ["NODE-write-artifact"],
+                    "expectedOutputs": [],
+                    "capabilityRequests": [],
+                    "gateRefs": ["GATE-goal-complete"],
+                    "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                    "budgetRequest": {
+                        "maxModelCalls": 1,
+                        "maxToolCalls": 1,
+                        "maxSpawnedNodes": 0,
+                        "maxWallSeconds": 30,
+                        "maxCostUsd": 0.0,
+                    },
+                    "retryPolicy": {
+                        "maxAttempts": 1,
+                        "retryableFailureClasses": [],
+                        "idempotencyKeyRequired": False,
+                    },
+                    "timeoutSeconds": 30,
+                    "sideEffect": "idempotent",
+                    "terminalGoalVerification": True,
+                },
+            ],
+        },
+    }
 
 
 def _repair_preflight_errors(
