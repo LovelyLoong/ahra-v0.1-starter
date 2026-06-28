@@ -1,0 +1,16 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0042",
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "state": "ready",
+  "state_version": 1,
+  "owner": null,
+  "attempt": 0,
+  "lease": null,
+  "next_action": "Wait for TASK-0041 to finish or reach review, then handle Mode B real Executor runtime timeout stability as a separate uncertainty.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-06-28T05:11:09.310201Z"
+}

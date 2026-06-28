@@ -1,0 +1,21 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0041",
+  "context_id": "CTX-ahra-dynamic-kernel",
+  "state": "working",
+  "state_version": 2,
+  "owner": "agent:codex-dynamic-kernel-operator",
+  "attempt": 1,
+  "lease": {
+    "holder": "agent:codex-dynamic-kernel-operator",
+    "token": "LEASE-TASK-0041-0001",
+    "acquired_at": "2026-06-28T05:11:09.310201Z",
+    "expires_at": "2026-06-28T05:41:09.310201Z"
+  },
+  "next_action": "Implement the smallest Planner contract-adherence hardening, run five Mode A repetitions, and publish TASK-0041 evidence for review.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-06-28T05:11:09.310201Z"
+}
