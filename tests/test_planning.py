@@ -69,6 +69,14 @@ class PlanningTests(unittest.TestCase):
         self.assertEqual(first.input_artifact.release_digest, first.context_manifest.agent_release_digest)
         self.assertEqual(first.input_artifact.context_manifest_digest, first.context_manifest.sha256)
 
+    def test_context_input_exposes_allowed_capabilities_to_planner(self) -> None:
+        bundle = PlannerContextBuilder().build(_context_request())
+
+        self.assertEqual(bundle.input_artifact.payload["allowedCapabilities"], ["filesystem.write", "process.exec"])
+        self.assertTrue(
+            any("payload.allowedCapabilities" in instruction for instruction in plan_draft_output_contract().instructions)
+        )
+
     def test_planner_runtime_profile_is_read_only_without_project_write_grants(self) -> None:
         profile = planner_read_only_runtime_profile()
 
@@ -385,6 +393,7 @@ def _context_request(
         goal_digest=D1,
         policy_ref="policy/planner@sha256:" + "b" * 64,
         policy_digest="sha256:" + "b" * 64,
+        allowed_capabilities=("filesystem.write", "process.exec"),
         claim_refs=claim_refs,
         registered_node_types={
             "goal_verification": D5,

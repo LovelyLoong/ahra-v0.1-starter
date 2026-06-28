@@ -1142,6 +1142,7 @@ def _context_request(
         goal_digest=config.goal_digest,
         policy_ref=POLICY_REF,
         policy_digest=POLICY_DIGEST,
+        allowed_capabilities=tuple(sorted(config.allowed_capabilities)),
         claim_refs=tuple(claim.claim_id for claim in graph.claims),
         registered_node_types=config.registered_node_types,
         registered_gate_refs={gate.gate_id: _gate_digest(gate) for gate in gates},

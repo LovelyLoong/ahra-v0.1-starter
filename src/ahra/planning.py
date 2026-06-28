@@ -135,6 +135,7 @@ class PlannerContextBuilder:
                         "registeredNodeTypes": dict(sorted(request.registered_node_types.items())),
                         "registeredGateRefs": dict(sorted(request.registered_gate_refs.items())),
                         "registeredRuntimeRefs": dict(sorted(request.registered_runtime_refs.items())),
+                        "allowedCapabilities": sorted(request.allowed_capabilities),
                     }
                 ),
                 trust="project-authoritative",
@@ -167,6 +168,7 @@ class PlannerContextBuilder:
                             "registeredNodeTypes": sorted(request.registered_node_types),
                             "registeredGateRefs": sorted(request.registered_gate_refs),
                             "registeredRuntimeRefs": sorted(request.registered_runtime_refs),
+                            "allowedCapabilities": sorted(request.allowed_capabilities),
                             "rejectedAliases": {
                                 "metadata.goalRef": "metadata.goalId",
                                 "spec.goalRef": "metadata.goalId",
@@ -624,6 +626,7 @@ def plan_draft_output_contract() -> AgentOutputContract:
             "Use metadata.proposedBy for the Planner release or driver identity.",
             "Use nodes[].nodeType, nodes[].claimRefs, nodes[].budgetRequest and nodes[].expectedOutputs exactly; do not use type, claims, bounds, limits, budget or planNodes aliases.",
             "Use only Goal, Claim, Gate, Runtime and capability refs supplied in the payload.",
+            "When a bounded task needs downstream execution authority, express that intent with nodes[].capabilityRequests using payload.allowedCapabilities; Planner runtime permissions remain read-only.",
             "Planner output is read-only intent; it must not claim execution success or grant capabilities.",
         ),
     )

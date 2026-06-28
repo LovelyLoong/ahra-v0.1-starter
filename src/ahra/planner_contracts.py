@@ -92,6 +92,7 @@ class PlannerContextRequest:
     goal_digest: str
     policy_ref: str
     policy_digest: str
+    allowed_capabilities: tuple[str, ...]
     claim_refs: tuple[str, ...] = ()
     registered_node_types: Mapping[str, str] = field(default_factory=dict)
     registered_gate_refs: Mapping[str, str] = field(default_factory=dict)
@@ -108,6 +109,7 @@ class PlannerContextRequest:
             "goalDigest": self.goal_digest,
             "policyRef": self.policy_ref,
             "policyDigest": self.policy_digest,
+            "allowedCapabilities": sorted(self.allowed_capabilities),
             "claimRefs": sorted(self.claim_refs),
             "registeredNodeTypes": dict(sorted(self.registered_node_types.items())),
             "registeredGateRefs": dict(sorted(self.registered_gate_refs.items())),

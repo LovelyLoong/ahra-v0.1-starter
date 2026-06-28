@@ -174,6 +174,10 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
             "metadata.goalId, metadata.proposedBy, spec.nodes, nodes[].nodeType, "
             "nodes[].claimRefs, nodes[].dependsOn, nodes[].inputRefs, "
             "nodes[].expectedOutputs, nodes[].gateRefs, and nodes[].budgetRequest. "
+            "Use nodes[].capabilityRequests for downstream Executor intent when "
+            "the node needs a capability listed in payload.allowedCapabilities "
+            "or plannerInputArtifact.payload.allowedCapabilities; this is not "
+            "a Planner runtime grant. "
             "Do not use aliases such as goalRef, type, claims, gates, bounds, "
             "limits, budget, objective-only nodes, or planNodes."
         )

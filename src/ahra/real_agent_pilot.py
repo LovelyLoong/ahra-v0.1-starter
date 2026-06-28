@@ -291,6 +291,7 @@ class RealAgentPilotRunner:
                 goal_digest=request.goal_digest,
                 policy_ref=request.profile_ref,
                 policy_digest=_policy_digest(request),
+                allowed_capabilities=tuple(sorted(request.allowed_capabilities)),
                 claim_refs=request.required_claim_refs,
                 registered_node_types=request.registered_node_types,
                 registered_gate_refs=request.registered_gate_refs,

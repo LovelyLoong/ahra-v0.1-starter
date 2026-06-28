@@ -80,6 +80,8 @@ class RealAgentPilotTests(unittest.TestCase):
             run = scorecard["runs"][0]
             self.assertEqual(run["planner"]["status"], "accepted")
             self.assertEqual(run["execution"]["status"], "succeeded")
+            planner_payload = planner.last_request.payload["plannerInputArtifact"]["payload"]
+            self.assertEqual(planner_payload["allowedCapabilities"], ["filesystem.write"])
             self.assertTrue((Path(temp) / "run-01" / ".ahra" / "artifacts" / "planner-admission-report.json").exists())
 
     def test_mode_a_rejects_bad_planner_output_without_starting_goal_execution(self) -> None:

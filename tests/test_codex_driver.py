@@ -124,6 +124,8 @@ class CodexSDKDriverTests(unittest.TestCase):
         self.assertIn('"nodeType"', client.calls[0]["prompt"])
         self.assertIn("metadata.goalId", client.calls[0]["prompt"])
         self.assertIn("nodes[].nodeType", client.calls[0]["prompt"])
+        self.assertIn("nodes[].capabilityRequests", client.calls[0]["prompt"])
+        self.assertIn("Planner runtime grant", client.calls[0]["prompt"])
 
     def test_plan_draft_response_requires_explicit_output_contract(self) -> None:
         client = FakeCodexClient({"PlanDraft": json.dumps({"kind": "PlanDraft"})})
