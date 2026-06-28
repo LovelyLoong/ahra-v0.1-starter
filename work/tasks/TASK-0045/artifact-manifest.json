@@ -161,7 +161,7 @@
       "kind": "verification_summary",
       "name": "verification-summary.json",
       "uri": "local://evidence/verification-summary.json",
-      "sha256": "11fab54e4684b19a88e2565c01bfaa25f2993e45354e4b507acbd955358e43bf",
+      "sha256": "0a460a9a4e035083286e0a1b8d8e39409247bece3202e4729e3279bc8a43d4b3",
       "media_type": "application/json",
       "created_by": "agent:codex-dynamic-kernel-operator",
       "created_at": "2026-06-28T08:31:21.256634Z",

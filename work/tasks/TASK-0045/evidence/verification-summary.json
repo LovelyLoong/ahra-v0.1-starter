@@ -109,13 +109,13 @@
     }
   ],
   "artifact_hashes": {
-    "work/tasks/TASK-0045/evidence/failure-taxonomy.json": "cd31fb1e59cc4f34205807c046f2aba7cc57820b2b6019ccef12800a23067ffd",
-    "work/tasks/TASK-0045/evidence/goal-inspect-run-01.json": "ccbf86b679fae7a59becde9c37895ca77c88e4c08c3e5ee0b83eb289ef1af62b",
-    "work/tasks/TASK-0045/evidence/goal-inspect-run-02.json": "28e9ccf91502e0f82f1770869d27eadc32fdd4fb1dbd78873e85102c92820f79",
-    "work/tasks/TASK-0045/evidence/goal-inspect-run-03.json": "e4a61e75907427a463a89cb99d838689128113093a30ba6a0bfbe4943010f042",
-    "work/tasks/TASK-0045/evidence/goal-inspect-summary.json": "ce7b76b4b2efcdc83725d8e56d195e09364ae59cde27061ecd8c3f2b9538ca52",
-    "work/tasks/TASK-0045/evidence/mode-c-decision.json": "68ad67480682905a8598db4ad82dc6d0792cf7576d25a3804a5464ae0c0227e6",
-    "work/tasks/TASK-0045/evidence/real-agent-pilot/mode-c/scorecard.json": "6a2df1be2fbd5c3bf00f4cbc53bbeb0c375ea8b94e366b5ee01e84a94dbea1ca"
+    "work/tasks/TASK-0045/evidence/failure-taxonomy.json": "f3f8534286108d4aaf7900400bb05c662356eefc1342aed273e112313669c898",
+    "work/tasks/TASK-0045/evidence/goal-inspect-run-01.json": "8148417b6fe5c440a385c56f2274797816b8c6ad0f760b6be2893eaa336680e2",
+    "work/tasks/TASK-0045/evidence/goal-inspect-run-02.json": "158cc0666b99749a4faf061341bd041f9b6e148c0de2f1e0d9164ed6df96eefe",
+    "work/tasks/TASK-0045/evidence/goal-inspect-run-03.json": "4a1bacff69d0ec9d7c0b8cb28d8f72eb3adc7afda62ac2ffac4b4f329ee28f82",
+    "work/tasks/TASK-0045/evidence/goal-inspect-summary.json": "d856ebbfda00149db79a41b759515bdf84aa0ce392543ddc9b7debaff21801e1",
+    "work/tasks/TASK-0045/evidence/mode-c-decision.json": "4c6e96bd23e766cf274ee528c10e81ee920b9110f2404e3a97b2ccec60f55e96",
+    "work/tasks/TASK-0045/evidence/real-agent-pilot/mode-c/scorecard.json": "e50e743e46b0a2ec2f8f4dc01cfe534d04b43ca6bdf239a45a3abc447e8d977a"
   },
   "code_commit": "1ab5506536662e87fc09113a428fc73386610370",
   "commands": [
@@ -172,9 +172,15 @@
       "name": "full_tests",
       "result": "199 tests passed, 2 skipped.",
       "status": "passed"
+    },
+    {
+      "command": "custom TASK-0045 manifest and verification-summary internal digest audit",
+      "name": "manifest_internal_digest_audit",
+      "result": "Manifest SHA values match current files; verification-summary artifact_hashes match current file bytes and manifest SHA for all listed non-self artifacts.",
+      "status": "passed"
     }
   ],
-  "generated_at": "2026-06-28T08:31:21.256634Z",
+  "generated_at": "2026-06-28T08:48:23.200200Z",
   "producer_commit": "1ab5506536662e87fc09113a428fc73386610370",
   "provider_usage": {
     "cost_usage_available": false,
@@ -232,5 +238,13 @@
     "run_count": 3,
     "success_count": 0
   },
-  "task_id": "TASK-0045"
+  "task_id": "TASK-0045",
+  "artifact_hashes_semantics": "SHA-256 over current repository file bytes for listed non-self evidence artifacts; verification-summary.json self hash is recorded by ART-TASK-0045-0009 and EVD-TASK-0045-0009 manifest entries.",
+  "digest_correction": {
+    "corrected_at": "2026-06-28T08:48:23.200200Z",
+    "corrected_by": "agent:codex-dynamic-kernel-operator",
+    "evidence_gate_report": "evidence/evidence-gate-report-4.json",
+    "summary": "Refreshed artifact_hashes to match current evidence file bytes and manifest SHA; no Mode C decision or runtime conclusion changed."
+  },
+  "updated_at": "2026-06-28T08:48:23.200200Z"
 }
