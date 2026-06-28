@@ -1,0 +1,51 @@
+{
+  "artifactId": "PLART-d83d2c5e79114a34a7328d51",
+  "contextManifestDigest": "31afa647bdbe916ee3ad814a2fbe94fcc6817bc569fb03113e8c6ddea426cd70",
+  "contextManifestRef": "CTXMAN-31afa647bdbe916ee3ad814a",
+  "kind": "planner-context-input",
+  "mediaType": "application/json",
+  "payload": {
+    "agentReleaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+    "budgetLimits": {
+      "maxCostUsd": 1.0,
+      "maxFanOut": 4,
+      "maxModelCalls": 12,
+      "maxPlanDepth": 6,
+      "maxPlanNodes": 6,
+      "maxRepairCycles": 1,
+      "maxSpawnedNodes": 0,
+      "maxToolCalls": 22,
+      "maxWallSeconds": 180
+    },
+    "claimRefs": [
+      "CLM-GOAL-COMPLETE",
+      "CLM-WRITE-ARTIFACT"
+    ],
+    "defects": [],
+    "goalDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "goalRef": "GOAL-M1-GENERIC-SMOKE",
+    "policyDigest": "sha256:70d6d561a4ee4c3d9a8b93ae1043252707999b07e4cde66c49c3a03eb65f030b",
+    "policyRef": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "registeredGateRefs": {
+      "GATE-goal-complete": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "GATE-write-artifact": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "registeredNodeTypes": {
+      "bounded_task": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "goal_verification": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "registeredRuntimeRefs": {
+      "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "runId": "TASK-0040-MODE-A-R02",
+    "tokenBudget": 4096
+  },
+  "refs": [
+    "CLM-GOAL-COMPLETE",
+    "CLM-WRITE-ARTIFACT",
+    "GOAL-M1-GENERIC-SMOKE",
+    "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  ],
+  "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+  "sha256": "sha256:d83d2c5e79114a34a7328d516a8c329b87593b40ffbfec25aa14dd262c55f8bd"
+}

@@ -1,37 +1,112 @@
 {
-  "schema_version": "awkp/0.1",
-  "task_id": "TASK-0040",
   "evidence": [
     {
-      "evidence_id": "EVD-TASK-0040-0001",
-      "task_id": "TASK-0040",
-      "kind": "implementation_progress_report",
-      "name": "implementation-progress-report.md",
-      "uri": "local://evidence/implementation-progress-report.md",
-      "sha256": "f43461cae00282b075264284e7462d89b26ce36e6209749a39cfcabff8a628e1",
-      "media_type": "text/markdown",
-      "created_by": "agent:codex-dynamic-kernel-operator",
       "created_at": "2026-06-28T02:24:20Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0040-0001",
+      "kind": "implementation_progress_report",
+      "media_type": "text/markdown",
+      "name": "implementation-progress-report.md",
       "refs": [
         "ART-TASK-0040-0001",
         "ART-TASK-0040-0002",
         "ART-TASK-0040-HANDOFF-0001"
-      ]
+      ],
+      "sha256": "f43461cae00282b075264284e7462d89b26ce36e6209749a39cfcabff8a628e1",
+      "task_id": "TASK-0040",
+      "uri": "local://evidence/implementation-progress-report.md"
     },
     {
-      "evidence_id": "EVD-TASK-0040-0002",
-      "task_id": "TASK-0040",
-      "kind": "local_verification_progress",
-      "name": "verification-progress.json",
-      "uri": "local://evidence/verification-progress.json",
-      "sha256": "61e06ace179d7cdf8a69da0a456ad50e7ef0ccd9d71356366ad9a2ad0ff23a64",
-      "media_type": "application/json",
-      "created_by": "agent:codex-dynamic-kernel-operator",
       "created_at": "2026-06-28T02:24:20Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0040-0002",
+      "kind": "local_verification_progress",
+      "media_type": "application/json",
+      "name": "verification-progress.json",
       "refs": [
         "ART-TASK-0040-0002",
         "ART-TASK-0040-0001"
-      ]
+      ],
+      "sha256": "61e06ace179d7cdf8a69da0a456ad50e7ef0ccd9d71356366ad9a2ad0ff23a64",
+      "task_id": "TASK-0040",
+      "uri": "local://evidence/verification-progress.json"
+    },
+    {
+      "created_at": "2026-06-28T03:55:24.849927Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0040-0003",
+      "kind": "real_agent_pilot_report",
+      "media_type": "text/markdown",
+      "name": "real-agent-pilot-report.md",
+      "refs": [
+        "ART-TASK-0040-0003",
+        "ART-TASK-0040-0004",
+        "ART-TASK-0040-0005",
+        "ART-TASK-0040-0006",
+        "ART-TASK-0040-0007",
+        "ART-TASK-0040-HANDOFF-0002"
+      ],
+      "sha256": "c2b81ceb67cdf11b998f8686c69a9d5e5d1b982b7b8f7ea79cc604cc96ec69b5",
+      "task_id": "TASK-0040",
+      "uri": "local://evidence/real-agent-pilot-report.md"
+    },
+    {
+      "created_at": "2026-06-28T03:55:24.849927Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0040-0004",
+      "kind": "mode_a_scorecard",
+      "media_type": "application/json",
+      "name": "scorecard.json",
+      "refs": [
+        "ART-TASK-0040-0005"
+      ],
+      "sha256": "5ec50de2b97a8270d6a13a9dfdf221913399abac57f390c6447b3534fc416356",
+      "task_id": "TASK-0040",
+      "uri": "local://evidence/real-agent-pilot/mode-a/scorecard.json"
+    },
+    {
+      "created_at": "2026-06-28T03:55:24.849927Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0040-0005",
+      "kind": "mode_b_scorecard",
+      "media_type": "application/json",
+      "name": "scorecard.json",
+      "refs": [
+        "ART-TASK-0040-0006"
+      ],
+      "sha256": "1d27c650a8b9202cbfcafa9cd58bed64a4df584a8eaec91688eeb18e37c08c34",
+      "task_id": "TASK-0040",
+      "uri": "local://evidence/real-agent-pilot/mode-b/scorecard.json"
+    },
+    {
+      "created_at": "2026-06-28T03:55:24.849927Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0040-0006",
+      "kind": "mode_c_go_no_go_decision",
+      "media_type": "application/json",
+      "name": "mode-c-decision.json",
+      "refs": [
+        "ART-TASK-0040-0007"
+      ],
+      "sha256": "3f65e2546828fff731c0a013c0bea7873d2d5c78e3056e3a8699e16efd59e2ab",
+      "task_id": "TASK-0040",
+      "uri": "local://evidence/mode-c-decision.json"
+    },
+    {
+      "created_at": "2026-06-28T03:55:24.849927Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0040-0007",
+      "kind": "real_agent_pilot_summary",
+      "media_type": "application/json",
+      "name": "real-agent-pilot-summary.json",
+      "refs": [
+        "ART-TASK-0040-0004"
+      ],
+      "sha256": "1ec7669f0f4ae9984038c4f562964012ff948ee52fdeba4eb5ef9ac059f85ab2",
+      "task_id": "TASK-0040",
+      "uri": "local://evidence/real-agent-pilot-summary.json"
     }
-  ]
+  ],
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0040"
 }

@@ -1,0 +1,98 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanDraft",
+  "metadata": {
+    "goalId": "GOAL-M1-GENERIC-SMOKE",
+    "proposedBy": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "spec": {
+    "nodes": [
+      {
+        "budgetRequest": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 2,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "capabilityRequests": [
+          {
+            "capability": "filesystem.write",
+            "resources": [
+              "outputs/summary.txt"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-WRITE-ARTIFACT"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "deterministic-artifact",
+            "schemaRef": "schema/m1-deterministic-artifact@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+          }
+        ],
+        "gateRefs": [
+          "GATE-write-artifact"
+        ],
+        "id": "NODE-write-artifact",
+        "inputRefs": [
+          "input/m1-generic-smoke@sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Write the deterministic goal artifact inside the governed workspace.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 30
+      },
+      {
+        "budgetRequest": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "capabilityRequests": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-WRITE-ARTIFACT"
+        ],
+        "dependsOn": [
+          "NODE-write-artifact"
+        ],
+        "expectedOutputs": [],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-write-artifact"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the deterministic GoalExecution completion claim.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 30
+      }
+    ],
+    "rationale": "Minimal deterministic generic GoalExecution smoke path."
+  }
+}

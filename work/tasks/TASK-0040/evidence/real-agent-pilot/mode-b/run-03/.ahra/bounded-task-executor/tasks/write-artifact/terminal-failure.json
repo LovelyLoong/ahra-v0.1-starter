@@ -1,0 +1,31 @@
+{
+  "schema_version": "ahra/workflow-terminal-failure/0.1",
+  "task_id": "write-artifact",
+  "run_id": "NRUN-d03dc2a2abb1a3b7",
+  "status": "error",
+  "summary": "Task failed with an execution error and was rolled back: TimeoutError('executor exceeded idle timeout (45s)')",
+  "attempt_count": 1,
+  "last_error": "TimeoutError('executor exceeded idle timeout (45s)')",
+  "execution_policy": {
+    "max_attempts": 1,
+    "startup_timeout_seconds": 30,
+    "idle_timeout_seconds": 45,
+    "heartbeat_interval_seconds": 15,
+    "attempt_wall_timeout_seconds": 60,
+    "run_deadline_seconds": 75
+  },
+  "workspace": "D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-03\\workspace",
+  "branch": "main",
+  "checkpoint": "288e5832aa1676afece2de2a1a8e528f1fd75313",
+  "artifact_dir": "D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-03\\.ahra\\bounded-task-executor",
+  "refs": [],
+  "attempts": [
+    {
+      "attempt": 1,
+      "work_report": null,
+      "deterministic": null,
+      "review": null,
+      "error": "TimeoutError('executor exceeded idle timeout (45s)')"
+    }
+  ]
+}

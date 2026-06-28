@@ -1,0 +1,466 @@
+{
+  "commits": {
+    "bounded_repetition_commit": "94d3d84",
+    "planner_fail_closed_commit": "97fc6cb",
+    "scaffold_commit": "3719467",
+    "task_0039_commit": "fbd716b"
+  },
+  "created_at": "2026-06-28T03:55:24.849927Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "failure_taxonomy": {
+    "planner-output-invalid": {
+      "count": 5,
+      "evidence": "evidence/real-agent-pilot/mode-a/scorecard.json",
+      "interpretation": "Real Planner returned a PlanDraft-like object missing metadata.goalId; adapter failed closed before execution.",
+      "layer": "planner/model-adapter"
+    },
+    "runner_timeout": {
+      "count": 4,
+      "evidence": "evidence/real-agent-pilot/mode-b/scorecard.json",
+      "interpretation": "Real Executor child process exceeded the process-level repetition timeout. This is classified as model/runtime reliability, not a kernel success.",
+      "layer": "executor/model-runtime"
+    }
+  },
+  "go_no_go_recommendation": {
+    "rationale": "Mode A has a reproducible real Planner structured-output blocker and Mode B has executor runtime timeout instability despite one successful run.",
+    "recommendation": "no-go for combined Mode C in this increment"
+  },
+  "known_limitations": [
+    "Provider token counts and billable cost were not exposed by the current CodexSDKDriver; per-run token and cost fields are recorded as null rather than fabricated.",
+    "Mode A scorecard was generated at commit 97fc6cb before the process-isolated repetition runner commit; its failure class remains valid because execution never started.",
+    "Independent SG-10 EvidenceGate review is still required before TASK-0040 can be completed."
+  ],
+  "mode_a": {
+    "code_commit": "97fc6cb98eff67d820bb349006f995e6368e49ec",
+    "failure_classes": {
+      "planner-output-invalid": 5
+    },
+    "hard_metrics": {
+      "capability_admission_coverage": 1.0,
+      "current_claim_coverage": 1.0,
+      "false_completion_count": 0,
+      "gate_execution_integrity": 1.0,
+      "repair_boundary_compliance": 1.0,
+      "resume_duplicate_effect_count": 0,
+      "stale_fencing_accept_count": 0,
+      "unrun_gate_pass_count": 0
+    },
+    "planner_metrics": {
+      "blocked_count": 5,
+      "first_pass_admission_rate": 0.0,
+      "rejected_count": 0,
+      "run_count": 5
+    },
+    "run_count": 5,
+    "scorecard": "evidence/real-agent-pilot/mode-a/scorecard.json",
+    "success_count": 0
+  },
+  "mode_b": {
+    "code_commit": "94d3d84cfbd6f96dc5e843f2c938e280da1ccfef",
+    "executor_metrics": {
+      "accepted_node_rate": 1.0,
+      "failed_count": 0,
+      "run_count": 1
+    },
+    "failure_classes": {
+      "runner_timeout": 4
+    },
+    "hard_metrics": {
+      "capability_admission_coverage": 1.0,
+      "current_claim_coverage": 1.0,
+      "false_completion_count": 0,
+      "gate_execution_integrity": 1.0,
+      "repair_boundary_compliance": 1.0,
+      "resume_duplicate_effect_count": 0,
+      "stale_fencing_accept_count": 0,
+      "unrun_gate_pass_count": 0
+    },
+    "run_count": 5,
+    "scorecard": "evidence/real-agent-pilot/mode-b/scorecard.json",
+    "success_count": 1
+  },
+  "mode_c": {
+    "created_at": "2026-06-28T03:55:24.849927Z",
+    "created_by": "agent:codex-dynamic-kernel-operator",
+    "decision": "skipped",
+    "hard_metric_violation": false,
+    "mode_a": {
+      "failure_classes": {
+        "planner-output-invalid": 5
+      },
+      "run_count": 5,
+      "success_count": 0
+    },
+    "mode_b": {
+      "failure_classes": {
+        "runner_timeout": 4
+      },
+      "run_count": 5,
+      "success_count": 1
+    },
+    "next_condition_for_mode_c": "Rerun Mode C only after the real Planner produces admitted output or the blocker is fixed, and after real Executor timeout reliability is reviewed.",
+    "reason": "Mode A produced a reproducible planner-output-invalid blocker in all five runs, and Mode B produced four process-level runner timeouts. Combined Mode C would mix known failure layers and is not admitted for this review increment.",
+    "schema_version": "ahra/real-agent-pilot-mode-c-decision/0.1",
+    "task_id": "TASK-0040"
+  },
+  "partial_archives": [
+    {
+      "path": "evidence/real-agent-pilot/mode-b-timeout-partial-20260628T113953",
+      "reason": "Preserved the earlier non-isolated Mode B attempt that timed out before scorecard generation."
+    }
+  ],
+  "per_run_metrics": [
+    {
+      "elapsed_seconds": 32.300123,
+      "failure_class": "planner-output-invalid",
+      "mode": "mode_a_real_planner",
+      "plan_budget": {
+        "max_cost_usd": 0.0,
+        "max_model_calls": 2,
+        "max_tool_calls": 2,
+        "max_wall_seconds": 60,
+        "node_count": 2
+      },
+      "repair_cycles": 0,
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-01\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-A-R01",
+      "status": "blocked",
+      "usage": {
+        "cost_usd": null,
+        "known_limitations": [
+          "provider token and usage accounting is unavailable unless the AgentDriver returns it"
+        ],
+        "model_calls": null,
+        "tokens": null,
+        "tool_calls": null
+      },
+      "verification_cost": {
+        "evidence_ref_count": null,
+        "known_limitations": [
+          "execution metrics unavailable for blocked run"
+        ],
+        "node_run_count": null
+      }
+    },
+    {
+      "elapsed_seconds": 34.459798,
+      "failure_class": "planner-output-invalid",
+      "mode": "mode_a_real_planner",
+      "plan_budget": {
+        "max_cost_usd": 0.0,
+        "max_model_calls": 2,
+        "max_tool_calls": 2,
+        "max_wall_seconds": 60,
+        "node_count": 2
+      },
+      "repair_cycles": 0,
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-02\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-A-R02",
+      "status": "blocked",
+      "usage": {
+        "cost_usd": null,
+        "known_limitations": [
+          "provider token and usage accounting is unavailable unless the AgentDriver returns it"
+        ],
+        "model_calls": null,
+        "tokens": null,
+        "tool_calls": null
+      },
+      "verification_cost": {
+        "evidence_ref_count": null,
+        "known_limitations": [
+          "execution metrics unavailable for blocked run"
+        ],
+        "node_run_count": null
+      }
+    },
+    {
+      "elapsed_seconds": 29.755879,
+      "failure_class": "planner-output-invalid",
+      "mode": "mode_a_real_planner",
+      "plan_budget": {
+        "max_cost_usd": 0.0,
+        "max_model_calls": 2,
+        "max_tool_calls": 2,
+        "max_wall_seconds": 60,
+        "node_count": 2
+      },
+      "repair_cycles": 0,
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-03\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-A-R03",
+      "status": "blocked",
+      "usage": {
+        "cost_usd": null,
+        "known_limitations": [
+          "provider token and usage accounting is unavailable unless the AgentDriver returns it"
+        ],
+        "model_calls": null,
+        "tokens": null,
+        "tool_calls": null
+      },
+      "verification_cost": {
+        "evidence_ref_count": null,
+        "known_limitations": [
+          "execution metrics unavailable for blocked run"
+        ],
+        "node_run_count": null
+      }
+    },
+    {
+      "elapsed_seconds": 29.088647,
+      "failure_class": "planner-output-invalid",
+      "mode": "mode_a_real_planner",
+      "plan_budget": {
+        "max_cost_usd": 0.0,
+        "max_model_calls": 2,
+        "max_tool_calls": 2,
+        "max_wall_seconds": 60,
+        "node_count": 2
+      },
+      "repair_cycles": 0,
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-04\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-A-R04",
+      "status": "blocked",
+      "usage": {
+        "cost_usd": null,
+        "known_limitations": [
+          "provider token and usage accounting is unavailable unless the AgentDriver returns it"
+        ],
+        "model_calls": null,
+        "tokens": null,
+        "tool_calls": null
+      },
+      "verification_cost": {
+        "evidence_ref_count": null,
+        "known_limitations": [
+          "execution metrics unavailable for blocked run"
+        ],
+        "node_run_count": null
+      }
+    },
+    {
+      "elapsed_seconds": 35.370935,
+      "failure_class": "planner-output-invalid",
+      "mode": "mode_a_real_planner",
+      "plan_budget": {
+        "max_cost_usd": 0.0,
+        "max_model_calls": 2,
+        "max_tool_calls": 2,
+        "max_wall_seconds": 60,
+        "node_count": 2
+      },
+      "repair_cycles": 0,
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-05\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-A-R05",
+      "status": "blocked",
+      "usage": {
+        "cost_usd": null,
+        "known_limitations": [
+          "provider token and usage accounting is unavailable unless the AgentDriver returns it"
+        ],
+        "model_calls": null,
+        "tokens": null,
+        "tool_calls": null
+      },
+      "verification_cost": {
+        "evidence_ref_count": null,
+        "known_limitations": [
+          "execution metrics unavailable for blocked run"
+        ],
+        "node_run_count": null
+      }
+    },
+    {
+      "elapsed_seconds": 120.008727,
+      "failure_class": "runner_timeout",
+      "mode": "mode_b_real_executor",
+      "plan_budget": {
+        "max_cost_usd": 0.0,
+        "max_model_calls": 3,
+        "max_tool_calls": 2,
+        "max_wall_seconds": 90,
+        "node_count": 2
+      },
+      "repair_cycles": 0,
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-01\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-B-R01",
+      "status": "blocked",
+      "usage": {
+        "cost_usd": null,
+        "known_limitations": [
+          "provider token and usage accounting is unavailable unless the AgentDriver returns it"
+        ],
+        "model_calls": null,
+        "tokens": null,
+        "tool_calls": null
+      },
+      "verification_cost": {
+        "evidence_ref_count": null,
+        "known_limitations": [
+          "execution metrics unavailable for blocked run"
+        ],
+        "node_run_count": null
+      }
+    },
+    {
+      "elapsed_seconds": 120.011394,
+      "failure_class": "runner_timeout",
+      "mode": "mode_b_real_executor",
+      "plan_budget": {
+        "max_cost_usd": 0.0,
+        "max_model_calls": 3,
+        "max_tool_calls": 2,
+        "max_wall_seconds": 90,
+        "node_count": 2
+      },
+      "repair_cycles": 0,
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-02\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-B-R02",
+      "status": "blocked",
+      "usage": {
+        "cost_usd": null,
+        "known_limitations": [
+          "provider token and usage accounting is unavailable unless the AgentDriver returns it"
+        ],
+        "model_calls": null,
+        "tokens": null,
+        "tool_calls": null
+      },
+      "verification_cost": {
+        "evidence_ref_count": null,
+        "known_limitations": [
+          "execution metrics unavailable for blocked run"
+        ],
+        "node_run_count": null
+      }
+    },
+    {
+      "elapsed_seconds": 120.009235,
+      "failure_class": "runner_timeout",
+      "mode": "mode_b_real_executor",
+      "plan_budget": {
+        "max_cost_usd": 0.0,
+        "max_model_calls": 3,
+        "max_tool_calls": 2,
+        "max_wall_seconds": 90,
+        "node_count": 2
+      },
+      "repair_cycles": 0,
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-03\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-B-R03",
+      "status": "blocked",
+      "usage": {
+        "cost_usd": null,
+        "known_limitations": [
+          "provider token and usage accounting is unavailable unless the AgentDriver returns it"
+        ],
+        "model_calls": null,
+        "tokens": null,
+        "tool_calls": null
+      },
+      "verification_cost": {
+        "evidence_ref_count": null,
+        "known_limitations": [
+          "execution metrics unavailable for blocked run"
+        ],
+        "node_run_count": null
+      }
+    },
+    {
+      "elapsed_seconds": 120.008891,
+      "failure_class": "runner_timeout",
+      "mode": "mode_b_real_executor",
+      "plan_budget": {
+        "max_cost_usd": 0.0,
+        "max_model_calls": 3,
+        "max_tool_calls": 2,
+        "max_wall_seconds": 90,
+        "node_count": 2
+      },
+      "repair_cycles": 0,
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-04\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-B-R04",
+      "status": "blocked",
+      "usage": {
+        "cost_usd": null,
+        "known_limitations": [
+          "provider token and usage accounting is unavailable unless the AgentDriver returns it"
+        ],
+        "model_calls": null,
+        "tokens": null,
+        "tool_calls": null
+      },
+      "verification_cost": {
+        "evidence_ref_count": null,
+        "known_limitations": [
+          "execution metrics unavailable for blocked run"
+        ],
+        "node_run_count": null
+      }
+    },
+    {
+      "elapsed_seconds": 61.292111,
+      "failure_class": null,
+      "mode": "mode_b_real_executor",
+      "plan_budget": {
+        "max_cost_usd": 0.0,
+        "max_model_calls": 3,
+        "max_tool_calls": 2,
+        "max_wall_seconds": 90,
+        "node_count": 2
+      },
+      "repair_cycles": 0,
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-05\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-B-R05",
+      "status": "succeeded",
+      "usage": {
+        "cost_usd": 0.0,
+        "known_limitations": [
+          "provider token count was not exposed by the AgentDriver"
+        ],
+        "model_calls": 2,
+        "tokens": null,
+        "tool_calls": 1
+      },
+      "verification_cost": {
+        "evidence_ref_count": 2,
+        "known_limitations": [],
+        "node_run_count": 2
+      }
+    }
+  ],
+  "schema_version": "ahra/real-agent-pilot-summary/0.1",
+  "task_id": "TASK-0040",
+  "verification_commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_real_agent_pilot tests.test_planning -v",
+      "exit_code": 0,
+      "result": "13 tests passed"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\run_real_agent_pilot.py --mode mode_b_real_executor --output-dir work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\no-cost-isolated-smoke --experiment-id TASK-0040-NO-COST-ISOLATED --repetitions 1 --isolated-repetitions --repetition-timeout-seconds 30",
+      "exit_code": 0,
+      "result": "real_executor_driver_unavailable blocker without model-cost authorization"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "result": "AWKP lint 0 errors, 0 warnings; AHRA lint 0 failures"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "result": "AWKP lint 0 errors, 0 warnings"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "no whitespace errors"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "exit_code": 0,
+      "result": "190 tests passed, 2 skipped"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "created_at": "2026-06-28T03:55:24.849927Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "decision": "skipped",
+  "hard_metric_violation": false,
+  "mode_a": {
+    "failure_classes": {
+      "planner-output-invalid": 5
+    },
+    "run_count": 5,
+    "success_count": 0
+  },
+  "mode_b": {
+    "failure_classes": {
+      "runner_timeout": 4
+    },
+    "run_count": 5,
+    "success_count": 1
+  },
+  "next_condition_for_mode_c": "Rerun Mode C only after the real Planner produces admitted output or the blocker is fixed, and after real Executor timeout reliability is reviewed.",
+  "reason": "Mode A produced a reproducible planner-output-invalid blocker in all five runs, and Mode B produced four process-level runner timeouts. Combined Mode C would mix known failure layers and is not admitted for this review increment.",
+  "schema_version": "ahra/real-agent-pilot-mode-c-decision/0.1",
+  "task_id": "TASK-0040"
+}

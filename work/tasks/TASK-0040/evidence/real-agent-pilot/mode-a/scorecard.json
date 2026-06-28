@@ -1,0 +1,187 @@
+{
+  "claim_graph_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+  "code_commit": "97fc6cb98eff67d820bb349006f995e6368e49ec",
+  "cost": {
+    "cost_usd": 0.0,
+    "known_limitations": [
+      "Provider usage is unavailable unless the AgentDriver reports it."
+    ],
+    "model_provider": "codex-sdk",
+    "model_revision": "unspecified"
+  },
+  "evidence_refs": [],
+  "executor_metrics": {
+    "accepted_node_rate": null,
+    "failed_count": 0,
+    "run_count": 0
+  },
+  "executor_release": "executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "experiment_id": "TASK-0040-MODE-A",
+  "failure_classes": {
+    "planner-output-invalid": 5
+  },
+  "goal_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+  "hard_metrics": {
+    "capability_admission_coverage": 1.0,
+    "current_claim_coverage": 1.0,
+    "false_completion_count": 0,
+    "gate_execution_integrity": 1.0,
+    "repair_boundary_compliance": 1.0,
+    "resume_duplicate_effect_count": 0,
+    "stale_fencing_accept_count": 0,
+    "unrun_gate_pass_count": 0
+  },
+  "known_limitations": [
+    "This pilot runner records local GoalOperation inspect metrics; independent AWKP EvidenceGate remains a separate verifier step.",
+    "Mode C is intentionally disabled unless explicitly allowed by the operator after Mode A and Mode B review."
+  ],
+  "planner_metrics": {
+    "blocked_count": 5,
+    "first_pass_admission_rate": 0.0,
+    "rejected_count": 0,
+    "run_count": 5
+  },
+  "planner_release": "planner/agent-driver-plan-draft@sha256:7777777777777777777777777777777777777777777777777777777777777777",
+  "policy_digest": "sha256:934b2daa411351f03e5e16978b74c9620824b8745cb992a746b3e44f268707ba",
+  "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "recovery_metrics": {
+    "resume_duplicate_effect_count": 0,
+    "stale_fencing_accept_count": 0
+  },
+  "run_count": 5,
+  "runs": [
+    {
+      "elapsed_seconds": 32.300123,
+      "execution": {
+        "status": "skipped"
+      },
+      "failure_class": "planner-output-invalid",
+      "hard_metric_violation": false,
+      "mode": "mode_a_real_planner",
+      "planner": {
+        "details": [
+          "'goalId'"
+        ],
+        "elapsedSeconds": 32.300109,
+        "failureClass": "planner-output-invalid",
+        "message": "'goalId'",
+        "retryable": false,
+        "status": "blocked"
+      },
+      "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-01\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-A-R01",
+      "schema_version": "ahra/real-agent-pilot-run/0.1",
+      "status": "blocked"
+    },
+    {
+      "elapsed_seconds": 34.459798,
+      "execution": {
+        "status": "skipped"
+      },
+      "failure_class": "planner-output-invalid",
+      "hard_metric_violation": false,
+      "mode": "mode_a_real_planner",
+      "planner": {
+        "details": [
+          "'goalId'"
+        ],
+        "elapsedSeconds": 34.459787,
+        "failureClass": "planner-output-invalid",
+        "message": "'goalId'",
+        "retryable": false,
+        "status": "blocked"
+      },
+      "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-02\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-A-R02",
+      "schema_version": "ahra/real-agent-pilot-run/0.1",
+      "status": "blocked"
+    },
+    {
+      "elapsed_seconds": 29.755879,
+      "execution": {
+        "status": "skipped"
+      },
+      "failure_class": "planner-output-invalid",
+      "hard_metric_violation": false,
+      "mode": "mode_a_real_planner",
+      "planner": {
+        "details": [
+          "'goalId'"
+        ],
+        "elapsedSeconds": 29.755869,
+        "failureClass": "planner-output-invalid",
+        "message": "'goalId'",
+        "retryable": false,
+        "status": "blocked"
+      },
+      "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-03\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-A-R03",
+      "schema_version": "ahra/real-agent-pilot-run/0.1",
+      "status": "blocked"
+    },
+    {
+      "elapsed_seconds": 29.088647,
+      "execution": {
+        "status": "skipped"
+      },
+      "failure_class": "planner-output-invalid",
+      "hard_metric_violation": false,
+      "mode": "mode_a_real_planner",
+      "planner": {
+        "details": [
+          "'goalId'"
+        ],
+        "elapsedSeconds": 29.088638,
+        "failureClass": "planner-output-invalid",
+        "message": "'goalId'",
+        "retryable": false,
+        "status": "blocked"
+      },
+      "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-04\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-A-R04",
+      "schema_version": "ahra/real-agent-pilot-run/0.1",
+      "status": "blocked"
+    },
+    {
+      "elapsed_seconds": 35.370935,
+      "execution": {
+        "status": "skipped"
+      },
+      "failure_class": "planner-output-invalid",
+      "hard_metric_violation": false,
+      "mode": "mode_a_real_planner",
+      "planner": {
+        "details": [
+          "'goalId'"
+        ],
+        "elapsedSeconds": 35.370925,
+        "failureClass": "planner-output-invalid",
+        "message": "'goalId'",
+        "retryable": false,
+        "status": "blocked"
+      },
+      "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-a\\run-05\\goal-run-request.yaml",
+      "run_id": "TASK-0040-MODE-A-R05",
+      "schema_version": "ahra/real-agent-pilot-run/0.1",
+      "status": "blocked"
+    }
+  ],
+  "runtime_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "schema_version": "ahra/real-agent-pilot/0.1",
+  "success_count": 0,
+  "verification_efficiency": {
+    "full_gate_baseline_count": null,
+    "known_limitations": [
+      "Gate cost is preserved by run artifacts; weighted cost is not implemented in this pilot increment."
+    ],
+    "selected_gate_count": null
+  },
+  "verifier_releases": [
+    "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  ]
+}

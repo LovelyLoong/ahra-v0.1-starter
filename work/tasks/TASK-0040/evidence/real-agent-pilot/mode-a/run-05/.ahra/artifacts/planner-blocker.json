@@ -1,0 +1,8 @@
+{
+  "code": "planner-output-invalid",
+  "details": [
+    "'goalId'"
+  ],
+  "message": "'goalId'",
+  "retryable": false
+}

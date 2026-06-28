@@ -1,0 +1,24 @@
+{
+  "artifact_dir": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-01",
+  "details": {
+    "stderrTail": "",
+    "stdoutTail": ""
+  },
+  "elapsed_seconds": 120.008727,
+  "execution": {
+    "status": "skipped"
+  },
+  "failure_class": "runner_timeout",
+  "hard_metric_violation": false,
+  "message": "single repetition exceeded process timeout (120s)",
+  "mode": "mode_b_real_executor",
+  "planner": {
+    "status": "skipped"
+  },
+  "profile": "profile/m1-real-executor@sha256:9999999999999999999999999999999999999999999999999999999999999999",
+  "refs": [],
+  "request_path": "work\\tasks\\TASK-0040\\evidence\\real-agent-pilot\\mode-b\\run-01\\goal-run-request.yaml",
+  "run_id": "TASK-0040-MODE-B-R01",
+  "schema_version": "ahra/real-agent-pilot-run/0.1",
+  "status": "blocked"
+}

@@ -1,28 +1,34 @@
 {
-  "schema_version": "awkp/0.1",
-  "task_id": "TASK-0040",
-  "context_id": "CTX-ahra-dynamic-kernel",
-  "state": "working",
-  "state_version": 3,
-  "owner": "agent:codex-dynamic-kernel-operator",
-  "attempt": 1,
-  "lease": {
-    "holder": "agent:codex-dynamic-kernel-operator",
-    "token": "LEASE-TASK-0040-0002",
-    "acquired_at": "2026-06-28T02:24:20Z",
-    "expires_at": "2026-06-28T02:54:20Z"
-  },
-  "next_action": "Run or explicitly authorize five-repetition Mode A and Mode B real-Agent pilots, then publish scorecards and failure taxonomy for independent review.",
-  "pause_reason": null,
-  "blockers": [],
   "artifact_refs": [
     "ART-TASK-0040-0001",
     "ART-TASK-0040-0002",
-    "ART-TASK-0040-HANDOFF-0001"
+    "ART-TASK-0040-HANDOFF-0001",
+    "ART-TASK-0040-0003",
+    "ART-TASK-0040-0004",
+    "ART-TASK-0040-0005",
+    "ART-TASK-0040-0006",
+    "ART-TASK-0040-0007",
+    "ART-TASK-0040-HANDOFF-0002"
   ],
+  "attempt": 1,
+  "blockers": [],
+  "context_id": "CTX-ahra-dynamic-kernel",
   "evidence_refs": [
     "EVD-TASK-0040-0001",
-    "EVD-TASK-0040-0002"
+    "EVD-TASK-0040-0002",
+    "EVD-TASK-0040-0003",
+    "EVD-TASK-0040-0004",
+    "EVD-TASK-0040-0005",
+    "EVD-TASK-0040-0006",
+    "EVD-TASK-0040-0007"
   ],
-  "updated_at": "2026-06-28T02:24:20Z"
+  "lease": null,
+  "next_action": "Independent SG-10 EvidenceGate review should inspect TASK-0040 real-Agent pilot report, scorecards, manifests, and Mode B run 05 lineage; producer does not mark complete.",
+  "owner": null,
+  "pause_reason": null,
+  "schema_version": "awkp/0.1",
+  "state": "review",
+  "state_version": 5,
+  "task_id": "TASK-0040",
+  "updated_at": "2026-06-28T03:55:24.849927Z"
 }

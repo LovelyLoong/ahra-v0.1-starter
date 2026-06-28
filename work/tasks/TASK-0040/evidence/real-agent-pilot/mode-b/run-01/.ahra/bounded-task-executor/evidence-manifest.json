@@ -1,0 +1,33 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "write-artifact",
+  "evidence": [
+    {
+      "evidence_id": "EVD-3c47f76a45a04869abc06602b5074cde",
+      "task_id": "write-artifact",
+      "kind": "terminal_failure",
+      "name": "terminal-failure.json",
+      "uri": "local://tasks/write-artifact/terminal-failure.json",
+      "sha256": "974fd9bc972f33166719dad7473df54de47d4dc095ca97be56d8e1de9d641893",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-06-28T03:40:46.479972Z",
+      "refs": []
+    },
+    {
+      "evidence_id": "EVD-5bea8ac5e3584049988767f552091947",
+      "task_id": "write-artifact",
+      "kind": "node_gate_summary",
+      "name": "node-gates.json",
+      "uri": "local://nodes/NODE-write-artifact/node-gates.json",
+      "sha256": "4315a24bcdab759b17d6e273be3ab411d7296076dfffeb123bf5645ef33db08e",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-06-28T03:40:46.491204Z",
+      "refs": [
+        "NODE-write-artifact",
+        "PLAN-897d01ad774d4c54"
+      ]
+    }
+  ]
+}
