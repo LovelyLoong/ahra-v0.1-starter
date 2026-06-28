@@ -6,7 +6,8 @@
     "ART-TASK-0043-0004",
     "ART-TASK-0043-0005",
     "ART-TASK-0043-0006",
-    "ART-TASK-0043-HANDOFF-0001"
+    "ART-TASK-0043-HANDOFF-0001",
+    "ART-TASK-0043-0007"
   ],
   "attempt": 1,
   "blockers": [],
@@ -17,15 +18,16 @@
     "EVD-TASK-0043-0003",
     "EVD-TASK-0043-0004",
     "EVD-TASK-0043-0005",
-    "EVD-TASK-0043-0006"
+    "EVD-TASK-0043-0006",
+    "EVD-TASK-0043-0007"
   ],
   "lease": null,
-  "next_action": "Await independent EvidenceGate review of the TASK-0043 Mode C no-go evidence package; producer did not mark completion.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "owner": null,
   "pause_reason": null,
   "schema_version": "awkp/0.1",
-  "state": "review",
-  "state_version": 3,
+  "state": "completed",
+  "state_version": 4,
   "task_id": "TASK-0043",
-  "updated_at": "2026-06-28T07:16:25.537032Z"
+  "updated_at": "2026-06-28T07:31:04.838966Z"
 }

@@ -7,9 +7,9 @@ description: Generated-style view of current dynamic-kernel tasks; task state fi
 status: active
 owner: harness:dispatcher
 source_refs: [tasks/TASK-0021/state.json, tasks/TASK-0022/state.json, tasks/TASK-0023/state.json, tasks/TASK-0024/state.json, tasks/TASK-0025/state.json, tasks/TASK-0026/state.json, tasks/TASK-0027/state.json, tasks/TASK-0028/state.json, tasks/TASK-0029/state.json, tasks/TASK-0030/state.json, tasks/TASK-0031/state.json, tasks/TASK-0032/state.json, tasks/TASK-0033/state.json, tasks/TASK-0034/state.json, tasks/TASK-0035/state.json, tasks/TASK-0036/state.json, tasks/TASK-0037/state.json, tasks/TASK-0038/state.json, tasks/TASK-0039/state.json, tasks/TASK-0040/state.json, tasks/TASK-0041/state.json, tasks/TASK-0042/state.json, tasks/TASK-0043/state.json]
-evidence_refs: [EVD-TASK-0043-0006, EVD-TASK-0043-0005, EVD-TASK-0043-0004, EVD-TASK-0043-0003, EVD-TASK-0043-0002, EVD-TASK-0043-0001, EVD-TASK-0042-0009, EVD-TASK-0041-0010, EVD-TASK-0042-0008, EVD-TASK-0042-0007, EVD-TASK-0041-0009, EVD-TASK-0041-0008, EVD-TASK-0042-0006, EVD-TASK-0042-0005, EVD-TASK-0042-0004, EVD-TASK-0042-0003, EVD-TASK-0042-0002, EVD-TASK-0042-0001, EVD-TASK-0041-0007, EVD-TASK-0041-0006, EVD-TASK-0041-0005, EVD-TASK-0041-0004, EVD-TASK-0041-0003, EVD-TASK-0041-0002, EVD-TASK-0041-0001, EVD-TASK-0040-0010, EVD-TASK-0040-0009, EVD-TASK-0040-0008, EVD-TASK-0040-0007, EVD-TASK-0040-0006, EVD-TASK-0040-0005, EVD-TASK-0040-0004, EVD-TASK-0040-0003, EVD-TASK-0040-0002, EVD-TASK-0040-0001, EVD-TASK-0031-0001, EVD-TASK-0031-0002, EVD-TASK-0031-0003, EVD-TASK-0032-0001, EVD-TASK-0032-0002, EVD-TASK-0032-0003, EVD-TASK-0032-0004, EVD-TASK-0033-0001, EVD-TASK-0033-0002, EVD-TASK-0033-0003, EVD-TASK-0033-0004, EVD-TASK-0034-0001, EVD-TASK-0034-0002, EVD-TASK-0034-0003, EVD-TASK-0034-0004, EVD-TASK-0035-0001, EVD-TASK-0035-0002, EVD-TASK-0035-0003, EVD-TASK-0035-0004, EVD-TASK-0036-0001, EVD-TASK-0036-0002, EVD-TASK-0036-0003, EVD-TASK-0036-0004, EVD-TASK-0037-0001, EVD-TASK-0037-0002, EVD-TASK-0037-0003, EVD-TASK-0037-0004, EVD-TASK-0037-0005, EVD-TASK-0038-0001, EVD-TASK-0038-0002, EVD-TASK-0038-0003, EVD-TASK-0038-0004, EVD-TASK-0038-0005, EVD-TASK-0039-0001, EVD-TASK-0039-0002, EVD-TASK-0039-0003, EVD-TASK-0039-0004, EVD-TASK-0039-0005, EVD-TASK-0039-0006, EVD-TASK-0039-0007]
+evidence_refs: [EVD-TASK-0043-0007, EVD-TASK-0043-0006, EVD-TASK-0043-0005, EVD-TASK-0043-0004, EVD-TASK-0043-0003, EVD-TASK-0043-0002, EVD-TASK-0043-0001, EVD-TASK-0042-0009, EVD-TASK-0041-0010, EVD-TASK-0042-0008, EVD-TASK-0042-0007, EVD-TASK-0041-0009, EVD-TASK-0041-0008, EVD-TASK-0042-0006, EVD-TASK-0042-0005, EVD-TASK-0042-0004, EVD-TASK-0042-0003, EVD-TASK-0042-0002, EVD-TASK-0042-0001, EVD-TASK-0041-0007, EVD-TASK-0041-0006, EVD-TASK-0041-0005, EVD-TASK-0041-0004, EVD-TASK-0041-0003, EVD-TASK-0041-0002, EVD-TASK-0041-0001, EVD-TASK-0040-0010, EVD-TASK-0040-0009, EVD-TASK-0040-0008, EVD-TASK-0040-0007, EVD-TASK-0040-0006, EVD-TASK-0040-0005, EVD-TASK-0040-0004, EVD-TASK-0040-0003, EVD-TASK-0040-0002, EVD-TASK-0040-0001, EVD-TASK-0031-0001, EVD-TASK-0031-0002, EVD-TASK-0031-0003, EVD-TASK-0032-0001, EVD-TASK-0032-0002, EVD-TASK-0032-0003, EVD-TASK-0032-0004, EVD-TASK-0033-0001, EVD-TASK-0033-0002, EVD-TASK-0033-0003, EVD-TASK-0033-0004, EVD-TASK-0034-0001, EVD-TASK-0034-0002, EVD-TASK-0034-0003, EVD-TASK-0034-0004, EVD-TASK-0035-0001, EVD-TASK-0035-0002, EVD-TASK-0035-0003, EVD-TASK-0035-0004, EVD-TASK-0036-0001, EVD-TASK-0036-0002, EVD-TASK-0036-0003, EVD-TASK-0036-0004, EVD-TASK-0037-0001, EVD-TASK-0037-0002, EVD-TASK-0037-0003, EVD-TASK-0037-0004, EVD-TASK-0037-0005, EVD-TASK-0038-0001, EVD-TASK-0038-0002, EVD-TASK-0038-0003, EVD-TASK-0038-0004, EVD-TASK-0038-0005, EVD-TASK-0039-0001, EVD-TASK-0039-0002, EVD-TASK-0039-0003, EVD-TASK-0039-0004, EVD-TASK-0039-0005, EVD-TASK-0039-0006, EVD-TASK-0039-0007]
 confidence: reviewed
-last_verified_at: 2026-06-28T07:16:25.537032Z
+last_verified_at: 2026-06-28T07:31:04.838966Z
 review_after: 2026-09-25T00:00:00Z
 tags: [work, index, dynamic-kernel]
 ---
@@ -42,7 +42,7 @@ Current dynamic-kernel stage tasks:
 | [TASK-0040](tasks/TASK-0040/task.md) | completed | unassigned | 9 | Completed by EvidenceGate verifier approval. |
 | [TASK-0041](tasks/TASK-0041/task.md) | completed | unassigned | 7 | Completed by EvidenceGate verifier approval. |
 | [TASK-0042](tasks/TASK-0042/task.md) | completed | unassigned | 7 | Completed by EvidenceGate verifier approval. |
-| [TASK-0043](tasks/TASK-0043/task.md) | review | unassigned | 3 | Await independent EvidenceGate review of the TASK-0043 Mode C no-go evidence package; producer did not mark completion. |
+| [TASK-0043](tasks/TASK-0043/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
 
 # Proposed Next Sequence
 
@@ -51,10 +51,11 @@ Executor follow-ups after TASK-0040 approved the pilot report and safety
 boundaries. Combined Mode C remains no-go until a separate task authorizes and
 audits that scope.
 
-`TASK-0043` has now run that separate bounded Mode C authorization pilot.
-The producer-side result is no-go and review-ready: three repetitions produced
-zero successes, with two isolated runner timeouts and one budget_exceeded
-failure. EvidenceGate remains responsible for any completion decision.
+`TASK-0043` completed independent EvidenceGate review for the Mode C no-go
+evidence package. This does not promote Mode C: three repetitions produced zero
+successes, with two isolated runner timeouts and one budget_exceeded failure.
+The next work item is to fix timeout/finalization and partial child-run recovery
+before any renewed combined-mode pilot.
 
 # Archive
 
