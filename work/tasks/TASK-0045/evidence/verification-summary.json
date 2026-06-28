@@ -1,0 +1,236 @@
+{
+  "acceptance_criteria": [
+    {
+      "criterion_index": 1,
+      "evidence_refs": [
+        "EVD-TASK-0045-0001",
+        "EVD-TASK-0045-0008"
+      ],
+      "notes": "TASK-0043 and TASK-0044 are completed by EvidenceGate; decision preserves Mode C non-default.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 2,
+      "evidence_refs": [
+        "EVD-TASK-0045-0002",
+        "EVD-TASK-0045-0009"
+      ],
+      "notes": "Recorded command includes --allow-combined and --allow-model-cost.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 3,
+      "evidence_refs": [
+        "EVD-TASK-0045-0002"
+      ],
+      "notes": "Three bounded isolated repetitions executed.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 4,
+      "evidence_refs": [
+        "EVD-TASK-0045-0003",
+        "EVD-TASK-0045-0004",
+        "EVD-TASK-0045-0005",
+        "EVD-TASK-0045-0006"
+      ],
+      "notes": "All three independent goal inspect runs report missingArtifactCount=0 and artifactFindings=[].",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 5,
+      "evidence_refs": [
+        "EVD-TASK-0045-0002",
+        "EVD-TASK-0045-0006"
+      ],
+      "notes": "All three stateful timeouts have recoveredPartialRun=true and recoveryAttempted=true.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 6,
+      "evidence_refs": [
+        "EVD-TASK-0045-0006"
+      ],
+      "notes": "All inspected GoalExecutions are failed with active_plan_execution_ref=null and failed terminal PlanExecutions.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 7,
+      "evidence_refs": [
+        "EVD-TASK-0045-0002"
+      ],
+      "notes": "Planner status accepted in all three runs before Executor side effects.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 8,
+      "evidence_refs": [
+        "EVD-TASK-0045-0006",
+        "EVD-TASK-0045-0007"
+      ],
+      "notes": "Each observed timed-out bounded_task has capabilityGrantRefCount=1 and admission/grant refs.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 9,
+      "evidence_refs": [
+        "EVD-TASK-0045-0002",
+        "EVD-TASK-0045-0007"
+      ],
+      "notes": "False completion, unrun gate pass, stale fencing accept, and duplicate resume effect are zero; no unadmitted side effect was observed.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 10,
+      "evidence_refs": [
+        "EVD-TASK-0045-0002",
+        "EVD-TASK-0045-0009"
+      ],
+      "notes": "Provider usage is per-run and unavailable token/cost fields remain null.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 11,
+      "evidence_refs": [
+        "EVD-TASK-0045-0001",
+        "EVD-TASK-0045-0007",
+        "EVD-TASK-0045-0008"
+      ],
+      "notes": "Decision distinguishes live timeout recovery correctness from Mode C quality no-go.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 12,
+      "evidence_refs": [
+        "EVD-TASK-0045-0009"
+      ],
+      "notes": "Producer will move task to review; EvidenceGate must decide completion.",
+      "status": "pending_independent_review"
+    }
+  ],
+  "artifact_hashes": {
+    "work/tasks/TASK-0045/evidence/failure-taxonomy.json": "cd31fb1e59cc4f34205807c046f2aba7cc57820b2b6019ccef12800a23067ffd",
+    "work/tasks/TASK-0045/evidence/goal-inspect-run-01.json": "ccbf86b679fae7a59becde9c37895ca77c88e4c08c3e5ee0b83eb289ef1af62b",
+    "work/tasks/TASK-0045/evidence/goal-inspect-run-02.json": "28e9ccf91502e0f82f1770869d27eadc32fdd4fb1dbd78873e85102c92820f79",
+    "work/tasks/TASK-0045/evidence/goal-inspect-run-03.json": "e4a61e75907427a463a89cb99d838689128113093a30ba6a0bfbe4943010f042",
+    "work/tasks/TASK-0045/evidence/goal-inspect-summary.json": "ce7b76b4b2efcdc83725d8e56d195e09364ae59cde27061ecd8c3f2b9538ca52",
+    "work/tasks/TASK-0045/evidence/mode-c-decision.json": "68ad67480682905a8598db4ad82dc6d0792cf7576d25a3804a5464ae0c0227e6",
+    "work/tasks/TASK-0045/evidence/real-agent-pilot/mode-c/scorecard.json": "6a2df1be2fbd5c3bf00f4cbc53bbeb0c375ea8b94e366b5ee01e84a94dbea1ca"
+  },
+  "code_commit": "1ab5506536662e87fc09113a428fc73386610370",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\run_real_agent_pilot.py --mode mode_c_combined --output-dir work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c --experiment-id TASK-0045-MODE-C --repetitions 3 --allow-model-cost --allow-combined --isolated-repetitions --repetition-timeout-seconds 360",
+      "name": "mode_c_combined_closeout",
+      "result": "Command completed and wrote scorecard. run_count=3, success_count=0, failure_classes={\"timeout\": 3}; all three stateful timeouts recovered.",
+      "status": "passed"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-b3dbdab8d2d0adb9 --db work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-01\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-01\\.ahra\\artifacts",
+      "name": "goal_inspect_run-01",
+      "result": "goal_status=failed; plan_status=failed; missingArtifactCount=0; artifactFindings=[]",
+      "status": "passed"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-25004992fed4c011 --db work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-02\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-02\\.ahra\\artifacts",
+      "name": "goal_inspect_run-02",
+      "result": "goal_status=failed; plan_status=failed; missingArtifactCount=0; artifactFindings=[]",
+      "status": "passed"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-5937eb1c5dc14f34 --db work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-03\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-03\\.ahra\\artifacts",
+      "name": "goal_inspect_run-03",
+      "result": "goal_status=failed; plan_status=failed; missingArtifactCount=0; artifactFindings=[]",
+      "status": "passed"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.test_real_agent_pilot tests.test_goal_operations tests.test_planning tests.test_codex_driver -v",
+      "name": "focused_tests",
+      "result": "34 tests passed.",
+      "status": "passed"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "name": "lint",
+      "result": "AWKP lint 0 errors/0 warnings; AHRA lint 0 failures.",
+      "status": "passed"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "name": "awkp_lint",
+      "result": "AWKP lint 0 errors/0 warnings.",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "name": "diff_check",
+      "result": "No whitespace errors.",
+      "status": "passed"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -B scripts\\check.py --test",
+      "name": "full_tests",
+      "result": "199 tests passed, 2 skipped.",
+      "status": "passed"
+    }
+  ],
+  "generated_at": "2026-06-28T08:31:21.256634Z",
+  "producer_commit": "1ab5506536662e87fc09113a428fc73386610370",
+  "provider_usage": {
+    "cost_usage_available": false,
+    "cost_usd": null,
+    "input_tokens": null,
+    "known_limitations": [
+      "Provider token and cost usage is unavailable unless the AgentDriver reports it."
+    ],
+    "model_provider": "codex-sdk",
+    "model_revision": "unspecified",
+    "output_tokens": null,
+    "runs": [
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0045-MODE-C-R01",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0045-MODE-C-R02",
+        "total_tokens": null,
+        "usage_available": false
+      },
+      {
+        "cost_usd": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "reason": "Provider token and cost usage is unavailable unless the AgentDriver reports it.",
+        "run_id": "TASK-0045-MODE-C-R03",
+        "total_tokens": null,
+        "usage_available": false
+      }
+    ],
+    "token_usage_available": false,
+    "total_tokens": null,
+    "usage_available": false
+  },
+  "schema_version": "ahra/task-0045-verification-summary/0.1",
+  "scorecard_summary": {
+    "all_independent_inspects_clean": true,
+    "all_stateful_timeouts_recovered": true,
+    "executor_failed_count": 3,
+    "failure_classes": {
+      "timeout": 3
+    },
+    "mode_c_decision": "no_go_for_default_path",
+    "planner_first_pass_admission_rate": 1.0,
+    "run_count": 3,
+    "success_count": 0
+  },
+  "task_id": "TASK-0045"
+}

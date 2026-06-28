@@ -1,0 +1,121 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:f65f2189cd23e50f2bc67962090c0a6cfbfe746c382cfcb8fc62ea8e10989c50",
+    "planId": "PLAN-545b8167f704e431",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-write-artifact",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "goalRef": "GOAL-M1-GENERIC-SMOKE",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:aff3f2bb128762ccc9b85b1716e56d98db681dbc07c5a168321ebeaa10910b37",
+            "resources": [
+              "outputs/summary.txt"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-WRITE-ARTIFACT"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "deliveryRole": "artifact",
+            "name": "deterministic-artifact",
+            "schemaRef": "planner-output-contracts"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        ],
+        "gateRefs": [
+          "GATE-write-artifact"
+        ],
+        "id": "NODE-write-artifact",
+        "inputRefs": [
+          "GOAL-M1-GENERIC-SMOKE",
+          "profile/m1-real-combined@sha256:8888888888888888888888888888888888888888888888888888888888888888"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Produce the required deterministic smoke artifact for GOAL-M1-GENERIC-SMOKE inside the governed workspace.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 30
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-WRITE-ARTIFACT"
+        ],
+        "dependsOn": [
+          "NODE-write-artifact"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-write-artifact"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify that the produced artifact satisfies CLM-WRITE-ARTIFACT and supports CLM-GOAL-COMPLETE for GOAL-M1-GENERIC-SMOKE.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 30
+      }
+    ]
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "generated_at": "2026-06-28T08:31:21.256634Z",
+  "runs": [
+    {
+      "active_plan_execution_ref": null,
+      "artifact_findings": [],
+      "capability_grant_ref_count": 1,
+      "evidence_ref_count": 0,
+      "goal_execution_id": "GEXEC-b3dbdab8d2d0adb9",
+      "goal_failure_class": "timeout",
+      "goal_status": "failed",
+      "inspect_command": ".venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-b3dbdab8d2d0adb9 --db work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-01\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-01\\.ahra\\artifacts",
+      "missing_artifact_count": 0,
+      "no_running_goal_with_terminal_plan": true,
+      "node_status_counts": {
+        "pending": 1,
+        "timed_out": 1
+      },
+      "plan_execution_id": "PEXEC-198cae8b7ed6ad11",
+      "plan_failure_class": "timeout",
+      "plan_status": "failed",
+      "raw_output_path": "work/tasks/TASK-0045/evidence/goal-inspect-run-01.json",
+      "raw_output_sha256": "ccbf86b679fae7a59becde9c37895ca77c88e4c08c3e5ee0b83eb289ef1af62b",
+      "run": "run-01",
+      "run_id": "TASK-0045-MODE-C-R01",
+      "stateful_timeout_recovered": true
+    },
+    {
+      "active_plan_execution_ref": null,
+      "artifact_findings": [],
+      "capability_grant_ref_count": 1,
+      "evidence_ref_count": 0,
+      "goal_execution_id": "GEXEC-25004992fed4c011",
+      "goal_failure_class": "timeout",
+      "goal_status": "failed",
+      "inspect_command": ".venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-25004992fed4c011 --db work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-02\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-02\\.ahra\\artifacts",
+      "missing_artifact_count": 0,
+      "no_running_goal_with_terminal_plan": true,
+      "node_status_counts": {
+        "pending": 1,
+        "timed_out": 1
+      },
+      "plan_execution_id": "PEXEC-2c1e6e8ef99b2262",
+      "plan_failure_class": "timeout",
+      "plan_status": "failed",
+      "raw_output_path": "work/tasks/TASK-0045/evidence/goal-inspect-run-02.json",
+      "raw_output_sha256": "28e9ccf91502e0f82f1770869d27eadc32fdd4fb1dbd78873e85102c92820f79",
+      "run": "run-02",
+      "run_id": "TASK-0045-MODE-C-R02",
+      "stateful_timeout_recovered": true
+    },
+    {
+      "active_plan_execution_ref": null,
+      "artifact_findings": [],
+      "capability_grant_ref_count": 1,
+      "evidence_ref_count": 0,
+      "goal_execution_id": "GEXEC-5937eb1c5dc14f34",
+      "goal_failure_class": "timeout",
+      "goal_status": "failed",
+      "inspect_command": ".venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-5937eb1c5dc14f34 --db work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-03\\.ahra\\goal-control.sqlite3 --artifact-dir work\\tasks\\TASK-0045\\evidence\\real-agent-pilot\\mode-c\\run-03\\.ahra\\artifacts",
+      "missing_artifact_count": 0,
+      "no_running_goal_with_terminal_plan": true,
+      "node_status_counts": {
+        "pending": 1,
+        "timed_out": 1
+      },
+      "plan_execution_id": "PEXEC-7dbff7647e8f4f4b",
+      "plan_failure_class": "timeout",
+      "plan_status": "failed",
+      "raw_output_path": "work/tasks/TASK-0045/evidence/goal-inspect-run-03.json",
+      "raw_output_sha256": "e4a61e75907427a463a89cb99d838689128113093a30ba6a0bfbe4943010f042",
+      "run": "run-03",
+      "run_id": "TASK-0045-MODE-C-R03",
+      "stateful_timeout_recovered": true
+    }
+  ],
+  "schema_version": "ahra/task-0045-goal-inspect-summary/0.1",
+  "summary": {
+    "all_goal_executions_terminal": true,
+    "all_inspects_clean": true,
+    "all_stateful_timeouts_recovered": true,
+    "artifact_finding_count": 0,
+    "inspected_run_count": 3,
+    "missing_artifact_total": 0
+  },
+  "task_id": "TASK-0045"
+}

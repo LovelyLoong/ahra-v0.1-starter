@@ -1,0 +1,24 @@
+{
+  "approves": {
+    "mode_c_default_path": false,
+    "model_runtime_quality": false,
+    "timeout_recovery_audit_correctness_in_live_mode_c": true
+  },
+  "decision": "no_go_for_default_path",
+  "generated_at": "2026-06-28T08:31:21.256634Z",
+  "mode": "mode_c_combined",
+  "next_exact_action": "Submit TASK-0045 to independent EvidenceGate review. After approval, open a separate bounded task only if the maintainer wants to improve combined Mode C executor/runtime timeout quality; do not run more broad Mode C pilots first.",
+  "reason": "Post-fix closeout ran three bounded isolated Mode C repetitions. Timeout recovery is now audit-consistent in all three stateful timeouts, but success_count remains 0/3 with three executor/runtime timeouts, gate_execution_integrity is 0.0, and current_claim_coverage is 0.0.",
+  "run_summary": {
+    "all_goal_and_plan_terminal_failed": true,
+    "all_independent_inspects_clean": true,
+    "all_stateful_timeouts_recovered": true,
+    "failure_classes": {
+      "timeout": 3
+    },
+    "run_count": 3,
+    "success_count": 0
+  },
+  "schema_version": "ahra/task-0045-mode-c-decision/0.1",
+  "task_id": "TASK-0045"
+}
