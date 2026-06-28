@@ -1,0 +1,118 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: TASK-0041-MODE-A-R02
+  requestId: TASK-0041-MODE-A-R02
+  idempotencyKey: TASK-0041-MODE-A-R02
+spec:
+  profileRef: profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+  workspaceRef: workspace
+  artifactDir: .ahra/artifacts
+  store:
+    kind: sqlite
+    path: .ahra/goal-control.sqlite3
+  planner:
+    adapterRef: planner/agent-driver-plan-draft@sha256:7777777777777777777777777777777777777777777777777777777777777777
+  executor:
+    adapterRef: executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-M1-GENERIC-SMOKE
+    goalDigest: sha256:5555555555555555555555555555555555555555555555555555555555555555
+    claimGraphRef: claim-graph/m1-generic-smoke
+    claimGraphDigest: sha256:6666666666666666666666666666666666666666666666666666666666666666
+    requiredClaimRefs:
+    - CLM-WRITE-ARTIFACT
+    - CLM-GOAL-COMPLETE
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-write-artifact: sha256:3333333333333333333333333333333333333333333333333333333333333333
+      GATE-goal-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+    - filesystem.write
+  execution:
+    maxRepairCycles: 0
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-M1-GENERIC-SMOKE
+      proposedBy: planner/agent-driver-plan-draft@sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db
+    spec:
+      rationale: Use one bounded task for CLM-WRITE-ARTIFACT and one terminal goal
+        verification node for CLM-GOAL-COMPLETE within the supplied budget and registered
+        gate/runtime refs.
+      nodes:
+      - id: NODE-write-artifact
+        nodeType: bounded_task
+        objective: Produce the bounded artifact required to support CLM-WRITE-ARTIFACT
+          for GOAL-M1-GENERIC-SMOKE.
+        claimRefs:
+        - CLM-WRITE-ARTIFACT
+        dependsOn: []
+        inputRefs:
+        - GOAL-M1-GENERIC-SMOKE
+        - profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        expectedOutputs:
+        - name: write-artifact-evidence
+          schemaRef: planner-output-contracts
+          consumerNodeRefs:
+          - NODE-goal-verification
+          artifactRequired: true
+          deliveryRole: evidence
+        capabilityRequests: []
+        gateRefs:
+        - GATE-write-artifact
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 1
+          maxSpawnedNodes: 0
+          maxWallSeconds: 60
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: true
+        sideEffect: idempotent
+        terminalGoalVerification: false
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        timeoutSeconds: 60
+      - id: NODE-goal-verification
+        nodeType: goal_verification
+        objective: Verify CLM-GOAL-COMPLETE from the evidence produced by NODE-write-artifact.
+        claimRefs:
+        - CLM-GOAL-COMPLETE
+        - CLM-WRITE-ARTIFACT
+        dependsOn:
+        - NODE-write-artifact
+        inputRefs:
+        - NODE-write-artifact
+        expectedOutputs: []
+        capabilityRequests: []
+        gateRefs:
+        - GATE-goal-complete
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 1
+          maxSpawnedNodes: 0
+          maxWallSeconds: 60
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        sideEffect: idempotent
+        terminalGoalVerification: true
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        timeoutSeconds: 60

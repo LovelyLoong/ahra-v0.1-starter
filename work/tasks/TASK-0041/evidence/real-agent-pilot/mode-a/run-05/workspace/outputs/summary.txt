@@ -1,0 +1,4 @@
+goal=GOAL-M1-GENERIC-SMOKE
+plan=PLAN-7d0dbf8accc5f4d2
+node=NODE-write-artifact
+node_run=NRUN-b3db89fd906405b8

@@ -1,0 +1,114 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:2f507bdc2c2390cf58fcd00a736d51c1d5425900d700bfd25b8b6811bf6807f9",
+    "planId": "PLAN-ebbe3cbd6107ff40",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-write-artifact",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "goalRef": "GOAL-M1-GENERIC-SMOKE",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-WRITE-ARTIFACT"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "deliveryRole": "artifact",
+            "name": "deterministic-artifact",
+            "schemaRef": "GOAL-M1-GENERIC-SMOKE"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        ],
+        "gateRefs": [
+          "GATE-write-artifact"
+        ],
+        "id": "NODE-write-artifact",
+        "inputRefs": [
+          "GOAL-M1-GENERIC-SMOKE",
+          "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Produce the required deterministic artifact for the generic smoke goal without asserting completion.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 30
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-WRITE-ARTIFACT"
+        ],
+        "dependsOn": [
+          "NODE-write-artifact"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "GOAL-M1-GENERIC-SMOKE",
+          "NODE-write-artifact"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the supplied goal completion claim from accepted evidence after the artifact gate passes.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 30
+      }
+    ]
+  }
+}

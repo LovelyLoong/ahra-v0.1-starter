@@ -1,0 +1,17 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanValidationReport",
+  "metadata": {
+    "createdBy": "ahra-plan-compiler",
+    "reportId": "PLANVAL-0756c24c60e0251d"
+  },
+  "spec": {
+    "errors": [],
+    "refs": [
+      "PLAN-1801ca4faab70b32"
+    ],
+    "result": "passed",
+    "subjectDigest": "sha256:c9b57e447d65b12c014612af703ebd4f89c9745e680b95007c6e36627378fea7",
+    "subjectRef": "PLAN-1801ca4faab70b32@v1"
+  }
+}

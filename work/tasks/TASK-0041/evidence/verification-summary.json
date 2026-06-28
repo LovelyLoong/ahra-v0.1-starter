@@ -1,0 +1,98 @@
+{
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.test_planning tests.test_real_agent_pilot tests.test_codex_driver -v",
+      "exit_code": 0,
+      "result": "22 tests passed"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "result": "AWKP lint and AHRA lint passed after TASK-0041 evidence frontmatter publication"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "no whitespace errors"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\run_real_agent_pilot.py --mode mode_a_real_planner --output-dir work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a --experiment-id TASK-0041-MODE-A --repetitions 5 --allow-model-cost --isolated-repetitions --repetition-timeout-seconds 120",
+      "exit_code": 0,
+      "result": "5 isolated Mode A repetitions succeeded"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect <GEXEC> --db <run>\\.ahra\\goal-control.sqlite3 --artifact-dir <run>\\.ahra\\artifacts",
+      "exit_code": 0,
+      "result": "5 independent inspect calls succeeded; summary stored in evidence/goal-inspect-summary.json"
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "result": "AWKP lint passed after TASK-0041 evidence frontmatter publication"
+    }
+  ],
+  "created_at": "2026-06-28T05:31:59.917821Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "goal_inspect": {
+    "all_artifact_findings_empty": true,
+    "all_goal_status_succeeded": true,
+    "all_missing_artifact_counts_zero": true,
+    "inspection_count": 5,
+    "summary": "work/tasks/TASK-0041/evidence/goal-inspect-summary.json",
+    "summary_sha256": "0767a235cbb2eb08f1336d83d9bfd9a04c43b3e86c3fe3320831f512a19361ac"
+  },
+  "mode_a_post_change": {
+    "executor_metrics": {
+      "accepted_node_rate": 1.0,
+      "failed_count": 0,
+      "run_count": 5
+    },
+    "failure_classes": {},
+    "hard_metrics": {
+      "capability_admission_coverage": 1.0,
+      "current_claim_coverage": 1.0,
+      "false_completion_count": 0,
+      "gate_execution_integrity": 1.0,
+      "repair_boundary_compliance": 1.0,
+      "resume_duplicate_effect_count": 0,
+      "stale_fencing_accept_count": 0,
+      "unrun_gate_pass_count": 0
+    },
+    "known_limitations": [
+      "This pilot runner records local GoalOperation inspect metrics; independent AWKP EvidenceGate remains a separate verifier step.",
+      "Mode C is intentionally disabled unless explicitly allowed by the operator after Mode A and Mode B review."
+    ],
+    "planner_metrics": {
+      "blocked_count": 0,
+      "first_pass_admission_rate": 1.0,
+      "rejected_count": 0,
+      "run_count": 5
+    },
+    "run_count": 5,
+    "scorecard": "work/tasks/TASK-0041/evidence/real-agent-pilot/mode-a/scorecard.json",
+    "scorecard_sha256": "19977b93063d5353050734d66cc2b3e070b95c64d12dea792b8c138ec5b0d69d",
+    "success_count": 5
+  },
+  "mode_c": "no_go; see evidence/mode-c-decision.json",
+  "pre_capability_context_narrowing": {
+    "code_commit": "0cae25794e7f4b1378dae9e5379fe58d6ac3f31e",
+    "failure_classes": {
+      "missing_capability_intent": 5
+    },
+    "run_count": 5,
+    "scorecard": "work/tasks/TASK-0041/evidence/real-agent-pilot/mode-a-before-capability-context-20260628T132437/scorecard.json",
+    "scorecard_sha256": "b95d730de86e016ef50ee9eb2533e6f1f485b0ae06d338235479d9b8a7fc90ef",
+    "success_count": 0
+  },
+  "provider_usage": {
+    "cost_usd": 0.0,
+    "known_limitations": [
+      "Provider usage is unavailable unless the AgentDriver reports it."
+    ],
+    "model_provider": "codex-sdk",
+    "model_revision": "unspecified"
+  },
+  "schema_version": "ahra/task-0041-verification-summary/0.1",
+  "task_id": "TASK-0041",
+  "updated_at": "2026-06-28T05:34:47.144498Z"
+}

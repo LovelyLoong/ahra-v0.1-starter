@@ -1,0 +1,183 @@
+{
+  "all_artifact_findings_empty": true,
+  "all_goal_status_succeeded": true,
+  "all_missing_artifact_counts_zero": true,
+  "code_commit": "cbd738c1e65cff181a1e6c3a702d84d7dc53ddbc",
+  "created_at": "2026-06-28T05:29:24.311358Z",
+  "inspection_count": 5,
+  "inspections": [
+    {
+      "artifactDir": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-01\\.ahra\\artifacts",
+      "artifactFindings": [],
+      "artifactRefs": [
+        "file://D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-01\\workspace\\outputs\\summary.txt"
+      ],
+      "command": "D:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-5fa5dd52b25844d1 --db D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-01\\.ahra\\goal-control.sqlite3 --artifact-dir D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-01\\.ahra\\artifacts",
+      "db": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-01\\.ahra\\goal-control.sqlite3",
+      "evidenceRefs": [
+        "EVD-738c0b8ce705c619",
+        "EVD-f33c6eaa231d8ba4"
+      ],
+      "goalExecutionId": "GEXEC-5fa5dd52b25844d1",
+      "goalStatus": "succeeded",
+      "metrics": {
+        "capabilityGrantRefCount": 1,
+        "evidenceRefCount": 2,
+        "goalStatus": "succeeded",
+        "missingArtifactCount": 0,
+        "nodeRunCount": 2,
+        "nodeStatusCounts": {
+          "succeeded": 2
+        },
+        "planExecutionCount": 1
+      },
+      "nodeStatuses": {
+        "NODE-goal-verification": "succeeded",
+        "NODE-write-artifact": "succeeded"
+      },
+      "planStatuses": [
+        "succeeded"
+      ],
+      "runId": "TASK-0041-MODE-A-R01"
+    },
+    {
+      "artifactDir": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-02\\.ahra\\artifacts",
+      "artifactFindings": [],
+      "artifactRefs": [
+        "file://D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-02\\workspace\\outputs\\summary.txt"
+      ],
+      "command": "D:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-0abeae463e710026 --db D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-02\\.ahra\\goal-control.sqlite3 --artifact-dir D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-02\\.ahra\\artifacts",
+      "db": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-02\\.ahra\\goal-control.sqlite3",
+      "evidenceRefs": [
+        "EVD-9a344e8684432109",
+        "EVD-768601d982bc11be"
+      ],
+      "goalExecutionId": "GEXEC-0abeae463e710026",
+      "goalStatus": "succeeded",
+      "metrics": {
+        "capabilityGrantRefCount": 1,
+        "evidenceRefCount": 2,
+        "goalStatus": "succeeded",
+        "missingArtifactCount": 0,
+        "nodeRunCount": 2,
+        "nodeStatusCounts": {
+          "succeeded": 2
+        },
+        "planExecutionCount": 1
+      },
+      "nodeStatuses": {
+        "NODE-goal-verification": "succeeded",
+        "NODE-write-artifact": "succeeded"
+      },
+      "planStatuses": [
+        "succeeded"
+      ],
+      "runId": "TASK-0041-MODE-A-R02"
+    },
+    {
+      "artifactDir": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-03\\.ahra\\artifacts",
+      "artifactFindings": [],
+      "artifactRefs": [
+        "file://D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-03\\workspace\\outputs\\summary.txt"
+      ],
+      "command": "D:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-a19e12a4ed8188cf --db D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-03\\.ahra\\goal-control.sqlite3 --artifact-dir D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-03\\.ahra\\artifacts",
+      "db": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-03\\.ahra\\goal-control.sqlite3",
+      "evidenceRefs": [
+        "EVD-25acf8f9096661df",
+        "EVD-103b3dc7768a2934"
+      ],
+      "goalExecutionId": "GEXEC-a19e12a4ed8188cf",
+      "goalStatus": "succeeded",
+      "metrics": {
+        "capabilityGrantRefCount": 1,
+        "evidenceRefCount": 2,
+        "goalStatus": "succeeded",
+        "missingArtifactCount": 0,
+        "nodeRunCount": 2,
+        "nodeStatusCounts": {
+          "succeeded": 2
+        },
+        "planExecutionCount": 1
+      },
+      "nodeStatuses": {
+        "NODE-goal-verification": "succeeded",
+        "NODE-write-artifact": "succeeded"
+      },
+      "planStatuses": [
+        "succeeded"
+      ],
+      "runId": "TASK-0041-MODE-A-R03"
+    },
+    {
+      "artifactDir": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-04\\.ahra\\artifacts",
+      "artifactFindings": [],
+      "artifactRefs": [
+        "file://D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-04\\workspace\\outputs\\summary.txt"
+      ],
+      "command": "D:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-8a8e3ca5d343ca6c --db D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-04\\.ahra\\goal-control.sqlite3 --artifact-dir D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-04\\.ahra\\artifacts",
+      "db": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-04\\.ahra\\goal-control.sqlite3",
+      "evidenceRefs": [
+        "EVD-72bafa93d4aa360c",
+        "EVD-170eaccbcf9677be"
+      ],
+      "goalExecutionId": "GEXEC-8a8e3ca5d343ca6c",
+      "goalStatus": "succeeded",
+      "metrics": {
+        "capabilityGrantRefCount": 1,
+        "evidenceRefCount": 2,
+        "goalStatus": "succeeded",
+        "missingArtifactCount": 0,
+        "nodeRunCount": 2,
+        "nodeStatusCounts": {
+          "succeeded": 2
+        },
+        "planExecutionCount": 1
+      },
+      "nodeStatuses": {
+        "NODE-goal-verification": "succeeded",
+        "NODE-write-artifact": "succeeded"
+      },
+      "planStatuses": [
+        "succeeded"
+      ],
+      "runId": "TASK-0041-MODE-A-R04"
+    },
+    {
+      "artifactDir": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-05\\.ahra\\artifacts",
+      "artifactFindings": [],
+      "artifactRefs": [
+        "file://D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-05\\workspace\\outputs\\summary.txt"
+      ],
+      "command": "D:\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -m ahra.cli goal inspect GEXEC-98c02b7a01c6ad3b --db D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-05\\.ahra\\goal-control.sqlite3 --artifact-dir D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-05\\.ahra\\artifacts",
+      "db": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-05\\.ahra\\goal-control.sqlite3",
+      "evidenceRefs": [
+        "EVD-fc2480697b086a26",
+        "EVD-bbc4359e38a61c26"
+      ],
+      "goalExecutionId": "GEXEC-98c02b7a01c6ad3b",
+      "goalStatus": "succeeded",
+      "metrics": {
+        "capabilityGrantRefCount": 1,
+        "evidenceRefCount": 2,
+        "goalStatus": "succeeded",
+        "missingArtifactCount": 0,
+        "nodeRunCount": 2,
+        "nodeStatusCounts": {
+          "succeeded": 2
+        },
+        "planExecutionCount": 1
+      },
+      "nodeStatuses": {
+        "NODE-goal-verification": "succeeded",
+        "NODE-write-artifact": "succeeded"
+      },
+      "planStatuses": [
+        "succeeded"
+      ],
+      "runId": "TASK-0041-MODE-A-R05"
+    }
+  ],
+  "schema_version": "ahra/task-0041-goal-inspect-summary/0.1",
+  "scorecard": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\scorecard.json",
+  "task_id": "TASK-0041"
+}

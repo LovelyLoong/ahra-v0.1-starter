@@ -1,0 +1,92 @@
+{
+  "created_at": "2026-06-28T05:31:59.917821Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "post_change_latest": {
+    "invalid_output_artifacts": [],
+    "planner_metrics": {
+      "blocked_count": 0,
+      "first_pass_admission_rate": 1.0,
+      "rejected_count": 0,
+      "run_count": 5
+    },
+    "reason": "All post-change Planner outputs were accepted; no invalid Planner output was generated in TASK-0041 post-change Mode A.",
+    "run_count": 5,
+    "scorecard": "work/tasks/TASK-0041/evidence/real-agent-pilot/mode-a/scorecard.json",
+    "success_count": 5
+  },
+  "pre_capability_context_narrowing_run": {
+    "code_commit": "0cae25794e7f4b1378dae9e5379fe58d6ac3f31e",
+    "failure_classes": {
+      "missing_capability_intent": 5
+    },
+    "invalid_output_artifacts": [],
+    "reason": "This intermediate run narrowed the blocker to missing capability intent after PlanDraft admission succeeded.",
+    "run_count": 5,
+    "scorecard": "work/tasks/TASK-0041/evidence/real-agent-pilot/mode-a-before-capability-context-20260628T132437/scorecard.json",
+    "success_count": 0
+  },
+  "preservation_coverage": {
+    "code_paths": [
+      "src/ahra/real_agent_pilot.py writes planner-invalid-output-artifact.json and planner-invalid-output.json on PlannerAdapterError with invalid output artifact.",
+      "src/ahra/planning.py attaches rawOutput and driverOutput digests to invalid output artifacts."
+    ],
+    "tests": [
+      "tests.test_planning.PlanningTests.test_agent_driver_planner_adapter_failures_are_structured_without_fallback",
+      "tests.test_planning.PlanningTests.test_plan_draft_output_contract_rejects_task0040_alias_shape"
+    ]
+  },
+  "schema_version": "ahra/task-0041-invalid-output-index/0.1",
+  "task_id": "TASK-0041",
+  "upstream_invalid_outputs_used_for_regression": [
+    {
+      "blockerPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-01/.ahra/artifacts/planner-blocker.json",
+      "blockerSha256": "f148d77556e3234a1a63923127a272c8c75f2c05d87c0dd26454452b476c29fd",
+      "invalidOutputArtifactPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-01/.ahra/artifacts/planner-invalid-output-artifact.json",
+      "invalidOutputArtifactSha256": "76db8b79010ce2037231664ec2139e1c56f6dd940bfce689ba56be6ea8ff4ba4",
+      "rawOutputPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-01/.ahra/artifacts/planner-invalid-output.json",
+      "rawOutputSha256": "a607f4df8c40c049848e2e8025e195fa6c54eab7623259778ea1317bcffbfa49",
+      "sourceRunId": "TASK-0040-MODE-A-R01",
+      "sourceTaskId": "TASK-0040"
+    },
+    {
+      "blockerPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-02/.ahra/artifacts/planner-blocker.json",
+      "blockerSha256": "f148d77556e3234a1a63923127a272c8c75f2c05d87c0dd26454452b476c29fd",
+      "invalidOutputArtifactPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-02/.ahra/artifacts/planner-invalid-output-artifact.json",
+      "invalidOutputArtifactSha256": "874192c7e731952a132a6a10946369e4ddf1ec0bd40a24bc56179024d119cb04",
+      "rawOutputPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-02/.ahra/artifacts/planner-invalid-output.json",
+      "rawOutputSha256": "1d93714f9d521e7bf81705e23b8583a795e1785548417dda0326c5643f0ce17b",
+      "sourceRunId": "TASK-0040-MODE-A-R02",
+      "sourceTaskId": "TASK-0040"
+    },
+    {
+      "blockerPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-03/.ahra/artifacts/planner-blocker.json",
+      "blockerSha256": "f148d77556e3234a1a63923127a272c8c75f2c05d87c0dd26454452b476c29fd",
+      "invalidOutputArtifactPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-03/.ahra/artifacts/planner-invalid-output-artifact.json",
+      "invalidOutputArtifactSha256": "18e10616ed168c82dfdc81fc33f8023f629c381febe4a68d8d0bf86dcba9fa05",
+      "rawOutputPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-03/.ahra/artifacts/planner-invalid-output.json",
+      "rawOutputSha256": "b90e763a883d3556f4e8cd615e96db9a42c3bacdd10e2115c56fda73128f527e",
+      "sourceRunId": "TASK-0040-MODE-A-R03",
+      "sourceTaskId": "TASK-0040"
+    },
+    {
+      "blockerPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-04/.ahra/artifacts/planner-blocker.json",
+      "blockerSha256": "f148d77556e3234a1a63923127a272c8c75f2c05d87c0dd26454452b476c29fd",
+      "invalidOutputArtifactPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-04/.ahra/artifacts/planner-invalid-output-artifact.json",
+      "invalidOutputArtifactSha256": "ca0a9803393eb3c6492afdbf503f037f35de332b60af9e0a5e3f50d54cd56023",
+      "rawOutputPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-04/.ahra/artifacts/planner-invalid-output.json",
+      "rawOutputSha256": "8d29478fd157da711e1b2b47e5665ab70d32164a4f0a0eff79cba864430a2d6b",
+      "sourceRunId": "TASK-0040-MODE-A-R04",
+      "sourceTaskId": "TASK-0040"
+    },
+    {
+      "blockerPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-05/.ahra/artifacts/planner-blocker.json",
+      "blockerSha256": "f148d77556e3234a1a63923127a272c8c75f2c05d87c0dd26454452b476c29fd",
+      "invalidOutputArtifactPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-05/.ahra/artifacts/planner-invalid-output-artifact.json",
+      "invalidOutputArtifactSha256": "53d163cd14221eb02908047d43a97c81f503677987e084af054b01eead18fa08",
+      "rawOutputPath": "work/tasks/TASK-0040/evidence/real-agent-pilot/mode-a/run-05/.ahra/artifacts/planner-invalid-output.json",
+      "rawOutputSha256": "d7f025eb03724ed8d775c7b998123926a7412dd2fbd1f69583b0b9680b495706",
+      "sourceRunId": "TASK-0040-MODE-A-R05",
+      "sourceTaskId": "TASK-0040"
+    }
+  ]
+}

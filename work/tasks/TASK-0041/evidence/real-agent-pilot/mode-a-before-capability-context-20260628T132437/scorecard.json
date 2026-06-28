@@ -1,0 +1,927 @@
+{
+  "claim_graph_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+  "code_commit": "0cae25794e7f4b1378dae9e5379fe58d6ac3f31e",
+  "cost": {
+    "cost_usd": 0.0,
+    "known_limitations": [
+      "Provider usage is unavailable unless the AgentDriver reports it."
+    ],
+    "model_provider": "codex-sdk",
+    "model_revision": "unspecified"
+  },
+  "evidence_refs": [],
+  "execution_policy": {
+    "attempt_wall_timeout_seconds": 180,
+    "heartbeat_interval_seconds": 15,
+    "idle_timeout_seconds": 120,
+    "max_attempts": 1,
+    "run_deadline_seconds": 240,
+    "startup_timeout_seconds": 60
+  },
+  "executor_metrics": {
+    "accepted_node_rate": 0.0,
+    "failed_count": 5,
+    "run_count": 5
+  },
+  "executor_release": "executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "experiment_id": "TASK-0041-MODE-A",
+  "failure_classes": {
+    "missing_capability_intent": 5
+  },
+  "goal_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+  "hard_metrics": {
+    "capability_admission_coverage": 0.0,
+    "current_claim_coverage": 0.0,
+    "false_completion_count": 0,
+    "gate_execution_integrity": 0.0,
+    "repair_boundary_compliance": 1.0,
+    "resume_duplicate_effect_count": 0,
+    "stale_fencing_accept_count": 0,
+    "unrun_gate_pass_count": 0
+  },
+  "known_limitations": [
+    "This pilot runner records local GoalOperation inspect metrics; independent AWKP EvidenceGate remains a separate verifier step.",
+    "Mode C is intentionally disabled unless explicitly allowed by the operator after Mode A and Mode B review."
+  ],
+  "planner_metrics": {
+    "blocked_count": 0,
+    "first_pass_admission_rate": 1.0,
+    "rejected_count": 0,
+    "run_count": 5
+  },
+  "planner_release": "planner/agent-driver-plan-draft@sha256:7777777777777777777777777777777777777777777777777777777777777777",
+  "policy_digest": "sha256:934b2daa411351f03e5e16978b74c9620824b8745cb992a746b3e44f268707ba",
+  "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "recovery_metrics": {
+    "resume_duplicate_effect_count": 0,
+    "stale_fencing_accept_count": 0
+  },
+  "run_count": 5,
+  "runs": [
+    {
+      "elapsed_seconds": 36.8044,
+      "execution": {
+        "goalExecutionId": "GEXEC-5fa5dd52b25844d1",
+        "metrics": {
+          "capabilityGrantRefCount": 0,
+          "evidenceRefCount": 0,
+          "goalStatus": "failed",
+          "missingArtifactCount": 0,
+          "nodeRunCount": 2,
+          "nodeStatusCounts": {
+            "failed": 1,
+            "pending": 1
+          },
+          "planExecutionCount": 1
+        },
+        "planExecutionId": "PEXEC-22f77638e11ab55e",
+        "planStatus": "failed",
+        "status": "failed"
+      },
+      "failure_class": "missing_capability_intent",
+      "hard_metric_violation": true,
+      "hard_metrics": {
+        "capability_admission_coverage": 0.0,
+        "current_claim_coverage": 0.0,
+        "false_completion_count": 0,
+        "gate_execution_integrity": 0.0,
+        "repair_boundary_compliance": 1.0,
+        "resume_duplicate_effect_count": 0,
+        "stale_fencing_accept_count": 0,
+        "unrun_gate_pass_count": 0
+      },
+      "mode": "mode_a_real_planner",
+      "planner": {
+        "driverRef": "codex-python-sdk",
+        "modelProvider": "codex-sdk",
+        "modelRevision": "unspecified",
+        "outputArtifact": {
+          "artifactId": "PLART-ed3ac152d405b9c188499ce3",
+          "contextManifestDigest": "a00d5efa47883a5af3454c782d3087a38153f529a6798eca34327a5f1b59d613",
+          "contextManifestRef": "CTXMAN-a00d5efa47883a5af3454c78",
+          "kind": "planner-plan-draft",
+          "mediaType": "application/json",
+          "payload": {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "PlanDraft",
+            "metadata": {
+              "goalId": "GOAL-M1-GENERIC-SMOKE",
+              "proposedBy": "planner/agent-driver-plan-draft@sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db"
+            },
+            "spec": {
+              "nodes": [
+                {
+                  "budgetRequest": {
+                    "maxCostUsd": 0.0,
+                    "maxModelCalls": 1,
+                    "maxSpawnedNodes": 0,
+                    "maxToolCalls": 1,
+                    "maxWallSeconds": 60
+                  },
+                  "capabilityRequests": [],
+                  "claimRefs": [
+                    "CLM-WRITE-ARTIFACT"
+                  ],
+                  "dependsOn": [],
+                  "expectedOutputs": [
+                    {
+                      "artifactRequired": true,
+                      "consumerNodeRefs": [
+                        "NODE-goal-verification"
+                      ],
+                      "deliveryRole": "artifact",
+                      "name": "deterministic-artifact",
+                      "schemaRef": "planner-output-contracts"
+                    }
+                  ],
+                  "gateRefs": [
+                    "GATE-write-artifact"
+                  ],
+                  "id": "NODE-write-artifact",
+                  "inputRefs": [
+                    "GOAL-M1-GENERIC-SMOKE",
+                    "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                  ],
+                  "nodeType": "bounded_task",
+                  "objective": "Produce the bounded artifact required for the generic smoke goal under the write-artifact gate.",
+                  "retryPolicy": {
+                    "idempotencyKeyRequired": true,
+                    "maxAttempts": 1,
+                    "retryableFailureClasses": []
+                  },
+                  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "sideEffect": "idempotent",
+                  "terminalGoalVerification": false,
+                  "timeoutSeconds": 60
+                },
+                {
+                  "budgetRequest": {
+                    "maxCostUsd": 0.0,
+                    "maxModelCalls": 1,
+                    "maxSpawnedNodes": 0,
+                    "maxToolCalls": 1,
+                    "maxWallSeconds": 60
+                  },
+                  "capabilityRequests": [],
+                  "claimRefs": [
+                    "CLM-GOAL-COMPLETE",
+                    "CLM-WRITE-ARTIFACT"
+                  ],
+                  "dependsOn": [
+                    "NODE-write-artifact"
+                  ],
+                  "expectedOutputs": [],
+                  "gateRefs": [
+                    "GATE-goal-complete"
+                  ],
+                  "id": "NODE-goal-verification",
+                  "inputRefs": [
+                    "NODE-write-artifact"
+                  ],
+                  "nodeType": "goal_verification",
+                  "objective": "Verify that the write-artifact claim satisfies the generic smoke goal completion claim using the supplied goal-complete gate.",
+                  "retryPolicy": {
+                    "idempotencyKeyRequired": false,
+                    "maxAttempts": 1,
+                    "retryableFailureClasses": []
+                  },
+                  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "sideEffect": "idempotent",
+                  "terminalGoalVerification": true,
+                  "timeoutSeconds": 60
+                }
+              ],
+              "rationale": "Use the supplied bounded artifact claim followed by terminal goal verification. No capability request is granted because the runtime payload supplies no capability refs."
+            }
+          },
+          "refs": [
+            "GOAL-M1-GENERIC-SMOKE",
+            "PLART-1a929f00c4ca4885d5f206cc"
+          ],
+          "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+          "sha256": "sha256:ed3ac152d405b9c188499ce3400628f78f9a8984d3a02520afc73111e062bc57"
+        },
+        "status": "accepted",
+        "validationReport": {
+          "apiVersion": "ahra.dev/v1alpha1",
+          "kind": "PlanValidationReport",
+          "metadata": {
+            "createdBy": "ahra-planner-admission/0.1",
+            "reportId": "PLANVAL-9baeb256c868db13"
+          },
+          "spec": {
+            "errors": [],
+            "refs": [
+              "CTXMAN-a00d5efa47883a5af3454c78",
+              "PLANVAL-e2688828f67555d7",
+              "PLART-46c17a206999753eed133a80"
+            ],
+            "result": "passed",
+            "subjectDigest": "sha256:46c17a206999753eed133a8063d04dca7c83295a7e704de2f797d99b435e3ce3",
+            "subjectRef": "PLART-46c17a206999753eed133a80"
+          }
+        }
+      },
+      "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "request_path": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-01\\goal-run-request.yaml",
+      "run_id": "TASK-0041-MODE-A-R01",
+      "schema_version": "ahra/real-agent-pilot-run/0.1",
+      "status": "failed"
+    },
+    {
+      "elapsed_seconds": 34.835638,
+      "execution": {
+        "goalExecutionId": "GEXEC-0abeae463e710026",
+        "metrics": {
+          "capabilityGrantRefCount": 0,
+          "evidenceRefCount": 0,
+          "goalStatus": "failed",
+          "missingArtifactCount": 0,
+          "nodeRunCount": 2,
+          "nodeStatusCounts": {
+            "failed": 1,
+            "pending": 1
+          },
+          "planExecutionCount": 1
+        },
+        "planExecutionId": "PEXEC-9da90108857f3975",
+        "planStatus": "failed",
+        "status": "failed"
+      },
+      "failure_class": "missing_capability_intent",
+      "hard_metric_violation": true,
+      "hard_metrics": {
+        "capability_admission_coverage": 0.0,
+        "current_claim_coverage": 0.0,
+        "false_completion_count": 0,
+        "gate_execution_integrity": 0.0,
+        "repair_boundary_compliance": 1.0,
+        "resume_duplicate_effect_count": 0,
+        "stale_fencing_accept_count": 0,
+        "unrun_gate_pass_count": 0
+      },
+      "mode": "mode_a_real_planner",
+      "planner": {
+        "driverRef": "codex-python-sdk",
+        "modelProvider": "codex-sdk",
+        "modelRevision": "unspecified",
+        "outputArtifact": {
+          "artifactId": "PLART-915ea6d5af00b883e7a595c5",
+          "contextManifestDigest": "ce3071370f52ce61ab97fd84c91c142f512aa080bc531470923eda83b698fda1",
+          "contextManifestRef": "CTXMAN-ce3071370f52ce61ab97fd84",
+          "kind": "planner-plan-draft",
+          "mediaType": "application/json",
+          "payload": {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "PlanDraft",
+            "metadata": {
+              "goalId": "GOAL-M1-GENERIC-SMOKE",
+              "proposedBy": "planner/agent-driver-plan-draft@sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db"
+            },
+            "spec": {
+              "nodes": [
+                {
+                  "budgetRequest": {
+                    "maxCostUsd": 0.0,
+                    "maxModelCalls": 1,
+                    "maxSpawnedNodes": 0,
+                    "maxToolCalls": 1,
+                    "maxWallSeconds": 60
+                  },
+                  "capabilityRequests": [],
+                  "claimRefs": [
+                    "CLM-WRITE-ARTIFACT"
+                  ],
+                  "dependsOn": [],
+                  "expectedOutputs": [
+                    {
+                      "artifactRequired": true,
+                      "consumerNodeRefs": [
+                        "NODE-goal-verification"
+                      ],
+                      "deliveryRole": "evidence",
+                      "name": "write-artifact-evidence",
+                      "schemaRef": "planner-output-contracts"
+                    }
+                  ],
+                  "gateRefs": [
+                    "GATE-write-artifact"
+                  ],
+                  "id": "NODE-write-artifact",
+                  "inputRefs": [
+                    "GOAL-M1-GENERIC-SMOKE",
+                    "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                  ],
+                  "nodeType": "bounded_task",
+                  "objective": "Produce the bounded artifact required to support CLM-WRITE-ARTIFACT for GOAL-M1-GENERIC-SMOKE.",
+                  "retryPolicy": {
+                    "idempotencyKeyRequired": true,
+                    "maxAttempts": 1,
+                    "retryableFailureClasses": []
+                  },
+                  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "sideEffect": "idempotent",
+                  "terminalGoalVerification": false,
+                  "timeoutSeconds": 60
+                },
+                {
+                  "budgetRequest": {
+                    "maxCostUsd": 0.0,
+                    "maxModelCalls": 1,
+                    "maxSpawnedNodes": 0,
+                    "maxToolCalls": 1,
+                    "maxWallSeconds": 60
+                  },
+                  "capabilityRequests": [],
+                  "claimRefs": [
+                    "CLM-GOAL-COMPLETE",
+                    "CLM-WRITE-ARTIFACT"
+                  ],
+                  "dependsOn": [
+                    "NODE-write-artifact"
+                  ],
+                  "expectedOutputs": [],
+                  "gateRefs": [
+                    "GATE-goal-complete"
+                  ],
+                  "id": "NODE-goal-verification",
+                  "inputRefs": [
+                    "NODE-write-artifact"
+                  ],
+                  "nodeType": "goal_verification",
+                  "objective": "Verify CLM-GOAL-COMPLETE from the evidence produced by NODE-write-artifact.",
+                  "retryPolicy": {
+                    "idempotencyKeyRequired": false,
+                    "maxAttempts": 1,
+                    "retryableFailureClasses": []
+                  },
+                  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "sideEffect": "idempotent",
+                  "terminalGoalVerification": true,
+                  "timeoutSeconds": 60
+                }
+              ],
+              "rationale": "Use one bounded task for CLM-WRITE-ARTIFACT and one terminal goal verification node for CLM-GOAL-COMPLETE within the supplied budget and registered gate/runtime refs."
+            }
+          },
+          "refs": [
+            "GOAL-M1-GENERIC-SMOKE",
+            "PLART-7be159fcb624a091912dab2e"
+          ],
+          "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+          "sha256": "sha256:915ea6d5af00b883e7a595c5d06ab9f553fc21ec6a387f860d127d3174be593d"
+        },
+        "status": "accepted",
+        "validationReport": {
+          "apiVersion": "ahra.dev/v1alpha1",
+          "kind": "PlanValidationReport",
+          "metadata": {
+            "createdBy": "ahra-planner-admission/0.1",
+            "reportId": "PLANVAL-9defa5e64452d6ac"
+          },
+          "spec": {
+            "errors": [],
+            "refs": [
+              "CTXMAN-ce3071370f52ce61ab97fd84",
+              "PLANVAL-dea6a517d12c857e",
+              "PLART-d69931f554e31c0e382716fa"
+            ],
+            "result": "passed",
+            "subjectDigest": "sha256:d69931f554e31c0e382716fa3fd17a320d0e91b42a58a008c7ef3e3cbe55eb6b",
+            "subjectRef": "PLART-d69931f554e31c0e382716fa"
+          }
+        }
+      },
+      "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "request_path": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-02\\goal-run-request.yaml",
+      "run_id": "TASK-0041-MODE-A-R02",
+      "schema_version": "ahra/real-agent-pilot-run/0.1",
+      "status": "failed"
+    },
+    {
+      "elapsed_seconds": 34.741014,
+      "execution": {
+        "goalExecutionId": "GEXEC-a19e12a4ed8188cf",
+        "metrics": {
+          "capabilityGrantRefCount": 0,
+          "evidenceRefCount": 0,
+          "goalStatus": "failed",
+          "missingArtifactCount": 0,
+          "nodeRunCount": 2,
+          "nodeStatusCounts": {
+            "failed": 1,
+            "pending": 1
+          },
+          "planExecutionCount": 1
+        },
+        "planExecutionId": "PEXEC-b9792f29f794f89a",
+        "planStatus": "failed",
+        "status": "failed"
+      },
+      "failure_class": "missing_capability_intent",
+      "hard_metric_violation": true,
+      "hard_metrics": {
+        "capability_admission_coverage": 0.0,
+        "current_claim_coverage": 0.0,
+        "false_completion_count": 0,
+        "gate_execution_integrity": 0.0,
+        "repair_boundary_compliance": 1.0,
+        "resume_duplicate_effect_count": 0,
+        "stale_fencing_accept_count": 0,
+        "unrun_gate_pass_count": 0
+      },
+      "mode": "mode_a_real_planner",
+      "planner": {
+        "driverRef": "codex-python-sdk",
+        "modelProvider": "codex-sdk",
+        "modelRevision": "unspecified",
+        "outputArtifact": {
+          "artifactId": "PLART-6d1fb058fd21b873b1d555e5",
+          "contextManifestDigest": "d328f9e51e4a8771d57fffda1abeb642f5b1d2f0d7f1b682923eaa0afb41174a",
+          "contextManifestRef": "CTXMAN-d328f9e51e4a8771d57fffda",
+          "kind": "planner-plan-draft",
+          "mediaType": "application/json",
+          "payload": {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "PlanDraft",
+            "metadata": {
+              "goalId": "GOAL-M1-GENERIC-SMOKE",
+              "proposedBy": "planner/agent-driver-plan-draft@sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db"
+            },
+            "spec": {
+              "nodes": [
+                {
+                  "budgetRequest": {
+                    "maxCostUsd": 0.0,
+                    "maxModelCalls": 1,
+                    "maxSpawnedNodes": 0,
+                    "maxToolCalls": 1,
+                    "maxWallSeconds": 60
+                  },
+                  "capabilityRequests": [],
+                  "claimRefs": [
+                    "CLM-WRITE-ARTIFACT"
+                  ],
+                  "dependsOn": [],
+                  "expectedOutputs": [
+                    {
+                      "artifactRequired": true,
+                      "consumerNodeRefs": [
+                        "NODE-goal-verification"
+                      ],
+                      "deliveryRole": "artifact",
+                      "name": "deterministic-artifact",
+                      "schemaRef": "planner-output-contracts"
+                    }
+                  ],
+                  "gateRefs": [
+                    "GATE-write-artifact"
+                  ],
+                  "id": "NODE-write-artifact",
+                  "inputRefs": [
+                    "GOAL-M1-GENERIC-SMOKE",
+                    "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                  ],
+                  "nodeType": "bounded_task",
+                  "objective": "Produce the bounded artifact required for GOAL-M1-GENERIC-SMOKE without asserting goal completion.",
+                  "retryPolicy": {
+                    "idempotencyKeyRequired": true,
+                    "maxAttempts": 1,
+                    "retryableFailureClasses": []
+                  },
+                  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "sideEffect": "idempotent",
+                  "terminalGoalVerification": false,
+                  "timeoutSeconds": 60
+                },
+                {
+                  "budgetRequest": {
+                    "maxCostUsd": 0.0,
+                    "maxModelCalls": 1,
+                    "maxSpawnedNodes": 0,
+                    "maxToolCalls": 1,
+                    "maxWallSeconds": 60
+                  },
+                  "capabilityRequests": [],
+                  "claimRefs": [
+                    "CLM-GOAL-COMPLETE",
+                    "CLM-WRITE-ARTIFACT"
+                  ],
+                  "dependsOn": [
+                    "NODE-write-artifact"
+                  ],
+                  "expectedOutputs": [],
+                  "gateRefs": [
+                    "GATE-goal-complete"
+                  ],
+                  "id": "NODE-goal-verification",
+                  "inputRefs": [
+                    "GOAL-M1-GENERIC-SMOKE",
+                    "NODE-write-artifact"
+                  ],
+                  "nodeType": "goal_verification",
+                  "objective": "Verify CLM-GOAL-COMPLETE from the bounded artifact evidence and the registered goal-complete gate.",
+                  "retryPolicy": {
+                    "idempotencyKeyRequired": false,
+                    "maxAttempts": 1,
+                    "retryableFailureClasses": []
+                  },
+                  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "sideEffect": "idempotent",
+                  "terminalGoalVerification": true,
+                  "timeoutSeconds": 60
+                }
+              ],
+              "rationale": "Use one bounded task for CLM-WRITE-ARTIFACT followed by terminal goal verification for CLM-GOAL-COMPLETE, staying within the supplied node, gate, claim, and runtime refs."
+            }
+          },
+          "refs": [
+            "GOAL-M1-GENERIC-SMOKE",
+            "PLART-cd4a8c947dc2626f8a022d1d"
+          ],
+          "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+          "sha256": "sha256:6d1fb058fd21b873b1d555e5dbef974f6f9e09cc842babc619519e6c38a748bd"
+        },
+        "status": "accepted",
+        "validationReport": {
+          "apiVersion": "ahra.dev/v1alpha1",
+          "kind": "PlanValidationReport",
+          "metadata": {
+            "createdBy": "ahra-planner-admission/0.1",
+            "reportId": "PLANVAL-a774593d9fdf8169"
+          },
+          "spec": {
+            "errors": [],
+            "refs": [
+              "CTXMAN-d328f9e51e4a8771d57fffda",
+              "PLANVAL-4218a3e1174ba0dc",
+              "PLART-37074db7b74013aee3ac90f2"
+            ],
+            "result": "passed",
+            "subjectDigest": "sha256:37074db7b74013aee3ac90f23f06aebd195393a92fad66b0f9b670a57f4ee4c7",
+            "subjectRef": "PLART-37074db7b74013aee3ac90f2"
+          }
+        }
+      },
+      "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "request_path": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-03\\goal-run-request.yaml",
+      "run_id": "TASK-0041-MODE-A-R03",
+      "schema_version": "ahra/real-agent-pilot-run/0.1",
+      "status": "failed"
+    },
+    {
+      "elapsed_seconds": 34.620988,
+      "execution": {
+        "goalExecutionId": "GEXEC-8a8e3ca5d343ca6c",
+        "metrics": {
+          "capabilityGrantRefCount": 0,
+          "evidenceRefCount": 0,
+          "goalStatus": "failed",
+          "missingArtifactCount": 0,
+          "nodeRunCount": 2,
+          "nodeStatusCounts": {
+            "failed": 1,
+            "pending": 1
+          },
+          "planExecutionCount": 1
+        },
+        "planExecutionId": "PEXEC-ceeba31def555e99",
+        "planStatus": "failed",
+        "status": "failed"
+      },
+      "failure_class": "missing_capability_intent",
+      "hard_metric_violation": true,
+      "hard_metrics": {
+        "capability_admission_coverage": 0.0,
+        "current_claim_coverage": 0.0,
+        "false_completion_count": 0,
+        "gate_execution_integrity": 0.0,
+        "repair_boundary_compliance": 1.0,
+        "resume_duplicate_effect_count": 0,
+        "stale_fencing_accept_count": 0,
+        "unrun_gate_pass_count": 0
+      },
+      "mode": "mode_a_real_planner",
+      "planner": {
+        "driverRef": "codex-python-sdk",
+        "modelProvider": "codex-sdk",
+        "modelRevision": "unspecified",
+        "outputArtifact": {
+          "artifactId": "PLART-839df95b461ee57410fb0d7b",
+          "contextManifestDigest": "ab1b421ed70d619c420a6da54b77a2899abd01d92bbbf01bd92177677621633b",
+          "contextManifestRef": "CTXMAN-ab1b421ed70d619c420a6da5",
+          "kind": "planner-plan-draft",
+          "mediaType": "application/json",
+          "payload": {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "PlanDraft",
+            "metadata": {
+              "goalId": "GOAL-M1-GENERIC-SMOKE",
+              "proposedBy": "planner/agent-driver-plan-draft@sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db"
+            },
+            "spec": {
+              "nodes": [
+                {
+                  "budgetRequest": {
+                    "maxCostUsd": 0.0,
+                    "maxModelCalls": 1,
+                    "maxSpawnedNodes": 0,
+                    "maxToolCalls": 1,
+                    "maxWallSeconds": 60
+                  },
+                  "capabilityRequests": [],
+                  "claimRefs": [
+                    "CLM-WRITE-ARTIFACT"
+                  ],
+                  "dependsOn": [],
+                  "expectedOutputs": [
+                    {
+                      "artifactRequired": true,
+                      "consumerNodeRefs": [
+                        "NODE-goal-verification"
+                      ],
+                      "deliveryRole": "artifact",
+                      "name": "deterministic-artifact",
+                      "schemaRef": "planner-output-contracts"
+                    }
+                  ],
+                  "gateRefs": [
+                    "GATE-write-artifact"
+                  ],
+                  "id": "NODE-write-artifact",
+                  "inputRefs": [
+                    "GOAL-M1-GENERIC-SMOKE",
+                    "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                  ],
+                  "nodeType": "bounded_task",
+                  "objective": "Produce the deterministic artifact required for the generic smoke goal and attach evidence for the write-artifact claim.",
+                  "retryPolicy": {
+                    "idempotencyKeyRequired": true,
+                    "maxAttempts": 1,
+                    "retryableFailureClasses": []
+                  },
+                  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "sideEffect": "idempotent",
+                  "terminalGoalVerification": false,
+                  "timeoutSeconds": 60
+                },
+                {
+                  "budgetRequest": {
+                    "maxCostUsd": 0.0,
+                    "maxModelCalls": 1,
+                    "maxSpawnedNodes": 0,
+                    "maxToolCalls": 1,
+                    "maxWallSeconds": 60
+                  },
+                  "capabilityRequests": [],
+                  "claimRefs": [
+                    "CLM-GOAL-COMPLETE",
+                    "CLM-WRITE-ARTIFACT"
+                  ],
+                  "dependsOn": [
+                    "NODE-write-artifact"
+                  ],
+                  "expectedOutputs": [],
+                  "gateRefs": [
+                    "GATE-goal-complete"
+                  ],
+                  "id": "NODE-goal-verification",
+                  "inputRefs": [
+                    "NODE-write-artifact"
+                  ],
+                  "nodeType": "goal_verification",
+                  "objective": "Verify that the produced artifact evidence satisfies the goal-complete claim through the supplied goal-complete gate.",
+                  "retryPolicy": {
+                    "idempotencyKeyRequired": false,
+                    "maxAttempts": 1,
+                    "retryableFailureClasses": []
+                  },
+                  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "sideEffect": "idempotent",
+                  "terminalGoalVerification": true,
+                  "timeoutSeconds": 60
+                }
+              ],
+              "rationale": "Use one bounded task to produce the required artifact evidence and one terminal goal verification node within the supplied claims, gates, runtime, and budget limits."
+            }
+          },
+          "refs": [
+            "GOAL-M1-GENERIC-SMOKE",
+            "PLART-8739b63257a8758cd9a9d0a6"
+          ],
+          "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+          "sha256": "sha256:839df95b461ee57410fb0d7b34a232060a9ed0acbe8d811a0fb7dbe7157ddfd8"
+        },
+        "status": "accepted",
+        "validationReport": {
+          "apiVersion": "ahra.dev/v1alpha1",
+          "kind": "PlanValidationReport",
+          "metadata": {
+            "createdBy": "ahra-planner-admission/0.1",
+            "reportId": "PLANVAL-b3dc4bd57c75fbd7"
+          },
+          "spec": {
+            "errors": [],
+            "refs": [
+              "CTXMAN-ab1b421ed70d619c420a6da5",
+              "PLANVAL-0756c24c60e0251d",
+              "PLART-11295f3abb7d8ff46887dbc0"
+            ],
+            "result": "passed",
+            "subjectDigest": "sha256:11295f3abb7d8ff46887dbc010da4f02908a52ca7faea67f411d3e3771370bd5",
+            "subjectRef": "PLART-11295f3abb7d8ff46887dbc0"
+          }
+        }
+      },
+      "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "request_path": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-04\\goal-run-request.yaml",
+      "run_id": "TASK-0041-MODE-A-R04",
+      "schema_version": "ahra/real-agent-pilot-run/0.1",
+      "status": "failed"
+    },
+    {
+      "elapsed_seconds": 32.724579,
+      "execution": {
+        "goalExecutionId": "GEXEC-98c02b7a01c6ad3b",
+        "metrics": {
+          "capabilityGrantRefCount": 0,
+          "evidenceRefCount": 0,
+          "goalStatus": "failed",
+          "missingArtifactCount": 0,
+          "nodeRunCount": 2,
+          "nodeStatusCounts": {
+            "failed": 1,
+            "pending": 1
+          },
+          "planExecutionCount": 1
+        },
+        "planExecutionId": "PEXEC-c873016a3a388f75",
+        "planStatus": "failed",
+        "status": "failed"
+      },
+      "failure_class": "missing_capability_intent",
+      "hard_metric_violation": true,
+      "hard_metrics": {
+        "capability_admission_coverage": 0.0,
+        "current_claim_coverage": 0.0,
+        "false_completion_count": 0,
+        "gate_execution_integrity": 0.0,
+        "repair_boundary_compliance": 1.0,
+        "resume_duplicate_effect_count": 0,
+        "stale_fencing_accept_count": 0,
+        "unrun_gate_pass_count": 0
+      },
+      "mode": "mode_a_real_planner",
+      "planner": {
+        "driverRef": "codex-python-sdk",
+        "modelProvider": "codex-sdk",
+        "modelRevision": "unspecified",
+        "outputArtifact": {
+          "artifactId": "PLART-354de354eb2eab40ba8a3752",
+          "contextManifestDigest": "94e127397ebcdf94997514b000a94c8d3d5c18e546edfe35253960a2657d91c2",
+          "contextManifestRef": "CTXMAN-94e127397ebcdf94997514b0",
+          "kind": "planner-plan-draft",
+          "mediaType": "application/json",
+          "payload": {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "PlanDraft",
+            "metadata": {
+              "goalId": "GOAL-M1-GENERIC-SMOKE",
+              "proposedBy": "planner/agent-driver@sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db"
+            },
+            "spec": {
+              "nodes": [
+                {
+                  "budgetRequest": {
+                    "maxCostUsd": 0.0,
+                    "maxModelCalls": 1,
+                    "maxSpawnedNodes": 0,
+                    "maxToolCalls": 1,
+                    "maxWallSeconds": 30
+                  },
+                  "capabilityRequests": [],
+                  "claimRefs": [
+                    "CLM-WRITE-ARTIFACT"
+                  ],
+                  "dependsOn": [],
+                  "expectedOutputs": [
+                    {
+                      "artifactRequired": true,
+                      "consumerNodeRefs": [
+                        "NODE-goal-verification"
+                      ],
+                      "deliveryRole": "artifact",
+                      "name": "deterministic-artifact",
+                      "schemaRef": "GOAL-M1-GENERIC-SMOKE"
+                    }
+                  ],
+                  "gateRefs": [
+                    "GATE-write-artifact"
+                  ],
+                  "id": "NODE-write-artifact",
+                  "inputRefs": [
+                    "GOAL-M1-GENERIC-SMOKE",
+                    "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+                  ],
+                  "nodeType": "bounded_task",
+                  "objective": "Produce the required deterministic artifact for the generic smoke goal without asserting completion.",
+                  "retryPolicy": {
+                    "idempotencyKeyRequired": true,
+                    "maxAttempts": 1,
+                    "retryableFailureClasses": []
+                  },
+                  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "sideEffect": "idempotent",
+                  "terminalGoalVerification": false,
+                  "timeoutSeconds": 30
+                },
+                {
+                  "budgetRequest": {
+                    "maxCostUsd": 0.0,
+                    "maxModelCalls": 1,
+                    "maxSpawnedNodes": 0,
+                    "maxToolCalls": 1,
+                    "maxWallSeconds": 30
+                  },
+                  "capabilityRequests": [],
+                  "claimRefs": [
+                    "CLM-GOAL-COMPLETE",
+                    "CLM-WRITE-ARTIFACT"
+                  ],
+                  "dependsOn": [
+                    "NODE-write-artifact"
+                  ],
+                  "expectedOutputs": [],
+                  "gateRefs": [
+                    "GATE-goal-complete"
+                  ],
+                  "id": "NODE-goal-verification",
+                  "inputRefs": [
+                    "GOAL-M1-GENERIC-SMOKE",
+                    "NODE-write-artifact"
+                  ],
+                  "nodeType": "goal_verification",
+                  "objective": "Verify the supplied goal completion claim from accepted evidence after the artifact gate passes.",
+                  "retryPolicy": {
+                    "idempotencyKeyRequired": false,
+                    "maxAttempts": 1,
+                    "retryableFailureClasses": []
+                  },
+                  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                  "sideEffect": "idempotent",
+                  "terminalGoalVerification": true,
+                  "timeoutSeconds": 30
+                }
+              ],
+              "rationale": "Use one bounded artifact task followed by terminal goal verification within the supplied claims, gates, runtime, and budget limits."
+            }
+          },
+          "refs": [
+            "GOAL-M1-GENERIC-SMOKE",
+            "PLART-388da3cf1fed035753d49b11"
+          ],
+          "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+          "sha256": "sha256:354de354eb2eab40ba8a3752d5652a3abb413ed608988b9b33953f9f9e94dd94"
+        },
+        "status": "accepted",
+        "validationReport": {
+          "apiVersion": "ahra.dev/v1alpha1",
+          "kind": "PlanValidationReport",
+          "metadata": {
+            "createdBy": "ahra-planner-admission/0.1",
+            "reportId": "PLANVAL-d1a65b5961120994"
+          },
+          "spec": {
+            "errors": [],
+            "refs": [
+              "CTXMAN-94e127397ebcdf94997514b0",
+              "PLANVAL-5f4071062767c459",
+              "PLART-f6d4722d56ec57074d190409"
+            ],
+            "result": "passed",
+            "subjectDigest": "sha256:f6d4722d56ec57074d19040955e94ff198a781e9aa9c400f50c1dc945bf8153e",
+            "subjectRef": "PLART-f6d4722d56ec57074d190409"
+          }
+        }
+      },
+      "profile": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "request_path": "work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-05\\goal-run-request.yaml",
+      "run_id": "TASK-0041-MODE-A-R05",
+      "schema_version": "ahra/real-agent-pilot-run/0.1",
+      "status": "failed"
+    }
+  ],
+  "runtime_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "schema_version": "ahra/real-agent-pilot/0.1",
+  "success_count": 0,
+  "verification_efficiency": {
+    "full_gate_baseline_count": null,
+    "known_limitations": [
+      "Gate cost is preserved by run artifacts; weighted cost is not implemented in this pilot increment."
+    ],
+    "selected_gate_count": null
+  },
+  "verifier_releases": [
+    "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "goalExecutionId": "GEXEC-a19e12a4ed8188cf",
+  "goalStatus": "failed",
+  "inspect": {
+    "artifactFindings": [],
+    "goalExecution": {
+      "active_plan_execution_ref": null,
+      "approval_refs": [],
+      "artifact_refs": [],
+      "budget_summary": {
+        "profileRef": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "checkpoint_ref": null,
+      "claim_graph_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "claim_graph_ref": "claim-graph/m1-generic-smoke",
+      "created_at": "2026-06-28T05:18:45.800322Z",
+      "evidence_refs": [],
+      "failure_class": "missing_capability_intent",
+      "goal_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "goal_execution_id": "GEXEC-a19e12a4ed8188cf",
+      "goal_ref": "GOAL-M1-GENERIC-SMOKE",
+      "max_repair_cycles": 0,
+      "message": "PlanExecution PEXEC-b9792f29f794f89a reached failed.",
+      "open_defect_refs": [],
+      "plan_execution_refs": [
+        "PEXEC-b9792f29f794f89a"
+      ],
+      "repair_cycle": 0,
+      "resolved_defect_refs": [],
+      "schema_version": "ahra/goal-execution/0.1",
+      "status": "failed",
+      "status_version": 2,
+      "updated_at": "2026-06-28T05:18:45.949099Z",
+      "usage": {},
+      "workspace_ref": "D:\\ahra-v0.1-starter\\work\\tasks\\TASK-0041\\evidence\\real-agent-pilot\\mode-a\\run-03\\workspace"
+    },
+    "idempotencyRecords": [],
+    "metrics": {
+      "capabilityGrantRefCount": 0,
+      "evidenceRefCount": 0,
+      "goalStatus": "failed",
+      "missingArtifactCount": 0,
+      "nodeRunCount": 2,
+      "nodeStatusCounts": {
+        "failed": 1,
+        "pending": 1
+      },
+      "planExecutionCount": 1
+    },
+    "nodeRuns": [
+      {
+        "admission_decision_refs": [],
+        "artifact_refs": [],
+        "attempt": 1,
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "capability_grant_digests": [],
+        "capability_grant_refs": [],
+        "created_at": "2026-06-28T05:18:45.806655Z",
+        "dependency_node_refs": [
+          "NODE-write-artifact"
+        ],
+        "evidence_refs": [],
+        "executor_release": null,
+        "failure_class": null,
+        "gate_refs": [
+          "GATE-goal-complete"
+        ],
+        "lease": null,
+        "message": "",
+        "node_id": "NODE-goal-verification",
+        "node_run_id": "NRUN-fe26c99c6577b711",
+        "node_type": "goal_verification",
+        "plan_digest": "sha256:4a7612fdcefa95e80b901ab85b76d501aa7587e8ba78c719402c3932b78854c8",
+        "plan_execution_id": "PEXEC-b9792f29f794f89a",
+        "plan_id": "PLAN-e70f192faaf4ac46",
+        "schema_version": "ahra/node-run-state/0.1",
+        "status": "pending",
+        "status_version": 0,
+        "terminal_failure_refs": [],
+        "updated_at": "2026-06-28T05:18:45.806655Z",
+        "usage": {}
+      },
+      {
+        "admission_decision_refs": [],
+        "artifact_refs": [],
+        "attempt": 1,
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "capability_grant_digests": [],
+        "capability_grant_refs": [],
+        "created_at": "2026-06-28T05:18:45.806655Z",
+        "dependency_node_refs": [],
+        "evidence_refs": [],
+        "executor_release": null,
+        "failure_class": "missing_capability_intent",
+        "gate_refs": [
+          "GATE-write-artifact"
+        ],
+        "lease": null,
+        "message": "Executable Node has no declared capability intent for admission.",
+        "node_id": "NODE-write-artifact",
+        "node_run_id": "NRUN-96b3d3b56ea54816",
+        "node_type": "bounded_task",
+        "plan_digest": "sha256:4a7612fdcefa95e80b901ab85b76d501aa7587e8ba78c719402c3932b78854c8",
+        "plan_execution_id": "PEXEC-b9792f29f794f89a",
+        "plan_id": "PLAN-e70f192faaf4ac46",
+        "schema_version": "ahra/node-run-state/0.1",
+        "status": "failed",
+        "status_version": 4,
+        "terminal_failure_refs": [
+          "ADMIT-write-artifact"
+        ],
+        "updated_at": "2026-06-28T05:18:45.904689Z",
+        "usage": {}
+      }
+    ],
+    "planExecutions": [
+      {
+        "artifact_refs": [],
+        "budget_summary": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 2,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 2,
+          "maxWallSeconds": 120,
+          "nodeCount": 2
+        },
+        "cancel_requested": false,
+        "checkpoint_ref": "checkpoint://CHK-e233ca4ddf9715e9",
+        "created_at": "2026-06-28T05:18:45.806655Z",
+        "deadline_at": null,
+        "evidence_refs": [],
+        "failure_class": "missing_capability_intent",
+        "goal_execution_ref": "GEXEC-a19e12a4ed8188cf",
+        "goal_ref": "GOAL-M1-GENERIC-SMOKE",
+        "handoff_refs": [],
+        "lease": null,
+        "max_concurrency": 1,
+        "message": "Executable Node has no declared capability intent for admission.",
+        "node_run_refs": [
+          "NRUN-96b3d3b56ea54816",
+          "NRUN-fe26c99c6577b711"
+        ],
+        "parent_plan_digest": null,
+        "parent_plan_execution_ref": null,
+        "plan_digest": "sha256:4a7612fdcefa95e80b901ab85b76d501aa7587e8ba78c719402c3932b78854c8",
+        "plan_execution_id": "PEXEC-b9792f29f794f89a",
+        "plan_id": "PLAN-e70f192faaf4ac46",
+        "plan_version": 1,
+        "reused_evidence_refs": [],
+        "reused_node_refs": [],
+        "schema_version": "ahra/plan-execution/0.1",
+        "status": "failed",
+        "status_version": 8,
+        "task_ref": null,
+        "trace_refs": [
+          "TRACE-PEXEC-b9792f29f794f89a"
+        ],
+        "updated_at": "2026-06-28T05:18:45.927715Z",
+        "validation_report_digest": "sha256:5def8a546f8907531e011d78408d9d70b91a6c12e97252638bfbbcdd8bc4940a",
+        "validation_report_ref": "PLANVAL-4218a3e1174ba0dc"
+      }
+    ],
+    "recoveryEvents": [],
+    "schema_version": "ahra/goal-operation-inspect/0.1"
+  },
+  "planExecutionId": "PEXEC-b9792f29f794f89a",
+  "planStatus": "failed",
+  "ranReadyNodes": true,
+  "runOnce": false,
+  "schema_version": "ahra/goal-operation-start/0.1"
+}

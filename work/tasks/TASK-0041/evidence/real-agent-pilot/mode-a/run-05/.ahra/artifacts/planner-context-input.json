@@ -1,0 +1,54 @@
+{
+  "artifactId": "PLART-33462f7ab60ae2a4f5f7eb95",
+  "contextManifestDigest": "42991d6c6744a76f91b9b7abeaa50932da3dd4b7760f11edd10c7261216c7f8c",
+  "contextManifestRef": "CTXMAN-42991d6c6744a76f91b9b7ab",
+  "kind": "planner-context-input",
+  "mediaType": "application/json",
+  "payload": {
+    "agentReleaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+    "allowedCapabilities": [
+      "filesystem.write"
+    ],
+    "budgetLimits": {
+      "maxCostUsd": 1.0,
+      "maxFanOut": 4,
+      "maxModelCalls": 12,
+      "maxPlanDepth": 6,
+      "maxPlanNodes": 6,
+      "maxRepairCycles": 1,
+      "maxSpawnedNodes": 0,
+      "maxToolCalls": 22,
+      "maxWallSeconds": 180
+    },
+    "claimRefs": [
+      "CLM-GOAL-COMPLETE",
+      "CLM-WRITE-ARTIFACT"
+    ],
+    "defects": [],
+    "goalDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "goalRef": "GOAL-M1-GENERIC-SMOKE",
+    "policyDigest": "sha256:70d6d561a4ee4c3d9a8b93ae1043252707999b07e4cde66c49c3a03eb65f030b",
+    "policyRef": "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "registeredGateRefs": {
+      "GATE-goal-complete": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "GATE-write-artifact": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "registeredNodeTypes": {
+      "bounded_task": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "goal_verification": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "registeredRuntimeRefs": {
+      "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "runId": "TASK-0041-MODE-A-R05",
+    "tokenBudget": 4096
+  },
+  "refs": [
+    "CLM-GOAL-COMPLETE",
+    "CLM-WRITE-ARTIFACT",
+    "GOAL-M1-GENERIC-SMOKE",
+    "profile/m1-real-planner@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  ],
+  "releaseDigest": "sha256:868b6967bf3f8d448634a0a79ab14661089ebcc1f08b969c1f2054deb75929db",
+  "sha256": "sha256:33462f7ab60ae2a4f5f7eb955adaa44eb4006a56f8f2257526c427b7df9d9c54"
+}

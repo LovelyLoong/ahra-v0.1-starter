@@ -1,5 +1,171 @@
 {
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0041-0001",
+      "created_at": "2026-06-28T05:33:17.055491Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0041-0001"
+      ],
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/planning.py",
+        "../../../src/ahra/planner_contracts.py",
+        "../../../src/ahra/adapters/codex_sdk.py",
+        "../../../src/ahra/real_agent_pilot.py"
+      ],
+      "kind": "implementation_report",
+      "media_type": "text/markdown",
+      "name": "implementation-report.md",
+      "sha256": "f51eb1f62651b483b40819c2be9c77800e89685403779f5148d9352de0af2505",
+      "supersedes": null,
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/implementation-report.md"
+    },
+    {
+      "artifact_id": "ART-TASK-0041-0002",
+      "created_at": "2026-06-28T05:33:17.055491Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0041-0002"
+      ],
+      "input_refs": [
+        "task.md",
+        "../../../scripts/run_real_agent_pilot.py",
+        "../../../src/ahra/real_agent_pilot.py"
+      ],
+      "kind": "mode_a_scorecard",
+      "media_type": "application/json",
+      "name": "scorecard.json",
+      "sha256": "947dab91e46cd3ee42dc27b06938ff102286d001385dc5359f07afb14c26dfbb",
+      "supersedes": null,
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/real-agent-pilot/mode-a/scorecard.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0041-0003",
+      "created_at": "2026-06-28T05:33:17.055491Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0041-0003"
+      ],
+      "input_refs": [
+        "task.md",
+        "../../../scripts/run_real_agent_pilot.py",
+        "../../../src/ahra/real_agent_pilot.py"
+      ],
+      "kind": "mode_a_pre_capability_context_scorecard",
+      "media_type": "application/json",
+      "name": "scorecard.json",
+      "sha256": "3d47738e60e0ba333ec29156430d9031e4bfb0f7fcfee3fc1c473d154629cd1e",
+      "supersedes": null,
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/real-agent-pilot/mode-a-before-capability-context-20260628T132437/scorecard.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0041-0004",
+      "created_at": "2026-06-28T05:33:17.055491Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0041-0004"
+      ],
+      "input_refs": [
+        "evidence/real-agent-pilot/mode-a/scorecard.json"
+      ],
+      "kind": "goal_inspect_summary",
+      "media_type": "application/json",
+      "name": "goal-inspect-summary.json",
+      "sha256": "3f00717139e2097f980e6c05adee558c44dc8b68fd5a97e7184b45085efc6b0d",
+      "supersedes": null,
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/goal-inspect-summary.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0041-0005",
+      "created_at": "2026-06-28T05:33:17.055491Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0041-0005"
+      ],
+      "input_refs": [
+        "task.md",
+        "evidence/real-agent-pilot/mode-a/scorecard.json",
+        "evidence/goal-inspect-summary.json"
+      ],
+      "kind": "verification_summary",
+      "media_type": "application/json",
+      "name": "verification-summary.json",
+      "sha256": "9685d0fa6b702e8937e21a6d082c2182e808944ce3d812bb701df56b4d7ca512",
+      "supersedes": null,
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/verification-summary.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0041-0006",
+      "created_at": "2026-06-28T05:33:17.055491Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0041-0006"
+      ],
+      "input_refs": [
+        "task.md",
+        "../TASK-0040/evidence/real-agent-pilot/mode-a/"
+      ],
+      "kind": "invalid_output_artifact_index",
+      "media_type": "application/json",
+      "name": "invalid-output-artifact-index.json",
+      "sha256": "25262bbd5eabab19448f6d5ebdf3598916b0e05484b8514541d734d518a26db6",
+      "supersedes": null,
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/invalid-output-artifact-index.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0041-0007",
+      "created_at": "2026-06-28T05:33:17.055491Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0041-0007"
+      ],
+      "input_refs": [
+        "task.md",
+        "evidence/real-agent-pilot/mode-a/scorecard.json",
+        "../TASK-0042/task.md"
+      ],
+      "kind": "mode_c_decision",
+      "media_type": "application/json",
+      "name": "mode-c-decision.json",
+      "sha256": "c791549d39640117579ab63207a010e453f1aeca420455bbc9c50e1c17c69986",
+      "supersedes": null,
+      "task_id": "TASK-0041",
+      "uri": "local://evidence/mode-c-decision.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0041-HANDOFF-0001",
+      "created_at": "2026-06-28T05:33:17.055491Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_refs": [
+        "EVD-TASK-0041-0001",
+        "EVD-TASK-0041-0002",
+        "EVD-TASK-0041-0003",
+        "EVD-TASK-0041-0004",
+        "EVD-TASK-0041-0005",
+        "EVD-TASK-0041-0006",
+        "EVD-TASK-0041-0007"
+      ],
+      "input_refs": [
+        "task.md",
+        "evidence/implementation-report.md",
+        "evidence/verification-summary.json"
+      ],
+      "kind": "handoff",
+      "media_type": "text/markdown",
+      "name": "HANDOFF-0001.md",
+      "sha256": "f5ca1e16182419f8aaea560ea6bd51b58ebb2a0d4280a64afcf1c2880fad1cf5",
+      "supersedes": null,
+      "task_id": "TASK-0041",
+      "uri": "local://handoffs/HANDOFF-0001.md"
+    }
+  ],
   "schema_version": "awkp/0.1",
-  "task_id": "TASK-0041",
-  "artifacts": []
+  "task_id": "TASK-0041"
 }
