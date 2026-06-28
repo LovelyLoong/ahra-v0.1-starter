@@ -29,7 +29,7 @@
       "kind": "twenty_run_scorecard",
       "name": "m1-scorecard.json",
       "uri": "local://evidence/m1-experiment/m1-scorecard.json",
-      "sha256": "d56deeedcf920c84f3ebe8bb4366f130550e9e8d97294a657dfc15c557bfb772",
+      "sha256": "6374e0fa049cdfba49f1bacda7287ddd0e00b060d15cbab0585be03554f66a77",
       "media_type": "application/json",
       "created_by": "agent:codex-dynamic-kernel-operator",
       "created_at": "2026-06-26T11:05:40Z",
@@ -44,7 +44,7 @@
       "kind": "full_vs_selective_verification_baseline",
       "name": "p1-summary.json",
       "uri": "local://evidence/m1-experiment/profiles/P1-defect-repair/p1-summary.json",
-      "sha256": "cb343610ad2dbfc952aebf95d1c77c9e130faf0699f7fa93b2150ef8ef016b13",
+      "sha256": "cc453ac4047b1e1a978bccafe6031247578d50a943ef1136b675785ffbed2c1c",
       "media_type": "application/json",
       "created_by": "agent:codex-dynamic-kernel-operator",
       "created_at": "2026-06-26T11:05:40Z",
@@ -60,7 +60,7 @@
       "kind": "crash_resume_report",
       "name": "m1-scorecard.json",
       "uri": "local://evidence/m1-experiment/m1-scorecard.json",
-      "sha256": "d56deeedcf920c84f3ebe8bb4366f130550e9e8d97294a657dfc15c557bfb772",
+      "sha256": "6374e0fa049cdfba49f1bacda7287ddd0e00b060d15cbab0585be03554f66a77",
       "media_type": "application/json",
       "created_by": "agent:codex-dynamic-kernel-operator",
       "created_at": "2026-06-26T11:05:40Z",
@@ -74,7 +74,7 @@
       "kind": "security_report",
       "name": "p2-summary.json",
       "uri": "local://evidence/m1-experiment/profiles/P2-security-denial/p2-summary.json",
-      "sha256": "06c8072f52ab0947b9ae7c60b03dd5c227a11ca27aff1fcc4fadcc53cc604e76",
+      "sha256": "456e2303c79beaecd3bb2d6e850ce0dec6c8771e2d38f2a6d930b4cdf9cc1331",
       "media_type": "application/json",
       "created_by": "agent:codex-dynamic-kernel-operator",
       "created_at": "2026-06-26T11:05:40Z",
@@ -94,6 +94,26 @@
       "created_at": "2026-06-26T11:05:40Z",
       "refs": [
         "ART-TASK-0039-0008"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0039-0007",
+      "task_id": "TASK-0039",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-4.json",
+      "uri": "local://evidence/evidence-gate-report-4.json",
+      "sha256": "1ffd77f2699d2ba3e50ef51d2d6c6453929dd84190e09b8fedc0deba6128f531",
+      "media_type": "application/json",
+      "created_by": "agent:codex-independent-verifier",
+      "created_at": "2026-06-28T01:57:16.029358Z",
+      "refs": [
+        "ART-TASK-0039-0009",
+        "EVD-TASK-0039-0001",
+        "EVD-TASK-0039-0002",
+        "EVD-TASK-0039-0003",
+        "EVD-TASK-0039-0004",
+        "EVD-TASK-0039-0005",
+        "EVD-TASK-0039-0006"
       ]
     }
   ]

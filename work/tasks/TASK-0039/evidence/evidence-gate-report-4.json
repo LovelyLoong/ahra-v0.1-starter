@@ -1,0 +1,166 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0039",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex-independent-verifier",
+  "generated_at": "2026-06-28T01:57:16.029358Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent SG-9 review approved TASK-0039 after manifest hash repair, raw artifact review, baseline checks, and a fresh temporary twenty-run deterministic experiment.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Twenty consecutive runs complete with false_completion_count = 0.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0002"
+      ],
+      "notes": "Scorecard records 20 consecutive successful runs and false_completion_count=0."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "gate_execution_integrity = 1.0 in every run.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0002",
+        "EVD-TASK-0039-0003"
+      ],
+      "notes": "Scorecard and P1 raw GateRun artifacts show gate_execution_integrity=1.0; fresh temporary rerun matched hard metrics."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "current_claim_coverage = 1.0 at every accepted completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0002",
+        "EVD-TASK-0039-0003"
+      ],
+      "notes": "current_claim_coverage=1.0 at accepted completions."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "capability_admission_coverage = 1.0 for every executed side effect.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0002",
+        "EVD-TASK-0039-0003",
+        "EVD-TASK-0039-0005"
+      ],
+      "notes": "Capability admission coverage is 1.0; P2 denial confirms widened/path-escape attempts fail closed."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "repair_boundary_compliance = 1.0.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0003"
+      ],
+      "notes": "P1 defect-repair summary records repair_boundary_compliance=1.0."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "resume_duplicate_effect_count = 0 and stale_fencing_accept_count = 0.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0002",
+        "EVD-TASK-0039-0004"
+      ],
+      "notes": "Scorecard records resume_duplicate_effect_count=0 and stale_fencing_accept_count=0."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Selected actual verification cost is strictly lower than the measured full baseline in the defect-repair profile.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0003"
+      ],
+      "notes": "P1 selectedGateCost=2 is strictly lower than fullGateBaselineCost=3."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Every reused Evidence record has a current-set inspection and explicit reuse rationale.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0003"
+      ],
+      "notes": "P1 reusedEvidence lists current-set reuse rationale for EVD-ed4f922469687094."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Normalized semantic results are stable across all twenty deterministic runs.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0002"
+      ],
+      "notes": "Semantic digest distribution has one digest across all 20 runs; fresh temporary rerun produced the same digest."
+    },
+    {
+      "criterion_index": 10,
+      "criterion": "The source fixture and AHRA repository remain unmodified outside declared Artifact/runtime locations.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0002",
+        "EVD-TASK-0039-0005",
+        "EVD-TASK-0039-0006"
+      ],
+      "notes": "Source fixture and repository scope reviewed; only manifest SHA repair remains outside producer evidence and git diff --check passed."
+    },
+    {
+      "criterion_index": 11,
+      "criterion": "An independent verifier reviews raw Artifacts, GateRuns and scorecard rather than only the producer summary.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0002",
+        "EVD-TASK-0039-0003",
+        "EVD-TASK-0039-0005"
+      ],
+      "notes": "Independent verifier reviewed raw scorecard, P1 GateRuns/Evidence records, P2 security denial, manifests, and reran the deterministic experiment in a temp directory."
+    },
+    {
+      "criterion_index": 12,
+      "criterion": "Passing EvidenceGate authorizes the project to claim M1 deterministic minimal live loop.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0039-0001",
+        "EVD-TASK-0039-0002",
+        "EVD-TASK-0039-0003",
+        "EVD-TASK-0039-0004",
+        "EVD-TASK-0039-0005",
+        "EVD-TASK-0039-0006"
+      ],
+      "notes": "All SG-9 criteria are satisfied; this report is the input to EvidenceGate, whose generated report is the formal completion authority."
+    }
+  ],
+  "commands": [
+    {
+      "command": "manifest local hash audit",
+      "status": "passed",
+      "notes": "15 local artifact/evidence refs matched manifest sha256 after repair."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "notes": "No whitespace errors."
+    },
+    {
+      "command": ".venv\\\\Scripts\\\\python.exe -B scripts/check.py --lint",
+      "status": "passed",
+      "notes": "AHRA lint 0 failures; AWKP lint 0 errors, 0 warnings."
+    },
+    {
+      "command": ".venv\\\\Scripts\\\\python.exe -B scripts/check.py",
+      "status": "passed",
+      "notes": "184 tests passed; 2 skipped due to local Windows symlink/uv PATH environment."
+    },
+    {
+      "command": ".venv\\\\Scripts\\\\python.exe -B scripts/lint_awkp.py",
+      "status": "passed",
+      "notes": "0 errors, 0 warnings."
+    },
+    {
+      "command": ".venv\\\\Scripts\\\\python.exe -B scripts/run_m1_minimal_experiment.py --request tests\\\\fixtures\\\\m1-minimal-project\\\\goal-run-request.yaml --output %TEMP%\\\\ahra-task0039-verifier-m1 --runs 20",
+      "status": "passed",
+      "notes": "Fresh verifier run: 20/20 success, hard metrics satisfied, selected cost 2 < full baseline 3, stable digest sha256:a0444fb00c2be36f0143876c00265addf5e66231ca8800cb3b671bb08cac456d."
+    }
+  ]
+}
