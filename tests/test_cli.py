@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import importlib.util
 import io
 import json
 import subprocess
@@ -13,6 +14,8 @@ from pathlib import Path
 import yaml
 
 from ahra import cli
+from ahra.awkp_task_creator import AwkpTaskCreateRequest, AwkpTaskCreator
+from ahra.ports import AwkpTaskCreatorPort
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -178,14 +181,200 @@ Exercise task inspect.
     return task_dir
 
 
+def _lint_generated_awkp_root(root: Path) -> tuple[list[str], list[str]]:
+    spec = importlib.util.spec_from_file_location("lint_awkp_generated_test", ROOT / "scripts" / "lint_awkp.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.ROOT = root
+    module.ERRORS = []
+    module.WARNINGS = []
+    module.lint_docs()
+    module.lint_tasks()
+    return module.ERRORS, module.WARNINGS
+
+
 class CliTests(unittest.TestCase):
     def test_default_help_hides_legacy_workflow_group(self) -> None:
         help_text = cli._build_parser().format_help()
 
+        self.assertIn("create", help_text)
+        self.assertIn("claim", help_text)
         self.assertIn("goal", help_text)
         self.assertIn("fixture", help_text)
         self.assertIn("evidence-gate", help_text)
         self.assertNotIn("workflow", help_text)
+
+    def test_task_creator_implements_port(self) -> None:
+        creator = AwkpTaskCreator()
+
+        self.assertIsInstance(creator, AwkpTaskCreatorPort)
+        self.assertIsNotNone(AwkpTaskCreateRequest)
+
+    def test_task_create_writes_lint_clean_skeleton(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            code, payload, _ = _run_cli(
+                [
+                    "task",
+                    "create",
+                    "TASK-CLI-CREATE",
+                    "--work-root",
+                    str(root / "work"),
+                    "--title",
+                    "Created task",
+                    "--description",
+                    "Create a governed task skeleton.",
+                    "--context-id",
+                    "CTX-cli-test",
+                    "--acceptance",
+                    "Skeleton has the required task files.",
+                    "--acceptance",
+                    "The generated task is ready at version 0.",
+                    "--output-contract",
+                    "verification_summary",
+                    "--actor",
+                    "agent:cli-test",
+                ]
+            )
+
+            self.assertEqual(code, 0)
+            self.assertTrue(payload["ok"])
+            task_dir = root / "work" / "tasks" / "TASK-CLI-CREATE"
+            self.assertEqual(Path(payload["result"]["task_dir"]), task_dir)
+            self.assertTrue((task_dir / "task.md").exists())
+            self.assertTrue((task_dir / "state.json").exists())
+            self.assertTrue((task_dir / "events.jsonl").exists())
+            self.assertTrue((task_dir / "artifact-manifest.json").exists())
+            self.assertTrue((task_dir / "evidence-manifest.json").exists())
+            self.assertTrue((task_dir / "evidence").is_dir())
+            self.assertTrue((task_dir / "handoffs").is_dir())
+
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "ready")
+            self.assertEqual(state["state_version"], 0)
+            self.assertIsNone(state["lease"])
+            task_md = (task_dir / "task.md").read_text(encoding="utf-8")
+            self.assertIn("# Acceptance criteria", task_md)
+            self.assertIn("- [ ] Skeleton has the required task files.", task_md)
+            events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertEqual(events[0]["event_type"], "task_created")
+            self.assertEqual(events[0]["actor"], "agent:cli-test")
+            self.assertEqual(
+                json.loads((task_dir / "artifact-manifest.json").read_text(encoding="utf-8"))["artifacts"],
+                [],
+            )
+            self.assertEqual(
+                json.loads((task_dir / "evidence-manifest.json").read_text(encoding="utf-8"))["evidence"],
+                [],
+            )
+            errors, warnings = _lint_generated_awkp_root(root)
+            self.assertEqual(errors, [])
+            self.assertEqual(warnings, [])
+
+    def test_task_claim_uses_governed_writer(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            create_code, _, _ = _run_cli(
+                [
+                    "task",
+                    "create",
+                    "TASK-CLI-CLAIM",
+                    "--work-root",
+                    str(root / "work"),
+                    "--title",
+                    "Claim task",
+                    "--description",
+                    "Claim a generated task.",
+                    "--context-id",
+                    "CTX-cli-test",
+                    "--acceptance",
+                    "Task can be claimed.",
+                ]
+            )
+            self.assertEqual(create_code, 0)
+
+            code, payload, _ = _run_cli(
+                [
+                    "task",
+                    "claim",
+                    "TASK-CLI-CLAIM",
+                    "--work-root",
+                    str(root / "work"),
+                    "--expected-version",
+                    "0",
+                    "--actor",
+                    "agent:cli-test",
+                    "--idempotency-key",
+                    "TASK-CLI-CLAIM:claim:test",
+                ]
+            )
+
+            self.assertEqual(code, 0)
+            self.assertTrue(payload["ok"])
+            self.assertEqual(payload["result"]["from_state"], "ready")
+            self.assertEqual(payload["result"]["to_state"], "working")
+            self.assertEqual(payload["result"]["state_version"], 1)
+            self.assertTrue(str(payload["result"]["fencing_token"]).startswith("FENCE-"))
+            task_dir = root / "work" / "tasks" / "TASK-CLI-CLAIM"
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "working")
+            self.assertEqual(state["owner"], "agent:cli-test")
+            self.assertEqual(state["lease"]["holder"], "agent:cli-test")
+            self.assertEqual(state["lease"]["fencing_token"], payload["result"]["fencing_token"])
+            events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertEqual(events[-1]["event_type"], "lease_acquired")
+            self.assertEqual(events[-1]["idempotency_key"], "TASK-CLI-CLAIM:claim:test")
+            self.assertEqual(events[-1]["lease_fencing_token"], payload["result"]["fencing_token"])
+
+    def test_task_create_rejects_malformed_input(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            bad_id_code, bad_id_payload, _ = _run_cli(
+                [
+                    "task",
+                    "create",
+                    "BAD-ID",
+                    "--work-root",
+                    str(root / "work"),
+                    "--title",
+                    "Bad task",
+                    "--description",
+                    "Bad task.",
+                    "--context-id",
+                    "CTX-cli-test",
+                    "--acceptance",
+                    "Criterion.",
+                ]
+            )
+            self.assertEqual(bad_id_code, 2)
+            self.assertFalse(bad_id_payload["ok"])
+            self.assertIn("invalid task id", bad_id_payload["error"])
+
+            missing_criteria_code, missing_criteria_payload, _ = _run_cli(
+                [
+                    "task",
+                    "create",
+                    "TASK-CLI-BAD",
+                    "--work-root",
+                    str(root / "work"),
+                    "--title",
+                    "Bad task",
+                    "--description",
+                    "Bad task.",
+                    "--context-id",
+                    "CTX-cli-test",
+                ]
+            )
+            self.assertEqual(missing_criteria_code, 2)
+            self.assertFalse(missing_criteria_payload["ok"])
+            self.assertIn("at least one --acceptance", missing_criteria_payload["error"])
 
     def test_workflow_validate_reports_request_summary(self) -> None:
         code, payload, _ = _run_cli(

@@ -1,0 +1,40 @@
+{
+  "schema_version": "ahra/task-verification-summary/0.1",
+  "task_id": "TASK-0058",
+  "generated_by": "agent:codex-implementation",
+  "generated_at": "2026-06-29T15:15:59Z",
+  "summary": "All TASK-0058 producer-side verification commands passed. git diff --check emitted only CRLF/LF normalization warnings for TASK-0058 state/events.",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_cli -v",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "Ran 12 CLI tests; all OK."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "AHRA lint: 0 failure(s); lint_contracts embedded AWKP lint successfully."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "No whitespace errors. Git printed CRLF/LF normalization warnings for work/tasks/TASK-0058/events.jsonl and state.json."
+    }
+  ],
+  "covered_acceptance": [
+    "task create produces a lint-clean AWKP task skeleton",
+    "task create writes task.md, ready state.json, task_created event, empty manifests, and evidence/handoffs directories",
+    "task claim delegates ready->working to the TASK-0057 governed CAS writer",
+    "bad task id and missing acceptance criteria fail closed with clear errors",
+    "default CLI help exposes create and claim while legacy default-excluded tokens remain hidden"
+  ]
+}

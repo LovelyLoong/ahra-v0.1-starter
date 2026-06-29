@@ -1,0 +1,99 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "Evidence",
+  "metadata": {
+    "evidenceId": "EVD-TASK-0058-0007",
+    "createdAt": "2026-06-29T15:30:22.339279Z"
+  },
+  "spec": {
+    "claimRefs": [
+      "CR6-required-checks"
+    ],
+    "gateRef": "GATE-task-0058-diff-check",
+    "gateDefinitionDigest": "sha256:6e53920f77b7d866aab63aebb53dbdaec2d9a886f8ec18f706a8fafd3df7f377",
+    "gateRunId": "GATERUN-37280f5ed54dcb78",
+    "result": "passed",
+    "confidence": "verified",
+    "subjects": [
+      {
+        "ref": "work/tasks/TASK-0058/task.md",
+        "digest": "sha256:e6ab337eb69b6e641f84e614a9e136374f3a27cd5491f588aba6ac4e7050f86e"
+      },
+      {
+        "ref": "src/ahra/awkp_task_creator.py",
+        "digest": "sha256:3ec310417a8afde41aacb5e15be9973e0df1116b9c411cb69c9d08ae997bf57c"
+      },
+      {
+        "ref": "src/ahra/awkp_state_writer.py",
+        "digest": "sha256:dcbfa66fc60b21ba2031d3862b7632d01f856bc0e6407744280a9b414819dbd8"
+      },
+      {
+        "ref": "src/ahra/cli.py",
+        "digest": "sha256:ca809fff79fb852a0f9f2dc7376cb29ca73eb11d241feac53307ccfb30c7ba4a"
+      },
+      {
+        "ref": "src/ahra/ports.py",
+        "digest": "sha256:f8dfbe8751f6e9c8d58a512f2146d1f5b8b554c8b315e8372ded5acbd211c73a"
+      },
+      {
+        "ref": "tests/test_cli.py",
+        "digest": "sha256:052823c6c7858d2fc42c3b3ba116b880e9e094e943db56ef5246861b5636800b"
+      },
+      {
+        "ref": "README.md",
+        "digest": "sha256:ef985492cdca8f6eb43959cfa337b90b428f73786f344589bbd7a8f8de753b2b"
+      },
+      {
+        "ref": "docs/architecture/framework-entrypoints.md",
+        "digest": "sha256:ae649955e5c4934cdbf924b4dc25f3f8e163bda9b67447359a8e33c76ebb3191"
+      },
+      {
+        "ref": "docs/architecture/component-inventory.json",
+        "digest": "sha256:9f50f4903452c138a9e34d64cc18ee5bacb9bdf7aef2c3012db495ab0001fe1d"
+      },
+      {
+        "ref": "skills/ahra-dynamic-kernel/SKILL.md",
+        "digest": "sha256:503939ab6dc4317e1a7f928d4d1afd921f018a294f302070cfdc709f54341221"
+      },
+      {
+        "ref": "work/tasks/TASK-0058/evidence/task-create-claim-report.md",
+        "digest": "sha256:2d43b80abd26e80a440914a1dbb058a22b1119a2ec496cb42d772d89c947db97"
+      },
+      {
+        "ref": "work/tasks/TASK-0058/evidence/verification-summary.json",
+        "digest": "sha256:43986be6689a23a2019a735b04dd39098367c1668a48ed5b0b3a8beb5b094008"
+      },
+      {
+        "ref": "work/tasks/TASK-0058/handoffs/HANDOFF-0001.md",
+        "digest": "sha256:b74bbc17be48e349c4a54d112b009766cbdee5e8ef550c827a919a283131d584"
+      },
+      {
+        "ref": "scripts/lint_awkp.py",
+        "digest": "sha256:cca4d8f6b32148f587987073f30fcbe58e197809e5fa723e741e51fca8063888"
+      },
+      {
+        "ref": "scripts/check.py",
+        "digest": "sha256:b6bbdd6da2b46bc843cf329a6a1b49ecdb49cf4b652f3da1c4cc87594080897f"
+      }
+    ],
+    "dependencies": [],
+    "environment": {
+      "runtimeProfileDigest": "sha256:d6260cf22c13d59d7eb63bb3270fbc6ec4bd6cfa243cdc1ac824393361addf82",
+      "policyDigest": "sha256:98a367add7ef3f89f23a14042f4540354d55144ea3f36c0cae686761903075d1",
+      "verifierReleaseDigest": "sha256:a56683f919d4037332a07f15ebe03ca08c90af1bb377eb8e8a4ab99ca8f958c3",
+      "testDefinitionDigest": "sha256:3b615815f9436dbe2688c0971862d10fdd5cf602b9f44936f241ab211df9f66d",
+      "relevantEnvironmentDigest": "sha256:1c011eea0f2c12beafed48f33c2218257858fc837a1f099139aec3a464f6f471"
+    },
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    },
+    "dependencyScope": "complete",
+    "fingerprint": "sha256:f64cb5e16659168b196bb007fb699a047fb4fb52d8bc4fd315028d757f6cf35e",
+    "refs": [
+      "ART-TASK-0058-0007",
+      "GATERUN-37280f5ed54dcb78"
+    ],
+    "supersedes": []
+  }
+}

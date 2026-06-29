@@ -33,6 +33,8 @@ python -m ahra.cli goal start examples/m1/goal-run-request.yaml
 python -m ahra.cli goal inspect <GEXEC-ID> --db <goal-control.sqlite3>
 python -m ahra.cli goal resume <GEXEC-ID> --request examples/m1/goal-run-request.yaml
 python -m ahra.cli goal cancel <GEXEC-ID> --db <goal-control.sqlite3> --reason <reason>
+python -m ahra.cli task create <TASK-ID> --title ... --description ... --context-id ... --acceptance ...
+python -m ahra.cli task claim <TASK-ID> --expected-version <N> --actor <producer>
 python -m ahra.cli task inspect <TASK-ID>
 python -m ahra.cli evidence-gate evaluate <TASK-ID> --expected-version <N> --report <report.json> --actor <verifier>
 python -m ahra.cli doctor

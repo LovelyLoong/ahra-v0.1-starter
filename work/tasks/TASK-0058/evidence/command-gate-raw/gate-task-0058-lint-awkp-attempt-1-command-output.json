@@ -1,0 +1,17 @@
+{
+  "command": [
+    "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+    "-B",
+    "scripts\\lint_awkp.py"
+  ],
+  "completedAt": "2026-06-29T15:30:31.612233+00:00",
+  "exitCode": 0,
+  "failureClass": null,
+  "gateRef": "GATE-task-0058-lint-awkp",
+  "reason": "command gate passed",
+  "startedAt": "2026-06-29T15:30:30.724090+00:00",
+  "status": "passed",
+  "stderr": "",
+  "stdout": "AWKP lint: 0 error(s), 0 warning(s)\n",
+  "timedOut": false
+}

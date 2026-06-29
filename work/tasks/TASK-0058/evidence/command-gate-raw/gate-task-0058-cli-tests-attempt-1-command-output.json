@@ -1,0 +1,20 @@
+{
+  "command": [
+    "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "tests.test_cli",
+    "-v"
+  ],
+  "completedAt": "2026-06-29T15:30:28.844036+00:00",
+  "exitCode": 0,
+  "failureClass": null,
+  "gateRef": "GATE-task-0058-cli-tests",
+  "reason": "command gate passed",
+  "startedAt": "2026-06-29T15:30:22.343861+00:00",
+  "status": "passed",
+  "stderr": "test_default_help_hides_legacy_workflow_group (tests.test_cli.CliTests.test_default_help_hides_legacy_workflow_group) ... ok\ntest_doctor_dry_run_lists_default_checks (tests.test_cli.CliTests.test_doctor_dry_run_lists_default_checks) ... ok\ntest_task_claim_uses_governed_writer (tests.test_cli.CliTests.test_task_claim_uses_governed_writer) ... ok\ntest_task_create_rejects_malformed_input (tests.test_cli.CliTests.test_task_create_rejects_malformed_input) ... ok\ntest_task_create_writes_lint_clean_skeleton (tests.test_cli.CliTests.test_task_create_writes_lint_clean_skeleton) ... ok\ntest_task_creator_implements_port (tests.test_cli.CliTests.test_task_creator_implements_port) ... ok\ntest_task_inspect_wraps_evidence_gate_inspection (tests.test_cli.CliTests.test_task_inspect_wraps_evidence_gate_inspection) ... ok\ntest_workflow_inspect_reads_artifact_directory (tests.test_cli.CliTests.test_workflow_inspect_reads_artifact_directory) ... ok\ntest_workflow_start_can_use_explicit_fixture_driver (tests.test_cli.CliTests.test_workflow_start_can_use_explicit_fixture_driver) ... ok\ntest_workflow_start_fails_closed_without_fixture_driver (tests.test_cli.CliTests.test_workflow_start_fails_closed_without_fixture_driver) ... ok\ntest_workflow_start_failure_state_is_cli_failure (tests.test_cli.CliTests.test_workflow_start_failure_state_is_cli_failure) ... ok\ntest_workflow_validate_reports_request_summary (tests.test_cli.CliTests.test_workflow_validate_reports_request_summary) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 5.795s\n\nOK\n",
+  "stdout": "",
+  "timedOut": false
+}

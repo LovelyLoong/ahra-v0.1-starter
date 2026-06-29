@@ -5,11 +5,14 @@ import asyncio
 import json
 import subprocess
 import sys
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
 import yaml
 
+from ahra.awkp_state_writer import AwkpTaskStateWriter
+from ahra.awkp_task_creator import AwkpTaskCreateRequest, AwkpTaskCreator
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
 from ahra.goal_operations import GoalOperationError, GoalOperationService
 from ahra.ports import AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
@@ -144,6 +147,35 @@ def _workflow_command(args: argparse.Namespace) -> Any:
 def _task_command(args: argparse.Namespace) -> Any:
     if args.task_command == "inspect":
         return inspect_task(args.task, work_root=args.work_root)
+    if args.task_command == "create":
+        request = AwkpTaskCreateRequest(
+            task_id=args.task,
+            title=args.title or "",
+            description=args.description or "",
+            context_id=args.context_id or "",
+            acceptance_criteria=tuple(args.acceptance or ()),
+            work_root=args.work_root,
+            priority=args.priority,
+            risk_level=args.risk_level,
+            requester=args.requester,
+            reviewer=args.reviewer,
+            actor=args.actor,
+            depends_on=tuple(args.depends_on or ()),
+            input_refs=tuple(args.input_ref or ()),
+            output_contract_kinds=tuple(args.output_contract or ()),
+        )
+        return asdict(AwkpTaskCreator().create(request))
+    if args.task_command == "claim":
+        idempotency_key = args.idempotency_key or f"{args.task}:task-claim:{args.expected_version}"
+        result = AwkpTaskStateWriter(work_root=args.work_root).acquire_working(
+            args.task,
+            expected_version=args.expected_version,
+            actor=args.actor,
+            idempotency_key=idempotency_key,
+            reason=args.reason,
+            lease_ttl_seconds=args.lease_ttl_seconds,
+        )
+        return asdict(result)
     raise ValueError(f"unknown task command: {args.task_command}")
 
 
@@ -438,8 +470,37 @@ def _build_parser(*, include_legacy_workflow: bool = False) -> argparse.Argument
             help="Register fake-reference for local fixture smoke tests only.",
         )
 
-    task = groups.add_parser("task", help="Inspect AWKP task state and acceptance criteria.")
+    task = groups.add_parser("task", help="create, claim, and inspect AWKP tasks.")
     task_commands = task.add_subparsers(dest="task_command", required=True)
+    task_create = task_commands.add_parser("create", help="Create a lint-clean AWKP task skeleton.")
+    task_create.add_argument("task", help="Task ID such as TASK-0062.")
+    task_create.add_argument("--work-root", default="work", help="AWKP work root containing tasks/.")
+    task_create.add_argument("--title", help="Task title.")
+    task_create.add_argument("--description", help="Task description and initial Goal section.")
+    task_create.add_argument("--context-id", help="Context id such as CTX-workflow-autonomy.")
+    task_create.add_argument("--acceptance", action="append", help="Acceptance criterion text. Repeat for multiple criteria.")
+    task_create.add_argument("--priority", default="P1", help="AWKP priority value.")
+    task_create.add_argument("--risk-level", default="R1", help="AWKP risk level value.")
+    task_create.add_argument("--requester", default="human:maintainer", help="Requester identity.")
+    task_create.add_argument("--reviewer", default="agent:independent-verifier", help="Reviewer identity.")
+    task_create.add_argument("--actor", default="human:maintainer", help="Actor recorded on the task_created event.")
+    task_create.add_argument("--depends-on", action="append", help="Dependency task id. Repeat for multiple dependencies.")
+    task_create.add_argument("--input-ref", action="append", help="Input ref. Repeat for multiple refs.")
+    task_create.add_argument("--output-contract", action="append", help="Output contract kind. Repeat for multiple kinds.")
+
+    task_claim = task_commands.add_parser("claim", help="Claim a ready AWKP task through the governed CAS writer.")
+    task_claim.add_argument("task", help="Task ID such as TASK-0062, or path to a task directory.")
+    task_claim.add_argument("--work-root", default="work", help="AWKP work root containing tasks/.")
+    task_claim.add_argument("--expected-version", required=True, type=int, help="Expected state_version for CAS.")
+    task_claim.add_argument("--actor", required=True, help="Lease holder recorded on the working state.")
+    task_claim.add_argument("--idempotency-key", help="Unique idempotency key for the claim event.")
+    task_claim.add_argument("--lease-ttl-seconds", type=int, help="Optional positive lease TTL.")
+    task_claim.add_argument(
+        "--reason",
+        default="Claimed task through ahra task claim.",
+        help="Reason recorded on the lease_acquired event.",
+    )
+
     task_inspect = task_commands.add_parser("inspect", help="Inspect task state, manifests, events, and criteria.")
     task_inspect.add_argument("task", help="Task ID such as TASK-0014, or path to a task directory.")
     task_inspect.add_argument("--work-root", default="work", help="AWKP work root containing tasks/.")

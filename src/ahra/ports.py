@@ -392,6 +392,11 @@ class AwkpTaskStateWriterPort(Protocol):
 
 
 @runtime_checkable
+class AwkpTaskCreatorPort(Protocol):
+    def create(self, request: Any) -> Any: ...
+
+
+@runtime_checkable
 class CapabilityAdmissionPort(Protocol):
     def admit(self, request: CapabilityRequest, *, now: datetime | None = None) -> AdmissionDecision: ...
 
