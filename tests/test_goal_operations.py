@@ -23,6 +23,7 @@ from ahra.sqlite_control_store import SQLiteControlStore
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / "examples" / "m1" / "goal-run-request.yaml"
+COMMAND_GATE_EXAMPLE = ROOT / "examples" / "m1" / "goal-run-request-command-gate.yaml"
 D1 = "sha256:" + "1" * 64
 D2 = "sha256:" + "2" * 64
 D3 = "sha256:" + "3" * 64
@@ -82,6 +83,12 @@ def _run_cli_subprocess(argv: list[str]) -> tuple[int, dict]:
 def _copy_request(root: Path) -> Path:
     request = root / "goal-run-request.yaml"
     shutil.copyfile(EXAMPLE, request)
+    return request
+
+
+def _copy_command_gate_request(root: Path) -> Path:
+    request = root / "goal-run-request-command-gate.yaml"
+    shutil.copyfile(COMMAND_GATE_EXAMPLE, request)
     return request
 
 
@@ -223,6 +230,90 @@ class GoalOperationCliTests(unittest.TestCase):
             self.assertEqual(first_code, 0)
             self.assertEqual(second_code, 2)
             self.assertEqual(second_payload["code"], "duplicate_start_idempotency_key")
+
+    def test_real_command_gate_failure_records_defect_then_fixed_input_completes_goal(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            fail_root = Path(temp) / "fail"
+            pass_root = Path(temp) / "pass"
+            fail_root.mkdir()
+            pass_root.mkdir()
+
+            fail_request = _copy_command_gate_request(fail_root)
+            fail_input = fail_root / "workspace" / "inputs" / "command-gate.txt"
+            fail_input.parent.mkdir(parents=True)
+            fail_input.write_text("broken\n", encoding="utf-8")
+
+            fail_code, fail_payload = _run_cli(["goal", "start", str(fail_request)])
+
+            self.assertEqual(fail_code, 0)
+            fail_result = fail_payload["result"]
+            self.assertEqual(fail_result["planStatus"], "failed")
+            self.assertEqual(fail_result["goalStatus"], "repairing")
+            self.assertFalse(fail_result["completion"]["complete"])
+            self.assertEqual(
+                fail_result["completion"]["openDefectRefs"],
+                fail_result["inspect"]["goalExecution"]["open_defect_refs"],
+            )
+            self.assertEqual(len(fail_result["defects"]), 1)
+            defect = fail_result["defects"][0]
+            self.assertEqual(defect["kind"], "DefectRecord")
+            self.assertEqual(defect["spec"]["gateRef"], "GATE-command-sentinel")
+            self.assertEqual(defect["spec"]["status"], "open")
+            self.assertIn(defect["metadata"]["defectId"], fail_result["inspect"]["goalExecution"]["open_defect_refs"])
+            failed_command_node = next(
+                node for node in fail_result["inspect"]["nodeRuns"] if node["node_id"] == "NODE-command-gate"
+            )
+            self.assertEqual(failed_command_node["status"], "failed")
+            self.assertEqual(failed_command_node["failure_class"], "gate_execution_failed")
+            self.assertEqual(failed_command_node["gate_refs"], ["GATE-command-sentinel"])
+            self.assertTrue(failed_command_node["evidence_refs"])
+            failed_raw_path = (
+                fail_root
+                / ".ahra"
+                / "artifacts"
+                / "verification"
+                / "GATE-command-sentinel"
+                / "attempt-1-command-output.json"
+            )
+            failed_raw = json.loads(failed_raw_path.read_text(encoding="utf-8"))
+            self.assertEqual(failed_raw["status"], "failed")
+            self.assertEqual(failed_raw["failureClass"], "unexpected_exit_code")
+            self.assertEqual(failed_raw["exitCode"], 1)
+            self.assertIn("COMMAND_GATE_BAD:broken", failed_raw["stdout"])
+
+            pass_request = _copy_command_gate_request(pass_root)
+            pass_input = pass_root / "workspace" / "inputs" / "command-gate.txt"
+            pass_input.parent.mkdir(parents=True)
+            pass_input.write_text("fixed\n", encoding="utf-8")
+
+            pass_code, pass_payload = _run_cli(["goal", "start", str(pass_request)])
+
+            self.assertEqual(pass_code, 0)
+            pass_result = pass_payload["result"]
+            self.assertEqual(pass_result["planStatus"], "succeeded")
+            self.assertEqual(pass_result["goalStatus"], "succeeded")
+            self.assertTrue(pass_result["completion"]["complete"])
+            self.assertEqual(pass_result["defects"], [])
+            self.assertEqual(pass_result["inspect"]["goalExecution"]["open_defect_refs"], [])
+            passed_command_node = next(
+                node for node in pass_result["inspect"]["nodeRuns"] if node["node_id"] == "NODE-command-gate"
+            )
+            self.assertEqual(passed_command_node["status"], "succeeded")
+            self.assertEqual(passed_command_node["gate_refs"], ["GATE-command-sentinel"])
+            self.assertTrue(passed_command_node["evidence_refs"])
+            passed_raw_path = (
+                pass_root
+                / ".ahra"
+                / "artifacts"
+                / "verification"
+                / "GATE-command-sentinel"
+                / "attempt-1-command-output.json"
+            )
+            passed_raw = json.loads(passed_raw_path.read_text(encoding="utf-8"))
+            self.assertEqual(passed_raw["status"], "passed")
+            self.assertIsNone(passed_raw["failureClass"])
+            self.assertEqual(passed_raw["exitCode"], 0)
+            self.assertIn("COMMAND_GATE_OK", passed_raw["stdout"])
 
     def test_finish_active_plan_if_terminal_finalizes_failed_goal(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

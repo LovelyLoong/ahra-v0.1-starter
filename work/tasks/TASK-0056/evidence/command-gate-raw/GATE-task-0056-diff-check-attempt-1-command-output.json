@@ -1,0 +1,17 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "completedAt": "2026-06-29T14:26:12.872943+00:00",
+  "exitCode": 0,
+  "failureClass": null,
+  "gateRef": "GATE-task-0056-diff-check",
+  "reason": "command gate passed",
+  "startedAt": "2026-06-29T14:26:12.785923+00:00",
+  "status": "passed",
+  "stderr": "warning: in the working copy of 'work/tasks/TASK-0055/artifact-manifest.json', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'work/tasks/TASK-0055/evidence-manifest.json', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'work/tasks/TASK-0055/state.json', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'work/tasks/TASK-0056/artifact-manifest.json', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'work/tasks/TASK-0056/evidence-manifest.json', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'work/tasks/TASK-0056/state.json', CRLF will be replaced by LF the next time Git touches it\n",
+  "stdout": "",
+  "timedOut": false
+}

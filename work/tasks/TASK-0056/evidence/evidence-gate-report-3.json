@@ -1,0 +1,102 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0056",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-29T14:03:35.025416Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Independent verifier cannot approve TASK-0056: the command-gate demonstration test and targeted checks pass, but the required full scripts/check.py command fails because two TASK-0056 Markdown evidence/handoff files are missing or have malformed YAML frontmatter.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A reproducible run exists where a real command gate FAILS, producing `GateExecutionStatus.FAILED`, at least one `DefectRecord`, `complete=False`, and a goal that is not marked completed - all captured as evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002"
+      ],
+      "notes": "The non-skipped goal operation test demonstrates broken input producing planStatus=failed, goalStatus=repairing, completion.complete=false, one DefectRecord for GATE-command-sentinel, failed command node status, and raw command output with exitCode=1 and COMMAND_GATE_BAD:broken."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "After the fix, the same command gate PASSes and the goal completes, captured as evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002"
+      ],
+      "notes": "The same test demonstrates fixed input producing planStatus=succeeded, goalStatus=succeeded, completion.complete=true, no defects, succeeded command node status, and raw command output with exitCode=0 and COMMAND_GATE_OK."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The deliberate-failure scenario is encoded as a non-skipped automated test (no `skip` decorator on the failing-gate case).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002"
+      ],
+      "notes": "tests.test_goal_operations.GoalOperationCliTests.test_real_command_gate_failure_records_defect_then_fixed_input_completes_goal is present without a skip decorator and passed in the targeted unittest run."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "`.\\.venv\\Scripts\\python.exe -B scripts\\check.py` (full lint + test) passes.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0056-0002"
+      ],
+      "notes": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py exited 1. Blocking errors: work\\tasks\\TASK-0056\\evidence\\failing-gate-demonstration-report.md missing or malformed YAML frontmatter; work\\tasks\\TASK-0056\\handoffs\\HANDOFF-0001.md missing or malformed YAML frontmatter. The unittest discovery portion passed 222 tests with 2 skipped, but the full check command as required did not pass."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Evidence is published per AWKP (report + verification-summary + handoff).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002"
+      ],
+      "notes": "The required report, verification-summary, and handoff files exist and are referenced by task manifests, but criterion 4 still blocks approval because two Markdown files fail AWKP frontmatter lint."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Producer moves TASK-0056 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002"
+      ],
+      "notes": "state.json is review at version 2 and events show producer moved TASK-0056 only to review; completion remains EvidenceGate authority."
+    }
+  ],
+  "commands": [
+    {
+      "command_id": "CMD-targeted-unittest",
+      "command": "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -B -m unittest tests.test_real_agent_pilot tests.test_verification tests.test_goal_operations -v",
+      "criterion_indices": [
+        1,
+        2,
+        3
+      ],
+      "status": "passed",
+      "summary": "Ran 49 tests in 14.193s; OK."
+    },
+    {
+      "command_id": "CMD-full-check",
+      "command": "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -B scripts\\check.py",
+      "criterion_indices": [
+        4
+      ],
+      "status": "failed",
+      "summary": "Exit code 1. AWKP lint failed with 2 errors for TASK-0056 Markdown frontmatter; unittest discovery later ran 222 tests OK with 2 skipped."
+    },
+    {
+      "command_id": "CMD-diff-check",
+      "command": "git diff --check",
+      "criterion_indices": [
+        4
+      ],
+      "status": "passed",
+      "summary": "Exit code 0. Warnings only referenced TASK-0055 CRLF/LF normalization files."
+    }
+  ]
+}

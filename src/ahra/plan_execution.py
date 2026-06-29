@@ -1482,6 +1482,7 @@ class StaticPlanScheduler(SchedulerPort):
                     ),
                 )
                 if not gate_report.passed:
+                    self._record_verification_defects(gate_report)
                     failure_class = _verification_report_failure_class(gate_report)
                     self.service.transition_node(
                         verifying.node_run_id,
@@ -1594,6 +1595,7 @@ class StaticPlanScheduler(SchedulerPort):
             message="Declared gate verification boundary ran.",
         )
         if not report.passed:
+            self._record_verification_defects(report)
             failure_class = _verification_report_failure_class(report)
             self.service.transition_node(
                 verifying.node_run_id,
@@ -1691,6 +1693,7 @@ class StaticPlanScheduler(SchedulerPort):
                 message="Goal completion gate passed.",
             )
         else:
+            self._record_verification_defects(report)
             failure_class = "goal_completion_failed" if not completion.complete else _verification_report_failure_class(report)
             self.service.transition_node(
                 verifying.node_run_id,
@@ -1713,6 +1716,11 @@ class StaticPlanScheduler(SchedulerPort):
             stale_evidence_refs=(),
             rationale=tuple(f"{rationale_prefix}:{gate_ref}" for gate_ref in node.gate_refs),
         )
+
+    def _record_verification_defects(self, report: Any) -> None:
+        recorder = getattr(self.verification_service, "record_failed_gate_report", None)
+        if callable(recorder):
+            recorder(report)
 
     def _prepare_capability_admission(
         self,

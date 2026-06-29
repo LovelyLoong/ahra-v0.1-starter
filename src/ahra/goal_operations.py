@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
+import os
+import subprocess
 from dataclasses import dataclass, replace
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Mapping
 
 import yaml
 
 from .capabilities import CapabilityAdmissionService, CapabilityScope, LocalRuntimeGateway, RuntimeCapabilityProfile
-from .acceptance_contracts import Claim, ClaimGraph, ClaimType, RiskLevel
+from .acceptance_contracts import Claim, ClaimGraph, ClaimType, GateDefinition, RiskLevel
 from .domain import utc_now
 from .evidence_v2 import EvidenceEnvironment, EvidenceV2, canonical_fingerprint
 from .node_executor import (
@@ -32,12 +36,19 @@ from .plan_execution import (
 from .plan_ir import PlanCompilerConfig, PlanDraft, PlanIR, PlanValidationReport, compile_plan_draft
 from .sqlite_control_store import SQLiteControlStore, recover_sqlite_control_plane
 from .verification import (
+    CommandGateRunner,
     CompletionGateResult,
+    DefectRecord,
     DeterministicGateRunner,
+    GateExecutionStatus,
     GateRunnerRegistry,
+    VerificationExecutionReport,
     VerificationExecutor,
+    VerificationResult,
     VerificationSelection,
     VerificationTrigger,
+    _gate_definition_digest,
+    defect_from_result,
     evaluate_completion,
 )
 
@@ -55,6 +66,7 @@ REAL_PLANNER_ADAPTER_REF = "planner/agent-driver-plan-draft@sha256:" + "7" * 64
 DETERMINISTIC_EXECUTOR_REF = "executor/deterministic-file-effect@sha256:" + "c" * 64
 REAL_BOUNDED_EXECUTOR_REF = "executor/bounded-task-agent-driver@sha256:" + "6" * 64
 DETERMINISTIC_GATE_RUNNER_REF = "gate-runner/deterministic@sha256:" + "d" * 64
+COMMAND_GATE_RUNNER_REF = "gate-runner/command@sha256:" + "5" * 64
 LOCAL_GOAL_RUNTIME_REF = "runtime/local-goal@sha256:" + "e" * 64
 LOCAL_GOAL_RUNTIME_DIGEST = "sha256:" + "e" * 64
 
@@ -109,6 +121,7 @@ class GoalExecutionRequest:
     required_claim_refs: tuple[str, ...]
     registered_node_types: Mapping[str, str]
     registered_gate_refs: Mapping[str, str]
+    gate_definitions: tuple[GateDefinition, ...]
     registered_runtime_refs: Mapping[str, str]
     allowed_capabilities: tuple[str, ...]
     plan_draft: PlanDraft
@@ -168,6 +181,7 @@ class GoalExecutionRequest:
                 "registry": {
                     "nodeTypes": dict(sorted(self.registered_node_types.items())),
                     "gateRefs": dict(sorted(self.registered_gate_refs.items())),
+                    "gateDefinitions": [definition.to_mapping() for definition in self.gate_definitions],
                     "runtimeRefs": dict(sorted(self.registered_runtime_refs.items())),
                     "allowedCapabilities": list(self.allowed_capabilities),
                 },
@@ -361,6 +375,8 @@ class GoalOperationService:
             )
             latest_execution = store.get_execution(execution.plan_execution_id)
             latest_goal = store.get_goal_execution(goal.goal_execution_id)
+            defects = _scheduler_defects(scheduler)
+            completion = _scheduler_completion(scheduler)
         else:
             latest_execution = asyncio.run(
                 scheduler.run_until_terminal(
@@ -370,11 +386,14 @@ class GoalOperationService:
                     branch=request.branch,
                 )
             )
+            defects = _scheduler_defects(scheduler)
+            completion = _scheduler_completion(scheduler)
             latest_goal = self._finish_goal_if_ready(
                 service,
                 goal.goal_execution_id,
                 latest_execution.plan_execution_id,
-                completion=_scheduler_completion(scheduler),
+                completion=completion,
+                open_defect_refs=tuple(defect.defect_id for defect in defects),
             )
             ran = True
         result = self.inspect(goal.goal_execution_id, db_path=request.store_path)
@@ -386,6 +405,8 @@ class GoalOperationService:
             "runOnce": run_once,
             "goalStatus": latest_goal.status.value,
             "planStatus": latest_execution.status.value,
+            "defects": [defect.to_dict() for defect in defects],
+            "completion": _completion_dict(completion),
             "inspect": result,
         }
         _write_json(request.artifact_dir / "goal-start-report.json", report)
@@ -429,11 +450,14 @@ class GoalOperationService:
                 branch=request.branch,
             )
         )
+        defects = _scheduler_defects(scheduler)
+        completion = _scheduler_completion(scheduler)
         latest_goal = self._finish_goal_if_ready(
             service,
             goal_execution_id,
             execution.plan_execution_id,
-            completion=_scheduler_completion(scheduler),
+            completion=completion,
+            open_defect_refs=tuple(defect.defect_id for defect in defects),
         )
         report = {
             "schema_version": "ahra/goal-operation-resume/0.1",
@@ -441,6 +465,8 @@ class GoalOperationService:
             "planExecutionId": execution.plan_execution_id,
             "goalStatus": latest_goal.status.value,
             "planStatus": execution.status.value,
+            "defects": [defect.to_dict() for defect in defects],
+            "completion": _completion_dict(completion),
             "inspect": self.inspect(goal_execution_id, db_path=request.store_path),
         }
         _write_json(request.artifact_dir / "goal-resume-report.json", report)
@@ -597,6 +623,18 @@ class GoalOperationService:
                 registry.register(DeterministicFileEffectExecutor(node_type=node_type, store=store))
         gate_registry = GateRunnerRegistry()
         gate_registry.register(DeterministicGateRunner())
+        if request.gate_runner_adapter_ref == COMMAND_GATE_RUNNER_REF:
+            for gate_kind in _command_gate_kinds(request):
+                gate_registry.register(
+                    CommandGateRunner(
+                        runtime_provider=_LocalCommandRuntimeProvider(),
+                        artifact_store=_LocalGoalArtifactStore(request.artifact_dir),
+                        gate_kind=gate_kind,
+                        release_ref="command",
+                        runtime_profile_ref=request.runtime_ref,
+                        identity="verifier",
+                    )
+                )
         verification_executor = VerificationExecutor(gate_registry)
         verification_service = DeterministicGoalVerificationService.from_required_claim_refs(
             goal_ref=request.goal_ref,
@@ -610,10 +648,11 @@ class GoalOperationService:
             executor_release_refs=executor_release_refs,
             verification_service=verification_service,
             verification_executor=verification_executor,
+            gate_definitions={definition.gate_id: definition for definition in request.gate_definitions},
             verification_environment=EvidenceEnvironment(
                 runtime_profile_digest=request.runtime_digest,
                 policy_digest=canonical_fingerprint({"allowedCapabilities": list(request.allowed_capabilities)}),
-                verifier_release_digest=DETERMINISTIC_GATE_RUNNER_REF,
+                verifier_release_digest=request.gate_runner_adapter_ref,
                 test_definition_digest=canonical_fingerprint(dict(request.registered_gate_refs)),
             ),
             capability_admission=capability_admission,
@@ -637,6 +676,7 @@ class GoalOperationService:
         plan_execution_id: str,
         *,
         completion: CompletionGateResult | None = None,
+        open_defect_refs: tuple[str, ...] = (),
     ) -> Any:
         goal = service.store.get_goal_execution(goal_execution_id)
         execution = service.store.get_execution(plan_execution_id)
@@ -646,6 +686,7 @@ class GoalOperationService:
             goal_execution_id,
             plan_execution_id,
             expected_version=goal.status_version,
+            open_defect_refs=open_defect_refs,
         )
         if execution.status == PlanExecutionStatus.SUCCEEDED:
             completion = completion or CompletionGateResult(
@@ -676,7 +717,7 @@ class GoalOperationService:
                 f"unknown executor adapter for profile {profile.profile_ref}: {request.executor_adapter_ref}",
                 refs=(request.executor_adapter_ref,),
             )
-        if request.gate_runner_adapter_ref != profile.gate_runner_adapter_ref:
+        if request.gate_runner_adapter_ref not in {profile.gate_runner_adapter_ref, COMMAND_GATE_RUNNER_REF}:
             raise GoalOperationError(
                 "unknown_gate_runner",
                 f"unknown GateRunner adapter for profile {profile.profile_ref}: {request.gate_runner_adapter_ref}",
@@ -711,6 +752,7 @@ class DeterministicGoalVerificationService:
     ) -> None:
         self.graph = graph
         self._evidence_records = evidence_records or (lambda: ())
+        self._defects: list[DefectRecord] = []
 
     @classmethod
     def from_required_claim_refs(
@@ -748,10 +790,43 @@ class DeterministicGoalVerificationService:
             graph=self.graph,
             evidence_records=self._evidence_records(),
             trigger=trigger,
+            open_defects=tuple(self._defects),
         )
 
-    def defects(self) -> tuple[Any, ...]:
-        return ()
+    def defects(self) -> tuple[DefectRecord, ...]:
+        return tuple(self._defects)
+
+    def record_failed_gate_report(self, report: VerificationExecutionReport) -> tuple[DefectRecord, ...]:
+        added: list[DefectRecord] = []
+        existing = {defect.defect_id for defect in self._defects}
+        for attempt in report.attempts:
+            if attempt.status == GateExecutionStatus.PASSED or attempt.evidence is None:
+                continue
+            evidence = attempt.evidence
+            result = VerificationResult(
+                gate_ref=attempt.gate_ref,
+                claim_refs=evidence.claim_refs,
+                result=evidence.result,
+                expected=f"Gate {attempt.gate_ref} passes.",
+                actual=attempt.message or attempt.status.value,
+                refs=evidence.refs,
+                evidence_ref=evidence.evidence_id,
+            )
+            defect = defect_from_result(
+                defect_id=_defect_id_from_attempt(attempt.gate_ref, evidence.evidence_id),
+                result=result,
+                repair_boundary=(
+                    f"Repair subjects covered by {attempt.gate_ref}; do not change Goal, Claim, Gate, "
+                    "Policy, or Capability boundaries."
+                ),
+                graph=self.graph,
+            )
+            if defect.defect_id in existing:
+                continue
+            self._defects.append(defect)
+            existing.add(defect.defect_id)
+            added.append(defect)
+        return tuple(added)
 
 
 class DeterministicFileEffectExecutor:
@@ -825,6 +900,65 @@ class DeterministicFileEffectExecutor:
         return result
 
 
+class _LocalCommandRuntimeProvider:
+    def provision(self, profile_ref: str, workspace_ref: str, identity: str) -> str:
+        path = Path(workspace_ref)
+        path.mkdir(parents=True, exist_ok=True)
+        return str(path)
+
+    def exec(self, handle: str, command: list[str], env: dict[str, str], deadline: datetime) -> dict[str, Any]:
+        timeout = max(0.001, (deadline - datetime.now(UTC)).total_seconds())
+        process_env = os.environ.copy()
+        process_env.update(env)
+        try:
+            completed = subprocess.run(
+                command,
+                cwd=handle,
+                env=process_env,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired as exc:
+            return {
+                "exit_code": None,
+                "timed_out": True,
+                "stdout": _subprocess_text(exc.stdout),
+                "stderr": _subprocess_text(exc.stderr),
+            }
+        return {
+            "exit_code": completed.returncode,
+            "timed_out": False,
+            "stdout": completed.stdout,
+            "stderr": completed.stderr,
+        }
+
+    def destroy(self, handle: str) -> None:
+        return None
+
+
+class _LocalGoalArtifactStore:
+    def __init__(self, root: Path | str) -> None:
+        self.root = Path(root)
+
+    def put(self, content: bytes, media_type: str, metadata: dict[str, Any]) -> str:
+        name = str(metadata.get("name") or f"artifact-{hashlib.sha256(content).hexdigest()}.bin")
+        relative = Path(name)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError(f"artifact name must stay inside artifact_dir: {name}")
+        path = (self.root / relative).resolve()
+        root = self.root.resolve()
+        if os.path.commonpath([str(root), str(path)]) != str(root):
+            raise ValueError(f"artifact path escapes artifact_dir: {name}")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+        return relative.as_posix()
+
+    def get(self, artifact_ref: str) -> bytes:
+        return (self.root / artifact_ref).read_bytes()
+
+
 def load_goal_execution_request(
     path: Path | str,
     *,
@@ -857,6 +991,7 @@ def load_goal_execution_request(
     runtime_ref = _string(runtime.get("runtimeRef"), "spec.runtime.runtimeRef")
     runtime_digest = _digest(_string(runtime.get("digest"), "spec.runtime.digest"), "spec.runtime.digest")
     registered_runtime_refs = _string_mapping(registry.get("runtimeRefs") or {runtime_ref: runtime_digest}, "spec.registry.runtimeRefs")
+    gate_definitions = _gate_definitions(registry.get("gateDefinitions") or (), "spec.registry.gateDefinitions")
     request = GoalExecutionRequest(
         name=name,
         request_id=request_id,
@@ -878,6 +1013,7 @@ def load_goal_execution_request(
         required_claim_refs=_string_tuple(goal.get("requiredClaimRefs"), "spec.goal.requiredClaimRefs"),
         registered_node_types=_string_mapping(registry.get("nodeTypes"), "spec.registry.nodeTypes"),
         registered_gate_refs=_string_mapping(registry.get("gateRefs"), "spec.registry.gateRefs"),
+        gate_definitions=gate_definitions,
         registered_runtime_refs=registered_runtime_refs,
         allowed_capabilities=_string_tuple(registry.get("allowedCapabilities"), "spec.registry.allowedCapabilities"),
         plan_draft=PlanDraft.from_mapping(_mapping(spec.get("planDraft"), "spec.planDraft")),
@@ -901,6 +1037,44 @@ def _validate_request_profile_shape(request: GoalExecutionRequest, profile: Goal
         raise GoalOperationError("invalid_goal_request", "execution.maxRepairCycles must be non-negative")
     if request.max_concurrency < 1:
         raise GoalOperationError("invalid_goal_request", "execution.maxConcurrency must be at least 1")
+    definitions_by_id = {definition.gate_id: definition for definition in request.gate_definitions}
+    if len(definitions_by_id) != len(request.gate_definitions):
+        raise GoalOperationError("duplicate_gate_definition", "registry.gateDefinitions contains duplicate gate IDs")
+    for gate_id, definition in definitions_by_id.items():
+        registered_digest = request.registered_gate_refs.get(gate_id)
+        if registered_digest is None:
+            raise GoalOperationError(
+                "unregistered_gate_definition",
+                "registry.gateDefinitions contains a GateDefinition not listed in registry.gateRefs",
+                refs=(gate_id,),
+            )
+        definition_digest = _gate_definition_digest(definition)
+        if registered_digest != definition_digest:
+            raise GoalOperationError(
+                "gate_definition_digest_mismatch",
+                "GateDefinition digest must match registry.gateRefs so command evidence fingerprints bind the real gate contract",
+                refs=(gate_id, registered_digest, definition_digest),
+            )
+    if request.gate_runner_adapter_ref == COMMAND_GATE_RUNNER_REF:
+        command_definitions = tuple(
+            definition
+            for definition in request.gate_definitions
+            if definition.verifier_mode == "command" and definition.command
+        )
+        if not command_definitions:
+            raise GoalOperationError(
+                "command_gate_definition_required",
+                "command GateRunner requests must include at least one command GateDefinition",
+                refs=(request.gate_runner_adapter_ref,),
+            )
+
+
+def _command_gate_kinds(request: GoalExecutionRequest) -> tuple[str, ...]:
+    return _unique_refs(
+        definition.evidence_kind
+        for definition in request.gate_definitions
+        if definition.verifier_mode == "command" and definition.command
+    )
 
 
 def _capability_admission_service(request: GoalExecutionRequest) -> CapabilityAdmissionService:
@@ -988,6 +1162,15 @@ def _claim_graph_from_required_claim_refs(*, goal_ref: str, required_claim_refs:
     return ClaimGraph(goal_ref=goal_ref, version=1, claims=claims)
 
 
+def _defect_id_from_attempt(gate_ref: str, evidence_id: str) -> str:
+    return "DEF-" + canonical_fingerprint(
+        {
+            "gateRef": gate_ref,
+            "evidenceRef": evidence_id,
+        }
+    ).removeprefix("sha256:")[:16]
+
+
 def _scheduler_completion(scheduler: StaticPlanScheduler) -> CompletionGateResult:
     if scheduler.verification_service is None:
         return CompletionGateResult(
@@ -995,6 +1178,25 @@ def _scheduler_completion(scheduler: StaticPlanScheduler) -> CompletionGateResul
             missing_claim_refs=("verification_service_unavailable",),
         )
     return scheduler.verification_service.complete(VerificationTrigger())
+
+
+def _completion_dict(completion: CompletionGateResult) -> dict[str, Any]:
+    return {
+        "complete": completion.complete,
+        "missingClaimRefs": list(completion.missing_claim_refs),
+        "nonCurrentEvidenceRefs": list(completion.non_current_evidence_refs),
+        "uncoveredClaimRefs": list(completion.uncovered_claim_refs),
+        "openDefectRefs": list(completion.open_defect_refs),
+        "historicalEvidenceRefs": list(completion.historical_evidence_refs),
+        "resolutionFailureRefs": list(completion.resolution_failure_refs),
+        "currentClaimCoverage": completion.current_claim_coverage,
+    }
+
+
+def _scheduler_defects(scheduler: StaticPlanScheduler) -> tuple[DefectRecord, ...]:
+    if scheduler.verification_service is None:
+        return ()
+    return tuple(scheduler.verification_service.defects())
 
 
 def _looks_like_legacy_profile(profile_ref: str) -> bool:
@@ -1111,6 +1313,15 @@ def _string_mapping(value: Any, ref: str) -> dict[str, str]:
     return result
 
 
+def _gate_definitions(value: Any, ref: str) -> tuple[GateDefinition, ...]:
+    if not isinstance(value, list | tuple):
+        raise GoalOperationError("invalid_goal_request", f"{ref} must be a list", refs=(ref,))
+    definitions: list[GateDefinition] = []
+    for index, item in enumerate(value):
+        definitions.append(GateDefinition.from_mapping(_mapping(item, f"{ref}[{index}]")))
+    return tuple(definitions)
+
+
 def _digest(value: str, ref: str) -> str:
     if not value.startswith("sha256:") or len(value.removeprefix("sha256:")) != 64:
         raise GoalOperationError("invalid_digest", f"{ref} must be a sha256 digest ref", refs=(ref, value))
@@ -1135,3 +1346,11 @@ def _unique_refs(values: Any) -> tuple[str, ...]:
         if text not in result:
             result.append(text)
     return tuple(result)
+
+
+def _subprocess_text(value: object) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode(errors="replace")
+    return str(value)

@@ -1,0 +1,116 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0056",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier-final",
+  "generated_at": "2026-06-29T14:28:27.371430Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent final verifier approved TASK-0056 after rechecking the frontmatter fix, rerunning the required acceptance commands, and recording command-backed Kernel EvidenceV2/GateRun lineage for the command-backed criteria.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A reproducible run exists where a real command gate FAILS, producing `GateExecutionStatus.FAILED`, at least one `DefectRecord`, `complete=False`, and a goal that is not marked completed - all captured as evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-c281c20590cbb7de",
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002"
+      ],
+      "notes": "The command-backed targeted unittest evidence covers the real command gate failure path: failed gate execution, DefectRecord, completion.complete=false, and non-completed goal."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "After the fix, the same command gate PASSes and the goal completes, captured as evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-c281c20590cbb7de",
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002"
+      ],
+      "notes": "The same test executes a fixed-input run where the command gate passes and the goal completes."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The deliberate-failure scenario is encoded as a non-skipped automated test (no `skip` decorator on the failing-gate case).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-c281c20590cbb7de",
+        "EVD-f16d127f7a7c8931",
+        "EVD-TASK-0056-0001"
+      ],
+      "notes": "The deliberate failure scenario is encoded as a normal unittest and appears in full discovery without a skip decorator."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "`.\\.venv\\Scripts\\python.exe -B scripts\\check.py` (full lint + test) passes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-f16d127f7a7c8931",
+        "EVD-522c0189d42b82ec"
+      ],
+      "notes": "Full scripts/check.py passed, and git diff --check exited 0."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Evidence is published per AWKP (report + verification-summary + handoff).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-f16d127f7a7c8931",
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002"
+      ],
+      "notes": "AWKP lint passed inside the full check, and the required report, verification summary, and handoff are published in the Task0056 manifests."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Producer moves TASK-0056 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002",
+        "EVD-TASK-0056-0003"
+      ],
+      "notes": "Producer returned the task only to review after the frontmatter repair; completion remains delegated to this independent EvidenceGate approval."
+    }
+  ],
+  "commands": [
+    {
+      "command_id": "CMD-targeted-unittest",
+      "command": "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -B -m unittest tests.test_real_agent_pilot tests.test_verification tests.test_goal_operations -v",
+      "status": "passed",
+      "criterion_indices": [
+        1,
+        2,
+        3
+      ],
+      "evidence_refs": [
+        "EVD-c281c20590cbb7de"
+      ]
+    },
+    {
+      "command_id": "CMD-full-check",
+      "command": "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -B scripts\\check.py",
+      "status": "passed",
+      "criterion_indices": [
+        3,
+        4,
+        5
+      ],
+      "evidence_refs": [
+        "EVD-f16d127f7a7c8931"
+      ]
+    },
+    {
+      "command_id": "CMD-diff-check",
+      "command": "git diff --check",
+      "status": "passed",
+      "criterion_indices": [
+        4
+      ],
+      "evidence_refs": [
+        "EVD-522c0189d42b82ec"
+      ]
+    }
+  ]
+}

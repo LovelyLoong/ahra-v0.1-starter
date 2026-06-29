@@ -1,0 +1,101 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "Evidence",
+  "metadata": {
+    "createdAt": "2026-06-29T14:26:12.880732Z",
+    "evidenceId": "EVD-f16d127f7a7c8931"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLAIM-TASK-0056-CR3",
+      "CLAIM-TASK-0056-CR4",
+      "CLAIM-TASK-0056-CR5"
+    ],
+    "confidence": "verified",
+    "dependencies": [],
+    "dependencyScope": "complete",
+    "environment": {
+      "policyDigest": "sha256:ef742f95c7a9eeb922c847ad67aaf990bf71bf2f057eb1041e2bf846cf947d27",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:cad80919f1a854d0d702706743b3f955f462912508e9c082e4965d84710f2aa4",
+      "testDefinitionDigest": "sha256:5edcad1ce7d8d9e26b4aa4367ad16f7cb9f00b121b1ae4b7c8e38f1689cbdd9b",
+      "verifierReleaseDigest": "sha256:42b62483fe44e72aca48b733a2854e2e10e73825ce2ecdd7051166757e67b911"
+    },
+    "fingerprint": "sha256:9a13ec39d6f81aea1c2c77488467ed4ee48be6ddac88af610fb14400bc4d749a",
+    "gateDefinitionDigest": "sha256:316dff62ca4fab810f5c5e2a015cb4a6212b60e9b8d68a42638c65a31a1f6a3c",
+    "gateRef": "GATE-task-0056-full-check",
+    "gateRunId": "GATERUN-f16d127f7a7c8931",
+    "refs": [
+      "local://evidence/command-gate-raw/GATE-task-0056-full-check-attempt-1-command-output.json",
+      "GATERUN-f16d127f7a7c8931"
+    ],
+    "result": "passed",
+    "subjects": [
+      {
+        "digest": "sha256:c4e232805e911086d151e65169b216ac087db97b1b34b5d5c908677e47a8cd7f",
+        "ref": "GIT-HEAD"
+      },
+      {
+        "digest": "sha256:c93de9ca003fad96c67c82b8609d0959dbc3dab2e72f48b81947ee587bb05b30",
+        "ref": "SRC-src/ahra/goal_operations.py"
+      },
+      {
+        "digest": "sha256:9623dc7e022e251d8b72fcd3981a94ba1f1d53f7c2d0c4546d90edadb233ba4d",
+        "ref": "SRC-src/ahra/plan_execution.py"
+      },
+      {
+        "digest": "sha256:5d3598bc53c6f62f886c27a9bf5899651bf7408a2e4ef5c92a65e7dfb8c06c5d",
+        "ref": "SRC-src/ahra/verification.py"
+      },
+      {
+        "digest": "sha256:30272a1057bd8e621037802cc2226263b09b035690f9affe2f3007e807e27fe6",
+        "ref": "SRC-src/ahra/evidence_gate.py"
+      },
+      {
+        "digest": "sha256:7e65425d24f59da29e58ce38c4538c4dad173c8e086a0042dba77defb92fd902",
+        "ref": "SRC-tests/test_goal_operations.py"
+      },
+      {
+        "digest": "sha256:0150d1045cc2e40fe6f4c536eb1cf769581ed2e921641b86a8307a6dc154dd3c",
+        "ref": "SRC-tests/test_verification.py"
+      },
+      {
+        "digest": "sha256:e0f30942eec9c0d0c240fde46f4421fa471eff134901f614a8899f7a7e53e01a",
+        "ref": "SRC-tests/test_real_agent_pilot.py"
+      },
+      {
+        "digest": "sha256:b6bbdd6da2b46bc843cf329a6a1b49ecdb49cf4b652f3da1c4cc87594080897f",
+        "ref": "SRC-scripts/check.py"
+      },
+      {
+        "digest": "sha256:cca4d8f6b32148f587987073f30fcbe58e197809e5fa723e741e51fca8063888",
+        "ref": "SRC-scripts/lint_awkp.py"
+      },
+      {
+        "digest": "sha256:3d93afa8d7a514374c88e976563b33767afe7e040389e144522855add7de614d",
+        "ref": "SRC-examples/m1/goal-run-request-command-gate.yaml"
+      },
+      {
+        "digest": "sha256:3a359160f3d2648c06fafa490203e654081d94af2661bfa42d27178f112750b4",
+        "ref": "SRC-work/tasks/TASK-0056/task.md"
+      },
+      {
+        "digest": "sha256:cc16a6b7fd9a5236cee3fb9fa8b6a588826e21228509e812b54302c65c5e6fcc",
+        "ref": "SRC-work/tasks/TASK-0056/evidence/failing-gate-demonstration-report.md"
+      },
+      {
+        "digest": "sha256:29b388158c7758d103a6778adfd65cc8594249551775256b7728764ce75f021a",
+        "ref": "SRC-work/tasks/TASK-0056/evidence/verification-summary.json"
+      },
+      {
+        "digest": "sha256:80f309c8cfcd70092144733a32a40369b2eff1b4b7c4aea3eb1b01b3348af9c6",
+        "ref": "SRC-work/tasks/TASK-0056/handoffs/HANDOFF-0001.md"
+      }
+    ],
+    "supersedes": [],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

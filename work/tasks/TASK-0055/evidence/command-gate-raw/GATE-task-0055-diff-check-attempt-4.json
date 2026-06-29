@@ -1,0 +1,17 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "completedAt": "2026-06-29T13:22:18.740417+00:00",
+  "exitCode": 0,
+  "failureClass": null,
+  "gateRef": "GATE-task-0055-diff-check",
+  "reason": "command gate passed",
+  "startedAt": "2026-06-29T13:22:18.703636+00:00",
+  "status": "passed",
+  "stderr": "",
+  "stdout": "",
+  "timedOut": false
+}

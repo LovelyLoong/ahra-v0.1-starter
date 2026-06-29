@@ -1,0 +1,155 @@
+{
+  "commands": [
+    {
+      "command": "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -B -m unittest tests.test_evidence_gate -v",
+      "command_id": "CMD-evidence-gate-tests",
+      "criterion_indices": [
+        1,
+        2,
+        3,
+        4,
+        7
+      ],
+      "evidence_refs": [
+        "EVD-4d7953e478a4b613"
+      ],
+      "status": "passed",
+      "summary": "Ran tests.test_evidence_gate; all 9 tests passed."
+    },
+    {
+      "command": "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "command_id": "CMD-lint-awkp",
+      "criterion_indices": [
+        6,
+        7
+      ],
+      "evidence_refs": [
+        "EVD-fd8b347d724d7002"
+      ],
+      "status": "passed",
+      "summary": "AWKP lint passed with 0 errors and 0 warnings."
+    },
+    {
+      "command": "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "command_id": "CMD-check-lint",
+      "criterion_indices": [
+        7
+      ],
+      "evidence_refs": [
+        "EVD-583146f9749dcc80"
+      ],
+      "status": "passed",
+      "summary": "scripts/check.py --lint passed."
+    },
+    {
+      "command": "git diff --check",
+      "command_id": "CMD-diff-check",
+      "criterion_indices": [
+        7
+      ],
+      "evidence_refs": [
+        "EVD-91364bb5eea6f8a0"
+      ],
+      "status": "passed",
+      "summary": "git diff --check passed."
+    }
+  ],
+  "criteria": [
+    {
+      "command_refs": [
+        "CMD-evidence-gate-tests"
+      ],
+      "criterion_index": 1,
+      "evidence_refs": [
+        "EVD-TASK-0055-0001",
+        "EVD-4d7953e478a4b613"
+      ],
+      "notes": "approve path validates command-backed criteria through kernel EvidenceV2/GateRunV2 lineage; targeted EvidenceGate tests passed.",
+      "status": "passed"
+    },
+    {
+      "command_refs": [
+        "CMD-evidence-gate-tests"
+      ],
+      "criterion_index": 2,
+      "evidence_refs": [
+        "EVD-4d7953e478a4b613"
+      ],
+      "notes": "test_rejects_command_backed_pass_without_kernel_lineage covers fail-closed legacy/self-reported command evidence.",
+      "status": "passed"
+    },
+    {
+      "command_refs": [
+        "CMD-evidence-gate-tests"
+      ],
+      "criterion_index": 3,
+      "evidence_refs": [
+        "EVD-4d7953e478a4b613"
+      ],
+      "notes": "test_rejects_command_backed_pass_with_mismatched_fingerprint covers stale/mismatched EvidenceV2 fingerprint rejection.",
+      "status": "passed"
+    },
+    {
+      "command_refs": [
+        "CMD-evidence-gate-tests"
+      ],
+      "criterion_index": 4,
+      "evidence_refs": [
+        "EVD-4d7953e478a4b613"
+      ],
+      "notes": "EvidenceGate regression tests passed for producer self-verification rejection, hash recomputation, CAS state version checks, and append-only event emission.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 5,
+      "evidence_refs": [
+        "EVD-TASK-0055-0001",
+        "EVD-TASK-0055-0002"
+      ],
+      "notes": "Static inspection of src/ahra/evidence_gate.py shows stdlib imports only and no subprocess/execution dependency; producer report documents the offline boundary.",
+      "status": "passed"
+    },
+    {
+      "command_refs": [
+        "CMD-lint-awkp"
+      ],
+      "criterion_index": 6,
+      "evidence_refs": [
+        "EVD-fd8b347d724d7002"
+      ],
+      "notes": "scripts/lint_awkp.py passed under CommandGateRunner-backed evidence.",
+      "status": "passed"
+    },
+    {
+      "command_refs": [
+        "CMD-evidence-gate-tests",
+        "CMD-lint-awkp",
+        "CMD-check-lint",
+        "CMD-diff-check"
+      ],
+      "criterion_index": 7,
+      "evidence_refs": [
+        "EVD-4d7953e478a4b613",
+        "EVD-fd8b347d724d7002",
+        "EVD-583146f9749dcc80",
+        "EVD-91364bb5eea6f8a0"
+      ],
+      "notes": "Targeted tests, AWKP lint, project lint, and git diff --check passed with kernel command evidence.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 8,
+      "evidence_refs": [
+        "EVD-TASK-0055-0001",
+        "EVD-TASK-0055-0002"
+      ],
+      "notes": "state.json is review at version 2; producer stopped at review and left completion to EvidenceGate.",
+      "status": "passed"
+    }
+  ],
+  "decision": "approve",
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "summary": "Independent verifier approved TASK-0055: command-backed approval now requires kernel EvidenceV2 with GateRunV2 lineage and matching fingerprints; required checks passed with CommandGateRunner-backed evidence.",
+  "task_id": "TASK-0055",
+  "verifier": "agent:independent-verifier"
+}

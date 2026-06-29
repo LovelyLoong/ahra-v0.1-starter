@@ -30,6 +30,90 @@
         "ART-TASK-0055-0002",
         "EVD-TASK-0055-0001"
       ]
+    },
+    {
+      "evidence_id": "EVD-4d7953e478a4b613",
+      "task_id": "TASK-0055",
+      "kind": "kernel_evidence_v2",
+      "name": "EVD-4d7953e478a4b613.json",
+      "uri": "local://evidence/kernel-evidence/EVD-4d7953e478a4b613.json",
+      "sha256": "808a3ab1c944cadd9240ff278b758c7fac817f69c9513b1cff1dcc3a1e4dbbcc",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "refs": [
+        "ART-TASK-0055-0017",
+        "ART-TASK-0055-0003",
+        "GATERUN-4d7953e478a4b613"
+      ]
+    },
+    {
+      "evidence_id": "EVD-fd8b347d724d7002",
+      "task_id": "TASK-0055",
+      "kind": "kernel_evidence_v2",
+      "name": "EVD-fd8b347d724d7002.json",
+      "uri": "local://evidence/kernel-evidence/EVD-fd8b347d724d7002.json",
+      "sha256": "d5f0d162db4f2f100cc39ebc3b441428909f314ef8a57a100f5a208729fb935e",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "refs": [
+        "ART-TASK-0055-0023",
+        "ART-TASK-0055-0005",
+        "GATERUN-fd8b347d724d7002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-583146f9749dcc80",
+      "task_id": "TASK-0055",
+      "kind": "kernel_evidence_v2",
+      "name": "EVD-583146f9749dcc80.json",
+      "uri": "local://evidence/kernel-evidence/EVD-583146f9749dcc80.json",
+      "sha256": "a2f65fc1d3dfe285180b261b4560af179396a87a16f3907c77ba18fa27da380a",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "refs": [
+        "ART-TASK-0055-0030",
+        "ART-TASK-0055-0008",
+        "GATERUN-583146f9749dcc80"
+      ]
+    },
+    {
+      "evidence_id": "EVD-91364bb5eea6f8a0",
+      "task_id": "TASK-0055",
+      "kind": "kernel_evidence_v2",
+      "name": "EVD-91364bb5eea6f8a0.json",
+      "uri": "local://evidence/kernel-evidence/EVD-91364bb5eea6f8a0.json",
+      "sha256": "067c2b4bf1747cd5206af40d6daca4596cd363ab3b14289d6be9088843bf7364",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "refs": [
+        "ART-TASK-0055-0038",
+        "ART-TASK-0055-0012",
+        "GATERUN-91364bb5eea6f8a0"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0055-0003",
+      "task_id": "TASK-0055",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "1a86dd3de2ace33278703510582d7c94882deaf0048d4ac580a7e1af263a1114",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-29T13:22:42.398074Z",
+      "refs": [
+        "ART-TASK-0055-0039",
+        "EVD-4d7953e478a4b613",
+        "EVD-583146f9749dcc80",
+        "EVD-91364bb5eea6f8a0",
+        "EVD-TASK-0055-0001",
+        "EVD-TASK-0055-0002",
+        "EVD-fd8b347d724d7002"
+      ]
     }
   ]
 }

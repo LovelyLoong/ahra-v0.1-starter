@@ -1,5 +1,119 @@
 {
+  "evidence": [
+    {
+      "created_at": "2026-06-29T13:48:48Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0056-0001",
+      "kind": "failing_gate_demonstration_report",
+      "media_type": "text/markdown",
+      "name": "failing-gate-demonstration-report.md",
+      "refs": [
+        "ART-TASK-0056-0001"
+      ],
+      "sha256": "cc16a6b7fd9a5236cee3fb9fa8b6a588826e21228509e812b54302c65c5e6fcc",
+      "task_id": "TASK-0056",
+      "uri": "local://evidence/failing-gate-demonstration-report.md"
+    },
+    {
+      "created_at": "2026-06-29T13:48:48Z",
+      "created_by": "agent:codex-dynamic-kernel-operator",
+      "evidence_id": "EVD-TASK-0056-0002",
+      "kind": "local_verification_summary",
+      "media_type": "application/json",
+      "name": "verification-summary.json",
+      "refs": [
+        "ART-TASK-0056-0002",
+        "EVD-TASK-0056-0001"
+      ],
+      "sha256": "29b388158c7758d103a6778adfd65cc8594249551775256b7728764ce75f021a",
+      "task_id": "TASK-0056",
+      "uri": "local://evidence/verification-summary.json"
+    },
+    {
+      "created_at": "2026-06-29T14:03:35.025416Z",
+      "created_by": "agent:independent-verifier",
+      "evidence_id": "EVD-TASK-0056-0003",
+      "kind": "evidence_gate_report",
+      "media_type": "application/json",
+      "name": "evidence-gate-report-3.json",
+      "refs": [
+        "ART-TASK-0056-0003",
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002"
+      ],
+      "sha256": "62668e7cb6e5723b720390dced4472d9db5dea6f7e5ea699a92ee5b0e6093334",
+      "task_id": "TASK-0056",
+      "uri": "local://evidence/evidence-gate-report-3.json"
+    },
+    {
+      "created_at": "2026-06-29T14:26:12.876125Z",
+      "created_by": "kernel:CommandGateRunner",
+      "evidence_id": "EVD-c281c20590cbb7de",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-c281c20590cbb7de.json",
+      "refs": [
+        "ART-TASK-0056-0005",
+        "ART-TASK-0056-0004",
+        "GATERUN-c281c20590cbb7de"
+      ],
+      "sha256": "b81f5cd9d3d7280710ab4c429b411c6211aa426c7d2ae932fab8a3f966908aa8",
+      "task_id": "TASK-0056",
+      "uri": "local://evidence/kernel-evidence/EVD-c281c20590cbb7de.json"
+    },
+    {
+      "created_at": "2026-06-29T14:26:12.876125Z",
+      "created_by": "kernel:CommandGateRunner",
+      "evidence_id": "EVD-f16d127f7a7c8931",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-f16d127f7a7c8931.json",
+      "refs": [
+        "ART-TASK-0056-0007",
+        "ART-TASK-0056-0006",
+        "GATERUN-f16d127f7a7c8931"
+      ],
+      "sha256": "eaf17589096078abac4d8f837ad7c07907acd3ded00a5c855d2ddf84396be5f2",
+      "task_id": "TASK-0056",
+      "uri": "local://evidence/kernel-evidence/EVD-f16d127f7a7c8931.json"
+    },
+    {
+      "created_at": "2026-06-29T14:26:12.876125Z",
+      "created_by": "kernel:CommandGateRunner",
+      "evidence_id": "EVD-522c0189d42b82ec",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-522c0189d42b82ec.json",
+      "refs": [
+        "ART-TASK-0056-0009",
+        "ART-TASK-0056-0008",
+        "GATERUN-522c0189d42b82ec"
+      ],
+      "sha256": "ac40261a821688077290561c01d2ce68b5abcc41a4af63f83da12bb20c2492be",
+      "task_id": "TASK-0056",
+      "uri": "local://evidence/kernel-evidence/EVD-522c0189d42b82ec.json"
+    },
+    {
+      "evidence_id": "EVD-TASK-0056-0004",
+      "task_id": "TASK-0056",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-6.json",
+      "uri": "local://evidence/evidence-gate-report-6.json",
+      "sha256": "7813cedb5f8c373b431d205b3c6e524845af154fd0f9d88a1576ae8696b874ab",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier-final",
+      "created_at": "2026-06-29T14:28:27.371430Z",
+      "refs": [
+        "ART-TASK-0056-0010",
+        "EVD-522c0189d42b82ec",
+        "EVD-TASK-0056-0001",
+        "EVD-TASK-0056-0002",
+        "EVD-TASK-0056-0003",
+        "EVD-c281c20590cbb7de",
+        "EVD-f16d127f7a7c8931"
+      ]
+    }
+  ],
   "schema_version": "awkp/0.1",
-  "task_id": "TASK-0056",
-  "evidence": []
+  "task_id": "TASK-0056"
 }

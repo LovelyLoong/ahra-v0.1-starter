@@ -2,15 +2,26 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0056",
   "context_id": "CTX-verification-teeth",
-  "state": "ready",
-  "state_version": 0,
-  "attempt": 0,
+  "state": "completed",
+  "state_version": 6,
+  "attempt": 2,
   "owner": null,
   "lease": null,
-  "next_action": "After TASK-0055, wire a real command gate into M1 and demonstrate FAIL -> defect -> not-completed, then fix -> PASS, as a non-skipped test.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "pause_reason": null,
   "blockers": [],
-  "artifact_refs": [],
-  "evidence_refs": [],
-  "updated_at": "2026-06-29T10:00:00Z"
+  "artifact_refs": [
+    "ART-TASK-0056-0001",
+    "ART-TASK-0056-0002",
+    "ART-TASK-0056-HANDOFF-0001",
+    "ART-TASK-0056-0003",
+    "ART-TASK-0056-0010"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0056-0001",
+    "EVD-TASK-0056-0002",
+    "EVD-TASK-0056-0003",
+    "EVD-TASK-0056-0004"
+  ],
+  "updated_at": "2026-06-29T14:28:27.371430Z"
 }

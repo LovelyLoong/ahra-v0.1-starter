@@ -62,6 +62,183 @@
         "EVD-TASK-0055-0002"
       ],
       "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0055-0003",
+      "task_id": "TASK-0055",
+      "kind": "command_gate_raw_output",
+      "name": "GATE-task-0055-evidence-gate-tests-attempt-1.json",
+      "uri": "local://evidence/command-gate-raw/GATE-task-0055-evidence-gate-tests-attempt-1.json",
+      "sha256": "85ca0242e150745e9acfceb4176deed98e80fdf7e4bfd4584747b14ea042e3ce",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/verification.py"
+      ],
+      "evidence_refs": [
+        "EVD-4d7953e478a4b613"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0055-0005",
+      "task_id": "TASK-0055",
+      "kind": "command_gate_raw_output",
+      "name": "GATE-task-0055-lint-awkp-attempt-2.json",
+      "uri": "local://evidence/command-gate-raw/GATE-task-0055-lint-awkp-attempt-2.json",
+      "sha256": "9f95964901a0034d7b49fc128b487cb1814eeca410d6bcdc1fddca734703e30d",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/verification.py"
+      ],
+      "evidence_refs": [
+        "EVD-fd8b347d724d7002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0055-0008",
+      "task_id": "TASK-0055",
+      "kind": "command_gate_raw_output",
+      "name": "GATE-task-0055-check-lint-attempt-3.json",
+      "uri": "local://evidence/command-gate-raw/GATE-task-0055-check-lint-attempt-3.json",
+      "sha256": "c3a7e8ba70f6786ac589e9a3518d7837e101b42e1fd0ec53c75afc721a209830",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/verification.py"
+      ],
+      "evidence_refs": [
+        "EVD-583146f9749dcc80"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0055-0012",
+      "task_id": "TASK-0055",
+      "kind": "command_gate_raw_output",
+      "name": "GATE-task-0055-diff-check-attempt-4.json",
+      "uri": "local://evidence/command-gate-raw/GATE-task-0055-diff-check-attempt-4.json",
+      "sha256": "e750890fc375bf31ceb4a84c0833b5a1f39fc09c7d9a2064056af3e51970b04c",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/verification.py"
+      ],
+      "evidence_refs": [
+        "EVD-91364bb5eea6f8a0"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0055-0017",
+      "task_id": "TASK-0055",
+      "kind": "kernel_gate_run_v2",
+      "name": "GATERUN-4d7953e478a4b613.json",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-4d7953e478a4b613.json",
+      "sha256": "89a74452a994f31784dd818e55954d235ed0734703fb902b4e45aed8682ffd74",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/verification.py",
+        "../../../src/ahra/evidence_v2.py"
+      ],
+      "evidence_refs": [
+        "EVD-4d7953e478a4b613"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0055-0023",
+      "task_id": "TASK-0055",
+      "kind": "kernel_gate_run_v2",
+      "name": "GATERUN-fd8b347d724d7002.json",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-fd8b347d724d7002.json",
+      "sha256": "2345fe615b4f5275acf6e5bc0f9ff1686c343034e94cd959d6822ca6beafbfc7",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/verification.py",
+        "../../../src/ahra/evidence_v2.py"
+      ],
+      "evidence_refs": [
+        "EVD-fd8b347d724d7002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0055-0030",
+      "task_id": "TASK-0055",
+      "kind": "kernel_gate_run_v2",
+      "name": "GATERUN-583146f9749dcc80.json",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-583146f9749dcc80.json",
+      "sha256": "909287078ec9e3787d84dde92f06287b4d2f9fe29b297094e5d5e487ab005eaf",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/verification.py",
+        "../../../src/ahra/evidence_v2.py"
+      ],
+      "evidence_refs": [
+        "EVD-583146f9749dcc80"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0055-0038",
+      "task_id": "TASK-0055",
+      "kind": "kernel_gate_run_v2",
+      "name": "GATERUN-91364bb5eea6f8a0.json",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-91364bb5eea6f8a0.json",
+      "sha256": "65077708e5083280592231626feadd1f927999a7b9775ffdc6effb4799c1defa",
+      "media_type": "application/json",
+      "created_by": "kernel:CommandGateRunner",
+      "created_at": "2026-06-29T13:22:15.006297Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/verification.py",
+        "../../../src/ahra/evidence_v2.py"
+      ],
+      "evidence_refs": [
+        "EVD-91364bb5eea6f8a0"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0055-0039",
+      "task_id": "TASK-0055",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "1a86dd3de2ace33278703510582d7c94882deaf0048d4ac580a7e1af263a1114",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-29T13:22:42.398074Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0055-0003"
+      ],
+      "supersedes": null
     }
   ]
 }

@@ -1,0 +1,20 @@
+{
+  "command": [
+    "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "tests.test_evidence_gate",
+    "-v"
+  ],
+  "completedAt": "2026-06-29T13:22:15.670061+00:00",
+  "exitCode": 0,
+  "failureClass": null,
+  "gateRef": "GATE-task-0055-evidence-gate-tests",
+  "reason": "command gate passed",
+  "startedAt": "2026-06-29T13:22:15.094416+00:00",
+  "status": "passed",
+  "stderr": "test_approve_writes_gate_report_and_completes_task (tests.test_evidence_gate.EvidenceGateTests.test_approve_writes_gate_report_and_completes_task) ... ok\ntest_evidence_gate_stays_stdlib_offline (tests.test_evidence_gate.EvidenceGateTests.test_evidence_gate_stays_stdlib_offline) ... ok\ntest_inspect_task_returns_criteria_and_state (tests.test_evidence_gate.EvidenceGateTests.test_inspect_task_returns_criteria_and_state) ... ok\ntest_rejects_approve_without_evidence_for_every_criterion (tests.test_evidence_gate.EvidenceGateTests.test_rejects_approve_without_evidence_for_every_criterion) ... ok\ntest_rejects_command_backed_pass_with_mismatched_fingerprint (tests.test_evidence_gate.EvidenceGateTests.test_rejects_command_backed_pass_with_mismatched_fingerprint) ... ok\ntest_rejects_command_backed_pass_without_kernel_lineage (tests.test_evidence_gate.EvidenceGateTests.test_rejects_command_backed_pass_without_kernel_lineage) ... ok\ntest_rejects_producer_self_verification (tests.test_evidence_gate.EvidenceGateTests.test_rejects_producer_self_verification) ... ok\ntest_rejects_stale_expected_version (tests.test_evidence_gate.EvidenceGateTests.test_rejects_stale_expected_version) ... ok\ntest_request_changes_records_blockers (tests.test_evidence_gate.EvidenceGateTests.test_request_changes_records_blockers) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.228s\n\nOK\n",
+  "stdout": "",
+  "timedOut": false
+}

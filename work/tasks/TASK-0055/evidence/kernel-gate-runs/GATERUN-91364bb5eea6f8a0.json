@@ -1,0 +1,63 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateRun",
+  "metadata": {
+    "createdAt": "2026-06-29T13:22:18.740417Z",
+    "gateRunId": "GATERUN-91364bb5eea6f8a0"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLAIM-TASK-0055-CR7"
+    ],
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "completedAt": "2026-06-29T13:22:18.740417Z",
+    "dependencies": [],
+    "environment": {
+      "policyDigest": "sha256:27ae58275511f78992e25a168d590817405d9f255b965ffef578fbbd71634f8d",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:6fff4e71483c71d033092769066bd8537bb30323319fcfce5993199bf16ae085",
+      "testDefinitionDigest": "sha256:5af838cb9f5d390f7a6f31493dfdb010001f4fff2bdb7dde04bd72bdc918b72a",
+      "verifierReleaseDigest": "sha256:e5365162ca27626156bc84d222ced39f9ffc716a4f5309b481370fd9c0332678"
+    },
+    "evidenceRef": "EVD-91364bb5eea6f8a0",
+    "fingerprint": "sha256:0a0b61762b74af31788ca5a76c68cb9486dc68d7d17801050da518cd947d6982",
+    "gateDefinitionDigest": "sha256:b6ef3b886397f2ab95f7e8877408881825d4b0cabc4312b16a502437e8e5b6f4",
+    "gateRef": "GATE-task-0055-diff-check",
+    "result": "passed",
+    "startedAt": "2026-06-29T13:22:18.703636Z",
+    "subjects": [
+      {
+        "digest": "sha256:38a9463a2041f875c5f859dbe2a3cc0490401ddb0e5d3b868fa1961959f3d1ec",
+        "ref": "GIT-HEAD"
+      },
+      {
+        "digest": "sha256:30272a1057bd8e621037802cc2226263b09b035690f9affe2f3007e807e27fe6",
+        "ref": "SRC-src/ahra/evidence_gate.py"
+      },
+      {
+        "digest": "sha256:1171c693300134287d198178c91b5829a6738a27d87c2a2390a537f647b24f0a",
+        "ref": "SRC-src/ahra/evidence_v2.py"
+      },
+      {
+        "digest": "sha256:8b3b63bfe1090a9f702568b4e0391ee0a785b3c0ecc55af18bff0dad10c6af48",
+        "ref": "SRC-tests/test_evidence_gate.py"
+      },
+      {
+        "digest": "sha256:cca4d8f6b32148f587987073f30fcbe58e197809e5fa723e741e51fca8063888",
+        "ref": "SRC-scripts/lint_awkp.py"
+      },
+      {
+        "digest": "sha256:18b08ce33d6018c7fd0579e35d0c982f4be20b470741cfdb72d5b73b6fcf563d",
+        "ref": "TASK-work/tasks/TASK-0055/task.md"
+      }
+    ],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}
