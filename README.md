@@ -6,7 +6,7 @@
 
 ## Current Status
 
-当前默认本地路径是 **CLI + 动态内核 Skill + 架构文档 + EvidenceGate**。
+当前默认本地路径是 **Mode C real-Agent pilot runner + Goal CLI + 动态内核 Skill + 架构文档 + EvidenceGate**。
 
 已通过 `TASK-0023` 到 `TASK-0037` EvidenceGate 的可运行能力包括：
 
@@ -19,13 +19,14 @@
 - 确定性动态修复 fixture：从 Goal 输入开始，经过 Claim、PlanDraft、PlanIR、Scheduler、Capability、Artifact/Evidence、Defect 修复、选择性复验，最后由 Completion 判定。
 - SQLite control store、idempotency record、recovery reconciliation，以及真实进程退出后的恢复测试路径。
 
-当前实现还提供 `TASK-0038` 的通用 Goal operation CLI 候选路径：`GoalExecutionRequest` 经 profile/adapter/runtime/store 校验后，编译为 admitted PlanIR，并通过同一个 `PlanExecutionService`、SQLite store、StaticPlanScheduler、Capability Admission 和 deterministic GateRunner 执行。该路径是 M1 deterministic profile，不是生产级分布式编排器。
+当前实现还提供 `TASK-0038` 的通用 Goal operation CLI 路径：`GoalExecutionRequest` 经 profile/adapter/runtime/store 校验后，编译为 admitted PlanIR，并通过同一个 `PlanExecutionService`、SQLite store、StaticPlanScheduler、Capability Admission 和 deterministic GateRunner 执行。该路径是 M1 deterministic profile，不是生产级分布式编排器。
 
-`TASK-0051` 之后，显式 Mode C 试点路径已经通过 EvidenceGate：真实 Planner + 真实 bounded Executor 在本地 M1 有界场景中完成 3 次隔离重复运行，`success_count=3` 且 `failure_classes={}`。这只批准该受限试点路径，不把 Mode C 提升为默认入口，也不证明任意项目的生产级编排能力。
+`TASK-0051` 之后，Mode C 成为默认 real-Agent 本地路径：真实 Planner + 真实 bounded Executor 在本地 M1 有界场景中完成 3 次隔离重复运行，`success_count=3` 且 `failure_classes={}`。这只批准该受限本地 M1 路径，不证明任意项目的生产级编排能力。
 
 当前默认命令面：
 
 ```bash
+python -B scripts/run_real_agent_pilot.py --output-dir <out> --allow-model-cost
 python -m ahra.cli goal validate examples/m1/goal-run-request.yaml
 python -m ahra.cli goal plan examples/m1/goal-run-request.yaml
 python -m ahra.cli goal start examples/m1/goal-run-request.yaml
@@ -45,12 +46,11 @@ git diff --check
 
 ## Boundaries
 
-- 当前可执行动态路径是 deterministic M1 Goal operation profile 和 regression fixture，不宣称已经是任意项目的生产级通用编排器。
-- `ahra goal ...` 是当前默认通用入口；它只支持显式 immutable M1 deterministic profile、SQLite store 和已注册 adapter/runtime refs。
-- `scripts/run_real_agent_pilot.py --mode mode_c_combined` 是 TASK-0051 批准的显式非默认试点入口；它需要调用者显式传入 combined/model-cost 授权，并且只覆盖本地 M1 有界路径。
+- 当前默认 real-Agent 路径是 `scripts/run_real_agent_pilot.py`，其 `--mode` 默认值为 `mode_c_combined`；它只覆盖本地 M1 有界路径，真实模型成本仍需调用者显式传入 `--allow-model-cost`。
+- `ahra goal ...` 是底层通用 Goal CLI 入口；它支持显式 immutable M1 deterministic profile、SQLite store 和已注册 adapter/runtime refs。
 - `ahra fixture dynamic-repair` 是 regression-only fixture profile，用来保护旧闭环语义，不再是默认推荐入口。
-- `standard-harness`、`loop-engineering`、旧 `WorkflowRunRequest`、`fake-reference` driver 和 MCP server 已降级为 legacy compatibility path；只有用户明确要求旧 workflow 路线时才使用。
-- `src/ahra/demo.py` 是 experimental/example 代码，不在默认脚本、Makefile 或默认文档路径中。
+- `standard-harness`、`loop-engineering`、旧 `WorkflowRunRequest` 和 `fake-reference` driver 是已废弃但暂时保留的 legacy compatibility path；只有用户明确要求旧 workflow 路线时才使用。
+- 本地 MCP server 和 `src/ahra/demo.py` 已从当前实现中删除；历史 ADR 或任务证据中的引用仅作为审计 trace。
 - Agent 不能自行宣告 AWKP Task 完成；完成必须由 EvidenceGate 和独立 verifier 决定。
 - 新基础设施必须实现 `src/ahra/ports.py` 中的 Port，不得让领域层依赖厂商 SDK。
 - Tool、MCP、A2A、Memory 检索结果都是不可信输入，不得绕过 Claim/Gate/Evidence/Capability 边界。
@@ -66,7 +66,7 @@ git diff --check
 - PlanIR：[PlanDraft and PlanIR](docs/architecture/plan-ir.md)。
 - 组件生命周期：[Component lifecycle policy](docs/policies/component-lifecycle.md)。
 
-历史 ADR、旧 workflow 文档、MCP 文档和已完成任务目录保留为 trace，不在普通 Context Builder 读序中作为默认权威。
+历史 ADR、旧 workflow 文档、已删除 MCP 的历史记录和已完成任务目录保留为 trace，不在普通 Context Builder 读序中作为默认权威。
 
 ## Repository Map
 

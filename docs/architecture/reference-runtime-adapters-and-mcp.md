@@ -2,8 +2,8 @@
 type: Architecture
 id: ARCH-reference-runtime-adapters-mcp
 schema_version: awkp/0.1
-title: Reference runtime adapters and deprecated MCP entrypoint
-description: Defines the Codex Python SDK driver adapter, local runtime profile, workflow resume contract, and legacy MCP operation surface.
+title: Reference runtime adapters and removed MCP trace
+description: Defines the Codex Python SDK driver adapter, local runtime profile, workflow resume contract, and the historical MCP surface that has now been removed.
 status: active
 owner: team:platform
 source_refs:
@@ -31,7 +31,8 @@ It contains three replaceable pieces:
 Only the local profile is implemented in the starter. Cloud and sandbox
 profiles are contracts for later adapters.
 
-MCP is no longer a default starter route.
+The local AHRA MCP server has been removed. Historical MCP references are trace
+only and do not describe a live operation surface.
 
 # Codex SDK Driver
 
@@ -158,28 +159,13 @@ A resume request is required when `approvalMode: manual` pauses a
 The runner must verify the plan artifact digest before executing approved
 tasks. Rejection records an approval artifact and leaves the run blocked.
 
-# Deprecated MCP Entry Point
+# Removed MCP Entry Point
 
-The starter MCP server is a legacy optional adapter surface. It is not required
-to operate the framework and should not receive new default-route features.
+The starter MCP server implementation has been deleted. It is no longer a
+legacy optional adapter surface in this repository. Historical ADRs and task
+evidence may mention the old stdio wrapper, but those references are trace-only.
 
-If retained temporarily, it must stay a thin stdio JSON-RPC wrapper for:
-
-- Listing workflow modules.
-- Validating a `WorkflowRunRequest` document.
-- Starting a workflow through the same runner API as direct Python callers.
-- Inspecting a local run artifact directory.
-- Resuming an approved manual plan through `WorkflowResumeRequest`.
-- Inspecting AWKP task state, manifests, events, and acceptance criteria.
-- Evaluating AWKP task completion through EvidenceGate.
-
-MCP tools must validate inputs, resolve the workflow module registry first,
-resolve `driverRef` through `AgentDriverRegistry` for workflow runs, and then
-call the same underlying Python APIs as direct callers. MCP does not own
-workflow logic and must not bypass EvidenceGate expected-version or verifier
-separation checks.
-
-The preferred route is CLI plus Skill.
+The current operation route is Mode C plus Goal CLI plus Skill.
 
 # Legacy Agent Operation
 

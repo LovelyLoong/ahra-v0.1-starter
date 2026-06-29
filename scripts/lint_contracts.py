@@ -74,8 +74,8 @@ FORBIDDEN_DEFAULT_DOC_SNIPPETS = [
     "make demo",
 ]
 FORBIDDEN_DEFAULT_SCRIPTS = {
-    "ahra-mcp": "MCP is legacy and must not be installed as a default console script",
-    "ahra-demo": "demo.py is experimental and must not be installed as a default console script",
+    "ahra-mcp": "local MCP was removed and must not be installed as a default console script",
+    "ahra-demo": "demo.py was removed and must not be installed as a default console script",
 }
 VALID_COMPONENT_CLASSES = {"core", "adapter", "experimental", "legacy", "removal_candidate", "archived"}
 CORE_REQUIRED_FIELDS = {

@@ -13,41 +13,43 @@ source_refs:
   - component-inventory.json
 evidence_refs: [EVD-TASK-0051-0003]
 confidence: reviewed
-last_verified_at: 2026-06-28T15:31:16Z
+last_verified_at: 2026-06-29T07:25:35Z
 review_after: 2026-09-25T00:00:00Z
 tags: [architecture, entrypoint, cli, skill, dynamic-kernel]
 ---
 
 # Summary
 
-The default foundation entrypoint is **generic Goal CLI plus the dynamic-kernel
-Skill plus repository documentation**.
+The default foundation entrypoint is **Mode C real-Agent pilot runner plus the
+generic Goal CLI, the dynamic-kernel Skill, and repository documentation**.
 
-The current executable dynamic path is deterministic and local. It operates one
-generic `GoalExecutionRequest` through an explicit immutable M1 profile:
+The current default real-Agent path is local and bounded. It runs Mode C through
+one generic M1 `GoalExecutionRequest` with a real Planner and real bounded
+Executor:
 
 ```text
 GoalExecutionRequest
   -> profile, adapter, runtime and store admission
-  -> untrusted PlanDraft
+  -> real Planner returns untrusted PlanDraft
   -> admitted PlanIR
   -> durable GoalExecution in SQLite
   -> StaticPlanIRScheduler, PlanExecution and NodeRun leases
   -> CapabilityAdmission before executor side effects
-  -> Artifact and Evidence v2 records
+  -> real bounded Executor produces Artifact and Evidence v2 records
   -> deterministic GateRun-backed verification
   -> GoalExecution completion, resume or cancel
   -> AWKP EvidenceGate for task completion
 ```
 
-This is a generic local Goal operation path for small deterministic projects.
-It is not a claim that AHRA already provides a production-grade distributed
-orchestrator for arbitrary projects.
+This is the default local M1 bounded path after `TASK-0051`. It is not a claim
+that AHRA already provides a production-grade distributed orchestrator for
+arbitrary projects.
 
 # Current Operation Surface
 
 The default local operation surface is:
 
+- `python -B scripts/run_real_agent_pilot.py --output-dir <out> --allow-model-cost`
 - `python -m ahra.cli goal validate examples/m1/goal-run-request.yaml`
 - `python -m ahra.cli goal plan examples/m1/goal-run-request.yaml`
 - `python -m ahra.cli goal start examples/m1/goal-run-request.yaml`
@@ -67,18 +69,18 @@ On the maintainer workstation, `.venv\Scripts\python.exe` or `uv run python`
 may be used for the same commands when the bare Python launcher is affected by
 host encryption tooling.
 
-# Explicit Mode C Pilot Surface
+# Mode C Default Surface
 
-`TASK-0051` approved one non-default live Mode C pilot surface for the tested
-local M1 bounded path:
+`TASK-0051` promoted Mode C to the default live local path for the tested M1
+bounded profile. The command runs a real Planner plus real bounded Executor:
 
-- `python -B scripts/run_real_agent_pilot.py --mode mode_c_combined ... --allow-combined --allow-model-cost`
+- `python -B scripts/run_real_agent_pilot.py ... --allow-model-cost`
 
-That surface runs a real Planner plus real bounded Executor and must remain an
-explicit pilot command. The TASK-0051 approval covers the fresh three-repetition
-local M1 bounded evidence set only. It does not make Mode C the default
-entrypoint and does not prove production-grade orchestration for arbitrary
-projects.
+The legacy `--allow-combined` flag is accepted for compatibility but is no
+longer the gate that decides whether Mode C may run. Real model spending still
+requires explicit `--allow-model-cost`. The TASK-0051 approval covers the fresh
+three-repetition local M1 bounded evidence set only; it does not prove
+production-grade orchestration for arbitrary projects.
 
 # CLI Boundary
 
@@ -95,10 +97,10 @@ exposes existing Python services:
 - `evidence-gate evaluate`
 - `doctor`
 
-The default CLI help must not expose MCP, demo commands, `fake-reference`, or
-legacy workflow modules. Historical workflow compatibility remains reachable
+The default CLI help must not expose demo commands, `fake-reference`, or
+deprecated workflow modules. Historical workflow compatibility remains reachable
 only when explicitly requested by a caller that already knows that compatibility
-route.
+route. The local MCP server implementation has been removed.
 
 # Regression Dynamic Fixture
 
@@ -119,15 +121,13 @@ It is not the default operation entrypoint for new Goal runs.
 # Legacy Compatibility
 
 `standard-harness`, `loop-engineering`, old workflow request schemas, the
-reference runner compatibility path, and `fake-reference` are legacy assets.
-They are retained for regression tests and migration trace. They are frozen for
-default-route purposes and must not receive new default-path features.
+reference runner compatibility path, and `fake-reference` are deprecated legacy
+assets. They are retained for regression tests and migration trace. They are
+frozen for default-route purposes and must not receive new default-path
+features.
 
-The MCP server is also legacy. It has no default console script and is not part
-of the local operation route.
-
-`src/ahra/demo.py` is experimental/example code. It has no default console
-script or Makefile target.
+The local MCP server and `src/ahra/demo.py` have been deleted from the current
+implementation. Historical references remain trace-only.
 
 # Archive Boundary
 

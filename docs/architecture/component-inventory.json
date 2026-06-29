@@ -1,12 +1,13 @@
 {
   "schema_version": "ahra/component-inventory/0.1",
-  "generated_at": "2026-06-26T09:38:02Z",
+  "generated_at": "2026-06-29T07:25:35Z",
   "owner": "team:platform",
   "review_after": "2026-09-25T00:00:00Z",
-  "scope": "Default-visible components and quarantined legacy paths after TASK-0038.",
+  "scope": "Default-visible components after Mode C default promotion, deprecated retained workflow paths, and removed MCP/demo implementation after TASK-0051.",
   "default_route": {
-    "authoritative_runtime_path": "ahra goal ... calls src/ahra/goal_operations.py, which validates a GoalExecutionRequest, admits immutable profile/adapter/runtime/store refs, compiles PlanDraft to PlanIR, creates durable SQLite GoalExecution state, executes through PlanExecutionService and StaticPlanScheduler, enforces Capability Admission, records Artifact/Evidence, and supports inspect/resume/cancel.",
+    "authoritative_runtime_path": "scripts/run_real_agent_pilot.py defaults to mode_c_combined and is the default local real-Agent path after TASK-0051. It uses a real Planner and real bounded Executor on the tested local M1 bounded profile, while GoalOperationService still validates GoalExecutionRequest, admits immutable profile/adapter/runtime/store refs, compiles PlanDraft to PlanIR, creates durable SQLite GoalExecution state, executes through PlanExecutionService and StaticPlanScheduler, enforces Capability Admission, records Artifact/Evidence, and supports inspect/resume/cancel.",
     "commands": [
+      "python -B scripts/run_real_agent_pilot.py --output-dir <out> --allow-model-cost",
       "ahra goal validate",
       "ahra goal plan",
       "ahra goal start",
@@ -24,15 +25,14 @@
     "regression_only": [
       "ahra fixture dynamic-repair"
     ],
-    "explicit_non_default_pilots": [
-      "python -B scripts/run_real_agent_pilot.py --mode mode_c_combined --allow-combined --allow-model-cost (TASK-0051 approved for the tested local M1 bounded path only)"
-    ],
-    "legacy_not_default": [
+    "deprecated_not_default": [
       "ahra workflow ...",
-      "src/ahra/mcp_server.py",
-      "src/ahra/demo.py",
       "standard-harness",
       "loop-engineering"
+    ],
+    "removed": [
+      "src/ahra/mcp_server.py",
+      "src/ahra/demo.py"
     ]
   },
   "components": [
@@ -78,7 +78,7 @@
       "paths": ["src/ahra/goal_operations.py", "src/ahra/ports.py", "contracts/schemas/goal-execution-request.schema.json", "examples/m1/goal-run-request.yaml"],
       "serves": ["GoalExecutionRequest", "GoalExecution", "PlanDraft", "PlanIR", "ProfileAdmission", "Scheduler", "Resume", "Cancel"],
       "entrypoints": ["GoalOperationService", "ahra goal validate", "ahra goal plan", "ahra goal start", "ahra goal inspect", "ahra goal resume", "ahra goal cancel"],
-      "consumers": ["ahra CLI", "local operators", "M1 deterministic smoke tests"],
+      "consumers": ["ahra CLI", "real-Agent Mode C pilot runner", "local operators", "M1 deterministic smoke tests"],
       "tests": ["tests/test_goal_operations.py", "tests/test_cli.py"],
       "security_class": "fail-closed local service requiring immutable profile, adapter, runtime, store, and digest refs before side effects",
       "side_effects": "writes SQLite control state, goal artifacts, and capability-admitted workspace files only after request validation and PlanIR admission",
@@ -365,73 +365,39 @@
       "id": "component:standard-harness",
       "kind": "component",
       "lifecycle_class": "legacy",
+      "disposition": "deprecated_retained",
       "default_visible": false,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
       "paths": ["src/ahra/reference_runner/standard_harness.py", "examples/workflow_modules/standard-harness.yaml"],
       "serves": ["Run", "Artifact", "Evidence"],
-      "entrypoints": ["legacy workflow compatibility path"],
+      "entrypoints": ["deprecated legacy workflow compatibility path"],
       "consumers": ["tests/test_reference_runner.py", "legacy workflow CLI"],
       "tests": ["tests/test_reference_runner.py", "tests/test_workflow_modules.py"],
       "security_class": "legacy bounded task workflow",
       "side_effects": "mutates run-owned worktree only when legacy workflow is explicitly invoked",
       "artifact_evidence": "workflow run artifacts",
-      "compatibility_scope": "Historical standard task workflow module and YAML contract; frozen, no default-route features. Shared TaskHarness Agent phase support is tracked separately as adapter:task-harness-agent-phase, and default-visible code imports that adapter entrypoint instead of this legacy workflow boundary.",
-      "removal_trigger": "Remove or move to an optional package after dynamic Goal CLI covers formal task execution and migration tests no longer require it."
+      "compatibility_scope": "Historical standard task workflow module and YAML contract; deprecated and frozen. Shared TaskHarness Agent phase support is tracked separately as adapter:task-harness-agent-phase, and default-visible code imports that adapter entrypoint instead of this legacy workflow boundary.",
+      "removal_trigger": "Retain for regression trace until the maintainer explicitly authorizes deletion in a separate task."
     },
     {
       "id": "component:loop-engineering",
       "kind": "component",
       "lifecycle_class": "legacy",
+      "disposition": "deprecated_retained",
       "default_visible": false,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
       "paths": ["src/ahra/reference_runner/loop_engineering.py", "examples/workflow_modules/loop-engineering.yaml"],
       "serves": ["Run", "Task", "Artifact", "Evidence"],
-      "entrypoints": ["legacy workflow compatibility path"],
+      "entrypoints": ["deprecated legacy workflow compatibility path"],
       "consumers": ["tests/test_reference_runner.py", "legacy workflow CLI"],
       "tests": ["tests/test_reference_runner.py", "tests/test_workflow_modules.py"],
       "security_class": "legacy goal workflow",
       "side_effects": "creates proposed tasks only when legacy workflow is explicitly invoked and approved",
       "artifact_evidence": "workflow run and resume artifacts",
-      "compatibility_scope": "Historical goal-level workflow contract; frozen, no default-route features.",
-      "removal_trigger": "Remove or move to an optional package after dynamic repair/replan service becomes the non-fixture Goal operation path."
-    },
-    {
-      "id": "adapter:mcp-server",
-      "kind": "adapter",
-      "lifecycle_class": "legacy",
-      "default_visible": false,
-      "owner": "team:platform",
-      "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/mcp_server.py"],
-      "serves": ["Tool", "Run", "Evidence"],
-      "entrypoints": ["direct Python import only"],
-      "consumers": ["tests/test_mcp_server.py"],
-      "tests": ["tests/test_mcp_server.py"],
-      "security_class": "legacy optional stdio adapter",
-      "side_effects": "wraps the same Python services as legacy workflow and EvidenceGate when explicitly imported",
-      "artifact_evidence": "same artifacts as wrapped services",
-      "compatibility_scope": "Retained for trace and regression tests; no pyproject console script and no default operation path.",
-      "removal_trigger": "Delete or package separately if no external MCP consumer is declared before the next release boundary."
-    },
-    {
-      "id": "component:demo-py",
-      "kind": "example",
-      "lifecycle_class": "experimental",
-      "default_visible": false,
-      "owner": "team:platform",
-      "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/demo.py"],
-      "serves": ["Run", "Memory", "Policy"],
-      "entrypoints": ["python -m ahra.demo"],
-      "consumers": ["manual examples only"],
-      "tests": ["scripts/check.py"],
-      "security_class": "example-only local process",
-      "side_effects": "prints demo output only when manually invoked",
-      "artifact_evidence": "none required for default path",
-      "compatibility_scope": "Example only; no pyproject console script, no Makefile target, and no default docs dependency.",
-      "removal_trigger": "Move under examples/ or delete when dynamic-kernel examples replace it."
+      "compatibility_scope": "Historical goal-level workflow contract; deprecated and frozen with no default-route features.",
+      "removal_trigger": "Retain for regression trace until the maintainer explicitly authorizes deletion in a separate task."
     },
     {
       "id": "component:memory-service",

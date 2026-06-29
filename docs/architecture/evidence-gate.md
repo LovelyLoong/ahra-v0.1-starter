@@ -78,8 +78,7 @@ checked boxes alone are never sufficient evidence.
 
 # Minimal Local Implementation
 
-The first implementation should be a local stdlib-only verifier command that can
-also be called by MCP:
+The first implementation should be a local stdlib-only verifier command:
 
 ```text
 python -m ahra.evidence_gate evaluate TASK-0007 \
@@ -99,8 +98,7 @@ The command should:
 7. CAS-update state to `completed` or `changes_requested`.
 
 The local command can remain file-backed. A later durable control plane can move
-the same semantics behind SQLite/Postgres and MCP without changing the task
-contract.
+the same semantics behind SQLite/Postgres without changing the task contract.
 
 The verifier report is a JSON object with this minimum shape:
 
@@ -133,18 +131,9 @@ The local implementation accepts `criterion_index` or an exact normalized
 at least one known Evidence ID. For `request_changes`, at least one criterion
 must be failed or missing.
 
-# MCP Operation
+# Operation Surface
 
-MCP may expose EvidenceGate as an AI-facing operation surface:
-
-- `ahra_evidence_gate_evaluate`;
-- `ahra_evidence_gate_apply`;
-- `ahra_task_inspect`.
-
-MCP must not bypass schema validation, expected-version checks, event append, or
-producer/verifier separation.
-
-The current starter exposes `ahra.task_inspect` and
-`ahra.evidence_gate_evaluate`. A separate apply tool is unnecessary in the
-local profile because evaluate validates and applies the state transition in one
-CAS-style operation.
+EvidenceGate is exposed through the local CLI and Python service. The removed
+local MCP server must not be treated as a current operation surface. Any future
+adapter must preserve schema validation, expected-version checks, event append,
+and producer/verifier separation.

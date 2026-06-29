@@ -3,7 +3,7 @@ type: Architecture
 id: ARCH-workflow-modules
 schema_version: awkp/0.1
 title: Workflow modules
-description: Records the legacy workflow module contract retained for compatibility trace.
+description: Records the deprecated workflow module contract retained for compatibility trace.
 status: active
 owner: team:platform
 source_refs:
@@ -27,9 +27,10 @@ execute tasks, compose goals, propose follow-up work, or delegate to an external
 durable engine, but it must preserve AHRA's object boundaries and evidence
 gates.
 
-After `TASK-0032`, built-in workflow modules are legacy compatibility assets.
-The current default path is the dynamic-kernel operation surface described in
-`framework-entrypoints.md` and `component-inventory.json`.
+After the Mode C default promotion, built-in workflow modules are deprecated
+legacy compatibility assets. The current default path is the dynamic-kernel
+operation surface described in `framework-entrypoints.md` and
+`component-inventory.json`.
 
 # Module Contract
 
@@ -45,15 +46,15 @@ Every workflow module must declare:
 - Artifact and Evidence records produced by each accepted or rejected run.
 - Contract, recovery, and security tests.
 
-# Legacy Modules
+# Deprecated Legacy Modules
 
-`standard-harness` is the historical bounded task workflow. It uses an isolated
+`standard-harness` is the deprecated historical bounded task workflow. It uses an isolated
 workspace, path and change-size policy, deterministic checks, independent
 read-only review, limited correction attempts, artifact/evidence capture, and
 rollback. Its implementation source is `E:\harness-first-starter`'s
 `TaskHarness`, migrated only behind AHRA contracts and ports.
 
-`loop-engineering` is the historical goal-level workflow. It composes
+`loop-engineering` is the deprecated historical goal-level workflow. It composes
 `standard-harness` tasks, runs cumulative global checks, performs independent
 goal review, supports bounded dynamic planning, and requires human plan
 approval before executing proposed tasks by legacy policy. Its implementation source

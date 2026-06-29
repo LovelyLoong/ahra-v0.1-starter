@@ -69,7 +69,7 @@ class RealAgentPilotConfig:
     planner_driver_ref: str = "codex-python-sdk"
     model_provider: str = "codex-sdk"
     model_revision: str = "unspecified"
-    allow_combined: bool = False
+    allow_combined: bool = True
     risk_level: str = "R1"
     token_budget: int = 4096
     executor_policy: ExecutionPolicy = field(default_factory=lambda: ExecutionPolicy(
@@ -299,16 +299,6 @@ class RealAgentPilotRunner:
             shutil.rmtree(run_dir)
         run_dir.mkdir(parents=True)
         started = time.perf_counter()
-
-        if config.mode == PilotMode.COMBINED and not config.allow_combined:
-            return _blocked_run(
-                config=config,
-                run_id=run_id,
-                run_dir=run_dir,
-                failure_class="mode_c_requires_mode_a_b_clearance",
-                message="Mode C is disabled until Mode A and Mode B have zero hard-metric violations.",
-                elapsed_seconds=_elapsed(started),
-            )
 
         request_path = run_dir / "goal-run-request.yaml"
         request_data = _request_document(config, run_id)
@@ -547,7 +537,7 @@ class RealAgentPilotRunner:
             "workflow_failure_dimensions": _failure_dimensions(annotated_runs),
             "known_limitations": [
                 "This pilot runner records local GoalOperation inspect metrics; independent AWKP EvidenceGate remains a separate verifier step.",
-                "Mode C is intentionally disabled unless explicitly allowed by the operator after Mode A and Mode B review.",
+                "Mode C is the default local real-Agent path after TASK-0051, but it remains bounded to the tested local M1 profile and is not production-grade arbitrary-project orchestration.",
             ],
             "evidence_refs": _evidence_refs(annotated_runs),
             "runs": annotated_runs,
@@ -677,7 +667,7 @@ def _failure_dimension(run: Mapping[str, Any]) -> str:
             return "provider_runtime"
         if failure in {"planner_output_rejected", "planner_output_invalid"} or "invalid_output" in failure:
             return "model_behavior"
-        if "capability" in failure or "gate" in failure or failure == "mode_c_requires_mode_a_b_clearance":
+        if "capability" in failure or "gate" in failure:
             return "gate"
         if "validation" in failure or "contract" in failure or failure.startswith("goal_request"):
             return "contract"

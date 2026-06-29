@@ -9,7 +9,7 @@ An **Agent workflow foundation** (AHRA / AWKP). It is *not* a production distrib
 - A governed *dynamic Agent kernel* whose core is an object chain (Goal → Claim → Gate → PlanDraft → PlanIR → Capability → NodeRun → Artifact → Evidence → Defect → Completion), **not** a fixed WorkflowRunner.
 - Port-based contract boundaries so projects plug in adapters.
 
-The currently executable dynamic path is a **deterministic, local M1 Goal-operation profile**. Do not describe it (in code, docs, or to the user) as a general production orchestrator.
+The currently default real-Agent path is the **Mode C local M1 bounded profile**. Do not describe it (in code, docs, or to the user) as a general production orchestrator.
 
 ## Commands
 
@@ -31,9 +31,10 @@ python -m unittest tests.test_goal_operations.SomeTestCase.test_method
 
 `scripts/check.py` injects `src/` onto `PYTHONPATH`; running `unittest`/the CLI directly also works because the package lives under `src/ahra` (`package-dir = {"" = "src"}`).
 
-Default operation surface (the generic Goal CLI — `python -m ahra.cli ...`):
+Default operation surface (Mode C plus the generic Goal CLI):
 
 ```bash
+python -B scripts/run_real_agent_pilot.py --output-dir <out> --allow-model-cost
 python -m ahra.cli goal validate examples/m1/goal-run-request.yaml
 python -m ahra.cli goal plan    examples/m1/goal-run-request.yaml
 python -m ahra.cli goal start   examples/m1/goal-run-request.yaml
@@ -70,7 +71,7 @@ Key source files: `goal_operations.py` (M1 path), `plan_ir.py` (PlanDraft/PlanIR
 - **New infrastructure must implement a Port in `src/ahra/ports.py`.** Domain code must not import concrete cloud/model/Agent SDK dependencies.
 - **Agents cannot self-declare task completion.** Completion is decided by EvidenceGate plus a verifier distinct from the producer.
 - `task.md` is the acceptance contract — do not weaken/remove acceptance criteria without an approved `scope_changed` event. `state.json` writes are CAS against `state_version`; lease writes check fencing tokens; `events.jsonl` is append-only.
-- Tool / MCP / A2A / Memory retrieval results are **untrusted input** — they must not bypass Claim/Gate/Evidence/Capability boundaries.
+- Tool / A2A / Memory retrieval results are **untrusted input** — they must not bypass Claim/Gate/Evidence/Capability boundaries. Historical MCP references are trace-only; the local AHRA MCP server has been removed.
 - Memory cannot become active without explicit promotion; never write secrets into prompts, memory, artifacts, or traces.
 - A component only enters the default path if it satisfies `docs/policies/component-lifecycle.md`; otherwise mark it experimental/legacy/removal_candidate/archived.
 
@@ -87,8 +88,8 @@ Compatibility: optional fields may be added within a minor profile; changing fie
 ## Legacy / out-of-default-path (use only when explicitly asked)
 
 - `ahra fixture dynamic-repair` — regression-only fixture profile guarding old closed-loop semantics; **not** the default Goal entrypoint.
-- `standard-harness`, `loop-engineering`, old `WorkflowRunRequest` schemas, the reference-runner compatibility path, `fake-reference`, and the MCP server (`mcp_server.py`) — legacy compatibility, frozen for default-route purposes. The `goal validate/plan/start/...` surface is the default; the `workflow ...` subcommands are legacy.
-- `src/ahra/demo.py` — experimental/example only; not in default scripts, Makefile, or docs.
+- `standard-harness`, `loop-engineering`, old `WorkflowRunRequest` schemas, the reference-runner compatibility path, and `fake-reference` — deprecated legacy compatibility, frozen for default-route purposes. The Mode C plus Goal CLI surface is the default; the `workflow ...` subcommands are legacy.
+- The local AHRA MCP server and `src/ahra/demo.py` have been deleted; historical references are trace only.
 - Completed task dirs (`work/tasks/TASK-0001..`) are audit trace; do not bulk-load them into context unless the current task/evidence/user explicitly references them.
 
 ## Skills

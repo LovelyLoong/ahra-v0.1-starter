@@ -92,7 +92,8 @@ spec:
 The request is intentionally independent from any one caller. In the current
 repository it is used only by explicit legacy workflow compatibility calls.
 
-MCP is not part of the current default starter route.
+The former local MCP server is not part of the current starter route and has
+been removed from the implementation.
 
 # Approval Modes
 
@@ -183,23 +184,10 @@ This keeps approval scoped to the plan that was actually reviewed. It also
 lets an agent say "approve this plan" through a file, direct Python API, or
 CLI command without guessing workflow internals.
 
-# Deprecated MCP Operation Surface
+# Removed MCP Operation Surface
 
-The local MCP server is no longer the default starter entrypoint. It may remain
-temporarily as a legacy adapter surface, but new work should not add MCP-only
-operations.
-
-If kept, MCP must only wrap the same operations as the Python API:
-
-- list workflow modules
-- validate request documents
-- start workflow runs
-- inspect local run artifacts
-- resume approved manual plans
-
-MCP tools must not bypass schema validation, module registry resolution,
-driver registry resolution, or artifact/evidence writing. The preferred future
-operation surface is CLI plus Skill.
+The local MCP server has been deleted. Historical ADRs and task evidence remain
+trace-only, but this repository no longer provides an MCP operation surface.
 
 # Legacy Starter Scope
 
@@ -220,5 +208,5 @@ This compatibility surface should not provide:
 - A mandatory `ProjectAdapter`.
 - A mandatory model provider integration.
 - A required CLI.
-- A required MCP server.
+- An MCP server.
 - A special Codex-only path.

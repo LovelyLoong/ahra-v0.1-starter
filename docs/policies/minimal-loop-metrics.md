@@ -134,10 +134,10 @@ Real Planner + real Executor only after Modes A and B have:
 - at least one successful completion;
 - no unexplained state divergence.
 
-Current approved scope: `TASK-0051` satisfies this policy only for the tested
-local M1 bounded Mode C pilot, with three isolated live repetitions and no hard
-metric violations. It remains an explicit non-default pilot path; default-route
-promotion and arbitrary-project production orchestration require separate
+Current approved scope: `TASK-0051` satisfies this policy for the tested local
+M1 bounded Mode C path, with three isolated live repetitions and no hard metric
+violations. Mode C is now the default local real-Agent path for this bounded M1
+profile. Arbitrary-project production orchestration still requires separate
 authorization and EvidenceGate approval.
 
 Quality thresholds are experimental; safety thresholds are absolute.

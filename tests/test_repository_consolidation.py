@@ -41,6 +41,11 @@ class RepositoryConsolidationTests(unittest.TestCase):
         self.assertNotIn("ahra-demo", scripts)
         self.assertEqual(scripts["ahra"], "ahra.cli:main")
 
+    def test_removed_mcp_and_demo_implementations_are_absent(self) -> None:
+        self.assertFalse((ROOT / "src/ahra/mcp_server.py").exists())
+        self.assertFalse((ROOT / "src/ahra/demo.py").exists())
+        self.assertFalse((ROOT / "tests/test_mcp_server.py").exists())
+
     def test_default_cli_help_excludes_legacy_workflow_surface(self) -> None:
         help_text = cli._build_parser().format_help()
 

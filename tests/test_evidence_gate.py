@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import tempfile
@@ -8,7 +7,6 @@ import unittest
 from pathlib import Path
 
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
-from ahra.mcp_server import AhraMCPServer
 
 
 def _write_json(path: Path, data: dict) -> None:
@@ -304,36 +302,6 @@ class EvidenceGateTests(unittest.TestCase):
 
             self.assertEqual(result["state.json"]["state"], "review")
             self.assertEqual(len(result["acceptance_criteria"]), 2)
-
-    def test_mcp_evidence_gate_tool_uses_same_service(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            _make_task(root)
-            report = _write_gate_input(root)
-            server = AhraMCPServer()
-
-            inspected = asyncio.run(
-                server.call_tool(
-                    "ahra.task_inspect",
-                    {"taskId": "TASK-9001", "workRoot": str(root / "work")},
-                )
-            )
-            self.assertEqual(len(inspected["acceptance_criteria"]), 2)
-
-            result = asyncio.run(
-                server.call_tool(
-                    "ahra.evidence_gate_evaluate",
-                    {
-                        "taskId": "TASK-9001",
-                        "workRoot": str(root / "work"),
-                        "expectedVersion": 4,
-                        "reportPath": str(report),
-                        "actor": "agent:verifier",
-                    },
-                )
-            )
-            self.assertEqual(result["state"], "completed")
-
 
 if __name__ == "__main__":
     unittest.main()

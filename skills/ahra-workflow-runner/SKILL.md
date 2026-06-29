@@ -115,9 +115,8 @@ rerunning the workflow.
 Do not use a separate command-line fallback driver. The starter does not
 provide one.
 
-Do not use the local AHRA MCP server for new workflow operation. MCP is a
-legacy optional adapter surface and is not part of the current default starter
-route.
+Do not use the local AHRA MCP server for workflow operation. It has been
+removed from the current implementation; historical MCP docs are trace-only.
 
 ## Approval Modes
 

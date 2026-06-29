@@ -27,8 +27,8 @@ The target product shape is an Agent project foundation: a work-governance
 framework, executable standard workflows, project adaptation rules, and custom
 workflow extension contracts. Humans may operate it through conversation with
 an AI, but the default operation surface is CLI plus local Skill plus
-repository documentation. The CLI wraps existing Python APIs. MCP is not part
-of the current default starter route. A
+repository documentation. The CLI wraps existing Python APIs. The former local
+MCP server has been removed from the starter route. A
 human-facing dashboard is optional and is not part of the default starter
 scope.
 
@@ -38,7 +38,7 @@ scope.
 |---|---|---|---|
 | 1 | Product position | Agent workflow foundation | The project is a complete Agent work system, not merely an outer harness template. |
 | 2 | EvidenceGate / verifier completion | Implemented local path; keep as the completion gate | Task completion is derived from acceptance criteria and evidence, not producer self-claim. |
-| 3 | Operation entrypoint | Default to CLI plus Skill plus docs; keep MCP as a legacy optional route | The foundation should be operable from local instructions and commands before depending on an agent-client integration protocol. |
+| 3 | Operation entrypoint | Default to Mode C plus Goal CLI plus Skill plus docs; local MCP removed | The foundation should be operable from local instructions and commands before depending on an agent-client integration protocol. |
 | 4 | Runtime sandbox provider | Default local boundary is run-owned Git worktree isolation; defer stronger sandbox providers | Worktree isolation is enough for the starter. It does not claim process, network, or secret isolation. |
 | 5 | Custom workflows | Allow extension through workflow module contracts before building higher-level composition tools | Users may build project-specific workflows, but stable contracts must come before a broad builder. |
 | 6 | Durable control plane | Defer implementation; keep as architecture requirement | This is not a visual panel. It means durable stores, CAS, events, leases, and reconciliation behind local command/API operation. It matters when runs must survive crashes or concurrency. |
@@ -80,14 +80,11 @@ A dashboard would only be one optional client. If the product is AI-only, the
 same control plane can be operated through local Skills, repository
 documentation, CLI commands, and project files.
 
-## MCP Is Not the Default Entry Point
+## MCP Is Removed
 
-MCP is deprecated as a default starter route.
-
-Existing MCP code can remain temporarily as a legacy adapter surface, but new
-framework work should not add MCP-only features. The stable operation surface
-is CLI plus Skill, where the CLI calls the same Python APIs that tests already
-exercise.
+The former local MCP server is no longer part of this starter. The stable
+operation surface is Mode C plus Goal CLI plus Skill, where local commands call
+the same Python APIs that tests already exercise.
 
 ## Worktree Isolation Is the Local Default
 

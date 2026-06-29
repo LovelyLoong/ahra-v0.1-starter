@@ -219,6 +219,28 @@ class RealAgentPilotTests(unittest.TestCase):
             ["request_template_expansion", "real_planner_admission_writeback"],
         )
 
+    def test_mode_c_runs_without_legacy_combined_opt_in(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            planner_registry = AgentDriverRegistry()
+            planner_registry.register("pilot-planner", PilotPlannerDriver(_template_draft()))
+            scorecard = RealAgentPilotRunner(
+                planner_registry=planner_registry,
+                executor_driver=PilotExecutorDriver(),
+            ).run(
+                RealAgentPilotConfig(
+                    experiment_id="PILOT-C-DEFAULT",
+                    mode=PilotMode.COMBINED,
+                    request_template=EXAMPLE,
+                    output_dir=Path(temp),
+                    repetitions=1,
+                    planner_driver_ref="pilot-planner",
+                    allow_combined=False,
+                )
+            )
+
+            self.assertEqual(scorecard["success_count"], 1)
+            self.assertEqual(scorecard["runs"][0]["workflow_failure_dimension"], "none")
+
     def test_pilot_runner_records_unexpected_service_exception_as_blocker(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             scorecard = RealAgentPilotRunner(
@@ -305,6 +327,13 @@ class RealAgentPilotTests(unittest.TestCase):
 
 
 class RealAgentPilotScriptTests(unittest.TestCase):
+    def test_script_mode_defaults_to_mode_c(self) -> None:
+        script = _load_pilot_script()
+
+        args = script._build_parser().parse_args(["--output-dir", "out"])
+
+        self.assertEqual(args.mode, PilotMode.COMBINED.value)
+
     def test_isolated_watchdog_does_not_preempt_real_executor_deadline(self) -> None:
         script = _load_pilot_script()
         args = SimpleNamespace(repetition_timeout_seconds=120, executor_run_deadline_seconds=240)

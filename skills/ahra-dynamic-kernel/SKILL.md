@@ -13,36 +13,27 @@ AHRA dynamic-kernel path.
 
 ## Current Runtime Boundary
 
-The current executable dynamic-kernel path is the deterministic M1 Goal
-operation profile:
+The current default executable dynamic-kernel path is the Mode C local M1
+bounded path with a real Planner and real bounded Executor:
 
 ```bash
+python -B scripts/run_real_agent_pilot.py --output-dir <out> --allow-model-cost
 python -m ahra.cli goal validate examples/m1/goal-run-request.yaml
 python -m ahra.cli goal plan examples/m1/goal-run-request.yaml
 python -m ahra.cli goal start examples/m1/goal-run-request.yaml
 ```
 
-That path is intentionally local and deterministic. It validates one
-`GoalExecutionRequest`, compiles its PlanDraft, starts durable SQLite-backed
-GoalExecution state, executes through the shared Scheduler and Capability
-Admission path, and supports inspect, resume, and cancel. It does not claim to
-be a production orchestrator for arbitrary projects.
-
-`TASK-0051` also approves an explicit non-default live Mode C pilot for the
-tested local M1 bounded path only:
-
-```bash
-python -B scripts/run_real_agent_pilot.py --mode mode_c_combined --allow-combined --allow-model-cost
-```
-
-Use that command only when the user explicitly asks for the Mode C pilot path or
-an active task authorizes it. Do not treat it as the default Goal operation path
-or as production-grade arbitrary-project orchestration.
+That path is intentionally local and bounded. It validates one
+`GoalExecutionRequest`, admits a real Planner's PlanDraft, starts durable
+SQLite-backed GoalExecution state, executes through the shared Scheduler and
+Capability Admission path, and supports inspect, resume, and cancel. It does
+not claim to be a production orchestrator for arbitrary projects.
 
 ## Default Commands
 
 Use these commands for current local operation and verification:
 
+- `python -B scripts/run_real_agent_pilot.py --output-dir <out> --allow-model-cost`
 - `python -m ahra.cli goal validate examples/m1/goal-run-request.yaml`
 - `python -m ahra.cli goal plan examples/m1/goal-run-request.yaml`
 - `python -m ahra.cli goal start examples/m1/goal-run-request.yaml`
@@ -69,7 +60,7 @@ Use this only when checking the historical fixture loop:
 ## Rules
 
 - Do not declare an AWKP Task completed. Completion is decided by EvidenceGate.
-- Do not run or document MCP as a default operation path.
+- Do not run or document local MCP as an operation path; the implementation was removed.
 - Do not use `standard-harness`, `loop-engineering`, or `fake-reference` unless
   the user explicitly asks for the legacy compatibility workflow route.
 - Treat `fixture dynamic-repair` as regression-only, not the default Goal path.

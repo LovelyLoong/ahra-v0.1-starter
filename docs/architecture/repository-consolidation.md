@@ -78,16 +78,16 @@ A linter should reject an unclassified default entrypoint or a `core` component 
 | PlanExecution/NodeRun/Scheduler | Core | Current PlanIR execution path with lease, budget, deadline and checkpoint semantics |
 | bounded_task executor | Selected adapter | Implements NodeExecutor behind the dynamic scheduler |
 | fixture planner | Selected fixture adapter | Fixture-only planner adapter; still compiled and admitted before execution |
-| standard-harness | Legacy | Frozen compatibility module; not default-visible |
-| loop-engineering | Legacy | Frozen compatibility module; not default-visible |
+| standard-harness | Deprecated legacy | Frozen compatibility module retained for regression only; not default-visible |
+| loop-engineering | Deprecated legacy | Frozen compatibility module retained for regression only; not default-visible |
 | WorkflowModuleRegistry | Legacy | Retained for explicit compatibility requests only |
 | reference_runner invocation | Legacy | Hidden compatibility CLI path only |
 | RunService/CAS/Lease | Core support | Retained for Run and lease semantics; PlanExecutionService owns PlanIR execution state |
 | ContextBuilder | Core | Used by planner request construction and fixture runtime |
 | MemoryService | Experimental | Not default until a concrete Goal use is admitted |
 | ReferencePolicyEngine | Core | Supplies policy decisions used by capability admission |
-| MCP server | Legacy | Default console script removed; direct import retained for regression trace |
-| demo.py | Experimental/example | Default console script and Makefile target removed |
+| MCP server | Removed | Implementation and regression tests deleted; historical references remain trace-only |
+| demo.py | Removed | Demo implementation deleted; historical references remain trace-only |
 | duplicate architecture docs | Archived/superseded | One active authority per concept through authority map |
 | completed work tasks | Archived | Excluded from normal Agent context, preserved for trace |
 

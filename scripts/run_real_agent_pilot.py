@@ -22,26 +22,7 @@ ISOLATED_TIMEOUT_GRACE_SECONDS = 15
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run a bounded real-Agent M1 pilot.")
-    parser.add_argument("--mode", required=True, choices=[mode.value for mode in PilotMode])
-    parser.add_argument("--request", default=str(ROOT / "examples" / "m1" / "goal-run-request.yaml"))
-    parser.add_argument("--output-dir", required=True)
-    parser.add_argument("--experiment-id", default="M1-REAL-AGENT-PILOT")
-    parser.add_argument("--repetitions", type=int, default=5)
-    parser.add_argument("--driver-ref", default="codex-python-sdk")
-    parser.add_argument("--model-provider", default="codex-sdk")
-    parser.add_argument("--model")
-    parser.add_argument("--allow-model-cost", action="store_true")
-    parser.add_argument("--allow-combined", action="store_true")
-    parser.add_argument("--isolated-repetitions", action="store_true")
-    parser.add_argument("--repetition-timeout-seconds", type=int, default=300)
-    parser.add_argument("--executor-max-attempts", type=int, default=1)
-    parser.add_argument("--executor-startup-timeout-seconds", type=int, default=60)
-    parser.add_argument("--executor-idle-timeout-seconds", type=int, default=120)
-    parser.add_argument("--executor-heartbeat-interval-seconds", type=int, default=15)
-    parser.add_argument("--executor-attempt-wall-timeout-seconds", type=int, default=180)
-    parser.add_argument("--executor-run-deadline-seconds", type=int, default=240)
-    parser.add_argument("--single-repetition-index", type=int, help=argparse.SUPPRESS)
+    parser = _build_parser()
     args = parser.parse_args()
 
     config = RealAgentPilotConfig(
@@ -76,6 +57,40 @@ def main() -> int:
         scorecard = _runner(args).run(config)
     print(json.dumps({"ok": True, "scorecard": str(config.output_dir / "scorecard.json"), "result": scorecard}, ensure_ascii=False, indent=2))
     return 0
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Run a bounded real-Agent M1 pilot.")
+    parser.add_argument(
+        "--mode",
+        default=PilotMode.COMBINED.value,
+        choices=[mode.value for mode in PilotMode],
+        help="Pilot mode to run. Defaults to mode_c_combined.",
+    )
+    parser.add_argument("--request", default=str(ROOT / "examples" / "m1" / "goal-run-request.yaml"))
+    parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--experiment-id", default="M1-REAL-AGENT-PILOT")
+    parser.add_argument("--repetitions", type=int, default=5)
+    parser.add_argument("--driver-ref", default="codex-python-sdk")
+    parser.add_argument("--model-provider", default="codex-sdk")
+    parser.add_argument("--model")
+    parser.add_argument("--allow-model-cost", action="store_true")
+    parser.add_argument(
+        "--allow-combined",
+        action="store_true",
+        default=True,
+        help="Accepted for compatibility; Mode C is now the default bounded real-Agent path.",
+    )
+    parser.add_argument("--isolated-repetitions", action="store_true")
+    parser.add_argument("--repetition-timeout-seconds", type=int, default=300)
+    parser.add_argument("--executor-max-attempts", type=int, default=1)
+    parser.add_argument("--executor-startup-timeout-seconds", type=int, default=60)
+    parser.add_argument("--executor-idle-timeout-seconds", type=int, default=120)
+    parser.add_argument("--executor-heartbeat-interval-seconds", type=int, default=15)
+    parser.add_argument("--executor-attempt-wall-timeout-seconds", type=int, default=180)
+    parser.add_argument("--executor-run-deadline-seconds", type=int, default=240)
+    parser.add_argument("--single-repetition-index", type=int, help=argparse.SUPPRESS)
+    return parser
 
 
 def _runner(args: argparse.Namespace) -> RealAgentPilotRunner:

@@ -23,8 +23,8 @@ different question from EvidenceGate:
 - ApprovalService: "May this specific action happen now?"
 
 ApprovalService does not require a visual panel. In an AI-operated framework,
-the AI can ask a human through conversation, then call an MCP tool that records
-the human's decision as a structured approval object.
+the AI can ask a human through conversation, then call a local approval command
+or adapter that records the human's decision as a structured approval object.
 
 # Current Starter Status
 
@@ -91,7 +91,7 @@ For this project shape, the default operation path can be:
 2. framework emits an approval request artifact;
 3. AI presents the request to the human in conversation;
 4. human says approve or reject;
-5. AI calls an MCP approval tool;
+5. AI calls a local approval command or adapter;
 6. ApprovalService records the structured decision;
 7. the waiting run resumes or fails.
 
