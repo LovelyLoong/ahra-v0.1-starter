@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import tempfile
@@ -7,6 +8,15 @@ import unittest
 from pathlib import Path
 
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
+
+
+D1 = "sha256:" + "1" * 64
+D2 = "sha256:" + "2" * 64
+D3 = "sha256:" + "3" * 64
+D4 = "sha256:" + "4" * 64
+D5 = "sha256:" + "5" * 64
+D6 = "sha256:" + "6" * 64
+D7 = "sha256:" + "7" * 64
 
 
 def _write_json(path: Path, data: dict) -> None:
@@ -18,6 +28,107 @@ def _append_event(path: Path, event: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(event, ensure_ascii=False, separators=(",", ":")) + "\n")
+
+
+def _canonical(payload: object) -> str:
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _fingerprint(payload: dict) -> str:
+    return "sha256:" + hashlib.sha256(_canonical(payload).encode("utf-8")).hexdigest()
+
+
+def _environment() -> dict[str, str | None]:
+    return {
+        "runtimeProfileDigest": D1,
+        "policyDigest": D2,
+        "verifierReleaseDigest": D3,
+        "testDefinitionDigest": D4,
+        "relevantEnvironmentDigest": None,
+    }
+
+
+def _kernel_evidence_docs(task_id: str) -> tuple[str, str, dict, dict]:
+    evidence_id = f"EVD-{task_id}-KERNEL"
+    gate_run_id = f"GATERUN-{task_id}-KERNEL"
+    gate_ref = "GATE-command-check"
+    gate_definition_digest = D5
+    claim_refs = ["CLAIM-command-backed"]
+    subjects = [{"ref": "ART-command-output", "digest": D6}]
+    dependencies: list[dict[str, str]] = []
+    environment = _environment()
+    command = ["uv", "run", "python", "-B", "scripts/check.py", "--lint"]
+    gate_run = {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "GateRun",
+        "metadata": {"gateRunId": gate_run_id},
+        "spec": {
+            "gateRef": gate_ref,
+            "gateDefinitionDigest": gate_definition_digest,
+            "claimRefs": claim_refs,
+            "result": "passed",
+            "subjects": subjects,
+            "dependencies": dependencies,
+            "environment": environment,
+            "validity": {"state": "current", "validUntil": None},
+            "command": command,
+            "evidenceRef": evidence_id,
+        },
+    }
+    gate_run["spec"]["fingerprint"] = _fingerprint(
+        {
+            "claimRefs": sorted(claim_refs),
+            "command": command,
+            "dependencies": dependencies,
+            "environment": {
+                "policyDigest": environment["policyDigest"],
+                "relevantEnvironmentDigest": environment["relevantEnvironmentDigest"],
+                "runtimeProfileDigest": environment["runtimeProfileDigest"],
+                "testDefinitionDigest": environment["testDefinitionDigest"],
+                "verifierReleaseDigest": environment["verifierReleaseDigest"],
+            },
+            "gateDefinitionDigest": gate_definition_digest,
+            "gateRef": gate_ref,
+            "subjects": subjects,
+        }
+    )
+    evidence = {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "Evidence",
+        "metadata": {"evidenceId": evidence_id},
+        "spec": {
+            "claimRefs": claim_refs,
+            "gateRef": gate_ref,
+            "gateDefinitionDigest": gate_definition_digest,
+            "gateRunId": gate_run_id,
+            "result": "passed",
+            "confidence": "verified",
+            "subjects": subjects,
+            "dependencies": dependencies,
+            "environment": environment,
+            "validity": {"state": "current", "validUntil": None},
+            "dependencyScope": "complete",
+            "refs": [gate_run_id],
+            "supersedes": [],
+        },
+    }
+    evidence["spec"]["fingerprint"] = _fingerprint(
+        {
+            "claimRefs": sorted(claim_refs),
+            "dependencies": dependencies,
+            "environment": {
+                "policyDigest": environment["policyDigest"],
+                "relevantEnvironmentDigest": environment["relevantEnvironmentDigest"],
+                "runtimeProfileDigest": environment["runtimeProfileDigest"],
+                "testDefinitionDigest": environment["testDefinitionDigest"],
+                "verifierReleaseDigest": environment["verifierReleaseDigest"],
+            },
+            "gateDefinitionDigest": gate_definition_digest,
+            "gateRef": gate_ref,
+            "subjects": subjects,
+        }
+    )
+    return evidence_id, gate_run_id, evidence, gate_run
 
 
 def _make_task(root: Path, *, task_id: str = "TASK-9001") -> Path:
@@ -78,7 +189,13 @@ Test EvidenceGate.
     report_payload = b'{"ok": true}\n'
     report_sha = hashlib.sha256(report_payload).hexdigest()
     (evidence_dir / "implementation-report.json").write_bytes(report_payload)
+    kernel_evidence_id, gate_run_id, kernel_evidence, gate_run = _kernel_evidence_docs(task_id)
+    _write_json(evidence_dir / "kernel-evidence-v2.json", kernel_evidence)
+    _write_json(evidence_dir / "kernel-gate-run-v2.json", gate_run)
+    kernel_evidence_sha = hashlib.sha256((evidence_dir / "kernel-evidence-v2.json").read_bytes()).hexdigest()
+    gate_run_sha = hashlib.sha256((evidence_dir / "kernel-gate-run-v2.json").read_bytes()).hexdigest()
     artifact_id = f"ART-{task_id}-0001"
+    gate_run_artifact_id = f"ART-{task_id}-GATERUN"
     evidence_id = f"EVD-{task_id}-0001"
     _write_json(
         task_dir / "artifact-manifest.json",
@@ -98,6 +215,20 @@ Test EvidenceGate.
                     "created_at": "2026-06-22T00:03:00Z",
                     "input_refs": ["task.md"],
                     "evidence_refs": [evidence_id],
+                    "supersedes": None,
+                },
+                {
+                    "artifact_id": gate_run_artifact_id,
+                    "task_id": task_id,
+                    "kind": "kernel_gate_run_v2",
+                    "name": "kernel-gate-run-v2.json",
+                    "uri": "local://evidence/kernel-gate-run-v2.json",
+                    "sha256": gate_run_sha,
+                    "media_type": "application/json",
+                    "created_by": "agent:codex",
+                    "created_at": "2026-06-22T00:03:00Z",
+                    "input_refs": ["task.md"],
+                    "evidence_refs": [kernel_evidence_id],
                     "supersedes": None,
                 }
             ],
@@ -120,6 +251,18 @@ Test EvidenceGate.
                     "created_by": "agent:codex",
                     "created_at": "2026-06-22T00:03:00Z",
                     "refs": [artifact_id],
+                },
+                {
+                    "evidence_id": kernel_evidence_id,
+                    "task_id": task_id,
+                    "kind": "kernel_evidence_v2",
+                    "name": "kernel-evidence-v2.json",
+                    "uri": "local://evidence/kernel-evidence-v2.json",
+                    "sha256": kernel_evidence_sha,
+                    "media_type": "application/json",
+                    "created_by": "agent:codex",
+                    "created_at": "2026-06-22T00:03:00Z",
+                    "refs": [gate_run_artifact_id, gate_run_id],
                 }
             ],
         },
@@ -167,7 +310,7 @@ Test EvidenceGate.
 
 def _write_gate_input(root: Path, *, task_id: str = "TASK-9001", decision: str = "approve") -> Path:
     status = "passed" if decision == "approve" else "failed"
-    evidence_refs = [f"EVD-{task_id}-0001"] if decision == "approve" else []
+    evidence_refs = [f"EVD-{task_id}-KERNEL"] if decision == "approve" else []
     report = {
         "schema_version": "ahra/evidence-gate-input/0.1",
         "task_id": task_id,
@@ -179,16 +322,26 @@ def _write_gate_input(root: Path, *, task_id: str = "TASK-9001", decision: str =
                 "criterion_index": 1,
                 "status": status,
                 "evidence_refs": evidence_refs,
+                "command_refs": ["CMD-lint"] if decision == "approve" else [],
                 "notes": "Checked.",
             },
             {
                 "criterion_index": 2,
                 "status": "passed" if decision == "approve" else "missing",
                 "evidence_refs": evidence_refs if decision == "approve" else [],
+                "command_refs": ["CMD-lint"] if decision == "approve" else [],
                 "notes": "Checked.",
             },
         ],
-        "commands": [{"command": "python scripts\\check.py", "status": "passed"}],
+        "commands": [
+            {
+                "command_id": "CMD-lint",
+                "command": "uv run python -B scripts\\check.py --lint",
+                "status": "passed" if decision == "approve" else "failed",
+                "criterion_indices": [1, 2],
+                "evidence_refs": evidence_refs,
+            }
+        ],
     }
     path = root / "gate-input.json"
     _write_json(path, report)
@@ -222,6 +375,53 @@ class EvidenceGateTests(unittest.TestCase):
                 for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
             ]
             self.assertEqual(events[-1]["event_type"], "evidence_gate_approved")
+
+    def test_rejects_command_backed_pass_without_kernel_lineage(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            _make_task(root)
+            report = _write_gate_input(root)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            legacy_ref = "EVD-TASK-9001-0001"
+            for criterion in data["criteria"]:
+                criterion["evidence_refs"] = [legacy_ref]
+            data["commands"][0]["evidence_refs"] = [legacy_ref]
+            _write_json(report, data)
+
+            with self.assertRaisesRegex(EvidenceGateError, "without kernel EvidenceV2"):
+                evaluate_task_gate(
+                    "TASK-9001",
+                    work_root=root / "work",
+                    expected_version=4,
+                    report_path=report,
+                    actor="agent:verifier",
+                )
+
+    def test_rejects_command_backed_pass_with_mismatched_fingerprint(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_task(root)
+            report = _write_gate_input(root)
+            evidence_path = task_dir / "evidence" / "kernel-evidence-v2.json"
+            evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            evidence["spec"]["subjects"][0]["digest"] = D7
+            _write_json(evidence_path, evidence)
+            evidence_sha = hashlib.sha256(evidence_path.read_bytes()).hexdigest()
+            manifest_path = task_dir / "evidence-manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for record in manifest["evidence"]:
+                if record["evidence_id"] == "EVD-TASK-9001-KERNEL":
+                    record["sha256"] = evidence_sha
+            _write_json(manifest_path, manifest)
+
+            with self.assertRaisesRegex(EvidenceGateError, "fingerprint mismatch"):
+                evaluate_task_gate(
+                    "TASK-9001",
+                    work_root=root / "work",
+                    expected_version=4,
+                    report_path=report,
+                    actor="agent:verifier",
+                )
 
     def test_request_changes_records_blockers(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -302,6 +502,19 @@ class EvidenceGateTests(unittest.TestCase):
 
             self.assertEqual(result["state.json"]["state"], "review")
             self.assertEqual(len(result["acceptance_criteria"]), 2)
+
+    def test_evidence_gate_stays_stdlib_offline(self) -> None:
+        source = (Path(__file__).resolve().parents[1] / "src" / "ahra" / "evidence_gate.py").read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        imports: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imports.update(alias.name.split(".", 1)[0] for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                imports.add(node.module.split(".", 1)[0])
+
+        self.assertNotIn("subprocess", imports)
+        self.assertNotIn("ahra", imports)
 
 if __name__ == "__main__":
     unittest.main()

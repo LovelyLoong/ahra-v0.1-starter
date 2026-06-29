@@ -50,6 +50,12 @@ class EvidenceGateResult:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class KernelEvidenceIndex:
+    evidence: dict[str, dict[str, Any]]
+    gate_runs: dict[str, dict[str, Any]]
+
+
 def evaluate_task_gate(
     task: str | Path,
     *,
@@ -105,8 +111,10 @@ def evaluate_task_gate(
 
     evidence_by_id = {str(item.get("evidence_id")): item for item in evidence_manifest.get("evidence", [])}
     artifact_by_id = {str(item.get("artifact_id")): item for item in artifact_manifest.get("artifacts", [])}
+    kernel_evidence = _kernel_evidence_index(task_dir, artifact_manifest, evidence_manifest)
     assessments = _map_criteria(criteria, report, evidence_by_id)
-    _validate_command_results(report, report_decision)
+    command_backed_criteria = _command_backed_criteria(report)
+    _validate_command_results(report, report_decision, kernel_evidence)
 
     if report_decision == "approve":
         if state.get("blockers"):
@@ -123,6 +131,8 @@ def evaluate_task_gate(
             for ref in refs:
                 if ref not in evidence_by_id:
                     raise EvidenceGateError(f"criterion {criterion.index} references unknown evidence {ref}")
+            if criterion.index in command_backed_criteria:
+                _validate_command_backed_criterion(criterion.index, refs, kernel_evidence)
         target_state = "completed"
     else:
         missing_or_failed = [
@@ -418,7 +428,11 @@ def _map_criteria(
     return mapped
 
 
-def _validate_command_results(report: dict[str, Any], decision: str) -> None:
+def _validate_command_results(
+    report: dict[str, Any],
+    decision: str,
+    kernel_evidence: KernelEvidenceIndex,
+) -> None:
     commands = report.get("commands", [])
     if commands is None:
         return
@@ -430,9 +444,68 @@ def _validate_command_results(report: dict[str, Any], decision: str) -> None:
         status = str(command.get("status") or "").strip().lower()
         if decision == "approve" and status not in PASSED_STATUSES:
             raise EvidenceGateError(f"command[{index}] is not passed")
+        if decision == "approve" and status in PASSED_STATUSES:
+            refs = _evidence_refs(command)
+            if not refs:
+                raise EvidenceGateError(
+                    f"command[{index}] passed without kernel EvidenceV2 evidence_refs"
+                )
+            for ref in refs:
+                _validate_kernel_command_evidence(ref, kernel_evidence, f"command[{index}]")
         if command.get("changed_files_sha256") and command.get("verified_changed_files_sha256"):
             if command["changed_files_sha256"] != command["verified_changed_files_sha256"]:
                 raise EvidenceGateError(f"command[{index}] is stale for changed files")
+
+
+def _command_backed_criteria(report: dict[str, Any]) -> set[int]:
+    result: set[int] = set()
+    criteria = report.get("criteria", [])
+    if isinstance(criteria, list):
+        for item in criteria:
+            if not isinstance(item, dict):
+                continue
+            if _has_command_marker(item):
+                index = item.get("criterion_index")
+                if isinstance(index, int):
+                    result.add(index)
+    commands = report.get("commands", [])
+    if isinstance(commands, list):
+        for command in commands:
+            if not isinstance(command, dict):
+                continue
+            index = command.get("criterion_index")
+            if isinstance(index, int):
+                result.add(index)
+            indices = command.get("criterion_indices")
+            if isinstance(indices, list):
+                result.update(index for index in indices if isinstance(index, int))
+    return result
+
+
+def _has_command_marker(item: dict[str, Any]) -> bool:
+    for key in ("command", "commands", "command_ref", "command_refs", "command_evidence_refs"):
+        value = item.get(key)
+        if value:
+            return True
+    return False
+
+
+def _validate_command_backed_criterion(
+    criterion_index: int,
+    refs: list[str],
+    kernel_evidence: KernelEvidenceIndex,
+) -> None:
+    failures: list[str] = []
+    for ref in refs:
+        try:
+            _validate_kernel_command_evidence(ref, kernel_evidence, f"criterion {criterion_index}")
+            return
+        except EvidenceGateError as exc:
+            failures.append(str(exc))
+    reason = "; ".join(failures) if failures else "no evidence_refs"
+    raise EvidenceGateError(
+        f"criterion {criterion_index} is command-backed but has no valid kernel EvidenceV2 gate-run lineage: {reason}"
+    )
 
 
 def _status(item: dict[str, Any]) -> str:
@@ -440,12 +513,187 @@ def _status(item: dict[str, Any]) -> str:
 
 
 def _refs(item: dict[str, Any]) -> list[str]:
+    return _evidence_refs(item)
+
+
+def _evidence_refs(item: dict[str, Any]) -> list[str]:
     refs = item.get("evidence_refs", [])
     if refs is None:
         return []
     if not isinstance(refs, list) or not all(isinstance(ref, str) for ref in refs):
         raise EvidenceGateError("evidence_refs must be an array of strings")
     return refs
+
+
+def _kernel_evidence_index(
+    task_dir: Path,
+    artifact_manifest: dict[str, Any],
+    evidence_manifest: dict[str, Any],
+) -> KernelEvidenceIndex:
+    evidence: dict[str, dict[str, Any]] = {}
+    gate_runs: dict[str, dict[str, Any]] = {}
+    for record in (*artifact_manifest.get("artifacts", []), *evidence_manifest.get("evidence", [])):
+        if not isinstance(record, dict):
+            continue
+        uri = str(record.get("uri") or "")
+        if not uri.startswith("local://"):
+            continue
+        path = _local_uri_path(task_dir, uri)
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(data, dict) or data.get("apiVersion") != "ahra.dev/v1alpha1":
+            continue
+        if data.get("kind") == "Evidence":
+            evidence_id = _metadata_ref(data, "evidenceId")
+            if evidence_id:
+                evidence[evidence_id] = data
+        elif data.get("kind") == "GateRun":
+            gate_run_id = _metadata_ref(data, "gateRunId")
+            if gate_run_id:
+                gate_runs[gate_run_id] = data
+    return KernelEvidenceIndex(evidence=evidence, gate_runs=gate_runs)
+
+
+def _metadata_ref(data: dict[str, Any], key: str) -> str | None:
+    metadata = data.get("metadata")
+    if not isinstance(metadata, dict):
+        return None
+    value = metadata.get(key)
+    return str(value) if value else None
+
+
+def _validate_kernel_command_evidence(
+    evidence_ref: str,
+    kernel_evidence: KernelEvidenceIndex,
+    referrer: str,
+) -> None:
+    evidence = kernel_evidence.evidence.get(evidence_ref)
+    if evidence is None:
+        raise EvidenceGateError(f"{referrer} references {evidence_ref} without kernel EvidenceV2")
+    spec = _object(evidence.get("spec"), f"{evidence_ref}.spec")
+    if str(spec.get("result") or "").lower() != "passed":
+        raise EvidenceGateError(f"{referrer} references non-passed kernel EvidenceV2 {evidence_ref}")
+    validity = _object(spec.get("validity"), f"{evidence_ref}.spec.validity")
+    if validity.get("state") != "current":
+        raise EvidenceGateError(f"{referrer} references stale kernel EvidenceV2 {evidence_ref}")
+    stored_fingerprint = str(spec.get("fingerprint") or "")
+    if stored_fingerprint != _evidence_fingerprint(evidence):
+        raise EvidenceGateError(f"{referrer} references kernel EvidenceV2 {evidence_ref} with fingerprint mismatch")
+    gate_run_id = str(spec.get("gateRunId") or "")
+    if not gate_run_id:
+        raise EvidenceGateError(f"{referrer} references kernel EvidenceV2 {evidence_ref} without gateRunId")
+    gate_run = kernel_evidence.gate_runs.get(gate_run_id)
+    if gate_run is None:
+        raise EvidenceGateError(f"{referrer} references kernel EvidenceV2 {evidence_ref} without valid gate-run lineage")
+    _validate_gate_run_lineage(evidence_ref, evidence, gate_run, referrer)
+
+
+def _validate_gate_run_lineage(
+    evidence_ref: str,
+    evidence: dict[str, Any],
+    gate_run: dict[str, Any],
+    referrer: str,
+) -> None:
+    evidence_spec = _object(evidence.get("spec"), f"{evidence_ref}.spec")
+    gate_run_id = _metadata_ref(gate_run, "gateRunId")
+    gate_spec = _object(gate_run.get("spec"), f"{gate_run_id or 'GateRun'}.spec")
+    if gate_spec.get("evidenceRef") != evidence_ref:
+        raise EvidenceGateError(f"{referrer} gate-run lineage does not point back to {evidence_ref}")
+    for key in ("gateRef", "gateDefinitionDigest", "result"):
+        if gate_spec.get(key) != evidence_spec.get(key):
+            raise EvidenceGateError(f"{referrer} gate-run lineage mismatches {key} for {evidence_ref}")
+    for key in ("claimRefs", "subjects", "dependencies", "environment"):
+        if _canonical_json(gate_spec.get(key)) != _canonical_json(evidence_spec.get(key)):
+            raise EvidenceGateError(f"{referrer} gate-run lineage mismatches {key} for {evidence_ref}")
+    validity = _object(gate_spec.get("validity"), f"{gate_run_id}.spec.validity")
+    if validity.get("state") != "current":
+        raise EvidenceGateError(f"{referrer} references stale GateRun {gate_run_id}")
+    command = gate_spec.get("command")
+    if not isinstance(command, list) or not command or not all(isinstance(item, str) for item in command):
+        raise EvidenceGateError(f"{referrer} GateRun {gate_run_id} is not command-backed")
+    if gate_spec.get("fingerprint") != _gate_run_fingerprint(gate_run):
+        raise EvidenceGateError(f"{referrer} GateRun {gate_run_id} has fingerprint mismatch")
+
+
+def _evidence_fingerprint(evidence: dict[str, Any]) -> str:
+    spec = _object(evidence.get("spec"), "Evidence.spec")
+    return _canonical_fingerprint(
+        {
+            "claimRefs": sorted(_strings(spec.get("claimRefs"), "Evidence.spec.claimRefs")),
+            "dependencies": _digest_refs(spec.get("dependencies"), "Evidence.spec.dependencies"),
+            "environment": _environment_fingerprint(spec.get("environment")),
+            "gateDefinitionDigest": str(spec.get("gateDefinitionDigest") or ""),
+            "gateRef": str(spec.get("gateRef") or ""),
+            "subjects": _digest_refs(spec.get("subjects"), "Evidence.spec.subjects"),
+        }
+    )
+
+
+def _gate_run_fingerprint(gate_run: dict[str, Any]) -> str:
+    spec = _object(gate_run.get("spec"), "GateRun.spec")
+    return _canonical_fingerprint(
+        {
+            "claimRefs": sorted(_strings(spec.get("claimRefs"), "GateRun.spec.claimRefs")),
+            "command": _strings(spec.get("command"), "GateRun.spec.command"),
+            "dependencies": _digest_refs(spec.get("dependencies"), "GateRun.spec.dependencies"),
+            "environment": _environment_fingerprint(spec.get("environment")),
+            "gateDefinitionDigest": str(spec.get("gateDefinitionDigest") or ""),
+            "gateRef": str(spec.get("gateRef") or ""),
+            "subjects": _digest_refs(spec.get("subjects"), "GateRun.spec.subjects"),
+        }
+    )
+
+
+def _canonical_fingerprint(payload: dict[str, Any]) -> str:
+    return "sha256:" + hashlib.sha256(_canonical_json(payload).encode("utf-8")).hexdigest()
+
+
+def _canonical_json(payload: Any) -> str:
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _object(value: Any, ref: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise EvidenceGateError(f"{ref} must be an object")
+    return value
+
+
+def _strings(value: Any, ref: str) -> list[str]:
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise EvidenceGateError(f"{ref} must be an array of strings")
+    return list(value)
+
+
+def _digest_refs(value: Any, ref: str) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        raise EvidenceGateError(f"{ref} must be an array")
+    result: list[dict[str, str]] = []
+    for index, item in enumerate(value):
+        if not isinstance(item, dict):
+            raise EvidenceGateError(f"{ref}[{index}] must be an object")
+        digest_ref = item.get("ref")
+        digest = item.get("digest")
+        if not isinstance(digest_ref, str) or not isinstance(digest, str):
+            raise EvidenceGateError(f"{ref}[{index}] must include ref and digest strings")
+        result.append({"ref": digest_ref, "digest": digest})
+    return sorted(result, key=lambda item: item["ref"])
+
+
+def _environment_fingerprint(value: Any) -> dict[str, str | None]:
+    environment = _object(value, "environment")
+    return {
+        "policyDigest": _optional_string(environment.get("policyDigest")),
+        "relevantEnvironmentDigest": _optional_string(environment.get("relevantEnvironmentDigest")),
+        "runtimeProfileDigest": _optional_string(environment.get("runtimeProfileDigest")),
+        "testDefinitionDigest": _optional_string(environment.get("testDefinitionDigest")),
+        "verifierReleaseDigest": _optional_string(environment.get("verifierReleaseDigest")),
+    }
+
+
+def _optional_string(value: Any) -> str | None:
+    return str(value) if value is not None else None
 
 
 def _build_gate_report(
