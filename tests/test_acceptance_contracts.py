@@ -84,6 +84,25 @@ class AcceptanceContractTests(unittest.TestCase):
 
         self.assertEqual(self._schema_errors(document, "goal-contract.schema.json"), [])
 
+    def test_gate_definition_parses_command_expectation_without_loss(self) -> None:
+        document = self._load("gate-definition.json")
+        gate = GateDefinition.from_mapping(document)
+
+        self.assertEqual(gate.command, tuple(document["spec"]["command"]))
+        self.assertIsNotNone(gate.expectation)
+        self.assertEqual(gate.expectation.expected_exit_code, 0)
+        self.assertIsNotNone(gate.expectation.output_match)
+        self.assertEqual(gate.expectation.output_match.stream, "combined")
+        self.assertEqual(gate.expectation.output_match.contains, "OK")
+        self.assertEqual(gate.to_mapping(), document)
+
+    def test_gate_definition_expectation_is_backward_compatible(self) -> None:
+        document = self._load("gate-definition.json")
+        document["spec"].pop("command")
+        document["spec"].pop("expectation")
+
+        self.assertEqual(self._schema_errors(document, "gate-definition.schema.json"), [])
+
     def test_domain_validation_layer_does_not_import_provider_sdks(self) -> None:
         forbidden = ("openai", "anthropic", "langgraph", "temporalio", "boto3", "kubernetes")
         for rel in [

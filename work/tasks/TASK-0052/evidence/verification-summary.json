@@ -1,0 +1,44 @@
+{
+  "schema_version": "ahra/task-verification-summary/0.1",
+  "task_id": "TASK-0052",
+  "generated_at": "2026-06-29T10:35:00Z",
+  "producer": "agent:codex-dynamic-kernel-operator",
+  "result": "passed",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_acceptance_contracts -v",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "Ran 14 tests in tests.test_acceptance_contracts; all passed."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "scripts/lint_contracts.py and embedded AWKP lint passed with 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "No whitespace errors reported."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "Full local baseline passed: lint plus 208 unittest cases, with 1 Windows symlink privilege skip."
+    }
+  ],
+  "changed_contracts": [
+    "contracts/schemas/gate-definition.schema.json",
+    "src/ahra/acceptance_contracts.py",
+    "examples/records/gate-definition.json"
+  ],
+  "architecture_records": [
+    "architecture/decisions/ADR-0008-command-gate-verification-engine.md",
+    "docs/decisions/index.md",
+    "architecture/SPEC.md"
+  ],
+  "blockers": []
+}

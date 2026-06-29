@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import json
 import os
 from dataclasses import dataclass, field, replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
-from typing import Mapping
+from typing import Any, Mapping
 
-from .acceptance_contracts import Claim, ClaimGraph, ClaimType, GateDefinition, GatePlan, RiskLevel
+from .acceptance_contracts import Claim, ClaimGraph, ClaimType, CommandExpectation, GateDefinition, GatePlan, RiskLevel
 from .evidence_v2 import (
     DigestRef,
     EvidenceInvalidationTrigger,
@@ -79,6 +80,8 @@ class GateExecutionRequest:
     idempotency_key: str
     attempt: int = 1
     command: tuple[str, ...] = ()
+    expectation: CommandExpectation | None = None
+    capability_grants: tuple[object, ...] = ()
     timeout_seconds: float | None = None
     mutation_allowed: bool = False
     metadata: Mapping[str, object] = field(default_factory=dict)
@@ -114,6 +117,7 @@ class VerificationExecutionContext:
     environment: EvidenceEnvironment | None = None
     workspace_ref: str | None = None
     attempt: int = 1
+    capability_grants: tuple[object, ...] = ()
     timeout_seconds: float | None = None
     mutation_allowed: bool = False
     metadata: Mapping[str, object] = field(default_factory=dict)
@@ -299,6 +303,176 @@ class DeterministicGateRunner:
         )
 
 
+class CommandGateRunner:
+    def __init__(
+        self,
+        *,
+        runtime_provider: object,
+        artifact_store: object,
+        capability_grants: tuple[object, ...] = (),
+        gate_kind: str = "contract_test",
+        release_ref: str = "command",
+        runtime_profile_ref: str = "local",
+        identity: str = "verifier",
+        env: Mapping[str, str] | None = None,
+        default_timeout_seconds: float = 60.0,
+    ) -> None:
+        self._runtime_provider = runtime_provider
+        self._artifact_store = artifact_store
+        self._capability_grants = tuple(capability_grants)
+        self._gate_kind = gate_kind
+        self._release_ref = release_ref
+        self._runtime_profile_ref = runtime_profile_ref
+        self._identity = identity
+        self._env = dict(env or {})
+        self._default_timeout_seconds = default_timeout_seconds
+        self.calls: list[GateExecutionRequest] = []
+
+    @property
+    def gate_kind(self) -> str:
+        return self._gate_kind
+
+    @property
+    def release_ref(self) -> str:
+        return self._release_ref
+
+    async def run(self, request: GateExecutionRequest) -> GateExecutionResult:
+        self.calls.append(request)
+        started_at = datetime.now(UTC)
+        command = tuple(request.command)
+        if not command:
+            completed_at = datetime.now(UTC)
+            return self._result(
+                request=request,
+                status=GateExecutionStatus.BLOCKED,
+                started_at=started_at,
+                completed_at=completed_at,
+                command=command,
+                runtime_result={"exit_code": None, "timed_out": False, "stdout": "", "stderr": ""},
+                failure_class="missing_gate_command",
+                reason="GateDefinition does not declare a command.",
+            )
+
+        grants = (*request.capability_grants, *self._capability_grants)
+        if _process_exec_grant_for(command, grants, started_at) is None:
+            completed_at = datetime.now(UTC)
+            return self._result(
+                request=request,
+                status=GateExecutionStatus.BLOCKED,
+                started_at=started_at,
+                completed_at=completed_at,
+                command=command,
+                runtime_result={"exit_code": None, "timed_out": False, "stdout": "", "stderr": ""},
+                failure_class="process_exec_not_granted",
+                reason="Command gate execution requires an explicit process.exec capability grant for the command.",
+            )
+
+        deadline = started_at + timedelta(seconds=request.timeout_seconds or self._default_timeout_seconds)
+        handle: str | None = None
+        runtime_result: Mapping[str, Any]
+        try:
+            handle = self._runtime_provider.provision(
+                self._runtime_profile_ref,
+                request.workspace_ref or os.getcwd(),
+                self._identity,
+            )
+            runtime_result = self._runtime_provider.exec(handle, list(command), dict(self._env), deadline)
+        except TimeoutError:
+            runtime_result = {"exit_code": None, "timed_out": True, "stdout": "", "stderr": ""}
+        except FileNotFoundError as exc:
+            runtime_result = {"exit_code": None, "timed_out": False, "stdout": "", "stderr": str(exc)}
+        finally:
+            destroy = getattr(self._runtime_provider, "destroy", None)
+            if handle is not None and callable(destroy):
+                destroy(handle)
+        completed_at = datetime.now(UTC)
+        status, failure_class, reason = _judge_command_result(request.expectation, runtime_result)
+        return self._result(
+            request=request,
+            status=status,
+            started_at=started_at,
+            completed_at=completed_at,
+            command=command,
+            runtime_result=runtime_result,
+            failure_class=failure_class,
+            reason=reason,
+        )
+
+    def _result(
+        self,
+        *,
+        request: GateExecutionRequest,
+        status: GateExecutionStatus,
+        started_at: datetime,
+        completed_at: datetime,
+        command: tuple[str, ...],
+        runtime_result: Mapping[str, Any],
+        failure_class: str | None,
+        reason: str,
+    ) -> GateExecutionResult:
+        raw_output_ref = self._write_raw_output_artifact(
+            request=request,
+            status=status,
+            started_at=started_at,
+            completed_at=completed_at,
+            command=command,
+            runtime_result=runtime_result,
+            failure_class=failure_class,
+            reason=reason,
+        )
+        return GateExecutionResult(
+            gate_ref=request.gate_ref,
+            status=status,
+            started_at=started_at,
+            completed_at=completed_at,
+            artifact_refs=(raw_output_ref,),
+            subjects=request.subjects,
+            command=command,
+            usage={"modelCalls": 0, "toolCalls": 1, "costUsd": 0.0},
+            failure_class=failure_class,
+            reason=reason,
+            raw_output_ref=raw_output_ref,
+        )
+
+    def _write_raw_output_artifact(
+        self,
+        *,
+        request: GateExecutionRequest,
+        status: GateExecutionStatus,
+        started_at: datetime,
+        completed_at: datetime,
+        command: tuple[str, ...],
+        runtime_result: Mapping[str, Any],
+        failure_class: str | None,
+        reason: str,
+    ) -> str:
+        payload = {
+            "gateRef": request.gate_ref,
+            "status": status.value,
+            "failureClass": failure_class,
+            "reason": reason,
+            "command": list(command),
+            "exitCode": _runtime_result_value(runtime_result, "exit_code", "exitCode"),
+            "timedOut": bool(_runtime_result_value(runtime_result, "timed_out", "timedOut", default=False)),
+            "stdout": _text_result(runtime_result, "stdout"),
+            "stderr": _text_result(runtime_result, "stderr"),
+            "startedAt": started_at.isoformat(),
+            "completedAt": completed_at.isoformat(),
+        }
+        content = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8")
+        return str(
+            self._artifact_store.put(
+                content,
+                "application/json",
+                {
+                    "kind": "command_gate_raw_output",
+                    "gateRef": request.gate_ref,
+                    "name": f"verification/{request.gate_ref}/attempt-{request.attempt}-command-output.json",
+                },
+            )
+        )
+
+
 class VerificationExecutor:
     def __init__(self, registry: GateRunnerRegistry) -> None:
         self.registry = registry
@@ -360,12 +534,16 @@ class VerificationExecutor:
             gate_kind = definition.evidence_kind
             release_ref = definition.verifier_mode
             gate_definition_digest = context.gate_definition_digests.get(gate_ref) or _gate_definition_digest(definition)
+            command = definition.command
+            expectation = definition.expectation
         else:
             level = GateLevel.L2 if "goal" in gate_ref.casefold() else GateLevel.L0
             evidence_kind = "deterministic_gate"
             gate_kind = gate_ref
             release_ref = "*"
             gate_definition_digest = context.gate_definition_digests.get(gate_ref, _synthetic_digest("gate", gate_ref))
+            command = ()
+            expectation = None
         claim_refs = context.gate_claim_refs.get(gate_ref)
         if claim_refs is None:
             metadata_claim_refs = context.metadata.get("claimRefs", ())
@@ -398,6 +576,9 @@ class VerificationExecutor:
             workspace_ref=context.workspace_ref,
             idempotency_key=_gate_idempotency_key(context, gate_ref, gate_definition_digest),
             attempt=context.attempt,
+            command=command,
+            expectation=expectation,
+            capability_grants=context.capability_grants,
             timeout_seconds=context.timeout_seconds,
             mutation_allowed=context.mutation_allowed,
             metadata=context.metadata,
@@ -1010,16 +1191,96 @@ def _gate_idempotency_key(
 
 
 def _gate_definition_digest(definition: GateDefinition) -> str:
-    return canonical_fingerprint(
-        {
-            "gateId": definition.gate_id,
-            "version": definition.version,
-            "level": definition.level,
-            "evidenceKind": definition.evidence_kind,
-            "verifierMode": definition.verifier_mode,
-            "riskLevel": definition.risk_level.value,
-        }
-    )
+    payload: dict[str, object] = {
+        "gateId": definition.gate_id,
+        "version": definition.version,
+        "level": definition.level,
+        "evidenceKind": definition.evidence_kind,
+        "verifierMode": definition.verifier_mode,
+        "riskLevel": definition.risk_level.value,
+    }
+    if definition.command:
+        payload["command"] = list(definition.command)
+    if definition.expectation is not None:
+        payload["expectation"] = definition.expectation.to_mapping()
+    return canonical_fingerprint(payload)
+
+
+def _process_exec_grant_for(
+    command: tuple[str, ...],
+    grants: tuple[object, ...],
+    now: datetime,
+) -> object | None:
+    command_text = " ".join(command)
+    for grant in grants:
+        if getattr(grant, "action", None) != "process.exec":
+            continue
+        current_at = getattr(grant, "current_at", None)
+        if callable(current_at) and not current_at(now):
+            continue
+        resources = tuple(str(item) for item in getattr(grant, "resources", ()))
+        if command_text in resources:
+            return grant
+    return None
+
+
+def _judge_command_result(
+    expectation: CommandExpectation | None,
+    runtime_result: Mapping[str, Any],
+) -> tuple[GateExecutionStatus, str | None, str]:
+    if bool(_runtime_result_value(runtime_result, "timed_out", "timedOut", default=False)):
+        return GateExecutionStatus.TIMED_OUT, "command_timeout", "Command gate timed out."
+
+    exit_code = _runtime_result_value(runtime_result, "exit_code", "exitCode")
+    if exit_code is None:
+        return GateExecutionStatus.ERROR, "missing_executable", "Command executable was not found or could not start."
+
+    expected_exit_code = expectation.expected_exit_code if expectation is not None else 0
+    actual_exit_code = int(exit_code)
+    if actual_exit_code != expected_exit_code:
+        return (
+            GateExecutionStatus.FAILED,
+            "unexpected_exit_code",
+            f"Command exited with {actual_exit_code}; expected {expected_exit_code}.",
+        )
+
+    output_match = expectation.output_match if expectation is not None else None
+    if output_match is not None:
+        content = _output_stream(runtime_result, output_match.stream)
+        if output_match.contains not in content:
+            return (
+                GateExecutionStatus.FAILED,
+                "output_mismatch",
+                f"Command output did not contain expected text on {output_match.stream}.",
+            )
+
+    return GateExecutionStatus.PASSED, None, "command gate passed"
+
+
+def _runtime_result_value(
+    runtime_result: Mapping[str, Any],
+    *keys: str,
+    default: Any = None,
+) -> Any:
+    for key in keys:
+        if key in runtime_result:
+            return runtime_result[key]
+    return default
+
+
+def _text_result(runtime_result: Mapping[str, Any], key: str) -> str:
+    value = _runtime_result_value(runtime_result, key, default="")
+    if isinstance(value, bytes):
+        return value.decode(errors="replace")
+    return str(value or "")
+
+
+def _output_stream(runtime_result: Mapping[str, Any], stream: str) -> str:
+    if stream == "stdout":
+        return _text_result(runtime_result, "stdout")
+    if stream == "stderr":
+        return _text_result(runtime_result, "stderr")
+    return _text_result(runtime_result, "stdout") + _text_result(runtime_result, "stderr")
 
 
 def _synthetic_digest(kind: str, value: str) -> str:

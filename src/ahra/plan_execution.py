@@ -1276,6 +1276,7 @@ class StaticPlanScheduler(SchedulerPort):
                 latest,
                 record.result,
                 workspace_ref=workspace_ref,
+                capability_grants=(),
             )
             resumed = True
         return resumed
@@ -1338,10 +1339,22 @@ class StaticPlanScheduler(SchedulerPort):
             message="Node is running.",
         )
         if node.node_type == PlanNodeType.GOAL_VERIFICATION.value:
-            await self._run_goal_verification_node(plan, current, node, workspace_ref=workspace_ref)
+            await self._run_goal_verification_node(
+                plan,
+                current,
+                node,
+                workspace_ref=workspace_ref,
+                capability_grants=admission.grants,
+            )
             return
         if node.node_type == PlanNodeType.GATE_VERIFICATION.value:
-            await self._run_gate_verification_node(plan, current, node, workspace_ref=workspace_ref)
+            await self._run_gate_verification_node(
+                plan,
+                current,
+                node,
+                workspace_ref=workspace_ref,
+                capability_grants=admission.grants,
+            )
             return
 
         release_ref = self.executor_release_refs.get(node.node_type)
@@ -1378,7 +1391,14 @@ class StaticPlanScheduler(SchedulerPort):
         except Exception as exc:  # pragma: no cover - defensive boundary
             self._fail_node(current, "executor_exception", str(exc))
             return
-        await self._record_executor_result(plan, node, current, result, workspace_ref=workspace_ref)
+        await self._record_executor_result(
+            plan,
+            node,
+            current,
+            result,
+            workspace_ref=workspace_ref,
+            capability_grants=admission.grants,
+        )
 
     async def _record_executor_result(
         self,
@@ -1388,6 +1408,7 @@ class StaticPlanScheduler(SchedulerPort):
         result: NodeExecutionResult,
         *,
         workspace_ref: str,
+        capability_grants: tuple[RuntimeCapabilityGrant, ...],
     ) -> None:
         latest = self.service.store.get_node_run(current.node_run_id)
         if result.status == NodeExecutionStatus.ACCEPTED:
@@ -1457,6 +1478,7 @@ class StaticPlanScheduler(SchedulerPort):
                         workspace_ref=workspace_ref,
                         subjects=_subject_refs((*result.artifact_refs, *result.evidence_refs)),
                         metadata=self._result_verification_metadata(node, result),
+                        capability_grants=capability_grants,
                     ),
                 )
                 if not gate_report.passed:
@@ -1516,6 +1538,7 @@ class StaticPlanScheduler(SchedulerPort):
         node: PlanNodeIR,
         *,
         workspace_ref: str,
+        capability_grants: tuple[RuntimeCapabilityGrant, ...],
     ) -> None:
         latest = self.service.store.get_node_run(node_run.node_run_id)
         if not self.verification_service or not self.verification_executor:
@@ -1552,7 +1575,13 @@ class StaticPlanScheduler(SchedulerPort):
         self.verification_service.select(VerificationTrigger(failed_gate_refs=frozenset(latest.gate_refs)))
         report = await self.verification_executor.execute_selection(
             selection,
-            self._verification_context(plan=plan, node=node, node_run=latest, workspace_ref=workspace_ref),
+            self._verification_context(
+                plan=plan,
+                node=node,
+                node_run=latest,
+                workspace_ref=workspace_ref,
+                capability_grants=capability_grants,
+            ),
         )
         verifying = self.service.transition_node(
             latest.node_run_id,
@@ -1595,6 +1624,7 @@ class StaticPlanScheduler(SchedulerPort):
         node: PlanNodeIR,
         *,
         workspace_ref: str,
+        capability_grants: tuple[RuntimeCapabilityGrant, ...],
     ) -> None:
         latest = self.service.store.get_node_run(node_run.node_run_id)
         if not self.verification_service or not self.verification_executor:
@@ -1637,6 +1667,7 @@ class StaticPlanScheduler(SchedulerPort):
                 node_run=latest,
                 workspace_ref=workspace_ref,
                 metadata={"completionComplete": completion.complete, "claimRefs": tuple(node.claim_refs)},
+                capability_grants=capability_grants,
             ),
         )
         verifying = self.service.transition_node(
@@ -1758,6 +1789,7 @@ class StaticPlanScheduler(SchedulerPort):
         workspace_ref: str,
         subjects: tuple[DigestRef, ...] = (),
         metadata: Mapping[str, object] | None = None,
+        capability_grants: tuple[RuntimeCapabilityGrant, ...] = (),
     ) -> VerificationExecutionContext:
         gate_definition_digests = {
             gate_ref: node.gate_digests[index]
@@ -1778,6 +1810,7 @@ class StaticPlanScheduler(SchedulerPort):
             environment=self.verification_environment,
             workspace_ref=workspace_ref,
             attempt=node_run.attempt,
+            capability_grants=capability_grants,
             timeout_seconds=_node_wall_timeout_seconds(node),
             mutation_allowed=False,
             metadata=metadata or {"claimRefs": tuple(node.claim_refs)},

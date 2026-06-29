@@ -8,7 +8,7 @@
 
 ## 0. 最终建议
 
-本项目不应只被理解为某个项目外侧的 Harness 模板，也不应当是某一个 Agent SDK 的二次封装。推荐把它作为 Agent 项目底座：工作规范是所有 Agent 的约束，标准工作流是推荐执行路径，项目适配和自定义工作流通过稳定契约扩展。
+本项目不应只被理解为某个项目外侧的 Harness 模板，也不应当是某一个 Agent SDK 的二次封装。推荐把它作为 Agent 项目底座：工作规范是所有 Agent 的约束，受治理的动态内核路径是推荐执行路径，项目适配和自定义工作流通过稳定契约扩展。
 
 推荐采用：
 
@@ -23,10 +23,10 @@
 
 基础使用模式：
 
-1. **标准工作流模式**：通过 `standard-harness`、`loop-engineering` 等内置 workflow module 运行项目工作。这是推荐路径。
+1. **受治理的动态内核模式**：通过 Goal CLI、PlanIR、Capability Admission、Scheduler、Gate 和 EvidenceGate 运行项目工作。这是当前推荐路径。
 2. **受治理的外部 Agent 模式**：使用任意 Agent 或人工工具，但必须遵守任务、状态、证据、交接和完成门禁。
 3. **项目适配工作流模式**：项目添加本地 docs、Skills、命令、检查项、策略和适配器。
-4. **自定义工作流模式**：高级使用者通过 workflow module contract 组合或实现自己的专属 workflow。
+4. **Legacy workflow compatibility 模式**：`standard-harness`、`loop-engineering` 等历史 workflow module 仅作为回归和迁移兼容路径保留，不再作为默认或推荐路径。
 
 建议把整体划分为八个平面：
 
@@ -395,13 +395,13 @@ Scheduler 负责：
 - 失败、重试、回滚和恢复语义；
 - 必须覆盖的 contract/recovery/security 测试。
 
-当前初始模块：
+历史兼容模块：
 
 1. **standard-harness**
-   一个有边界任务的默认 Harness 工作流。来源为 `E:\harness-first-starter` 的 `TaskHarness` 思路。职责包括隔离工作区、路径与变更规模策略、确定性检查、独立只读 Reviewer、有界重试、Artifact/Evidence 捕获、接受提交或回滚。它不得合并、推送或部署。
+   一个有边界任务的 legacy Harness 工作流。来源为 `E:\harness-first-starter` 的 `TaskHarness` 思路。职责包括隔离工作区、路径与变更规模策略、确定性检查、独立只读 Reviewer、有界重试、Artifact/Evidence 捕获、接受提交或回滚。它不得合并、推送或部署，也不再作为默认或推荐路径。
 
 2. **loop-engineering**
-   目标级 Loop Engineering 工作流。来源为 `E:\harness-first-starter` 的 `LoopEngine` 思路。职责是在 `standard-harness` 之上运行任务队列、累计全局检查、独立 Goal Reviewer、有限动态规划和默认人工批准计划。Planner 不能宣布完成，也不能绕过父 Goal policy。
+   目标级 legacy Loop Engineering 工作流。来源为 `E:\harness-first-starter` 的 `LoopEngine` 思路。职责是在 `standard-harness` 之上运行任务队列、累计全局检查、独立 Goal Reviewer、有限动态规划和默认人工批准计划。Planner 不能宣布完成，也不能绕过父 Goal policy。它仅作为回归和迁移兼容路径保留。
 
 后续模块可以扩展上述模块，也可以新增独立模块，但必须通过 AHRA 端口接入，不能把模型 SDK、云 SDK、数据库客户端或单一 runner 状态写入领域核心。
 
@@ -1380,7 +1380,7 @@ agent-harness/
 |---|---|---|
 | API/Domain | Python + FastAPI/Pydantic | Go/Java/TS 等保持 Schema 兼容 |
 | Metadata/Run Store | SQLite | Postgres |
-| Workflow module | `standard-harness` + `loop-engineering` reference modules | Temporal / Restate / DBOS adapter 或项目自定义模块 |
+| Execution path | Mode C Goal CLI + PlanIR scheduler + local process runner + command-gate contract | Temporal / Restate / DBOS adapter 或项目自定义模块 |
 | Queue | DB queue | Kafka/NATS/SQS/云队列或引擎内队列 |
 | Artifact | 本地文件 + SHA-256 | S3 compatible + retention/versioning |
 | Memory | SQL records + optional local index | SQL authority + vector/graph/search index |
@@ -1573,7 +1573,7 @@ Domain contracts
 9. 第一批 MCP Server/Tool；
 10. 第一套端到端 Eval 数据集和 SLO。
 
-推荐默认：先做 **Python + Postgres-compatible domain + local SQLite + local process runner + run-owned Git worktree isolation + OTel + `standard-harness`/`loop-engineering` reference modules**，但所有端口按可替换设计；当不可信代码、敏感凭证、长任务、跨天等待和分布式恢复成为真实需求时，再切强隔离 Runtime adapter、Durable Engine 或项目自定义 workflow module。
+推荐默认：先做 **Python + Postgres-compatible domain + local SQLite + local process runner + run-owned Git worktree isolation + OTel + Mode C Goal CLI + PlanIR scheduler + command-gate contract**，但所有端口按可替换设计；当不可信代码、敏感凭证、长任务、跨天等待和分布式恢复成为真实需求时，再切强隔离 Runtime adapter、Durable Engine 或项目自定义 workflow module。`standard-harness` 和 `loop-engineering` 仅作为 legacy regression / migration compatibility 输入保留。
 
 ---
 

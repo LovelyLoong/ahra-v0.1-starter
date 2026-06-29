@@ -1,0 +1,121 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0053",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-29T11:14:30.000000Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier approved TASK-0053: CommandGateRunner satisfies the task contract, preserves capability and mutation boundaries, and all required checks passed.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "`CommandGateRunner` satisfies `GateRunnerPort` (`gate_kind`, `release_ref`, async `run`) and is registrable in `GateRunnerRegistry`.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0053-0001",
+        "EVD-TASK-0053-0002"
+      ],
+      "notes": "CommandGateRunner exposes gate_kind, release_ref, async run, and is covered by a registry resolution test."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Exit 0 maps to PASSED; nonzero maps to FAILED with a populated `failure_class`; timeout maps to TIMED_OUT; missing executable maps to ERROR or BLOCKED. Each of the four cases has a dedicated unit test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0053-0001",
+        "EVD-TASK-0053-0002"
+      ],
+      "notes": "Dedicated tests cover exit 0 passed, nonzero failed with unexpected_exit_code, timeout timed_out, and missing executable error."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The command is executed only via `RuntimeProvider.exec`; there is no direct `subprocess` call in the runner, and execution is gated by a `process.exec` capability grant that is default-deny without an explicit resource grant.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0053-0001",
+        "EVD-TASK-0053-0002"
+      ],
+      "notes": "Runner calls runtime_provider.exec and has no subprocess import or direct process API call; process.exec grant absence blocks execution before runtime calls."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Command output is written as an artifact and `raw_output_ref` is set on the `GateExecutionResult`.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0053-0001",
+        "EVD-TASK-0053-0002"
+      ],
+      "notes": "Command output is written through ArtifactStore.put and raw_output_ref is set; targeted tests assert both."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "A command gate that mutates the workspace with `mutation_allowed=False` triggers the existing `unexpected_workspace_mutation` failure path.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0053-0001",
+        "EVD-TASK-0053-0002"
+      ],
+      "notes": "Command-runner workspace mutation with mutation_allowed false still fails through unexpected_workspace_mutation."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "`DeterministicGateRunner` behavior is unchanged and its existing tests still pass.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0053-0002"
+      ],
+      "notes": "DeterministicGateRunner implementation remains unchanged in behavior and existing tests passed in targeted and full discovery runs."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "`src/ahra/verification.py` imports no adapter/model/cloud dependency.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0053-0002"
+      ],
+      "notes": "src/ahra/verification.py imports standard-library modules plus ahra domain modules only; no adapter, model, or cloud dependency import was introduced."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Targeted tests, lint, and diff checks pass, or any failure is recorded as a blocker with exact command output.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0053-0002"
+      ],
+      "notes": "Independent reruns passed: tests.test_verification, scripts/check.py --test, scripts/check.py --lint, and git diff --check."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Producer moves TASK-0053 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0053-0001",
+        "EVD-TASK-0053-0002"
+      ],
+      "notes": "Producer moved TASK-0053 only to review at state_version 2; completion is left to EvidenceGate."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_verification -v",
+      "status": "passed",
+      "summary": "Ran 25 tests in tests.test_verification; all passed."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --test",
+      "status": "passed",
+      "summary": "Full unittest discovery passed: 216 tests passed with 1 Windows symlink privilege skip."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --lint",
+      "status": "passed",
+      "summary": "AWKP lint reported 0 errors and 0 warnings; AHRA lint reported 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors reported."
+    }
+  ]
+}

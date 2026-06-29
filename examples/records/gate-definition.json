@@ -21,6 +21,13 @@
       "-m",
       "unittest",
       "tests.test_acceptance_contracts"
-    ]
+    ],
+    "expectation": {
+      "expectedExitCode": 0,
+      "outputMatch": {
+        "stream": "combined",
+        "contains": "OK"
+      }
+    }
   }
 }

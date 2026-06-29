@@ -5,6 +5,8 @@ from .acceptance_contracts import (
     Claim,
     ClaimGraph,
     ClaimType,
+    CommandExpectation,
+    CommandOutputMatch,
     GateDefinition,
     GatePlan,
     GatePlanEntry,
@@ -182,6 +184,7 @@ from .plan_ir import (
 )
 from .verification import (
     CompletionGateResult,
+    CommandGateRunner,
     DefectRecord,
     DefectStatus,
     DeterministicGateRunner,
@@ -236,6 +239,9 @@ __all__ = [
     "Claim",
     "ClaimGraph",
     "ClaimType",
+    "CommandExpectation",
+    "CommandGateRunner",
+    "CommandOutputMatch",
     "ContextItem",
     "ContextManifest",
     "CompletionGateResult",

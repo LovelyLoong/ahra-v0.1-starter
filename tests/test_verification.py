@@ -8,10 +8,22 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from ahra.acceptance_contracts import Claim, ClaimGraph, ClaimType, GateDefinition, GatePlan, GatePlanEntry, RiskLevel
+from ahra.acceptance_contracts import (
+    Claim,
+    ClaimGraph,
+    ClaimType,
+    CommandExpectation,
+    CommandOutputMatch,
+    GateDefinition,
+    GatePlan,
+    GatePlanEntry,
+    RiskLevel,
+)
+from ahra.capabilities import CapabilityGrant
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate
 from ahra.evidence_v2 import DigestRef, EvidenceEnvironment, EvidenceResult, EvidenceV2, EvidenceValidityState
 from ahra.verification import (
+    CommandGateRunner,
     DefectStatus,
     DeterministicGateRunner,
     GateExecutionRequest,
@@ -463,6 +475,113 @@ class VerificationExecutorTests(unittest.TestCase):
         self.assertEqual(validate_gate_run_lineage((bad,), report.gate_runs), (bad.evidence_id,))
 
 
+class CommandGateRunnerTests(unittest.TestCase):
+    def test_exit_zero_maps_to_passed_and_records_raw_output_artifact(self) -> None:
+        artifact_store = _RecordingArtifactStore()
+        runner = _command_runner(
+            _RecordingRuntime({"exit_code": 0, "timed_out": False, "stdout": "OK\n", "stderr": ""}),
+            artifact_store=artifact_store,
+        )
+
+        result = asyncio.run(runner.run(_command_request()))
+
+        self.assertEqual(result.status, GateExecutionStatus.PASSED)
+        self.assertIsNone(result.failure_class)
+        self.assertEqual(result.raw_output_ref, "artifact://1")
+        self.assertEqual(result.artifact_refs, ("artifact://1",))
+        self.assertIn(b'"stdout": "OK\\n"', artifact_store.records[0]["content"])
+
+    def test_nonzero_exit_maps_to_failed_with_failure_class(self) -> None:
+        runner = _command_runner(
+            _RecordingRuntime({"exit_code": 2, "timed_out": False, "stdout": "", "stderr": "bad\n"})
+        )
+
+        result = asyncio.run(runner.run(_command_request()))
+
+        self.assertEqual(result.status, GateExecutionStatus.FAILED)
+        self.assertEqual(result.failure_class, "unexpected_exit_code")
+        self.assertIn("expected 0", result.reason)
+        self.assertEqual(result.raw_output_ref, "artifact://1")
+
+    def test_timeout_maps_to_timed_out(self) -> None:
+        runner = _command_runner(
+            _RecordingRuntime({"exit_code": None, "timed_out": True, "stdout": "partial", "stderr": ""})
+        )
+
+        result = asyncio.run(runner.run(_command_request()))
+
+        self.assertEqual(result.status, GateExecutionStatus.TIMED_OUT)
+        self.assertEqual(result.failure_class, "command_timeout")
+        self.assertEqual(result.raw_output_ref, "artifact://1")
+
+    def test_missing_executable_maps_to_error(self) -> None:
+        runner = _command_runner(
+            _RecordingRuntime(
+                {
+                    "exit_code": None,
+                    "timed_out": False,
+                    "stdout": "",
+                    "stderr": "[Errno 2] No such file or directory",
+                }
+            )
+        )
+
+        result = asyncio.run(runner.run(_command_request()))
+
+        self.assertEqual(result.status, GateExecutionStatus.ERROR)
+        self.assertEqual(result.failure_class, "missing_executable")
+        self.assertEqual(result.raw_output_ref, "artifact://1")
+
+    def test_process_exec_grant_is_default_deny_without_explicit_command_resource(self) -> None:
+        runtime = _RecordingRuntime({"exit_code": 0, "timed_out": False, "stdout": "OK\n", "stderr": ""})
+        runner = CommandGateRunner(
+            runtime_provider=runtime,
+            artifact_store=_RecordingArtifactStore(),
+            capability_grants=(),
+            gate_kind="contract_test",
+            release_ref="command",
+        )
+
+        result = asyncio.run(runner.run(_command_request(capability_grants=())))
+
+        self.assertEqual(result.status, GateExecutionStatus.BLOCKED)
+        self.assertEqual(result.failure_class, "process_exec_not_granted")
+        self.assertEqual(runtime.calls, [])
+
+    def test_output_mismatch_maps_to_failed(self) -> None:
+        runner = _command_runner(
+            _RecordingRuntime({"exit_code": 0, "timed_out": False, "stdout": "not yet\n", "stderr": ""})
+        )
+
+        result = asyncio.run(runner.run(_command_request()))
+
+        self.assertEqual(result.status, GateExecutionStatus.FAILED)
+        self.assertEqual(result.failure_class, "output_mismatch")
+
+    def test_command_gate_runner_is_registrable_by_gate_kind_and_release(self) -> None:
+        runner = _command_runner(_RecordingRuntime({"exit_code": 0, "timed_out": False, "stdout": "OK\n", "stderr": ""}))
+        registry = GateRunnerRegistry()
+
+        registry.register(runner)
+
+        self.assertIs(registry.resolve("contract_test", "command"), runner)
+
+    def test_workspace_mutation_still_fails_closed_after_command_execution(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            Path(temporary, "source.txt").write_text("stable\n", encoding="utf-8")
+            runner = _command_runner(_MutatingRuntime())
+            report = asyncio.run(
+                _verification_executor(runner).execute_selection(
+                    _execution_selection("GATE-command-unit"),
+                    _command_execution_context(workspace_ref=temporary),
+                )
+            )
+
+        self.assertFalse(report.passed)
+        self.assertEqual(report.attempts[0].failure_class, "unexpected_workspace_mutation")
+        self.assertEqual(report.evidence_records[0].result, EvidenceResult.BLOCKED)
+
+
 class _ExplodingGateRunner:
     gate_kind = "*"
     release_ref = "*"
@@ -483,6 +602,136 @@ def _verification_executor(runner: object) -> VerificationExecutor:
     registry = GateRunnerRegistry()
     registry.register(runner)
     return VerificationExecutor(registry)
+
+
+class _RecordingRuntime:
+    def __init__(self, result: dict[str, object]) -> None:
+        self.result = result
+        self.calls: list[tuple[str, tuple[str, ...], dict[str, str]]] = []
+        self.destroyed: list[str] = []
+
+    def provision(self, profile_ref: str, workspace_ref: str, identity: str) -> str:
+        return workspace_ref
+
+    def exec(self, handle: str, command: list[str], env: dict[str, str], deadline: datetime) -> dict[str, object]:
+        self.calls.append((handle, tuple(command), dict(env)))
+        return dict(self.result)
+
+    def destroy(self, handle: str) -> None:
+        self.destroyed.append(handle)
+
+
+class _MutatingRuntime(_RecordingRuntime):
+    def __init__(self) -> None:
+        super().__init__({"exit_code": 0, "timed_out": False, "stdout": "OK\n", "stderr": ""})
+
+    def exec(self, handle: str, command: list[str], env: dict[str, str], deadline: datetime) -> dict[str, object]:
+        Path(handle, "mutation.txt").write_text("mutated\n", encoding="utf-8")
+        return super().exec(handle, command, env, deadline)
+
+
+class _RecordingArtifactStore:
+    def __init__(self) -> None:
+        self.records: list[dict[str, object]] = []
+
+    def put(self, content: bytes, media_type: str, metadata: dict[str, object]) -> str:
+        ref = f"artifact://{len(self.records) + 1}"
+        self.records.append(
+            {
+                "ref": ref,
+                "content": content,
+                "media_type": media_type,
+                "metadata": dict(metadata),
+            }
+        )
+        return ref
+
+
+def _command_runner(
+    runtime: _RecordingRuntime,
+    *,
+    artifact_store: _RecordingArtifactStore | None = None,
+    capability_grants: tuple[CapabilityGrant, ...] | None = None,
+) -> CommandGateRunner:
+    return CommandGateRunner(
+        runtime_provider=runtime,
+        artifact_store=artifact_store or _RecordingArtifactStore(),
+        capability_grants=capability_grants if capability_grants is not None else (_command_grant(),),
+        gate_kind="contract_test",
+        release_ref="command",
+    )
+
+
+def _command_request(
+    *,
+    capability_grants: tuple[CapabilityGrant, ...] | None = None,
+) -> GateExecutionRequest:
+    context = _command_execution_context(
+        capability_grants=capability_grants if capability_grants is not None else (_command_grant(),)
+    )
+    executor = VerificationExecutor(GateRunnerRegistry())
+    return executor._request_for_gate(_execution_selection("GATE-command-unit"), context, "GATE-command-unit")
+
+
+def _command_grant(command: tuple[str, ...] = ("verify-command",)) -> CapabilityGrant:
+    now = datetime.now(UTC)
+    return CapabilityGrant(
+        grant_id="CGRANT-command",
+        request_id="CREQ-command",
+        plan_id="PEX-verification-executor",
+        node_id="NRUN-verification-executor",
+        role="executor",
+        capability="process.exec",
+        action="process.exec",
+        resources=(" ".join(command),),
+        scope=(" ".join(command),),
+        expires_at=now + timedelta(minutes=10),
+        issued_at=now,
+        issuer="test",
+        policy_decision_id="PDEC-command",
+    )
+
+
+def _command_execution_context(
+    *,
+    workspace_ref: str | None = None,
+    capability_grants: tuple[CapabilityGrant, ...] | None = None,
+) -> VerificationExecutionContext:
+    gate = _command_gate()
+    return VerificationExecutionContext(
+        goal_execution_id="GOAL-command-gate",
+        plan_execution_id="PEX-verification-executor",
+        node_run_id="NRUN-verification-executor",
+        gate_definitions={gate.gate_id: gate},
+        gate_definition_digests={gate.gate_id: D1},
+        gate_claim_refs={gate.gate_id: ("CLAIM-command-gate",)},
+        subjects=(DigestRef("ART-command-subject", D2),),
+        dependency_evidence=(),
+        environment=EvidenceEnvironment(
+            runtime_profile_digest=D4,
+            policy_digest=D5,
+            verifier_release_digest=D6,
+            test_definition_digest=D7,
+        ),
+        workspace_ref=workspace_ref,
+        capability_grants=capability_grants if capability_grants is not None else (_command_grant(),),
+    )
+
+
+def _command_gate() -> GateDefinition:
+    return GateDefinition(
+        gate_id="GATE-command-unit",
+        version=1,
+        level="L1",
+        evidence_kind="contract_test",
+        verifier_mode="command",
+        risk_level=RiskLevel.R1,
+        command=("verify-command",),
+        expectation=CommandExpectation(
+            expected_exit_code=0,
+            output_match=CommandOutputMatch(stream="combined", contains="OK"),
+        ),
+    )
 
 
 def _execution_selection(*gate_refs: str) -> VerificationSelection:

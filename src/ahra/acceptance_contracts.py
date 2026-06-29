@@ -138,6 +138,48 @@ class ClaimGraph:
 
 
 @dataclass(frozen=True, slots=True)
+class CommandOutputMatch:
+    stream: str
+    contains: str
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, Any]) -> "CommandOutputMatch":
+        return cls(
+            stream=str(data["stream"]),
+            contains=str(data["contains"]),
+        )
+
+    def to_mapping(self) -> dict[str, str]:
+        return {
+            "stream": self.stream,
+            "contains": self.contains,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class CommandExpectation:
+    expected_exit_code: int
+    output_match: CommandOutputMatch | None = None
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, Any]) -> "CommandExpectation":
+        return cls(
+            expected_exit_code=int(data["expectedExitCode"]),
+            output_match=(
+                CommandOutputMatch.from_mapping(_mapping(data["outputMatch"]))
+                if data.get("outputMatch") is not None
+                else None
+            ),
+        )
+
+    def to_mapping(self) -> dict[str, Any]:
+        result: dict[str, Any] = {"expectedExitCode": self.expected_exit_code}
+        if self.output_match is not None:
+            result["outputMatch"] = self.output_match.to_mapping()
+        return result
+
+
+@dataclass(frozen=True, slots=True)
 class GateDefinition:
     gate_id: str
     version: int
@@ -145,6 +187,10 @@ class GateDefinition:
     evidence_kind: str
     verifier_mode: str
     risk_level: RiskLevel
+    name: str = ""
+    subject_kinds: tuple[str, ...] = ()
+    command: tuple[str, ...] = ()
+    expectation: CommandExpectation | None = None
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, Any]) -> "GateDefinition":
@@ -158,7 +204,39 @@ class GateDefinition:
             evidence_kind=str(spec["evidenceKind"]),
             verifier_mode=str(spec["verifierMode"]),
             risk_level=RiskLevel(str(spec["riskLevel"])),
+            name=str(metadata.get("name") or ""),
+            subject_kinds=tuple(str(item) for item in spec.get("subjectKinds", ())),
+            command=tuple(str(item) for item in spec.get("command", ())),
+            expectation=(
+                CommandExpectation.from_mapping(_mapping(spec["expectation"]))
+                if spec.get("expectation") is not None
+                else None
+            ),
         )
+
+    def to_mapping(self) -> dict[str, Any]:
+        spec: dict[str, Any] = {
+            "level": self.level,
+            "evidenceKind": self.evidence_kind,
+            "verifierMode": self.verifier_mode,
+            "riskLevel": self.risk_level.value,
+        }
+        if self.subject_kinds:
+            spec["subjectKinds"] = list(self.subject_kinds)
+        if self.command:
+            spec["command"] = list(self.command)
+        if self.expectation is not None:
+            spec["expectation"] = self.expectation.to_mapping()
+        return {
+            "apiVersion": SUPPORTED_API_VERSION,
+            "kind": "GateDefinition",
+            "metadata": {
+                "name": self.name,
+                "gateId": self.gate_id,
+                "version": self.version,
+            },
+            "spec": spec,
+        }
 
 
 @dataclass(frozen=True, slots=True)

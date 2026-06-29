@@ -1,0 +1,99 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0052",
+  "verifier": "agent:independent-verifier",
+  "decision": "approve",
+  "summary": "Independent verifier approved TASK-0052: all acceptance criteria are covered by task evidence and independently rerun verification commands.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0052-0001",
+        "EVD-TASK-0052-0002"
+      ],
+      "notes": "Schema defines optional spec.expectation with required expectedExitCode and optional outputMatch; lint confirmed examples still validate."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0052-0001",
+        "EVD-TASK-0052-0002"
+      ],
+      "notes": "GateDefinition exposes command and expectation, with unit coverage for from_mapping/to_mapping round trip."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0052-0001",
+        "EVD-TASK-0052-0002"
+      ],
+      "notes": "examples/records/gate-definition.json includes command and expectation and is present in scripts/lint_contracts.py MAPPINGS."
+    },
+    {
+      "criterion_index": 4,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0052-0001"
+      ],
+      "notes": "ADR-0008 records command gate as default verification engine, deterministic gate as fixture/CI baseline, and AWKP EvidenceGate as evidence-lineage reviewer."
+    },
+    {
+      "criterion_index": 5,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0052-0001"
+      ],
+      "notes": "architecture/SPEC.md now identifies the governed dynamic kernel path as recommended and labels standard-harness and loop-engineering as legacy compatibility."
+    },
+    {
+      "criterion_index": 6,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0052-0002"
+      ],
+      "notes": "src/ahra/acceptance_contracts.py imports only dataclasses, enum, and typing; unit domain-import ban also passed."
+    },
+    {
+      "criterion_index": 7,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0052-0002"
+      ],
+      "notes": "Independent reruns passed: targeted unittest, scripts/check.py --lint, scripts/check.py full baseline, and git diff --check."
+    },
+    {
+      "criterion_index": 8,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0052-0001",
+        "EVD-TASK-0052-0002"
+      ],
+      "notes": "Producer moved TASK-0052 only to review at state_version 2; completion is left to EvidenceGate."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_acceptance_contracts -v",
+      "status": "passed",
+      "summary": "Ran 14 tests; all passed."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --lint",
+      "status": "passed",
+      "summary": "AWKP lint reported 0 errors and 0 warnings; AHRA lint reported 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors reported."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py",
+      "status": "passed",
+      "summary": "Full baseline passed: 208 unittest cases passed with 1 Windows symlink privilege skip."
+    }
+  ]
+}

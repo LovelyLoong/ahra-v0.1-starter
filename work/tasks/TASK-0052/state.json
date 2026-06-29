@@ -1,0 +1,25 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0052",
+  "context_id": "CTX-verification-teeth",
+  "state": "completed",
+  "state_version": 3,
+  "attempt": 1,
+  "owner": null,
+  "lease": null,
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0052-0001",
+    "ART-TASK-0052-0002",
+    "ART-TASK-0052-HANDOFF-0001",
+    "ART-TASK-0052-0003"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0052-0001",
+    "EVD-TASK-0052-0002",
+    "EVD-TASK-0052-0003"
+  ],
+  "updated_at": "2026-06-29T10:42:30.964537Z"
+}
