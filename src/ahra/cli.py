@@ -15,6 +15,7 @@ from ahra.awkp_state_writer import AwkpTaskStateWriter
 from ahra.awkp_task_creator import AwkpTaskCreateRequest, AwkpTaskCreator
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
 from ahra.goal_operations import GoalOperationError, GoalOperationService
+from ahra.orchestrator import AwkpTaskOrchestrationRequest, AwkpTaskReviewOrchestrator
 from ahra.ports import AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
 
 
@@ -176,6 +177,24 @@ def _task_command(args: argparse.Namespace) -> Any:
             lease_ttl_seconds=args.lease_ttl_seconds,
         )
         return asdict(result)
+    if args.task_command == "orchestrate-review":
+        request = AwkpTaskOrchestrationRequest(
+            task=args.task,
+            work_root=args.work_root,
+            expected_version=args.expected_version,
+            producer_actor=args.producer_actor,
+            verifier_actor=args.verifier_actor,
+            fencing_token=args.fencing_token,
+            report_paths=tuple(args.report or ()),
+            max_cycles=args.max_cycles,
+            idempotency_key_prefix=args.idempotency_key_prefix,
+            review_refs=tuple(args.ref or ("state.json", "artifact-manifest.json", "evidence-manifest.json")),
+            artifact_refs=tuple(args.artifact_ref or ()),
+            evidence_refs=tuple(args.evidence_ref or ()),
+            lease_ttl_seconds=args.lease_ttl_seconds,
+            reason=args.reason,
+        )
+        return asdict(AwkpTaskReviewOrchestrator(work_root=args.work_root).run(request))
     raise ValueError(f"unknown task command: {args.task_command}")
 
 
@@ -470,7 +489,7 @@ def _build_parser(*, include_legacy_workflow: bool = False) -> argparse.Argument
             help="Register fake-reference for local fixture smoke tests only.",
         )
 
-    task = groups.add_parser("task", help="create, claim, and inspect AWKP tasks.")
+    task = groups.add_parser("task", help="create, claim, orchestrate-review, and inspect AWKP tasks.")
     task_commands = task.add_subparsers(dest="task_command", required=True)
     task_create = task_commands.add_parser("create", help="Create a lint-clean AWKP task skeleton.")
     task_create.add_argument("task", help="Task ID such as TASK-0062.")
@@ -499,6 +518,29 @@ def _build_parser(*, include_legacy_workflow: bool = False) -> argparse.Argument
         "--reason",
         default="Claimed task through ahra task claim.",
         help="Reason recorded on the lease_acquired event.",
+    )
+
+    task_orchestrate = task_commands.add_parser(
+        "orchestrate-review",
+        help="Request review and invoke EvidenceGate under a distinct verifier identity.",
+    )
+    task_orchestrate.add_argument("task", help="Task ID such as TASK-0062, or path to a task directory.")
+    task_orchestrate.add_argument("--work-root", default="work", help="AWKP work root containing tasks/.")
+    task_orchestrate.add_argument("--expected-version", required=True, type=int, help="Expected working state_version.")
+    task_orchestrate.add_argument("--producer-actor", required=True, help="Current task lease holder.")
+    task_orchestrate.add_argument("--verifier-actor", required=True, help="Independent EvidenceGate verifier actor.")
+    task_orchestrate.add_argument("--fencing-token", required=True, help="Current producer lease fencing token.")
+    task_orchestrate.add_argument("--report", action="append", required=True, help="Verifier input report JSON. Repeat for retry cycles.")
+    task_orchestrate.add_argument("--max-cycles", type=int, default=1, help="Maximum EvidenceGate cycles before adding a blocker.")
+    task_orchestrate.add_argument("--idempotency-key-prefix", help="Prefix for generated review/reclaim/blocker events.")
+    task_orchestrate.add_argument("--ref", action="append", help="Review event ref. Repeat for multiple refs.")
+    task_orchestrate.add_argument("--artifact-ref", action="append", help="Artifact ref to attach on review.")
+    task_orchestrate.add_argument("--evidence-ref", action="append", help="Evidence ref to attach on review.")
+    task_orchestrate.add_argument("--lease-ttl-seconds", type=int, help="Optional reclaim lease TTL.")
+    task_orchestrate.add_argument(
+        "--reason",
+        default="Task evidence is ready for automated independent EvidenceGate review.",
+        help="Reason recorded on review_requested events.",
     )
 
     task_inspect = task_commands.add_parser("inspect", help="Inspect task state, manifests, events, and criteria.")

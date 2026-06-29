@@ -67,6 +67,8 @@ EvidenceGate must fail closed when:
 - the task is not in `review`;
 - the caller is the same producer identity and no independent verifier is
   recorded;
+- prior `evidence_gate_report` records are verifier artifacts and are not counted
+  as producer implementation evidence for later changes-requested re-review;
 - `expected_version` does not match `state.json.state_version`;
 - an evidence reference is missing, malformed, or hash-mismatched;
 - an acceptance criterion has no matching evidence;

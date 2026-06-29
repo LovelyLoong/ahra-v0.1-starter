@@ -15,7 +15,12 @@ from ahra.awkp_state_writer import (
     AwkpTaskStateWriter,
 )
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
-from ahra.ports import AwkpTaskStateWriterPort
+from ahra.orchestrator import (
+    AwkpTaskOrchestrationRequest,
+    AwkpTaskOrchestratorError,
+    AwkpTaskReviewOrchestrator,
+)
+from ahra.ports import AwkpTaskOrchestratorPort, AwkpTaskStateWriterPort
 
 
 D1 = "sha256:" + "1" * 64
@@ -360,13 +365,67 @@ def _make_state_writer_task(root: Path, *, task_id: str = "TASK-9100") -> Path:
     return task_dir
 
 
-def _write_gate_input(root: Path, *, task_id: str = "TASK-9001", decision: str = "approve") -> Path:
+def _make_working_gate_task(root: Path, *, task_id: str = "TASK-9200") -> Path:
+    task_dir = _make_task(root, task_id=task_id)
+    state_path = task_dir / "state.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state.update(
+        {
+            "state": "working",
+            "state_version": 4,
+            "owner": "agent:producer",
+            "lease": {
+                "holder": "agent:producer",
+                "fencing_token": "FENCE-1",
+                "acquired_at": "2026-06-22T00:04:00Z",
+                "heartbeat_at": "2026-06-22T00:04:00Z",
+                "expires_at": None,
+            },
+            "next_action": "Producer evidence is ready for automated review.",
+            "blockers": [],
+            "updated_at": "2026-06-22T00:04:00Z",
+        }
+    )
+    _write_json(state_path, state)
+    _append_event(
+        task_dir / "events.jsonl",
+        {
+            "schema_version": "awkp/0.1",
+            "event_id": f"EVT-{task_id}-0003",
+            "idempotency_key": f"{task_id}:producer-lease",
+            "task_id": task_id,
+            "context_id": "CTX-gate-test",
+            "event_type": "lease_acquired",
+            "actor": "agent:producer",
+            "occurred_at": "2026-06-22T00:04:00Z",
+            "causation_id": f"EVT-{task_id}-0002",
+            "correlation_id": "CTX-gate-test",
+            "from_state": "ready",
+            "to_state": "working",
+            "reason": "Producer owns the task before orchestrated review.",
+            "refs": ["state.json"],
+            "expected_version": 3,
+            "new_state_version": 4,
+            "lease_fencing_token": "FENCE-1",
+        },
+    )
+    return task_dir
+
+
+def _write_gate_input(
+    root: Path,
+    *,
+    task_id: str = "TASK-9001",
+    decision: str = "approve",
+    name: str = "gate-input.json",
+    verifier: str = "agent:verifier",
+) -> Path:
     status = "passed" if decision == "approve" else "failed"
     evidence_refs = [f"EVD-{task_id}-KERNEL"] if decision == "approve" else []
     report = {
         "schema_version": "ahra/evidence-gate-input/0.1",
         "task_id": task_id,
-        "verifier": "agent:verifier",
+        "verifier": verifier,
         "decision": decision,
         "summary": "Verifier mapped criteria to evidence.",
         "criteria": [
@@ -395,7 +454,7 @@ def _write_gate_input(root: Path, *, task_id: str = "TASK-9001", decision: str =
             }
         ],
     }
-    path = root / "gate-input.json"
+    path = root / name
     _write_json(path, report)
     return path
 
@@ -574,6 +633,176 @@ class EvidenceGateTests(unittest.TestCase):
                 for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
             ]
             self.assertEqual(events[-1]["event_type"], "evidence_gate_approved")
+
+    def test_task_review_orchestrator_approves_with_independent_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_working_gate_task(root)
+            report = _write_gate_input(root, task_id="TASK-9200", name="approve.json")
+            orchestrator = AwkpTaskReviewOrchestrator(work_root=root / "work")
+            self.assertIsInstance(orchestrator, AwkpTaskOrchestratorPort)
+
+            result = orchestrator.run(
+                AwkpTaskOrchestrationRequest(
+                    task="TASK-9200",
+                    work_root=root / "work",
+                    expected_version=4,
+                    producer_actor="agent:producer",
+                    verifier_actor="agent:verifier",
+                    fencing_token="FENCE-1",
+                    report_paths=(report,),
+                    max_cycles=1,
+                    artifact_refs=("ART-TASK-9200-0001",),
+                    evidence_refs=("EVD-TASK-9200-0001",),
+                )
+            )
+
+            self.assertEqual(result.terminal_state, "completed")
+            self.assertEqual(result.state_version, 6)
+            self.assertFalse(result.blocked)
+            self.assertEqual(len(result.cycles), 1)
+            self.assertEqual(result.cycles[0].decision, "approve")
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "completed")
+            events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertEqual(events[-2]["event_type"], "review_requested")
+            self.assertEqual(events[-1]["event_type"], "evidence_gate_approved")
+
+    def test_task_review_orchestrator_rejects_producer_verifier_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_working_gate_task(root)
+            report = _write_gate_input(root, task_id="TASK-9200", name="approve.json")
+            before_events = (task_dir / "events.jsonl").read_text(encoding="utf-8")
+
+            with self.assertRaisesRegex(AwkpTaskOrchestratorError, "must differ"):
+                AwkpTaskReviewOrchestrator(work_root=root / "work").run(
+                    AwkpTaskOrchestrationRequest(
+                        task="TASK-9200",
+                        work_root=root / "work",
+                        expected_version=4,
+                        producer_actor="agent:producer",
+                        verifier_actor="agent:producer",
+                        fencing_token="FENCE-1",
+                        report_paths=(report,),
+                    )
+                )
+
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "working")
+            self.assertEqual(state["state_version"], 4)
+            self.assertEqual((task_dir / "events.jsonl").read_text(encoding="utf-8"), before_events)
+
+    def test_task_review_orchestrator_reclaims_after_request_changes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_working_gate_task(root)
+            request_changes = _write_gate_input(
+                root,
+                task_id="TASK-9200",
+                decision="request_changes",
+                name="request-changes.json",
+            )
+            approve = _write_gate_input(root, task_id="TASK-9200", name="approve.json")
+
+            result = AwkpTaskReviewOrchestrator(work_root=root / "work").run(
+                AwkpTaskOrchestrationRequest(
+                    task="TASK-9200",
+                    work_root=root / "work",
+                    expected_version=4,
+                    producer_actor="agent:producer",
+                    verifier_actor="agent:verifier",
+                    fencing_token="FENCE-1",
+                    report_paths=(request_changes, approve),
+                    max_cycles=2,
+                    artifact_refs=("ART-TASK-9200-0001",),
+                    evidence_refs=("EVD-TASK-9200-0001",),
+                )
+            )
+
+            self.assertEqual(result.terminal_state, "completed")
+            self.assertEqual(len(result.cycles), 2)
+            self.assertEqual(result.cycles[0].decision, "request_changes")
+            self.assertIsNotNone(result.cycles[1].reclaim_event_id)
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "completed")
+            self.assertEqual(state["blockers"], [])
+            events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            event_types = [event["event_type"] for event in events]
+            self.assertIn("evidence_gate_changes_requested", event_types)
+            self.assertIn("lease_reclaimed", event_types)
+            self.assertEqual(event_types[-1], "evidence_gate_approved")
+
+    def test_task_review_orchestrator_max_cycles_adds_blocker(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_working_gate_task(root)
+            report = _write_gate_input(
+                root,
+                task_id="TASK-9200",
+                decision="request_changes",
+                name="request-changes.json",
+            )
+
+            result = AwkpTaskReviewOrchestrator(work_root=root / "work").run(
+                AwkpTaskOrchestrationRequest(
+                    task="TASK-9200",
+                    work_root=root / "work",
+                    expected_version=4,
+                    producer_actor="agent:producer",
+                    verifier_actor="agent:verifier",
+                    fencing_token="FENCE-1",
+                    report_paths=(report,),
+                    max_cycles=1,
+                )
+            )
+
+            self.assertEqual(result.terminal_state, "changes_requested")
+            self.assertTrue(result.blocked)
+            self.assertIn("max_cycles=1", result.blocker or "")
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "changes_requested")
+            self.assertTrue(any("max_cycles=1" in blocker for blocker in state["blockers"]))
+            events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertEqual(events[-1]["event_type"], "blocker_added")
+
+    def test_task_review_orchestrator_does_not_approve_hollow_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_working_gate_task(root)
+            report = _write_gate_input(root, task_id="TASK-9200", name="hollow.json")
+            data = json.loads(report.read_text(encoding="utf-8"))
+            for criterion in data["criteria"]:
+                criterion["evidence_refs"] = ["EVD-TASK-9200-0001"]
+            data["commands"][0]["evidence_refs"] = ["EVD-TASK-9200-0001"]
+            _write_json(report, data)
+
+            with self.assertRaisesRegex(EvidenceGateError, "without kernel EvidenceV2"):
+                AwkpTaskReviewOrchestrator(work_root=root / "work").run(
+                    AwkpTaskOrchestrationRequest(
+                        task="TASK-9200",
+                        work_root=root / "work",
+                        expected_version=4,
+                        producer_actor="agent:producer",
+                        verifier_actor="agent:verifier",
+                        fencing_token="FENCE-1",
+                        report_paths=(report,),
+                        max_cycles=1,
+                    )
+                )
+
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "review")
+            self.assertEqual(state["state_version"], 5)
 
     def test_rejects_command_backed_pass_without_kernel_lineage(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

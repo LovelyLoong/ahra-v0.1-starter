@@ -1,0 +1,38 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0059",
+  "generated_at": "2026-06-29T15:50:00Z",
+  "generated_by": "agent:codex-implementation",
+  "summary": "Producer-side TASK-0059 verification passed. Targeted orchestrator and CLI tests passed, full repository check passed, and git diff whitespace check exited 0 with only CRLF/LF normalization warnings for TASK-0059 state files.",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_evidence_gate tests.test_cli -v",
+      "exit_code": 0,
+      "status": "passed",
+      "result_summary": "Ran 29 tests; OK."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py",
+      "exit_code": 0,
+      "status": "passed",
+      "result_summary": "AWKP lint 0 errors and 0 warnings; AHRA lint 0 failures; Ran 234 tests; OK with 2 environment skips."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "passed",
+      "result_summary": "No whitespace errors. Git reported CRLF/LF normalization warnings for work/tasks/TASK-0059/events.jsonl and work/tasks/TASK-0059/state.json."
+    }
+  ],
+  "acceptance_coverage": [
+    "Orchestrator drives a task from working to an EvidenceGate terminal decision without separate manual CLI invocation between request-review and gate evaluation.",
+    "Producer and verifier equality fails closed before state mutation; EvidenceGate producer identity rejection remains authoritative.",
+    "request_changes is reclaimed through the TASK-0057 writer, then re-enters review; max cycle exhaustion records a blocker.",
+    "Existing EvidenceGate hash recompute, CAS state_version, append-only event, command lineage, and hollow-gate guarantees are exercised by the regression suite.",
+    "The orchestrator calls real EvidenceGate and does not approve on hollow command-backed evidence.",
+    "Producer moved TASK-0059 only to review after publishing this evidence."
+  ],
+  "residual_notes": [
+    "The orchestrator automates the review and verification state path; it does not implement the TASK-0060 Goal-to-AWKP evidence bridge or a producer repair engine."
+  ]
+}

@@ -58,6 +58,7 @@ The default local operation surface is:
 - `python -m ahra.cli goal cancel <GEXEC-ID> --db <goal-control.sqlite3> --reason <reason>`
 - `python -m ahra.cli task create <TASK-ID> --title ... --description ... --context-id ... --acceptance ...`
 - `python -m ahra.cli task claim <TASK-ID> --expected-version <N> --actor <producer>`
+- `python -m ahra.cli task orchestrate-review <TASK-ID> --expected-version <N> --producer-actor <producer> --verifier-actor <verifier> --fencing-token <token> --report <report.json>`
 - `python -m ahra.cli task inspect <TASK-ID>`
 - `python -m ahra.cli evidence-gate evaluate <TASK-ID> --expected-version <N> --report <report.json> --actor <verifier>`
 - `python -m ahra.cli doctor`
@@ -97,6 +98,7 @@ exposes existing Python services:
 - `goal cancel`
 - `task create`
 - `task claim`
+- `task orchestrate-review`
 - `task inspect`
 - `evidence-gate evaluate`
 - `doctor`

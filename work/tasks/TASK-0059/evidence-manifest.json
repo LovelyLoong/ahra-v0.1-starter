@@ -1,5 +1,119 @@
 {
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0059",
-  "evidence": []
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0059-0001",
+      "task_id": "TASK-0059",
+      "kind": "orchestrator_report",
+      "name": "orchestrator-report.md",
+      "uri": "local://evidence/orchestrator-report.md",
+      "sha256": "62da87e0be7cc36f5b6d267bdfde68cc6dca4efe45fa009c128a7480a6d1747d",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-29T15:50:00Z",
+      "refs": [
+        "ART-TASK-0059-0001"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0059-0002",
+      "task_id": "TASK-0059",
+      "kind": "verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "5499a3a05aeb3969ec6e9cfe1beb3ed35f8824b6d9962e9c1ca19c947f41a0eb",
+      "media_type": "application/json",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-29T15:50:00Z",
+      "refs": [
+        "ART-TASK-0059-0002",
+        "EVD-TASK-0059-0001"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0059-0003",
+      "task_id": "TASK-0059",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "1929c9ad92732a814a28e47e984bf0580d196d8768cfededb720917164bf528c",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-29T15:50:00Z",
+      "refs": [
+        "ART-TASK-0059-0003",
+        "EVD-TASK-0059-0001",
+        "EVD-TASK-0059-0002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0059-0004",
+      "task_id": "TASK-0059",
+      "kind": "kernel_evidence_v2",
+      "name": "EVD-TASK-0059-0004.json",
+      "uri": "local://evidence/kernel-evidence/EVD-TASK-0059-0004.json",
+      "sha256": "197e29f11b7de64423e035fa619701ddfc46e911066b80a2f5e9178828bae94f",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T16:04:46.951073Z",
+      "refs": [
+        "ART-TASK-0059-0007",
+        "ART-TASK-0059-0004",
+        "GATERUN-e205919e2a128376"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0059-0005",
+      "task_id": "TASK-0059",
+      "kind": "kernel_evidence_v2",
+      "name": "EVD-TASK-0059-0005.json",
+      "uri": "local://evidence/kernel-evidence/EVD-TASK-0059-0005.json",
+      "sha256": "c57b548dc1dfcba23c9cd54927592327b4812456d8a6b13d847d368eb69d9ab9",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T16:04:46.951073Z",
+      "refs": [
+        "ART-TASK-0059-0008",
+        "ART-TASK-0059-0005",
+        "GATERUN-45ce080e849eb950"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0059-0006",
+      "task_id": "TASK-0059",
+      "kind": "kernel_evidence_v2",
+      "name": "EVD-TASK-0059-0006.json",
+      "uri": "local://evidence/kernel-evidence/EVD-TASK-0059-0006.json",
+      "sha256": "12e3e017388148338382c54449ea249dd0fed9627554ccd33e64b942a42e8263",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T16:04:46.951073Z",
+      "refs": [
+        "ART-TASK-0059-0009",
+        "ART-TASK-0059-0006",
+        "GATERUN-91120cec0dd217e5"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0059-0007",
+      "task_id": "TASK-0059",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "011ea30768be2e93359152ba9749a962628768df0f4fc9b34aca1793bac6693b",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-29T16:07:51.200826Z",
+      "refs": [
+        "ART-TASK-0059-0010",
+        "EVD-TASK-0059-0001",
+        "EVD-TASK-0059-0002",
+        "EVD-TASK-0059-0003",
+        "EVD-TASK-0059-0004",
+        "EVD-TASK-0059-0005",
+        "EVD-TASK-0059-0006"
+      ]
+    }
+  ]
 }

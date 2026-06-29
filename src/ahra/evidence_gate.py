@@ -374,10 +374,14 @@ def _producer_identities(
 ) -> set[str]:
     identities: set[str] = set()
     for record in artifact_manifest.get("artifacts", []):
+        if record.get("kind") == "evidence_gate_report":
+            continue
         created_by = record.get("created_by")
         if created_by:
             identities.add(str(created_by))
     for record in evidence_manifest.get("evidence", []):
+        if record.get("kind") == "evidence_gate_report":
+            continue
         created_by = record.get("created_by")
         if created_by:
             identities.add(str(created_by))

@@ -1,0 +1,112 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "Evidence",
+  "metadata": {
+    "evidenceId": "EVD-TASK-0059-0004",
+    "createdAt": "2026-06-29T16:04:46.951073Z"
+  },
+  "spec": {
+    "claimRefs": [
+      "CR1-terminal-evidencegate-decision",
+      "CR2-producer-verifier-boundary",
+      "CR3-bounded-changes-loop",
+      "CR4-existing-gate-guarantees",
+      "CR5-real-verification-no-hollow-gate",
+      "CR6-required-checks"
+    ],
+    "gateRef": "GATE-task-0059-targeted-tests",
+    "gateDefinitionDigest": "sha256:e258eba4a305bd9e22e34c43e02a469101561ee33022f28567cff6a4a45bb38a",
+    "gateRunId": "GATERUN-e205919e2a128376",
+    "result": "passed",
+    "confidence": "verified",
+    "subjects": [
+      {
+        "ref": "work/tasks/TASK-0059/task.md",
+        "digest": "sha256:ff7cd67ed67a24b8c8547ef9ebfc43660c744735dab178b5762d37fefacb14e9"
+      },
+      {
+        "ref": "src/ahra/orchestrator.py",
+        "digest": "sha256:c3072edc3e3ba8ab3c55d49d3dfcb616d1794e1a04d73762bffabafbc95fc997"
+      },
+      {
+        "ref": "src/ahra/awkp_state_writer.py",
+        "digest": "sha256:a39b58fcf5658b0cd46a4eeb248af507ede9f339210ad28026d03d2f75efbadd"
+      },
+      {
+        "ref": "src/ahra/evidence_gate.py",
+        "digest": "sha256:de42d5130bbdad161fc85681e192efd28986bbb1a7ae66f0cd8aed2a8e3278f6"
+      },
+      {
+        "ref": "src/ahra/cli.py",
+        "digest": "sha256:0ed0b5d7a3e788aa812012528e390620f3f4deef38f26993d70186b61491df09"
+      },
+      {
+        "ref": "src/ahra/ports.py",
+        "digest": "sha256:a3e9a9cb6e28a5b8094ec75dfc7fd2fd795800a467c063491a516de1f20ecac8"
+      },
+      {
+        "ref": "tests/test_evidence_gate.py",
+        "digest": "sha256:cb28ec4803a9b82aff76d89554eb1ae5540d626bb6c1db98b18b2c6c8ccd3752"
+      },
+      {
+        "ref": "tests/test_cli.py",
+        "digest": "sha256:91cb26e4cb7be28ec01ee0f7241389b9e3e7f6349e579ceeea5c3742f2ebcc19"
+      },
+      {
+        "ref": "README.md",
+        "digest": "sha256:55d1bd7336cee7cb9e7c842ef8b8ed02a1c3b169c47232b781cb3a7cf02509ba"
+      },
+      {
+        "ref": "docs/architecture/framework-entrypoints.md",
+        "digest": "sha256:7770bc908f26ce182e4696bfd346379ddf5c9d56615f9c655c33bb99df724d96"
+      },
+      {
+        "ref": "docs/architecture/component-inventory.json",
+        "digest": "sha256:7d524e472a5cc223f5bd8d1deafbd7031d1364a809ab936fa2e377a54d6f57de"
+      },
+      {
+        "ref": "docs/architecture/evidence-gate.md",
+        "digest": "sha256:d9635c5cdb12f2d6fcd470e4794765ef9255e163d5a644332e3236fc38713775"
+      },
+      {
+        "ref": "skills/ahra-dynamic-kernel/SKILL.md",
+        "digest": "sha256:8b607bd3a8993443ac63ede112b4c2d31e69fed7af2355dce3f2a3dcb47c550f"
+      },
+      {
+        "ref": "work/tasks/TASK-0059/evidence/orchestrator-report.md",
+        "digest": "sha256:62da87e0be7cc36f5b6d267bdfde68cc6dca4efe45fa009c128a7480a6d1747d"
+      },
+      {
+        "ref": "work/tasks/TASK-0059/evidence/verification-summary.json",
+        "digest": "sha256:5499a3a05aeb3969ec6e9cfe1beb3ed35f8824b6d9962e9c1ca19c947f41a0eb"
+      },
+      {
+        "ref": "work/tasks/TASK-0059/handoffs/HANDOFF-0001.md",
+        "digest": "sha256:1929c9ad92732a814a28e47e984bf0580d196d8768cfededb720917164bf528c"
+      },
+      {
+        "ref": "scripts/check.py",
+        "digest": "sha256:b6bbdd6da2b46bc843cf329a6a1b49ecdb49cf4b652f3da1c4cc87594080897f"
+      }
+    ],
+    "dependencies": [],
+    "environment": {
+      "runtimeProfileDigest": "sha256:c3128282e973675a1f1ed910e729e7b5b9b466a3e57919f32f6880e7236c7d9a",
+      "policyDigest": "sha256:313bc54ebe36d4d59d665e4a2f765b56c3a06dfdb3de9e96c14df0577292d6d0",
+      "verifierReleaseDigest": "sha256:cad84cbf2cc1c91c60b3b056845ca78546d97ca98401ad731b537f3b1b958697",
+      "testDefinitionDigest": "sha256:89cd991033e0967b44e48568de7c2b392816619401da01688b11062e6d316a58",
+      "relevantEnvironmentDigest": "sha256:d3fae93a43f1ecb7b8a9df8db3c83643f3e198708f1681140544e08f77ba874a"
+    },
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    },
+    "dependencyScope": "complete",
+    "fingerprint": "sha256:afe6dabc9fbda90204884e1b95cd177859c017c6b707729e4d054e340c2a8cfd",
+    "refs": [
+      "ART-TASK-0059-0004",
+      "GATERUN-e205919e2a128376"
+    ],
+    "supersedes": []
+  }
+}

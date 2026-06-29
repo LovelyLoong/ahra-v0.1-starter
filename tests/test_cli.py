@@ -200,6 +200,7 @@ class CliTests(unittest.TestCase):
 
         self.assertIn("create", help_text)
         self.assertIn("claim", help_text)
+        self.assertIn("orchestrate-review", help_text)
         self.assertIn("goal", help_text)
         self.assertIn("fixture", help_text)
         self.assertIn("evidence-gate", help_text)
@@ -332,6 +333,34 @@ class CliTests(unittest.TestCase):
             self.assertEqual(events[-1]["event_type"], "lease_acquired")
             self.assertEqual(events[-1]["idempotency_key"], "TASK-CLI-CLAIM:claim:test")
             self.assertEqual(events[-1]["lease_fencing_token"], payload["result"]["fencing_token"])
+
+    def test_task_orchestrate_review_rejects_same_producer_and_verifier(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+
+            code, payload, _ = _run_cli(
+                [
+                    "task",
+                    "orchestrate-review",
+                    "TASK-CLI-MISSING",
+                    "--work-root",
+                    str(root / "work"),
+                    "--expected-version",
+                    "1",
+                    "--producer-actor",
+                    "agent:same",
+                    "--verifier-actor",
+                    "agent:same",
+                    "--fencing-token",
+                    "FENCE-1",
+                    "--report",
+                    str(root / "missing-report.json"),
+                ]
+            )
+
+            self.assertEqual(code, 2)
+            self.assertFalse(payload["ok"])
+            self.assertIn("verifier_actor must differ from producer_actor", payload["error"])
 
     def test_task_create_rejects_malformed_input(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

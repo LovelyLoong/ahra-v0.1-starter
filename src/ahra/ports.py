@@ -388,12 +388,31 @@ class AwkpTaskStateWriterPort(Protocol):
         artifact_refs: Iterable[str] = (),
         evidence_refs: Iterable[str] = (),
         next_action: str = "Await independent EvidenceGate review.",
+        clear_blockers: bool = False,
+    ) -> Any: ...
+
+    def add_blocker(
+        self,
+        task_ref: str | Path,
+        *,
+        expected_version: int,
+        actor: str,
+        idempotency_key: str,
+        blocker: str,
+        reason: str,
+        refs: Iterable[str] = ("state.json",),
+        next_action: str | None = None,
     ) -> Any: ...
 
 
 @runtime_checkable
 class AwkpTaskCreatorPort(Protocol):
     def create(self, request: Any) -> Any: ...
+
+
+@runtime_checkable
+class AwkpTaskOrchestratorPort(Protocol):
+    def run(self, request: Any) -> Any: ...
 
 
 @runtime_checkable

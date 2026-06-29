@@ -2,15 +2,25 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0059",
   "context_id": "CTX-workflow-autonomy",
-  "state": "ready",
-  "state_version": 0,
-  "attempt": 0,
+  "state": "completed",
+  "state_version": 3,
+  "attempt": 1,
   "owner": null,
   "lease": null,
-  "next_action": "After TASK-0058, build the producer-to-verifier orchestrator preserving producer != verifier.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "pause_reason": null,
   "blockers": [],
-  "artifact_refs": [],
-  "evidence_refs": [],
-  "updated_at": "2026-06-29T11:00:00Z"
+  "artifact_refs": [
+    "ART-TASK-0059-0001",
+    "ART-TASK-0059-0002",
+    "ART-TASK-0059-0003",
+    "ART-TASK-0059-0010"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0059-0001",
+    "EVD-TASK-0059-0002",
+    "EVD-TASK-0059-0003",
+    "EVD-TASK-0059-0007"
+  ],
+  "updated_at": "2026-06-29T16:07:51.200826Z"
 }
