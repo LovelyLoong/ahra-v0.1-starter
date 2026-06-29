@@ -1,0 +1,16 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0060",
+  "context_id": "CTX-workflow-autonomy",
+  "state": "ready",
+  "state_version": 0,
+  "attempt": 0,
+  "owner": null,
+  "lease": null,
+  "next_action": "After TASK-0059, bridge a GoalExecution to an AWKP task so kernel evidence feeds the AWKP gate.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-06-29T11:00:00Z"
+}

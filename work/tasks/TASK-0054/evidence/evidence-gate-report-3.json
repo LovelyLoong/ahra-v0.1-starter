@@ -1,0 +1,112 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0054",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-29T11:54:30.000000Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier approved TASK-0054: Goal completion is derived from real EvidenceV2 through evaluate_completion, incomplete evidence no longer marks the goal completed, passing evidence still completes the deterministic path, and all required checks passed.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "`complete()` returns a `CompletionGateResult` derived from the execution's real `EvidenceV2` through `evaluate_completion()`, and `current_claim_coverage` reflects the actually covered required claims (not a hardcoded 1.0).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0054-0001",
+        "EVD-TASK-0054-0002"
+      ],
+      "notes": "DeterministicGoalVerificationService.complete now calls evaluate_completion over a ClaimGraph built from required_claim_refs and the current VerificationExecutor EvidenceV2 records; coverage is computed by evaluate_completion rather than hardcoded."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "A goal with a failing gate yields `complete=False` with populated `uncovered_claim_refs` or `missing_claim_refs`, and the goal is NOT marked completed, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0054-0001",
+        "EVD-TASK-0054-0002"
+      ],
+      "notes": "test_completion_service_derives_from_current_evidence covers failed evidence producing complete=false with uncovered CLAIM-b and coverage 0.5; test_finish_active_plan_uses_derived_incomplete_result_without_goal_success verifies the goal remains verifying instead of succeeded."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "A goal whose gates all pass yields `complete=True` and the goal is marked completed, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0054-0001",
+        "EVD-TASK-0054-0002"
+      ],
+      "notes": "test_completion_service_derives_from_current_evidence covers the all-passing EvidenceV2 case producing complete=true and coverage 1.0; test_validate_plan_start_resume_inspect_and_terminal_cancel covers the default deterministic goal path reaching goalStatus succeeded."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "`_finish_goal_if_ready` no longer passes an unconditional `completion_complete=True`; it passes the derived completion value.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0054-0001",
+        "EVD-TASK-0054-0002"
+      ],
+      "notes": "_finish_goal_if_ready passes completion.complete into complete_goal and falls back to an incomplete CompletionGateResult when no completion result is supplied; no unconditional completion_complete=True remains in goal_operations.py."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "The existing deterministic M1 smoke path still completes (regression).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0054-0002"
+      ],
+      "notes": "Full test discovery passed, including test_m1_experiment and dynamic fixture coverage for the deterministic M1 smoke path."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "`src/ahra/goal_operations.py` imports no adapter/model/cloud dependency.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0054-0001",
+        "EVD-TASK-0054-0002"
+      ],
+      "notes": "src/ahra/goal_operations.py imports local AHRA modules and standard-library modules only; no adapter, model, or cloud dependency import was introduced."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Targeted tests, lint, and diff checks pass, or any failure is recorded as a blocker with exact command output.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0054-0002"
+      ],
+      "notes": "Independent reruns passed: targeted unittest set, scripts/check.py --test, scripts/check.py --lint, and git diff --check."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Producer moves TASK-0054 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0054-0001",
+        "EVD-TASK-0054-0002"
+      ],
+      "notes": "Producer moved TASK-0054 only to review at state_version 2; completion is left to independent EvidenceGate."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_goal_operations tests.test_verification tests.test_plan_execution -v",
+      "status": "passed",
+      "summary": "Ran 50 targeted tests; all passed."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --test",
+      "status": "passed",
+      "summary": "Full unittest discovery passed: 218 tests ran with 1 Windows symlink privilege skip."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --lint",
+      "status": "passed",
+      "summary": "AWKP lint reported 0 errors and 0 warnings; AHRA lint reported 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors reported."
+    }
+  ]
+}

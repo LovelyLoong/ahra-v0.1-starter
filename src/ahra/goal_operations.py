@@ -4,13 +4,14 @@ import asyncio
 import json
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping
+from typing import TYPE_CHECKING, Any, Callable, Mapping
 
 import yaml
 
 from .capabilities import CapabilityAdmissionService, CapabilityScope, LocalRuntimeGateway, RuntimeCapabilityProfile
+from .acceptance_contracts import Claim, ClaimGraph, ClaimType, RiskLevel
 from .domain import utc_now
-from .evidence_v2 import EvidenceEnvironment, canonical_fingerprint
+from .evidence_v2 import EvidenceEnvironment, EvidenceV2, canonical_fingerprint
 from .node_executor import (
     NodeExecutionRequest,
     NodeExecutionResult,
@@ -37,6 +38,7 @@ from .verification import (
     VerificationExecutor,
     VerificationSelection,
     VerificationTrigger,
+    evaluate_completion,
 )
 
 if TYPE_CHECKING:
@@ -368,7 +370,12 @@ class GoalOperationService:
                     branch=request.branch,
                 )
             )
-            latest_goal = self._finish_goal_if_ready(service, goal.goal_execution_id, latest_execution.plan_execution_id)
+            latest_goal = self._finish_goal_if_ready(
+                service,
+                goal.goal_execution_id,
+                latest_execution.plan_execution_id,
+                completion=_scheduler_completion(scheduler),
+            )
             ran = True
         result = self.inspect(goal.goal_execution_id, db_path=request.store_path)
         report = {
@@ -422,7 +429,12 @@ class GoalOperationService:
                 branch=request.branch,
             )
         )
-        latest_goal = self._finish_goal_if_ready(service, goal_execution_id, execution.plan_execution_id)
+        latest_goal = self._finish_goal_if_ready(
+            service,
+            goal_execution_id,
+            execution.plan_execution_id,
+            completion=_scheduler_completion(scheduler),
+        )
         report = {
             "schema_version": "ahra/goal-operation-resume/0.1",
             "goalExecutionId": goal_execution_id,
@@ -586,7 +598,11 @@ class GoalOperationService:
         gate_registry = GateRunnerRegistry()
         gate_registry.register(DeterministicGateRunner())
         verification_executor = VerificationExecutor(gate_registry)
-        verification_service = DeterministicGoalVerificationService()
+        verification_service = DeterministicGoalVerificationService.from_required_claim_refs(
+            goal_ref=request.goal_ref,
+            required_claim_refs=request.required_claim_refs,
+            evidence_records=lambda: verification_executor.evidence_records,
+        )
         capability_admission = _capability_admission_service(request)
         return StaticPlanScheduler(
             service=PlanExecutionService(store),  # type: ignore[arg-type]
@@ -619,6 +635,8 @@ class GoalOperationService:
         service: PlanExecutionService,
         goal_execution_id: str,
         plan_execution_id: str,
+        *,
+        completion: CompletionGateResult | None = None,
     ) -> Any:
         goal = service.store.get_goal_execution(goal_execution_id)
         execution = service.store.get_execution(plan_execution_id)
@@ -630,9 +648,13 @@ class GoalOperationService:
             expected_version=goal.status_version,
         )
         if execution.status == PlanExecutionStatus.SUCCEEDED:
+            completion = completion or CompletionGateResult(
+                complete=False,
+                missing_claim_refs=("completion_gate_result_unavailable",),
+            )
             goal = service.complete_goal(
                 goal_execution_id,
-                completion_complete=True,
+                completion_complete=completion.complete,
                 expected_version=goal.status_version,
                 evidence_refs=execution.evidence_refs,
                 artifact_refs=execution.artifact_refs,
@@ -681,6 +703,31 @@ class GoalOperationService:
 
 
 class DeterministicGoalVerificationService:
+    def __init__(
+        self,
+        *,
+        graph: ClaimGraph | None = None,
+        evidence_records: Callable[[], tuple[EvidenceV2, ...]] | None = None,
+    ) -> None:
+        self.graph = graph
+        self._evidence_records = evidence_records or (lambda: ())
+
+    @classmethod
+    def from_required_claim_refs(
+        cls,
+        *,
+        goal_ref: str,
+        required_claim_refs: tuple[str, ...],
+        evidence_records: Callable[[], tuple[EvidenceV2, ...]],
+    ) -> "DeterministicGoalVerificationService":
+        return cls(
+            graph=_claim_graph_from_required_claim_refs(
+                goal_ref=goal_ref,
+                required_claim_refs=required_claim_refs,
+            ),
+            evidence_records=evidence_records,
+        )
+
     def select(self, trigger: VerificationTrigger) -> VerificationSelection:
         return VerificationSelection(
             selected_gate_refs=tuple(sorted(trigger.failed_gate_refs)),
@@ -692,7 +739,16 @@ class DeterministicGoalVerificationService:
         )
 
     def complete(self, trigger: VerificationTrigger | None = None) -> CompletionGateResult:
-        return CompletionGateResult(complete=True, current_claim_coverage=1.0)
+        if self.graph is None:
+            return CompletionGateResult(
+                complete=False,
+                missing_claim_refs=("claim_graph_unavailable",),
+            )
+        return evaluate_completion(
+            graph=self.graph,
+            evidence_records=self._evidence_records(),
+            trigger=trigger,
+        )
 
     def defects(self) -> tuple[Any, ...]:
         return ()
@@ -912,6 +968,33 @@ def _goal_exists(store: SQLiteControlStore, goal_execution_id: str) -> bool:
         return True
     except KeyError:
         return False
+
+
+def _claim_graph_from_required_claim_refs(*, goal_ref: str, required_claim_refs: tuple[str, ...]) -> ClaimGraph:
+    claims = tuple(
+        Claim(
+            claim_id=claim_ref,
+            claim_type=ClaimType.FUNCTIONAL,
+            statement=f"{claim_ref} is required for {goal_ref}.",
+            criterion_refs=(f"CRIT-{claim_ref}",),
+            depends_on=(),
+            risk_level=RiskLevel.R1,
+            required_evidence_kinds=("gate_run",),
+            gate_refs=(),
+            required=True,
+        )
+        for claim_ref in sorted(set(required_claim_refs))
+    )
+    return ClaimGraph(goal_ref=goal_ref, version=1, claims=claims)
+
+
+def _scheduler_completion(scheduler: StaticPlanScheduler) -> CompletionGateResult:
+    if scheduler.verification_service is None:
+        return CompletionGateResult(
+            complete=False,
+            missing_claim_refs=("verification_service_unavailable",),
+        )
+    return scheduler.verification_service.complete(VerificationTrigger())
 
 
 def _looks_like_legacy_profile(profile_ref: str) -> bool:

@@ -1657,7 +1657,6 @@ class StaticPlanScheduler(SchedulerPort):
             )
             return
 
-        completion = self.verification_service.complete(VerificationTrigger())
         selection = self._required_gate_selection(node=node, rationale_prefix="goal_verification_gate")
         report = await self.verification_executor.execute_selection(
             selection,
@@ -1666,10 +1665,11 @@ class StaticPlanScheduler(SchedulerPort):
                 node=node,
                 node_run=latest,
                 workspace_ref=workspace_ref,
-                metadata={"completionComplete": completion.complete, "claimRefs": tuple(node.claim_refs)},
+                metadata={"claimRefs": tuple(node.claim_refs)},
                 capability_grants=capability_grants,
             ),
         )
+        completion = self.verification_service.complete(VerificationTrigger())
         verifying = self.service.transition_node(
             latest.node_run_id,
             NodeRunStatus.VERIFYING,

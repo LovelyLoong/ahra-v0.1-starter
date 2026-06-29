@@ -428,7 +428,11 @@ def _scheduler_for(
         service=PlanExecutionService(store),  # type: ignore[arg-type]
         executor_registry=registry,
         executor_release_refs={"bounded_task": DETERMINISTIC_EXECUTOR_REF, "repair": DETERMINISTIC_EXECUTOR_REF},
-        verification_service=DeterministicGoalVerificationService(),
+        verification_service=DeterministicGoalVerificationService.from_required_claim_refs(
+            goal_ref=request.goal_ref,
+            required_claim_refs=request.required_claim_refs,
+            evidence_records=lambda: verification_executor.evidence_records,
+        ),
         verification_executor=verification_executor,
         verification_environment=EvidenceEnvironment(
             runtime_profile_digest=request.runtime_digest,

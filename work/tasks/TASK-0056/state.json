@@ -1,0 +1,16 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0056",
+  "context_id": "CTX-verification-teeth",
+  "state": "ready",
+  "state_version": 0,
+  "attempt": 0,
+  "owner": null,
+  "lease": null,
+  "next_action": "After TASK-0055, wire a real command gate into M1 and demonstrate FAIL -> defect -> not-completed, then fix -> PASS, as a non-skipped test.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-06-29T10:00:00Z"
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0055",
+  "context_id": "CTX-verification-teeth",
+  "state": "working",
+  "state_version": 1,
+  "attempt": 1,
+  "owner": "agent:codex-dynamic-kernel-operator",
+  "lease": {
+    "holder": "agent:codex-dynamic-kernel-operator",
+    "token": "TASK-0055-lease-0001",
+    "acquired_at": "2026-06-29T12:00:00Z"
+  },
+  "next_action": "Upgrade AWKP EvidenceGate approve path to require command-backed criteria to reference kernel EvidenceV2 with valid gate-run lineage and matching fingerprint.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-06-29T12:00:00Z"
+}

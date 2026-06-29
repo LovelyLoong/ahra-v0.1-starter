@@ -1,0 +1,48 @@
+{
+  "schema_version": "awkp/verification-summary/0.1",
+  "task_id": "TASK-0054",
+  "created_at": "2026-06-29T11:45:00Z",
+  "created_by": "agent:codex-dynamic-kernel-operator",
+  "result": "passed",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_goal_operations tests.test_verification tests.test_plan_execution -v",
+      "exit_code": 0,
+      "result": "passed",
+      "summary": "Ran 50 tests in the final code state; all passed."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --test",
+      "exit_code": 0,
+      "result": "passed",
+      "summary": "Ran 218 tests; all passed with 1 skipped Windows symlink-permission case."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "result": "passed",
+      "summary": "AWKP lint and AHRA lint both reported 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "passed",
+      "summary": "No whitespace errors."
+    }
+  ],
+  "resolved_failures": [
+    {
+      "command": "uv run python -B scripts\\check.py --test",
+      "exit_code": 1,
+      "result": "resolved",
+      "summary": "Initial run exposed dynamic fixture assertions: finalCompletionAccepted was false and goalExecution.status was failed instead of succeeded. The fixture goal-completion gate was updated to derive from dependency evidence coverage; final rerun passed."
+    },
+    {
+      "command": "uv run python -B scripts\\check.py --lint",
+      "exit_code": 1,
+      "result": "resolved",
+      "summary": "Post-evidence lint exposed missing YAML frontmatter in evidence/completion-derivation-report.md. Frontmatter was added and final lint rerun passed."
+    }
+  ],
+  "blockers": []
+}

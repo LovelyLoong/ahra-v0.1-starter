@@ -9,18 +9,51 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 import yaml
 
 from ahra import cli
-from ahra.goal_operations import GoalOperationService
+from ahra.evidence_v2 import DigestRef, EvidenceEnvironment, EvidenceResult, EvidenceV2
+from ahra.goal_operations import DeterministicGoalVerificationService, GoalOperationService
 from ahra.plan_execution import PlanExecutionService, PlanExecutionStatus
 from ahra.sqlite_control_store import SQLiteControlStore
 
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / "examples" / "m1" / "goal-run-request.yaml"
+D1 = "sha256:" + "1" * 64
+D2 = "sha256:" + "2" * 64
+D3 = "sha256:" + "3" * 64
+D4 = "sha256:" + "4" * 64
+
+
+def _evidence(
+    evidence_id: str,
+    claim_ref: str,
+    *,
+    result: EvidenceResult = EvidenceResult.PASSED,
+    stored: bool = True,
+) -> EvidenceV2:
+    record = EvidenceV2(
+        evidence_id=evidence_id,
+        claim_refs=(claim_ref,),
+        gate_ref=f"GATE-{claim_ref}",
+        gate_definition_digest=D1,
+        gate_run_id=f"GRUN-{evidence_id}",
+        result=result,
+        confidence="verified",
+        subjects=(DigestRef(ref=f"ART-{claim_ref}", digest=D2),),
+        dependencies=(),
+        environment=EvidenceEnvironment(
+            runtime_profile_digest=D1,
+            policy_digest=D2,
+            verifier_release_digest=D3,
+            test_definition_digest=D4,
+        ),
+    )
+    return replace(record, stored_fingerprint=record.fingerprint() if stored else None)
 
 
 def _run_cli(argv: list[str]) -> tuple[int, dict]:
@@ -249,6 +282,107 @@ class GoalOperationCliTests(unittest.TestCase):
             self.assertIsNone(finalized.active_plan_execution_ref)
             self.assertEqual(finalized.failure_class, "timeout")
             self.assertEqual(second.status.value, "failed")
+
+    def test_completion_service_derives_from_current_evidence(self) -> None:
+        failing_service = DeterministicGoalVerificationService.from_required_claim_refs(
+            goal_ref="GOAL-evidence-derived",
+            required_claim_refs=("CLAIM-a", "CLAIM-b"),
+            evidence_records=lambda: (
+                _evidence("EVD-a-pass", "CLAIM-a"),
+                _evidence("EVD-b-fail", "CLAIM-b", result=EvidenceResult.FAILED),
+            ),
+        )
+
+        failing = failing_service.complete()
+
+        self.assertFalse(failing.complete)
+        self.assertEqual(failing.uncovered_claim_refs, ("CLAIM-b",))
+        self.assertEqual(failing.current_claim_coverage, 0.5)
+
+        passing_service = DeterministicGoalVerificationService.from_required_claim_refs(
+            goal_ref="GOAL-evidence-derived",
+            required_claim_refs=("CLAIM-a", "CLAIM-b"),
+            evidence_records=lambda: (
+                _evidence("EVD-a-pass", "CLAIM-a"),
+                _evidence("EVD-b-pass", "CLAIM-b"),
+            ),
+        )
+
+        passing = passing_service.complete()
+
+        self.assertTrue(passing.complete)
+        self.assertEqual(passing.current_claim_coverage, 1.0)
+
+    def test_finish_active_plan_uses_derived_incomplete_result_without_goal_success(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            request_path = _copy_request(Path(temp))
+            service = GoalOperationService()
+            bundle = service.plan_bundle(request_path)
+            assert bundle.plan is not None
+            request = bundle.request
+            store = SQLiteControlStore(request.store_path)
+            plan_service = PlanExecutionService(store)  # type: ignore[arg-type]
+            goal = plan_service.create_goal_execution(
+                goal_ref=request.goal_ref,
+                goal_digest=request.goal_digest,
+                claim_graph_digest=request.claim_graph_digest,
+                claim_graph_ref=request.claim_graph_ref,
+                goal_execution_id=request.goal_execution_id,
+                max_repair_cycles=request.max_repair_cycles,
+                budget_summary={"profileRef": request.profile_ref},
+                workspace_ref=str(request.workspace_ref),
+            )
+            execution = plan_service.start_execution(
+                bundle.plan,
+                bundle.validation_report,
+                goal_execution_ref=goal.goal_execution_id,
+                max_concurrency=request.max_concurrency,
+            )
+            plan_service.attach_plan_execution(
+                goal.goal_execution_id,
+                execution.plan_execution_id,
+                expected_version=goal.status_version,
+            )
+            running = plan_service.transition_execution(
+                execution.plan_execution_id,
+                PlanExecutionStatus.RUNNING,
+                expected_version=execution.status_version,
+                message="Static PlanIR DAG scheduling started.",
+            )
+            verifying = plan_service.transition_execution(
+                running.plan_execution_id,
+                PlanExecutionStatus.VERIFYING,
+                expected_version=running.status_version,
+                evidence_refs=("EVD-a-pass", "EVD-b-fail"),
+                message="Plan entered final verification.",
+            )
+            succeeded = plan_service.transition_execution(
+                verifying.plan_execution_id,
+                PlanExecutionStatus.SUCCEEDED,
+                expected_version=verifying.status_version,
+                evidence_refs=("EVD-a-pass", "EVD-b-fail"),
+                message="Plan finished, but goal completion must still be derived.",
+            )
+            completion_service = DeterministicGoalVerificationService.from_required_claim_refs(
+                goal_ref=request.goal_ref,
+                required_claim_refs=request.required_claim_refs,
+                evidence_records=lambda: (
+                    _evidence("EVD-a-pass", request.required_claim_refs[0]),
+                    _evidence("EVD-b-fail", request.required_claim_refs[1], result=EvidenceResult.FAILED),
+                ),
+            )
+
+            finalized = service._finish_goal_if_ready(
+                plan_service,
+                request.goal_execution_id,
+                succeeded.plan_execution_id,
+                completion=completion_service.complete(),
+            )
+
+            self.assertEqual(finalized.status.value, "verifying")
+            self.assertIsNone(finalized.active_plan_execution_ref)
+            self.assertIn("EVD-b-fail", finalized.evidence_refs)
+            self.assertIn("incomplete", finalized.message)
 
 
 if __name__ == "__main__":

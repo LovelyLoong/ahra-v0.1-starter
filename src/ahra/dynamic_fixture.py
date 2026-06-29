@@ -262,8 +262,9 @@ class DynamicFixtureGateRunner:
     gate_kind = "*"
     release_ref = "fixture-deterministic"
 
-    def __init__(self, executor: DynamicFixtureExecutor) -> None:
+    def __init__(self, executor: DynamicFixtureExecutor, graph: ClaimGraph) -> None:
         self.executor = executor
+        self.graph = graph
         self.calls: list[str] = []
 
     async def run(self, request: GateExecutionRequest) -> GateExecutionResult:
@@ -302,7 +303,15 @@ class DynamicFixtureGateRunner:
         if request.gate_ref == "GATE-selective-reverify":
             return GateExecutionStatus.PASSED if request.metadata.get("selectedFewerThanFull") is True else GateExecutionStatus.FAILED
         if request.gate_ref == "GATE-goal-completion":
-            return GateExecutionStatus.PASSED if request.metadata.get("completionComplete") is True else GateExecutionStatus.FAILED
+            return (
+                GateExecutionStatus.PASSED
+                if _claims_covered(
+                    graph=self.graph,
+                    records=request.dependency_evidence,
+                    excluded_claim_refs=("CLAIM-goal-completion",),
+                )
+                else GateExecutionStatus.FAILED
+            )
         return GateExecutionStatus.BLOCKED
 
     def _subjects(self, request: GateExecutionRequest) -> tuple[DigestRef, ...]:
@@ -419,7 +428,7 @@ def run_dynamic_repair_fixture(fixture_project: Path | str) -> dict[str, Any]:
             )
 
         executor = DynamicFixtureExecutor()
-        gate_runner = DynamicFixtureGateRunner(executor)
+        gate_runner = DynamicFixtureGateRunner(executor, graph)
         gate_registry = GateRunnerRegistry()
         gate_registry.register(gate_runner, gate_kind="*", release_ref="fixture-deterministic")
         verification_executor = VerificationExecutor(gate_registry)
