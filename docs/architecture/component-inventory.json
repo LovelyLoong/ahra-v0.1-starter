@@ -1,6 +1,6 @@
 {
   "schema_version": "ahra/component-inventory/0.1",
-  "generated_at": "2026-06-29T07:25:35Z",
+  "generated_at": "2026-06-29T14:41:12Z",
   "owner": "team:platform",
   "review_after": "2026-09-25T00:00:00Z",
   "scope": "Default-visible components after Mode C default promotion, deprecated retained workflow paths, and removed MCP/demo implementation after TASK-0051.",
@@ -278,6 +278,22 @@
       "security_class": "expected-version verifier-side completion gate",
       "side_effects": "updates task state and appends task event only through EvidenceGate decision",
       "artifact_evidence": "evidence-gate-report JSON and task event records"
+    },
+    {
+      "id": "component:awkp-task-state-writer",
+      "kind": "component",
+      "lifecycle_class": "core",
+      "default_visible": true,
+      "owner": "team:platform",
+      "review_after": "2026-09-25T00:00:00Z",
+      "paths": ["src/ahra/awkp_state_writer.py", "src/ahra/ports.py", "schemas/task-state.schema.json", "schemas/event.schema.json"],
+      "serves": ["Task", "Event", "Lease", "FencingToken"],
+      "entrypoints": ["AwkpTaskStateWriter", "AwkpTaskStateWriterPort"],
+      "consumers": ["AWKP task review flow", "future governed task CLI", "local operators"],
+      "tests": ["tests/test_evidence_gate.py", "scripts/lint_awkp.py"],
+      "security_class": "CAS-protected local task state writer with per-task lock, idempotency, lease, and fencing-token checks",
+      "side_effects": "writes work/tasks/<TASK-ID>/state.json and appends work/tasks/<TASK-ID>/events.jsonl only through governed producer transitions",
+      "artifact_evidence": "task state.json and append-only events.jsonl transition records"
     },
     {
       "id": "contract-family:awkp-task-state",

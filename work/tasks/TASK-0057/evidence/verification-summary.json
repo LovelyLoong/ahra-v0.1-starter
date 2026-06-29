@@ -1,0 +1,42 @@
+{
+  "schema_version": "ahra/task-verification-summary/0.1",
+  "task_id": "TASK-0057",
+  "generated_by": "agent:codex-implementation",
+  "generated_at": "2026-06-29T14:48:01Z",
+  "summary": "All TASK-0057 producer-side verification commands passed. git diff --check emitted only CRLF/LF normalization warnings for TASK-0057 state/events.",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_evidence_gate -v",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "Ran 11 tests in tests.test_evidence_gate; all OK."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "AWKP lint: 0 error(s), 0 warning(s)."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "AHRA lint: 0 failure(s); lint_contracts invoked AWKP lint successfully."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "passed",
+      "summary": "No whitespace errors. Git printed CRLF/LF normalization warnings for work/tasks/TASK-0057/events.jsonl and state.json."
+    }
+  ],
+  "covered_acceptance": [
+    "CAS rejects stale expected_version",
+    "ready->working records lease and fencing token",
+    "working->review rejects stale fencing token",
+    "changes_requested->working checks previous fencing token",
+    "duplicate idempotency keys are rejected",
+    "transition occurred_at values are monotonic",
+    "writer uses standard library only and remains offline"
+  ]
+}

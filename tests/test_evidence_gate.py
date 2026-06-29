@@ -5,9 +5,17 @@ import hashlib
 import json
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 
+from ahra.awkp_state_writer import (
+    AwkpTaskStateCasError,
+    AwkpTaskStateFenceError,
+    AwkpTaskStateIdempotencyError,
+    AwkpTaskStateWriter,
+)
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
+from ahra.ports import AwkpTaskStateWriterPort
 
 
 D1 = "sha256:" + "1" * 64
@@ -308,6 +316,50 @@ Test EvidenceGate.
     return task_dir
 
 
+def _make_state_writer_task(root: Path, *, task_id: str = "TASK-9100") -> Path:
+    task_dir = root / "work" / "tasks" / task_id
+    task_dir.mkdir(parents=True)
+    _write_json(
+        task_dir / "state.json",
+        {
+            "schema_version": "awkp/0.1",
+            "task_id": task_id,
+            "context_id": "CTX-state-writer-test",
+            "state": "ready",
+            "state_version": 0,
+            "owner": None,
+            "attempt": 0,
+            "lease": None,
+            "next_action": "Ready for governed writer test.",
+            "pause_reason": None,
+            "blockers": [],
+            "artifact_refs": [],
+            "evidence_refs": [],
+            "updated_at": "2026-06-22T00:00:00Z",
+        },
+    )
+    _append_event(
+        task_dir / "events.jsonl",
+        {
+            "schema_version": "awkp/0.1",
+            "event_id": f"EVT-{task_id}-0001",
+            "idempotency_key": f"{task_id}:created",
+            "task_id": task_id,
+            "context_id": "CTX-state-writer-test",
+            "event_type": "task_created",
+            "actor": "human:maintainer",
+            "occurred_at": "2026-06-22T00:00:00Z",
+            "causation_id": None,
+            "correlation_id": "CTX-state-writer-test",
+            "from_state": None,
+            "to_state": "ready",
+            "reason": "Created for governed writer test.",
+            "refs": ["task.md"],
+        },
+    )
+    return task_dir
+
+
 def _write_gate_input(root: Path, *, task_id: str = "TASK-9001", decision: str = "approve") -> Path:
     status = "passed" if decision == "approve" else "failed"
     evidence_refs = [f"EVD-{task_id}-KERNEL"] if decision == "approve" else []
@@ -349,6 +401,153 @@ def _write_gate_input(root: Path, *, task_id: str = "TASK-9001", decision: str =
 
 
 class EvidenceGateTests(unittest.TestCase):
+    def test_awkp_state_writer_governs_cas_fencing_idempotency_and_reclaim(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_state_writer_task(root)
+            tokens = iter(["FENCE-1", "FENCE-2"])
+            writer = AwkpTaskStateWriter(
+                work_root=root / "work",
+                clock=lambda: "2026-06-22T00:00:00Z",
+                token_factory=lambda: next(tokens),
+            )
+            self.assertIsInstance(writer, AwkpTaskStateWriterPort)
+
+            acquired = writer.acquire_working(
+                "TASK-9100",
+                expected_version=0,
+                actor="agent:producer",
+                idempotency_key="TASK-9100:acquire:1",
+                reason="Begin governed implementation.",
+            )
+
+            self.assertEqual(acquired.state_version, 1)
+            self.assertEqual(acquired.fencing_token, "FENCE-1")
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "working")
+            self.assertEqual(state["state_version"], 1)
+            self.assertEqual(state["lease"]["fencing_token"], "FENCE-1")
+
+            with self.assertRaisesRegex(AwkpTaskStateCasError, "expected state_version 0, current 1"):
+                writer.acquire_working(
+                    "TASK-9100",
+                    expected_version=0,
+                    actor="agent:producer",
+                    idempotency_key="TASK-9100:acquire:stale",
+                    reason="Stale writer must fail.",
+                )
+            state_after_stale = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state_after_stale["state_version"], 1)
+            self.assertEqual(state_after_stale["lease"]["fencing_token"], "FENCE-1")
+
+            with self.assertRaisesRegex(AwkpTaskStateIdempotencyError, "duplicate idempotency_key"):
+                writer.request_review(
+                    "TASK-9100",
+                    expected_version=1,
+                    actor="agent:producer",
+                    idempotency_key="TASK-9100:acquire:1",
+                    fencing_token="FENCE-1",
+                    reason="Duplicate idempotency must fail.",
+                )
+            with self.assertRaisesRegex(AwkpTaskStateFenceError, "fencing token mismatch"):
+                writer.request_review(
+                    "TASK-9100",
+                    expected_version=1,
+                    actor="agent:producer",
+                    idempotency_key="TASK-9100:review:stale-fence",
+                    fencing_token="FENCE-stale",
+                    reason="Stale fence must fail.",
+                )
+
+            reviewed = writer.request_review(
+                "TASK-9100",
+                expected_version=1,
+                actor="agent:producer",
+                idempotency_key="TASK-9100:review:1",
+                fencing_token="FENCE-1",
+                reason="Implementation evidence is ready for independent review.",
+                refs=["state.json", "evidence/governed-state-writer-report.md"],
+                artifact_refs=["ART-TASK-9100-0001"],
+                evidence_refs=["EVD-TASK-9100-0001"],
+            )
+
+            self.assertEqual(reviewed.state_version, 2)
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "review")
+            self.assertIsNone(state["lease"])
+            self.assertIn("ART-TASK-9100-0001", state["artifact_refs"])
+            self.assertIn("EVD-TASK-9100-0001", state["evidence_refs"])
+
+            state.update(
+                {
+                    "state": "changes_requested",
+                    "state_version": 3,
+                    "next_action": "Reclaim after verifier changes request.",
+                    "updated_at": "2026-06-22T00:02:00Z",
+                }
+            )
+            _write_json(task_dir / "state.json", state)
+            _append_event(
+                task_dir / "events.jsonl",
+                {
+                    "schema_version": "awkp/0.1",
+                    "event_id": "EVT-TASK-9100-0004",
+                    "idempotency_key": "TASK-9100:changes-requested:1",
+                    "task_id": "TASK-9100",
+                    "context_id": "CTX-state-writer-test",
+                    "event_type": "evidence_gate_changes_requested",
+                    "actor": "agent:verifier",
+                    "occurred_at": "2026-06-22T00:02:00Z",
+                    "causation_id": "EVT-TASK-9100-0003",
+                    "correlation_id": "CTX-state-writer-test",
+                    "from_state": "review",
+                    "to_state": "changes_requested",
+                    "reason": "Verifier requested changes.",
+                    "refs": ["state.json"],
+                },
+            )
+
+            with self.assertRaisesRegex(AwkpTaskStateFenceError, "stale previous fencing token"):
+                writer.reclaim_working(
+                    "TASK-9100",
+                    expected_version=3,
+                    actor="agent:producer",
+                    idempotency_key="TASK-9100:reclaim:stale-fence",
+                    previous_fencing_token="FENCE-stale",
+                    reason="Stale previous fence must fail.",
+                )
+
+            reclaimed = writer.reclaim_working(
+                "TASK-9100",
+                expected_version=3,
+                actor="agent:producer",
+                idempotency_key="TASK-9100:reclaim:1",
+                previous_fencing_token="FENCE-1",
+                reason="Reclaim after verifier request_changes.",
+            )
+
+            self.assertEqual(reclaimed.state_version, 4)
+            self.assertEqual(reclaimed.fencing_token, "FENCE-2")
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "working")
+            self.assertEqual(state["state_version"], 4)
+            self.assertEqual(state["lease"]["fencing_token"], "FENCE-2")
+            self.assertEqual(state["attempt"], 2)
+
+            events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            idempotency_keys = [event["idempotency_key"] for event in events]
+            self.assertEqual(len(idempotency_keys), len(set(idempotency_keys)))
+            occurred_at = [
+                datetime.fromisoformat(event["occurred_at"].replace("Z", "+00:00"))
+                for event in events
+            ]
+            self.assertEqual(occurred_at, sorted(occurred_at))
+            self.assertEqual(events[-1]["previous_lease_fencing_token"], "FENCE-1")
+            self.assertEqual(events[-1]["lease_fencing_token"], "FENCE-2")
+
     def test_approve_writes_gate_report_and_completes_task(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -514,6 +713,21 @@ class EvidenceGateTests(unittest.TestCase):
                 imports.add(node.module.split(".", 1)[0])
 
         self.assertNotIn("subprocess", imports)
+        self.assertNotIn("ahra", imports)
+
+    def test_awkp_state_writer_stays_stdlib_offline(self) -> None:
+        source = (Path(__file__).resolve().parents[1] / "src" / "ahra" / "awkp_state_writer.py").read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        imports: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imports.update(alias.name.split(".", 1)[0] for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                imports.add(node.module.split(".", 1)[0])
+
+        self.assertNotIn("subprocess", imports)
+        self.assertNotIn("requests", imports)
+        self.assertNotIn("yaml", imports)
         self.assertNotIn("ahra", imports)
 
 if __name__ == "__main__":

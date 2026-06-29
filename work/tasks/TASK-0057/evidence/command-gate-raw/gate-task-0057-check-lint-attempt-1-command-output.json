@@ -1,0 +1,18 @@
+{
+  "command": [
+    "D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe",
+    "-B",
+    "scripts\\check.py",
+    "--lint"
+  ],
+  "completedAt": "2026-06-29T15:01:49.370138+00:00",
+  "exitCode": 0,
+  "failureClass": null,
+  "gateRef": "GATE-task-0057-check-lint",
+  "reason": "command gate passed",
+  "startedAt": "2026-06-29T15:01:47.552919+00:00",
+  "status": "passed",
+  "stderr": "",
+  "stdout": "+ D:\\Work\\ahra-v0.1-starter\\.venv\\Scripts\\python.exe scripts/lint_contracts.py\nAWKP lint: 0 error(s), 0 warning(s)\nOK    examples/agents/repository-maintainer.yaml\nOK    examples/tools/git-apply-patch.yaml\nOK    examples/runtimes/local-worktree.yaml\nOK    examples/workflows/repository-maintenance.yaml\nOK    examples/workflow_modules/standard-harness.yaml\nOK    examples/workflow_modules/loop-engineering.yaml\nOK    examples/workflow_runs/fixtures/standard-task.yaml\nOK    examples/workflow_runs/fixtures/loop-goal.yaml\nOK    examples/workflow_runs/fixtures/loop-resume.yaml\nOK    examples/workflow_runs/runnable/standard-task-codex.yaml\nOK    examples/records/run.json\nOK    examples/records/memory.json\nOK    examples/records/context-manifest.json\nOK    examples/records/policy-decision.json\nOK    examples/records/capability-request.json\nOK    examples/records/capability-grant.json\nOK    examples/records/capability-audit-record.json\nOK    examples/records/approval.json\nOK    examples/records/event.json\nOK    examples/records/goal-contract.json\nOK    examples/m1/goal-run-request.yaml\nOK    examples/records/claim-graph.json\nOK    examples/records/gate-definition.json\nOK    examples/records/gate-plan.json\nOK    examples/records/evidence-v2.json\nOK    examples/records/gate-run-v2.json\nOK    examples/records/evidence-status-event.json\nOK    examples/records/verification-trigger.json\nOK    examples/records/verification-selection.json\nOK    examples/records/verification-result.json\nOK    examples/records/gate-execution-request.json\nOK    examples/records/gate-execution-result.json\nOK    examples/records/verification-execution-report.json\nOK    examples/records/defect-record.json\nOK    examples/records/node-run.json\nOK    examples/records/plan-draft.json\nOK    examples/records/plan-ir.json\nOK    examples/records/plan-patch.json\nOK    examples/records/plan-validation-report.json\nAHRA lint: 0 failure(s)\n",
+  "timedOut": false
+}

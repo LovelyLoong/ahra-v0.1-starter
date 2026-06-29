@@ -1,0 +1,139 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0057",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-29T15:04:33.831392Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verification passed for TASK-0057. Governed CAS state writer behavior, fencing, append-only event discipline, duplicate idempotency rejection, stale write rejection, stdlib/offline constraints, required command checks, and producer review-only boundary are supported by manifest-registered evidence.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A governed writer performs `ready -> working`, `working -> review`, and `changes_requested -> working`, each as a compare-and-swap against `state_version`, rejecting a stale `expected_version` with a clear error.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0057-0001",
+        "EVD-TASK-0057-0002",
+        "EVD-TASK-0057-0004"
+      ],
+      "notes": "Unit coverage exercises ready->working, working->review, changes_requested->working, CAS expected_version rejection, and clear writer exceptions."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "`ready -> working` records a lease with a fencing token; a re-claim or conflicting write with a stale fencing token is rejected, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0057-0001",
+        "EVD-TASK-0057-0004"
+      ],
+      "notes": "Tests cover lease fencing token creation, stale review fencing rejection, stale reclaim fencing rejection, and successful reclaim with a new fencing token."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Every transition appends an append-only event with a unique `idempotency_key` and a monotonic `occurred_at`; duplicate idempotency keys are rejected.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0057-0001",
+        "EVD-TASK-0057-0004"
+      ],
+      "notes": "Tests cover event append behavior, duplicate idempotency rejection, and monotonic occurred_at ordering."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "A concurrent/stale write attempt does not silently clobber state (CAS failure is surfaced), covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0057-0001",
+        "EVD-TASK-0057-0004"
+      ],
+      "notes": "Tests cover stale expected_version CAS failure and verify the failed write does not clobber current state."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "The writer is stdlib-only and offline; `.\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py` passes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0057-0004",
+        "EVD-TASK-0057-0005",
+        "EVD-TASK-0057-0006"
+      ],
+      "notes": "Stdlib/offline import test passed, AWKP lint passed, and project lint baseline passed."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Targeted tests, lint, and diff checks pass, or any failure is recorded as a blocker with exact command output.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0057-0002",
+        "EVD-TASK-0057-0004",
+        "EVD-TASK-0057-0005",
+        "EVD-TASK-0057-0006",
+        "EVD-TASK-0057-0007"
+      ],
+      "notes": "Required unittest, AWKP lint, project lint, and git diff --check all passed and are backed by kernel GateRun/EvidenceV2 lineage."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Producer moves TASK-0057 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0057-0003"
+      ],
+      "notes": "Producer moved TASK-0057 to review only; current approval is issued by independent EvidenceGate verification."
+    }
+  ],
+  "commands": [
+    {
+      "command_ref": "CMD-task-0057-evidence-gate-tests",
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_evidence_gate -v",
+      "status": "passed",
+      "criterion_indices": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0057-0004"
+      ]
+    },
+    {
+      "command_ref": "CMD-task-0057-lint-awkp",
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\lint_awkp.py",
+      "status": "passed",
+      "criterion_indices": [
+        5,
+        6
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0057-0005"
+      ]
+    },
+    {
+      "command_ref": "CMD-task-0057-check-lint",
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "status": "passed",
+      "criterion_indices": [
+        5,
+        6
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0057-0006"
+      ]
+    },
+    {
+      "command_ref": "CMD-task-0057-diff-check",
+      "command": "git diff --check",
+      "status": "passed",
+      "criterion_indices": [
+        6
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0057-0007"
+      ]
+    }
+  ]
+}

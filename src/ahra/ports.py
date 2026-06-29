@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Iterable, Protocol, runtime_checkable
+from typing import Any, Iterable, Mapping, Protocol, runtime_checkable
 
 from .capabilities import (
     AdmissionDecision,
@@ -346,6 +346,49 @@ class GoalOperationPort(Protocol):
         artifact_dir: Path | str | None = None,
     ) -> Mapping[str, Any]: ...
     def cancel(self, goal_execution_id: str, *, db_path: Path | str, reason: str) -> Mapping[str, Any]: ...
+
+
+@runtime_checkable
+class AwkpTaskStateWriterPort(Protocol):
+    def acquire_working(
+        self,
+        task_ref: str | Path,
+        *,
+        expected_version: int,
+        actor: str,
+        idempotency_key: str,
+        reason: str,
+        lease_ttl_seconds: int | None = None,
+        refs: Iterable[str] = ("task.md", "state.json"),
+    ) -> Any: ...
+
+    def reclaim_working(
+        self,
+        task_ref: str | Path,
+        *,
+        expected_version: int,
+        actor: str,
+        idempotency_key: str,
+        previous_fencing_token: str,
+        reason: str,
+        lease_ttl_seconds: int | None = None,
+        refs: Iterable[str] = ("task.md", "state.json"),
+    ) -> Any: ...
+
+    def request_review(
+        self,
+        task_ref: str | Path,
+        *,
+        expected_version: int,
+        actor: str,
+        idempotency_key: str,
+        fencing_token: str,
+        reason: str,
+        refs: Iterable[str] = ("state.json",),
+        artifact_refs: Iterable[str] = (),
+        evidence_refs: Iterable[str] = (),
+        next_action: str = "Await independent EvidenceGate review.",
+    ) -> Any: ...
 
 
 @runtime_checkable

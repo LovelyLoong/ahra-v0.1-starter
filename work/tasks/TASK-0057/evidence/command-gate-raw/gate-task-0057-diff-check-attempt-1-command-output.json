@@ -1,0 +1,17 @@
+{
+  "command": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "completedAt": "2026-06-29T15:01:49.465368+00:00",
+  "exitCode": 0,
+  "failureClass": null,
+  "gateRef": "GATE-task-0057-diff-check",
+  "reason": "command gate passed",
+  "startedAt": "2026-06-29T15:01:49.386690+00:00",
+  "status": "passed",
+  "stderr": "warning: in the working copy of 'work/tasks/TASK-0057/events.jsonl', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'work/tasks/TASK-0057/state.json', CRLF will be replaced by LF the next time Git touches it\n",
+  "stdout": "",
+  "timedOut": false
+}

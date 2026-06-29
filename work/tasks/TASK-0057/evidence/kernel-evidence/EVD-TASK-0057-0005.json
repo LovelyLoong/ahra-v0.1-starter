@@ -1,0 +1,80 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "Evidence",
+  "metadata": {
+    "evidenceId": "EVD-TASK-0057-0005",
+    "createdAt": "2026-06-29T15:01:45.451740Z"
+  },
+  "spec": {
+    "claimRefs": [
+      "CR5-stdlib-offline",
+      "CR6-required-checks"
+    ],
+    "gateRef": "GATE-task-0057-lint-awkp",
+    "gateDefinitionDigest": "sha256:2f5ee7d589d38d96a4b6f86a3c127b5acdd19adbd6a459535eb7f93d7630a9f2",
+    "gateRunId": "GATERUN-45aec46aaabd0952",
+    "result": "passed",
+    "confidence": "verified",
+    "subjects": [
+      {
+        "ref": "work/tasks/TASK-0057/task.md",
+        "digest": "sha256:814c76c5787c94b85136a5bdfe904938b9aafb91a594e9a819f2a8c06a62f765"
+      },
+      {
+        "ref": "src/ahra/awkp_state_writer.py",
+        "digest": "sha256:dcbfa66fc60b21ba2031d3862b7632d01f856bc0e6407744280a9b414819dbd8"
+      },
+      {
+        "ref": "src/ahra/ports.py",
+        "digest": "sha256:5433e1e9e48a4a565166fcb7d11defa126702bdc4202468a301ae5f5c0e2b80c"
+      },
+      {
+        "ref": "tests/test_evidence_gate.py",
+        "digest": "sha256:599afe6743166f437c6bf0d7d26f7d69b5a746df3be6bdaec70d21e1df5536ca"
+      },
+      {
+        "ref": "docs/architecture/component-inventory.json",
+        "digest": "sha256:8768a42f46a1bb27bc75a613c7704405197510e2950496cd2b2060562c6ba98c"
+      },
+      {
+        "ref": "work/tasks/TASK-0057/evidence/governed-state-writer-report.md",
+        "digest": "sha256:604b0fa5c7b6c945c8d771f9c096366ab15a92a737a93976e7fbd205e261ce0c"
+      },
+      {
+        "ref": "work/tasks/TASK-0057/evidence/verification-summary.json",
+        "digest": "sha256:026de3b3b563100883254d4e2073ae272f54a5fefd0b1dfcc4135af00c41d502"
+      },
+      {
+        "ref": "work/tasks/TASK-0057/handoffs/HANDOFF-0001.md",
+        "digest": "sha256:0d80e38762c3ccbb539d2a8a9aef52d0ddf330d89d234f0087723fa51e301efa"
+      },
+      {
+        "ref": "scripts/lint_awkp.py",
+        "digest": "sha256:cca4d8f6b32148f587987073f30fcbe58e197809e5fa723e741e51fca8063888"
+      },
+      {
+        "ref": "scripts/check.py",
+        "digest": "sha256:b6bbdd6da2b46bc843cf329a6a1b49ecdb49cf4b652f3da1c4cc87594080897f"
+      }
+    ],
+    "dependencies": [],
+    "environment": {
+      "runtimeProfileDigest": "sha256:d6260cf22c13d59d7eb63bb3270fbc6ec4bd6cfa243cdc1ac824393361addf82",
+      "policyDigest": "sha256:8dd51fd4c3639da9290a52b5490bdde000bf041f9a802db2d123562f47ec35c6",
+      "verifierReleaseDigest": "sha256:42b62483fe44e72aca48b733a2854e2e10e73825ce2ecdd7051166757e67b911",
+      "testDefinitionDigest": "sha256:603a9c878c19104144d8882f39c3901817439defff8876380e62984dbdc0b33b",
+      "relevantEnvironmentDigest": "sha256:1c011eea0f2c12beafed48f33c2218257858fc837a1f099139aec3a464f6f471"
+    },
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    },
+    "dependencyScope": "complete",
+    "fingerprint": "sha256:c8d89f641a9b23d2c5f11f062dbd62575a3f91919a6f712f8d73e0fc179e45f0",
+    "refs": [
+      "ART-TASK-0057-0005",
+      "GATERUN-45aec46aaabd0952"
+    ],
+    "supersedes": []
+  }
+}
