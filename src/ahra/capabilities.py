@@ -95,6 +95,7 @@ class CapabilityGrant:
     approval_refs: tuple[str, ...] = ()
     spawn_limit: int = 0
     superseded_by: str | None = None
+    denied_resources: tuple[str, ...] = ()
 
     def fingerprint_payload(self) -> dict:
         return {
@@ -114,6 +115,7 @@ class CapabilityGrant:
             "scope": sorted(self.scope),
             "spawnLimit": self.spawn_limit,
             "supersededBy": self.superseded_by,
+            "deniedResources": sorted(self.denied_resources),
         }
 
     def digest(self) -> str:
@@ -146,6 +148,7 @@ class CapabilityGrant:
                 "approvalRefs": list(self.approval_refs),
                 "spawnLimit": self.spawn_limit,
                 "supersededBy": self.superseded_by,
+                **({"deniedResources": list(self.denied_resources)} if self.denied_resources else {}),
             },
         }
 
@@ -161,7 +164,10 @@ class CapabilityScope:
 class RuntimeCapabilityProfile:
     runtime_ref: str
     supported_actions: frozenset[str]
+    allowed_write_paths: tuple[str, ...] = ()
+    denied_write_paths: tuple[str, ...] = ()
     allowed_commands: tuple[str, ...] = ()
+    allowed_network_egress: tuple[str, ...] = ()
     local_profile: bool = True
 
 
@@ -215,11 +221,18 @@ class CapabilityAdmissionService:
         if allow:
             goal_allowed = self.goal_scope.allowed_actions.get(request.action, ())
             policy_allowed = self.policy_scope.allowed_actions.get(request.action, ())
+            runtime_allowed = ()
+            if request.action == "filesystem.write":
+                runtime_allowed = _unique_refs((*self.runtime_profile.allowed_write_paths, *self.runtime_profile.denied_write_paths))
+            elif request.action == "process.exec":
+                runtime_allowed = self.runtime_profile.allowed_commands
+            elif request.action == "network.access":
+                runtime_allowed = self.runtime_profile.allowed_network_egress
             resources = _narrow_resources(
                 request.resources,
                 goal_allowed,
                 policy_allowed,
-                self.runtime_profile.allowed_commands if request.action == "process.exec" else (),
+                runtime_allowed,
             )
             grant = CapabilityGrant(
                 grant_id=f"CGRANT-{uuid.uuid4()}",
@@ -237,6 +250,11 @@ class CapabilityAdmissionService:
                 policy_decision_id=decision_id,
                 approval_refs=request.approval_refs,
                 spawn_limit=request.spawn_limit,
+                denied_resources=(
+                    tuple(sorted(set(self.runtime_profile.denied_write_paths)))
+                    if request.action == "filesystem.write"
+                    else ()
+                ),
             )
         return AdmissionDecision(
             decision_id=decision_id,
@@ -275,8 +293,19 @@ class CapabilityAdmissionService:
             return "privilege_widening"
         if not _resources_within_scope(request.resources, policy_allowed):
             return "privilege_widening"
+        if (
+            request.action == "filesystem.write"
+            and self.runtime_profile.allowed_write_paths
+            and not _resources_within_scope(
+                request.resources,
+                _unique_refs((*self.runtime_profile.allowed_write_paths, *self.runtime_profile.denied_write_paths)),
+            )
+        ):
+            return "runtime_write_not_allowed"
         if request.action == "process.exec" and not _resources_within_scope(request.resources, self.runtime_profile.allowed_commands):
             return "undeclared_command"
+        if request.action == "network.access" and not _resources_within_scope(request.resources, self.runtime_profile.allowed_network_egress):
+            return "runtime_egress_not_allowed"
         return "allow"
 
 
@@ -358,6 +387,8 @@ class LocalRuntimeGateway:
         target = self._resolve_target(relative_path)
         if reason == "allow" and target is None:
             reason = "path_escape"
+        if reason == "allow" and _resource_allowed(relative_path.replace("\\", "/"), grant.denied_resources):
+            reason = "path_blacklisted"
         if reason == "allow" and not _resource_allowed(relative_path.replace("\\", "/"), grant.resources):
             reason = "path_not_granted"
         if reason == "allow":
@@ -383,6 +414,8 @@ class LocalRuntimeGateway:
         target = self._resolve_target(relative_path)
         if reason == "allow" and target is None:
             reason = "path_escape"
+        if reason == "allow" and _resource_allowed(relative_path.replace("\\", "/"), grant.denied_resources):
+            reason = "path_blacklisted"
         if reason == "allow" and not _resource_allowed(relative_path.replace("\\", "/"), grant.resources):
             reason = "path_not_granted"
         if reason == "allow":
@@ -625,6 +658,14 @@ def _narrow_resources(
             and (not runtime_items or _resource_allowed(resource, runtime_items))
         )
     )
+
+
+def _unique_refs(values: Iterable[str]) -> tuple[str, ...]:
+    result: list[str] = []
+    for value in values:
+        if value not in result:
+            result.append(value)
+    return tuple(result)
 
 
 def _default_runner(command: tuple[str, ...]) -> Mapping[str, object]:

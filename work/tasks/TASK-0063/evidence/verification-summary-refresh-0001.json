@@ -1,0 +1,49 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0063",
+  "status": "ready_for_review",
+  "producer": "agent:codex-implementation",
+  "supersedes": "EVD-TASK-0063-0003",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_alignment_engine tests.test_request_admission tests.test_approval_service -v",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_alignment_engine tests.test_capabilities tests.test_phase1_comprehensive tests.test_cli tests.test_repository_consolidation tests.test_workflow_sequence -v",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --lint",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/lint_awkp.py",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ],
+  "evidence": [
+    "EVD-TASK-0063-0006",
+    "evidence/alignment-workflow-engine-report-refresh-0001.md",
+    "src/ahra/alignment_engine.py",
+    "tests/test_alignment_engine.py"
+  ],
+  "notes": [
+    "RequestDraft no longer exposes to_goal_execution_request_mapping; freezing remains owned by ApprovalService.",
+    "Dialogue transcript variation no longer changes the final deterministic RequestDraft when structured inputs are identical.",
+    "Producer did not mark the task completed.",
+    "EvidenceGate review remains required."
+  ]
+}

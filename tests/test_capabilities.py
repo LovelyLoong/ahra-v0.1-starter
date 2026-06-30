@@ -57,6 +57,7 @@ class CapabilityAdmissionTests(unittest.TestCase):
                 runtime_ref="runtime/local-test",
                 supported_actions=frozenset({"filesystem.write", "process.exec", "spawn.agent", "network.access"}),
                 allowed_commands=("uv run python -B scripts/check.py",),
+                allowed_network_egress=("https://example.invalid/status",),
             ),
         )
 
@@ -140,6 +141,36 @@ class CapabilityAdmissionTests(unittest.TestCase):
         assert decision.grant is not None
         self.assertEqual(decision.grant.action, "network.access")
         self.assertEqual(decision.grant.resources, ("https://example.invalid/status",))
+
+    def test_network_access_requires_runtime_egress_policy(self) -> None:
+        service = CapabilityAdmissionService(
+            goal_scope=CapabilityScope(
+                allowed_actions={"network.access": ("https://example.invalid/status",)},
+                allowed_roles_by_action={"network.access": ("executor",)},
+            ),
+            policy_scope=CapabilityScope(
+                allowed_actions={"network.access": ("https://example.invalid/status",)},
+                allowed_roles_by_action={"network.access": ("executor",)},
+            ),
+            runtime_profile=RuntimeCapabilityProfile(
+                runtime_ref="runtime/local-test",
+                supported_actions=frozenset({"network.access"}),
+            ),
+        )
+
+        decision = service.admit(
+            self._request(
+                "network.access",
+                ("https://example.invalid/status",),
+                risk_level="R2",
+                approval_refs=("APR-network",),
+            ),
+            now=NOW,
+        )
+
+        self.assertFalse(decision.allow)
+        self.assertEqual(decision.reason_code, "runtime_egress_not_allowed")
+        self.assertIsNone(decision.grant)
 
     def test_network_access_still_requires_approval(self) -> None:
         decision = self.service.admit(
@@ -297,6 +328,57 @@ class LocalRuntimeGatewayTests(unittest.TestCase):
             self.assertEqual(len(audit.records), 2)
             self.assertFalse((Path(tmp) / "safe" / "output.md").exists())
 
+    def test_blacklisted_write_path_is_rejected_with_audit_record(self) -> None:
+        decision = CapabilityAdmissionService(
+            goal_scope=CapabilityScope(
+                allowed_actions={"filesystem.write": ("evidence_gate.py",)},
+                allowed_roles_by_action={"filesystem.write": ("executor",)},
+            ),
+            runtime_profile=RuntimeCapabilityProfile(
+                runtime_ref="runtime/local-test",
+                supported_actions=frozenset({"filesystem.write"}),
+                allowed_write_paths=("alignment_*.py",),
+                denied_write_paths=("evidence_gate.py",),
+            ),
+        ).admit(
+            CapabilityRequest(
+                request_id="CREQ-blacklist",
+                plan_id="PLAN-capability-test",
+                node_id="NODE-capability-test",
+                requested_by="agent:test",
+                role="executor",
+                capability="filesystem.write",
+                action="filesystem.write",
+                resources=("evidence_gate.py",),
+                scope=("evidence_gate.py",),
+                risk_level="R1",
+                expires_at=NOW + timedelta(minutes=10),
+            ),
+            now=NOW,
+        )
+        self.assertTrue(decision.allow)
+        assert decision.grant is not None
+
+        with TemporaryDirectory() as tmp:
+            audit = InMemoryAuditSink()
+            gateway = LocalRuntimeGateway(Path(tmp), audit)
+
+            record = gateway.write_text(
+                decision.grant,
+                plan_id="PLAN-capability-test",
+                node_id="NODE-capability-test",
+                actor="executor",
+                relative_path="evidence_gate.py",
+                content="blocked",
+                now=NOW,
+            )
+
+            self.assertFalse(record.allowed)
+            self.assertEqual(record.reason_code, "path_blacklisted")
+            self.assertEqual(record.policy_decision_id, decision.grant.policy_decision_id)
+            self.assertEqual(len(audit.records), 1)
+            self.assertFalse((Path(tmp) / "evidence_gate.py").exists())
+
     def test_path_traversal_is_blocked_before_write(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp) / "workspace"
@@ -436,6 +518,7 @@ class LocalRuntimeGatewayTests(unittest.TestCase):
             runtime_profile=RuntimeCapabilityProfile(
                 runtime_ref="runtime/local-test",
                 supported_actions=frozenset({"network.access"}),
+                allowed_network_egress=("https://example.invalid/status",),
             ),
         ).admit(
             CapabilityRequest(

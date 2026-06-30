@@ -4,12 +4,10 @@ import asyncio
 import tempfile
 import unittest
 from dataclasses import replace
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from ahra.alignment_engine import AlignmentError, AlignmentWorkflowEngine
 from ahra.approval_service import ApprovalService
-from ahra.capabilities import CapabilityAdmissionService, CapabilityRequest, CapabilityScope, InMemoryAuditSink, LocalRuntimeGateway, RuntimeCapabilityProfile
 from ahra.evidence_v2 import DigestRef, EvidenceEnvironment
 from ahra.intent_draft import IntentCapabilityNeed
 from ahra.request_admission import RequestDraftAdmission
@@ -38,50 +36,50 @@ class Phase1ComprehensiveTests(unittest.TestCase):
 
         self.assertEqual(result["goalStatus"], "succeeded")
         self.assertGreaterEqual(result["inspect"]["metrics"]["capabilityGrantRefCount"], 2)
+        network_audits = [
+            audit
+            for record in result["inspect"]["idempotencyRecords"]
+            for audit in record["result"]["spec"]["details"].get("networkAccessAudits", [])
+        ]
 
-        now = datetime(2026, 6, 30, 10, 0, tzinfo=UTC)
-        grant = CapabilityAdmissionService(
-            goal_scope=CapabilityScope(
-                allowed_actions={"network.access": ("https://example.invalid/status",)},
-                allowed_roles_by_action={"network.access": ("executor",)},
+        self.assertTrue(network_audits)
+        self.assertEqual(
+            sorted({scope for audit in network_audits for scope in audit["spec"].get("resourceScope", [])}),
+            ["https://example.invalid/status"],
+        )
+        self.assertTrue(all(audit["spec"]["action"] == "network.access" for audit in network_audits))
+        self.assertTrue(all(audit["spec"]["allowed"] for audit in network_audits))
+        self.assertTrue(all(audit["spec"]["policyDecisionId"] for audit in network_audits))
+
+    def test_network_goal_outside_runtime_egress_policy_fails_admission(self) -> None:
+        intent = example_intent(
+            capability_needs=(
+                IntentCapabilityNeed(
+                    action="network.access",
+                    resources=("https://blocked.invalid/status",),
+                    reason="Probe an egress target outside the local runtime policy.",
+                    risk_level="R2",
+                    policy_refs=("POLICY-network-test",),
+                ),
+                IntentCapabilityNeed(
+                    action="filesystem.write",
+                    resources=("outputs/summary.txt",),
+                    reason="Persist the governed network summary.",
+                    risk_level="R1",
+                ),
             ),
-            runtime_profile=RuntimeCapabilityProfile(
-                runtime_ref="runtime/local-test",
-                supported_actions=frozenset({"network.access"}),
-            ),
-        ).admit(
-            CapabilityRequest(
-                request_id="CREQ-phase1-network",
-                plan_id="PLAN-phase1-network",
-                node_id="NODE-phase1-network",
-                requested_by="agent:test",
-                role="executor",
-                capability="network.access",
-                action="network.access",
-                resources=("https://example.invalid/status",),
-                scope=("https://example.invalid/status",),
-                risk_level="R2",
-                expires_at=now + timedelta(minutes=5),
-                approval_refs=("APR-network",),
-            ),
-            now=now,
-        ).grant
-        assert grant is not None
-        audit = InMemoryAuditSink()
-        record = LocalRuntimeGateway(Path("."), audit).record_network_access(
-            grant,
-            plan_id="PLAN-phase1-network",
-            node_id="NODE-phase1-network",
-            actor="executor",
-            resource="https://example.invalid/status",
-            request_summary={"method": "GET", "payload": "redacted"},
-            response_summary={"status": 200, "bodyDigest": D4},
-            now=now,
+            risk_hint="R2",
         )
 
-        self.assertTrue(record.allowed)
-        self.assertEqual(record.resource_scope, ("https://example.invalid/status",))
-        self.assertIsNotNone(record.evidence_summary)
+        with tempfile.TemporaryDirectory() as temp:
+            result = start_goal(Path(temp), intent)
+
+        self.assertEqual(result["goalStatus"], "failed")
+        self.assertEqual(result["planStatus"], "failed")
+        failed_nodes = [node for node in result["inspect"]["nodeRuns"] if node["status"] == "failed"]
+        self.assertEqual(len(failed_nodes), 1)
+        self.assertEqual(failed_nodes[0]["failure_class"], "capability_admission_denied")
+        self.assertIn("runtime_egress_not_allowed", failed_nodes[0]["message"])
 
     def test_scenario_3_subjective_goal_records_semantic_review_lineage(self) -> None:
         runner = SemanticReviewGateRunner(

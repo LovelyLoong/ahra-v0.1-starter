@@ -156,22 +156,6 @@ class RequestDraft:
             },
         }
 
-    def to_goal_execution_request_mapping(self) -> dict[str, Any]:
-        draft = self.to_mapping()
-        spec = dict(draft["spec"])
-        spec.pop("claimGraph", None)
-        spec.pop("capabilityPolicies", None)
-        return {
-            "apiVersion": "ahra.dev/v1alpha1",
-            "kind": "GoalExecutionRequest",
-            "metadata": {
-                "name": self.name,
-                "requestId": self.request_id,
-                "idempotencyKey": self.idempotency_key,
-            },
-            "spec": spec,
-        }
-
 
 class AlignmentWorkflowEngine:
     def __init__(self, registry: AlignmentRegistry | None = None) -> None:
@@ -210,8 +194,24 @@ class AlignmentWorkflowEngine:
             for need in session.intent.capability_needs
             if need.policy_refs
         }
+        goal_digest = canonical_fingerprint({"goalRef": goal_ref, "abstractGoal": session.intent.abstract_goal})
+        claim_graph_digest = canonical_fingerprint(_claim_graph_to_mapping(graph))
         return RequestDraft(
-            request_id="REQ-" + canonical_fingerprint(session.to_mapping()).removeprefix("sha256:")[:16],
+            request_id=_request_id(
+                session.intent,
+                profile=profile,
+                producer_actor=producer_actor,
+                workspace_ref=workspace_ref,
+                artifact_dir=artifact_dir,
+                store_path=store_path,
+                goal_ref=goal_ref,
+                goal_digest=goal_digest,
+                claim_graph_digest=claim_graph_digest,
+                required_claim_refs=required_claim_refs,
+                allowed_capabilities=allowed_capabilities,
+                capability_policies=capability_policies,
+                plan=plan,
+            ),
             intent_id=session.intent.intent_id,
             producer_actor=producer_actor,
             name=_request_name(session.intent.intent_id),
@@ -227,9 +227,9 @@ class AlignmentWorkflowEngine:
             runtime_ref=profile.runtime_ref,
             runtime_digest=profile.runtime_digest,
             goal_ref=goal_ref,
-            goal_digest=canonical_fingerprint({"goalRef": goal_ref, "abstractGoal": session.intent.abstract_goal}),
+            goal_digest=goal_digest,
             claim_graph=graph,
-            claim_graph_digest=canonical_fingerprint(_claim_graph_to_mapping(graph)),
+            claim_graph_digest=claim_graph_digest,
             required_claim_refs=required_claim_refs,
             registered_node_types=dict(self.registry.node_type_digests),
             registered_gate_refs=dict(self.registry.gate_ref_digests),
@@ -377,6 +377,46 @@ def _claim_graph_to_mapping(graph: ClaimGraph) -> dict[str, Any]:
 
 def _goal_ref_from_intent(intent_id: str) -> str:
     return "GOAL-" + _id_tail(intent_id, "ALIGNED")
+
+
+def _request_id(
+    intent: IntentDraft,
+    *,
+    profile: GoalOperationProfile,
+    producer_actor: str,
+    workspace_ref: str,
+    artifact_dir: str,
+    store_path: str,
+    goal_ref: str,
+    goal_digest: str,
+    claim_graph_digest: str,
+    required_claim_refs: tuple[str, ...],
+    allowed_capabilities: tuple[str, ...],
+    capability_policies: Mapping[str, tuple[str, ...]],
+    plan: PlanDraft,
+) -> str:
+    payload = {
+        "intent": intent.to_mapping(),
+        "profileRef": profile.profile_ref,
+        "producerActor": producer_actor,
+        "workspaceRef": workspace_ref,
+        "artifactDir": artifact_dir,
+        "storeKind": "sqlite",
+        "storePath": store_path,
+        "plannerAdapterRef": profile.planner_adapter_ref,
+        "executorAdapterRef": profile.executor_adapter_ref,
+        "gateRunnerAdapterRef": profile.gate_runner_adapter_ref,
+        "runtimeRef": profile.runtime_ref,
+        "runtimeDigest": profile.runtime_digest,
+        "goalRef": goal_ref,
+        "goalDigest": goal_digest,
+        "claimGraphDigest": claim_graph_digest,
+        "requiredClaimRefs": list(required_claim_refs),
+        "allowedCapabilities": list(allowed_capabilities),
+        "capabilityPolicies": {key: list(value) for key, value in sorted(capability_policies.items())},
+        "planDraft": plan.to_dict(),
+    }
+    return "REQ-" + canonical_fingerprint(payload).removeprefix("sha256:")[:16]
 
 
 def _request_name(intent_id: str) -> str:

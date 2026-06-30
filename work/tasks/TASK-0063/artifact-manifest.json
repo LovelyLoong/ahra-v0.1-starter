@@ -29,7 +29,7 @@
       "kind": "alignment_workflow_engine_report",
       "name": "alignment-workflow-engine-report.md",
       "uri": "local://evidence/alignment-workflow-engine-report.md",
-      "sha256": "cfb74e9f75059965bd01ae09a3bb65c56954c75d28843f13b3523301744fe666",
+      "sha256": "7b5263d93fec4a96a074ec05438d04f803e74d0a765a555f7d409e2921e3767e",
       "media_type": "text/markdown",
       "created_by": "agent:codex-implementation",
       "created_at": "2026-06-30T10:00:00Z",
@@ -99,6 +99,111 @@
       ],
       "evidence_refs": [
         "EVD-TASK-0063-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0063-0005",
+      "task_id": "TASK-0063",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-9.json",
+      "uri": "local://evidence/evidence-gate-report-9.json",
+      "sha256": "27e50f7925ad8cfe24ec407cc9f09fa3bfb81e0b1a57f376a28ba6a015ec19ab",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-30T10:00:01.000009Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0063-0005"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0063-0006",
+      "task_id": "TASK-0063",
+      "kind": "alignment_workflow_engine_report",
+      "name": "alignment-workflow-engine-report-refresh-0001.md",
+      "uri": "local://evidence/alignment-workflow-engine-report-refresh-0001.md",
+      "sha256": "9b69ef266bcf822618983b189c931e412d7a3058150532de2e5c09272593730d",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T10:00:01.000010Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json",
+        "evidence/alignment-workflow-engine-report.md",
+        "evidence/evidence-gate-report-9.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0063-0006"
+      ],
+      "supersedes": "ART-TASK-0063-0002"
+    },
+    {
+      "artifact_id": "ART-TASK-0063-0007",
+      "task_id": "TASK-0063",
+      "kind": "verification_summary",
+      "name": "verification-summary-refresh-0001.json",
+      "uri": "local://evidence/verification-summary-refresh-0001.json",
+      "sha256": "04bd2ce5ed97b49f4efdced427ed696994f47cd51716a9207132d8a756f0f015",
+      "media_type": "application/json",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T10:00:01.000010Z",
+      "input_refs": [
+        "task.md",
+        "evidence/alignment-workflow-engine-report-refresh-0001.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0063-0007"
+      ],
+      "supersedes": "ART-TASK-0063-0003"
+    },
+    {
+      "artifact_id": "ART-TASK-0063-HANDOFF-0002",
+      "task_id": "TASK-0063",
+      "kind": "handoff",
+      "name": "HANDOFF-0002.md",
+      "uri": "local://handoffs/HANDOFF-0002.md",
+      "sha256": "0f1cc0b2bd78cbf9dff76e1953f7d0796a67db1bf2da2a44b3a0ecb3ee0a4ad1",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T10:00:01.000010Z",
+      "input_refs": [
+        "task.md",
+        "evidence/alignment-workflow-engine-report-refresh-0001.md",
+        "evidence/verification-summary-refresh-0001.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0063-0006",
+        "EVD-TASK-0063-0007"
+      ],
+      "supersedes": "ART-TASK-0063-HANDOFF-0001"
+    },
+    {
+      "artifact_id": "ART-TASK-0063-0008",
+      "task_id": "TASK-0063",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-12.json",
+      "uri": "local://evidence/evidence-gate-report-12.json",
+      "sha256": "c958e463b5f3cc41daa8c2cd86205eb20fbc04010f7820812ae423f3b2bfa6dd",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-30T10:00:01.000012Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0063-0008"
       ],
       "supersedes": null
     }

@@ -49,11 +49,25 @@ class RepositoryConsolidationTests(unittest.TestCase):
     def test_default_cli_help_excludes_legacy_workflow_surface(self) -> None:
         help_text = cli._build_parser().format_help()
 
-        for hidden in ("workflow", "mcp", "demo", "fake-reference", "standard-harness", "loop-engineering"):
+        for hidden in ("mcp", "demo", "fake-reference", "standard-harness", "loop-engineering"):
             with self.subTest(hidden=hidden):
                 self.assertNotIn(hidden, help_text)
+        self.assertIn("workflow-sequence", help_text)
+        self.assertNotIn("Legacy workflow compatibility commands", help_text)
         self.assertIn("fixture", help_text)
         self.assertIn("evidence-gate", help_text)
+
+    def test_component_inventory_exposes_workflow_sequence_not_legacy_workflow(self) -> None:
+        inventory = json.loads(
+            (ROOT / "docs/architecture/component-inventory.json").read_text(encoding="utf-8")
+        )
+        commands = set(inventory["default_route"]["commands"])
+        components = {component["id"]: component for component in inventory["components"]}
+
+        self.assertIn("ahra workflow-sequence run", commands)
+        self.assertIn("command:workflow-sequence", components)
+        self.assertTrue(components["command:workflow-sequence"]["default_visible"])
+        self.assertIn("ahra workflow ...", inventory["default_route"]["deprecated_not_default"])
 
 
 if __name__ == "__main__":

@@ -204,7 +204,23 @@ class CliTests(unittest.TestCase):
         self.assertIn("goal", help_text)
         self.assertIn("fixture", help_text)
         self.assertIn("evidence-gate", help_text)
-        self.assertNotIn("workflow", help_text)
+        self.assertIn("workflow-sequence", help_text)
+        self.assertNotIn("Legacy workflow compatibility commands", help_text)
+
+    def test_goal_start_allow_development_agent_injects_codex_driver(self) -> None:
+        with mock.patch("ahra.cli.GoalOperationService") as service_cls, mock.patch(
+            "ahra.adapters.codex_sdk.CodexSDKDriver"
+        ) as driver_cls:
+            service = service_cls.return_value
+            service.start.return_value = {"profileRef": "profile/development-bounded"}
+
+            code, payload, _ = _run_cli(["goal", "start", "request.yaml", "--allow-development-agent"])
+
+            self.assertEqual(code, 0)
+            self.assertEqual(payload["result"]["profileRef"], "profile/development-bounded")
+            driver_cls.assert_called_once_with()
+            service_cls.assert_called_once_with(real_executor_driver=driver_cls.return_value)
+            service.start.assert_called_once_with(Path("request.yaml"), run_once=False)
 
     def test_task_creator_implements_port(self) -> None:
         creator = AwkpTaskCreator()

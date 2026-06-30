@@ -11,10 +11,12 @@
       "ahra goal validate",
       "ahra goal plan",
       "ahra goal start",
+      "ahra goal start --allow-development-agent",
       "ahra goal inspect",
       "ahra goal resume",
       "ahra goal cancel",
       "ahra goal bridge-awkp-task",
+      "ahra workflow-sequence run",
       "ahra task create",
       "ahra task claim",
       "ahra task orchestrate-review",
@@ -47,11 +49,35 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["pyproject.toml", "src/ahra"],
-      "serves": ["Goal", "Claim", "PlanIR", "Scheduler", "Capability", "Artifact", "Evidence", "CompletionDecision", "Task"],
-      "entrypoints": ["ahra", "ahra-lint", "ahra-evidence-gate"],
-      "consumers": ["local operator", "tests", "scripts/check.py"],
-      "tests": ["scripts/check.py", "scripts/lint_contracts.py"],
+      "paths": [
+        "pyproject.toml",
+        "src/ahra"
+      ],
+      "serves": [
+        "Goal",
+        "Claim",
+        "PlanIR",
+        "Scheduler",
+        "Capability",
+        "Artifact",
+        "Evidence",
+        "CompletionDecision",
+        "Task"
+      ],
+      "entrypoints": [
+        "ahra",
+        "ahra-lint",
+        "ahra-evidence-gate"
+      ],
+      "consumers": [
+        "local operator",
+        "tests",
+        "scripts/check.py"
+      ],
+      "tests": [
+        "scripts/check.py",
+        "scripts/lint_contracts.py"
+      ],
       "security_class": "local process; no host, network, or secret isolation claim",
       "side_effects": "delegates to selected local commands and task state writers",
       "artifact_evidence": "task manifests, EvidenceGate reports, dynamic fixture reports"
@@ -63,14 +89,81 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/cli.py", "src/ahra/goal_operations.py", "src/ahra/awkp_task_creator.py", "src/ahra/awkp_state_writer.py", "src/ahra/orchestrator.py"],
-      "serves": ["Goal", "GoalExecutionRequest", "PlanIR", "Task", "Evidence", "CompletionDecision"],
-      "entrypoints": ["ahra", "ahra goal ...", "ahra goal bridge-awkp-task", "ahra task create", "ahra task claim", "ahra task orchestrate-review", "ahra task inspect"],
-      "consumers": ["local operator", "AGENTS.md", "README.md"],
-      "tests": ["tests/test_cli.py", "tests/test_goal_operations.py", "tests/test_evidence_gate.py"],
+      "paths": [
+        "src/ahra/cli.py",
+        "src/ahra/goal_operations.py",
+        "src/ahra/awkp_task_creator.py",
+        "src/ahra/awkp_state_writer.py",
+        "src/ahra/orchestrator.py"
+      ],
+      "serves": [
+        "Goal",
+        "GoalExecutionRequest",
+        "PlanIR",
+        "Task",
+        "Evidence",
+        "CompletionDecision"
+      ],
+      "entrypoints": [
+        "ahra",
+        "ahra goal ...",
+        "ahra goal bridge-awkp-task",
+        "ahra task create",
+        "ahra task claim",
+        "ahra task orchestrate-review",
+        "ahra task inspect"
+      ],
+      "consumers": [
+        "local operator",
+        "AGENTS.md",
+        "README.md"
+      ],
+      "tests": [
+        "tests/test_cli.py",
+        "tests/test_goal_operations.py",
+        "tests/test_evidence_gate.py"
+      ],
       "security_class": "local CLI wrapper around Python services",
       "side_effects": "runs only the requested subcommand; goal bridge-awkp-task delegates to the Goal/AWKP bridge, task create writes AWKP skeletons, task claim delegates to the governed CAS writer, and task orchestrate-review chains the CAS writer with EvidenceGate",
       "artifact_evidence": "structured JSON command output and task-local evidence files"
+    },
+    {
+      "id": "command:workflow-sequence",
+      "kind": "command",
+      "lifecycle_class": "core",
+      "default_visible": true,
+      "owner": "team:platform",
+      "review_after": "2026-09-25T00:00:00Z",
+      "paths": [
+        "src/ahra/cli.py",
+        "src/ahra/workflow_sequence.py",
+        "contracts/schemas/workflow-sequence.schema.json",
+        "examples/workflows/phase1-sequence.yaml"
+      ],
+      "serves": [
+        "TaskSequence",
+        "GoalExecution",
+        "Task",
+        "Evidence",
+        "CompletionDecision"
+      ],
+      "entrypoints": [
+        "ahra workflow-sequence run"
+      ],
+      "consumers": [
+        "local operator",
+        "AGENTS.md",
+        "README.md",
+        "skills/ahra-dynamic-kernel/SKILL.md"
+      ],
+      "tests": [
+        "tests/test_workflow_sequence.py",
+        "tests/test_cli.py",
+        "tests/test_repository_consolidation.py"
+      ],
+      "security_class": "governed local multi-task sequence runner that delegates task state changes, Goal execution, and EvidenceGate review to existing services",
+      "side_effects": "claims tasks, materializes per-task GoalExecution requests, starts Goal runs, bridges succeeded GoalExecution evidence to AWKP tasks, and halts on failed dependencies",
+      "artifact_evidence": "workflow sequence result JSON, per-task materialized request files, Goal artifacts, Goal/AWKP bridge records, and EvidenceGate reports"
     },
     {
       "id": "component:goal-operation-service",
@@ -79,13 +172,47 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/goal_operations.py", "src/ahra/ports.py", "contracts/schemas/goal-execution-request.schema.json", "examples/m1/goal-run-request.yaml"],
-      "serves": ["GoalExecutionRequest", "GoalExecution", "PlanDraft", "PlanIR", "ProfileAdmission", "Scheduler", "Resume", "Cancel", "KernelEvidenceMaterialization"],
-      "entrypoints": ["GoalOperationService", "ahra goal validate", "ahra goal plan", "ahra goal start", "ahra goal inspect", "ahra goal resume", "ahra goal cancel"],
-      "consumers": ["ahra CLI", "real-Agent Mode C pilot runner", "Goal/AWKP bridge", "local operators", "M1 deterministic smoke tests"],
-      "tests": ["tests/test_goal_operations.py", "tests/test_cli.py"],
-      "security_class": "fail-closed local service requiring immutable profile, adapter, runtime, store, and digest refs before side effects",
-      "side_effects": "writes SQLite control state, goal artifacts, kernel EvidenceV2/GateRun JSON, and capability-admitted workspace files only after request validation and PlanIR admission",
+      "paths": [
+        "src/ahra/goal_operations.py",
+        "src/ahra/ports.py",
+        "contracts/schemas/goal-execution-request.schema.json",
+        "examples/m1/goal-run-request.yaml"
+      ],
+      "serves": [
+        "GoalExecutionRequest",
+        "GoalExecution",
+        "PlanDraft",
+        "PlanIR",
+        "ProfileAdmission",
+        "Scheduler",
+        "Resume",
+        "Cancel",
+        "KernelEvidenceMaterialization"
+      ],
+      "entrypoints": [
+        "GoalOperationService",
+        "ahra goal validate",
+        "ahra goal plan",
+        "ahra goal start",
+        "ahra goal start --allow-development-agent",
+        "ahra goal inspect",
+        "ahra goal resume",
+        "ahra goal cancel"
+      ],
+      "consumers": [
+        "ahra CLI",
+        "real-Agent Mode C pilot runner",
+        "development-bounded Agent executor profile",
+        "Goal/AWKP bridge",
+        "local operators",
+        "M1 deterministic smoke tests"
+      ],
+      "tests": [
+        "tests/test_goal_operations.py",
+        "tests/test_cli.py"
+      ],
+      "security_class": "fail-closed local service requiring immutable profile, adapter, runtime, store, digest refs, and development write guardrails before side effects",
+      "side_effects": "writes SQLite control state, goal artifacts, kernel EvidenceV2/GateRun JSON, and capability-admitted workspace files only after request validation, PlanIR admission, and runtime write blacklist checks",
       "artifact_evidence": "goal-execution-request.json, plan-draft.json, plan-validation-report.json, plan-ir.json, goal-start-report.json, goal-resume-report.json, kernel-evidence/*.json, kernel-gate-runs/*.json, CLI JSON output"
     },
     {
@@ -95,11 +222,33 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/goal_operations.py", "src/ahra/awkp_state_writer.py", "src/ahra/orchestrator.py", "src/ahra/ports.py"],
-      "serves": ["GoalExecution", "Task", "Evidence", "GateRun", "CompletionDecision"],
-      "entrypoints": ["GoalAwkpBridge", "GoalAwkpBridgePort", "ahra goal bridge-awkp-task"],
-      "consumers": ["ahra CLI", "local operators", "AWKP task review flow"],
-      "tests": ["tests/test_goal_operations.py", "tests/test_evidence_gate.py"],
+      "paths": [
+        "src/ahra/goal_operations.py",
+        "src/ahra/awkp_state_writer.py",
+        "src/ahra/orchestrator.py",
+        "src/ahra/ports.py"
+      ],
+      "serves": [
+        "GoalExecution",
+        "Task",
+        "Evidence",
+        "GateRun",
+        "CompletionDecision"
+      ],
+      "entrypoints": [
+        "GoalAwkpBridge",
+        "GoalAwkpBridgePort",
+        "ahra goal bridge-awkp-task"
+      ],
+      "consumers": [
+        "ahra CLI",
+        "local operators",
+        "AWKP task review flow"
+      ],
+      "tests": [
+        "tests/test_goal_operations.py",
+        "tests/test_evidence_gate.py"
+      ],
       "security_class": "fail-closed bridge that requires succeeded GoalExecution, producer/verifier separation, current task lease fencing, and EvidenceGate review",
       "side_effects": "copies materialized kernel EvidenceV2/GateRun records into the task evidence manifests, records a goal_awkp_associated event through the governed writer, and delegates review/completion to the task review orchestrator",
       "artifact_evidence": "goal-awkp-association JSON, kernel EvidenceV2/GateRun JSON copied under work/tasks/<TASK-ID>/evidence, task events, and EvidenceGate reports"
@@ -112,11 +261,34 @@
       "fixture_only": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/cli.py", "src/ahra/dynamic_fixture.py", "tests/fixtures/dynamic-goal-project"],
-      "serves": ["Goal", "Claim", "PlanDraft", "PlanIR", "Scheduler", "Capability", "Artifact", "Evidence", "Defect", "CompletionDecision"],
-      "entrypoints": ["ahra fixture dynamic-repair"],
-      "consumers": ["dynamic-kernel regression tests", "local verifier"],
-      "tests": ["tests/test_dynamic_fixture.py", "tests/test_cli.py"],
+      "paths": [
+        "src/ahra/cli.py",
+        "src/ahra/dynamic_fixture.py",
+        "tests/fixtures/dynamic-goal-project"
+      ],
+      "serves": [
+        "Goal",
+        "Claim",
+        "PlanDraft",
+        "PlanIR",
+        "Scheduler",
+        "Capability",
+        "Artifact",
+        "Evidence",
+        "Defect",
+        "CompletionDecision"
+      ],
+      "entrypoints": [
+        "ahra fixture dynamic-repair"
+      ],
+      "consumers": [
+        "dynamic-kernel regression tests",
+        "local verifier"
+      ],
+      "tests": [
+        "tests/test_dynamic_fixture.py",
+        "tests/test_cli.py"
+      ],
       "security_class": "isolated deterministic regression fixture; capability gateway denies unauthorized writes before side effect",
       "side_effects": "writes a requested JSON report and mutates only a temporary fixture copy",
       "artifact_evidence": "dynamic fixture command report with claim, gate, evidence, audit, defect, repair, and completion sections"
@@ -128,11 +300,32 @@
       "default_visible": true,
       "owner": "team:quality",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/acceptance_contracts.py", "contracts/schemas/goal-contract.schema.json", "contracts/schemas/claim-graph.schema.json", "contracts/schemas/gate-definition.schema.json", "contracts/schemas/gate-plan.schema.json"],
-      "serves": ["Goal", "Claim", "GateDefinition", "GatePlan"],
-      "entrypoints": ["dynamic fixture runtime API", "contract schema validation"],
-      "consumers": ["PlanDraft input builder", "PlanIR compiler", "VerificationService"],
-      "tests": ["tests/test_acceptance_contracts.py", "tests/test_schemas.py"],
+      "paths": [
+        "src/ahra/acceptance_contracts.py",
+        "contracts/schemas/goal-contract.schema.json",
+        "contracts/schemas/claim-graph.schema.json",
+        "contracts/schemas/gate-definition.schema.json",
+        "contracts/schemas/gate-plan.schema.json"
+      ],
+      "serves": [
+        "Goal",
+        "Claim",
+        "GateDefinition",
+        "GatePlan"
+      ],
+      "entrypoints": [
+        "dynamic fixture runtime API",
+        "contract schema validation"
+      ],
+      "consumers": [
+        "PlanDraft input builder",
+        "PlanIR compiler",
+        "VerificationService"
+      ],
+      "tests": [
+        "tests/test_acceptance_contracts.py",
+        "tests/test_schemas.py"
+      ],
       "security_class": "contract validation boundary",
       "side_effects": "none",
       "artifact_evidence": "schema-backed GoalContract, ClaimGraph, GateDefinition, and GatePlan artifacts"
@@ -144,11 +337,46 @@
       "default_visible": true,
       "owner": "team:quality",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/evidence_v2.py", "src/ahra/verification.py", "contracts/schemas/evidence-v2.schema.json", "contracts/schemas/gate-run-v2.schema.json", "contracts/schemas/verification-selection.schema.json", "contracts/schemas/verification-result.schema.json", "contracts/schemas/gate-execution-request.schema.json", "contracts/schemas/gate-execution-result.schema.json", "contracts/schemas/verification-execution-report.schema.json"],
-      "serves": ["Evidence", "EvidenceCurrentSet", "GateRun", "GateExecutionRequest", "GateExecutionResult", "VerificationExecutionReport", "Defect", "CompletionDecision"],
-      "entrypoints": ["VerificationService", "VerificationExecutor", "GateRunnerRegistry", "GoalCompletionService", "GoalOperationService", "dynamic fixture runtime API"],
-      "consumers": ["PlanExecutionService", "GoalOperationService", "dynamic repair fixture", "EvidenceGate evidence review"],
-      "tests": ["tests/test_evidence_v2.py", "tests/test_verification.py", "tests/test_dynamic_fixture.py"],
+      "paths": [
+        "src/ahra/evidence_v2.py",
+        "src/ahra/verification.py",
+        "contracts/schemas/evidence-v2.schema.json",
+        "contracts/schemas/gate-run-v2.schema.json",
+        "contracts/schemas/verification-selection.schema.json",
+        "contracts/schemas/verification-result.schema.json",
+        "contracts/schemas/gate-execution-request.schema.json",
+        "contracts/schemas/gate-execution-result.schema.json",
+        "contracts/schemas/verification-execution-report.schema.json"
+      ],
+      "serves": [
+        "Evidence",
+        "EvidenceCurrentSet",
+        "GateRun",
+        "GateExecutionRequest",
+        "GateExecutionResult",
+        "VerificationExecutionReport",
+        "Defect",
+        "CompletionDecision"
+      ],
+      "entrypoints": [
+        "VerificationService",
+        "VerificationExecutor",
+        "GateRunnerRegistry",
+        "GoalCompletionService",
+        "GoalOperationService",
+        "dynamic fixture runtime API"
+      ],
+      "consumers": [
+        "PlanExecutionService",
+        "GoalOperationService",
+        "dynamic repair fixture",
+        "EvidenceGate evidence review"
+      ],
+      "tests": [
+        "tests/test_evidence_v2.py",
+        "tests/test_verification.py",
+        "tests/test_dynamic_fixture.py"
+      ],
       "security_class": "fail-closed evidence validity, supersession, current-set and completion boundary",
       "side_effects": "records evidence validity and supersession status in memory for local execution",
       "artifact_evidence": "fingerprinted Evidence v2 records, current-set metrics, multi-Claim Defects and completion results"
@@ -160,11 +388,37 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/planner_contracts.py", "src/ahra/planning.py", "src/ahra/plan_ir.py", "contracts/schemas/plan-draft.schema.json", "contracts/schemas/plan-ir.schema.json", "contracts/schemas/plan-validation-report.schema.json"],
-      "serves": ["PlanDraft", "PlanIR", "PlanValidationReport"],
-      "entrypoints": ["PlanningService", "PlanCompiler", "PlanIRValidator", "GoalOperationService", "dynamic fixture runtime API"],
-      "consumers": ["PlanExecutionService", "GoalOperationService", "dynamic repair fixture"],
-      "tests": ["tests/test_planning.py", "tests/test_plan_ir.py", "tests/test_dynamic_fixture.py", "tests/test_goal_operations.py"],
+      "paths": [
+        "src/ahra/planner_contracts.py",
+        "src/ahra/planning.py",
+        "src/ahra/plan_ir.py",
+        "contracts/schemas/plan-draft.schema.json",
+        "contracts/schemas/plan-ir.schema.json",
+        "contracts/schemas/plan-validation-report.schema.json"
+      ],
+      "serves": [
+        "PlanDraft",
+        "PlanIR",
+        "PlanValidationReport"
+      ],
+      "entrypoints": [
+        "PlanningService",
+        "PlanCompiler",
+        "PlanIRValidator",
+        "GoalOperationService",
+        "dynamic fixture runtime API"
+      ],
+      "consumers": [
+        "PlanExecutionService",
+        "GoalOperationService",
+        "dynamic repair fixture"
+      ],
+      "tests": [
+        "tests/test_planning.py",
+        "tests/test_plan_ir.py",
+        "tests/test_dynamic_fixture.py",
+        "tests/test_goal_operations.py"
+      ],
       "security_class": "untrusted planner output is validated and compiled before execution",
       "side_effects": "none until admitted PlanIR reaches scheduler",
       "artifact_evidence": "planner input artifact, PlanDraft, PlanIR, PlanPatch, and validation report"
@@ -176,11 +430,37 @@
       "default_visible": true,
       "owner": "team:security",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/capabilities.py", "src/ahra/plan_execution.py", "contracts/schemas/capability-request.schema.json", "contracts/schemas/capability-grant.schema.json", "contracts/schemas/capability-audit-record.schema.json"],
-      "serves": ["Capability", "PolicyDecision", "CapabilityGrant", "CapabilityAuditRecord"],
-      "entrypoints": ["CapabilityAdmissionService", "CapabilityGateway", "StaticPlanScheduler admission boundary", "GoalOperationService", "dynamic fixture runtime API"],
-      "consumers": ["PlanExecutionService", "GoalOperationService", "dynamic repair fixture", "bounded_task executor"],
-      "tests": ["tests/test_capabilities.py", "tests/test_plan_execution.py", "tests/test_dynamic_fixture.py"],
+      "paths": [
+        "src/ahra/capabilities.py",
+        "src/ahra/plan_execution.py",
+        "contracts/schemas/capability-request.schema.json",
+        "contracts/schemas/capability-grant.schema.json",
+        "contracts/schemas/capability-audit-record.schema.json"
+      ],
+      "serves": [
+        "Capability",
+        "PolicyDecision",
+        "CapabilityGrant",
+        "CapabilityAuditRecord"
+      ],
+      "entrypoints": [
+        "CapabilityAdmissionService",
+        "CapabilityGateway",
+        "StaticPlanScheduler admission boundary",
+        "GoalOperationService",
+        "dynamic fixture runtime API"
+      ],
+      "consumers": [
+        "PlanExecutionService",
+        "GoalOperationService",
+        "dynamic repair fixture",
+        "bounded_task executor"
+      ],
+      "tests": [
+        "tests/test_capabilities.py",
+        "tests/test_plan_execution.py",
+        "tests/test_dynamic_fixture.py"
+      ],
       "security_class": "default-deny capability gateway",
       "side_effects": "authorizes or denies runtime side effects before execution",
       "artifact_evidence": "capability requests, grants, policy decisions, and audit records"
@@ -192,11 +472,36 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/plan_execution.py", "src/ahra/node_executor.py", "contracts/schemas/node-run.schema.json"],
-      "serves": ["PlanExecution", "NodeRun", "Scheduler", "Checkpoint", "Artifact", "Evidence"],
-      "entrypoints": ["StaticPlanIRScheduler", "PlanExecutionService", "GoalOperationService", "dynamic fixture runtime API"],
-      "consumers": ["GoalOperationService", "dynamic repair fixture", "bounded_task executor"],
-      "tests": ["tests/test_plan_execution.py", "tests/test_node_executor.py", "tests/test_dynamic_fixture.py", "tests/test_goal_operations.py"],
+      "paths": [
+        "src/ahra/plan_execution.py",
+        "src/ahra/node_executor.py",
+        "contracts/schemas/node-run.schema.json"
+      ],
+      "serves": [
+        "PlanExecution",
+        "NodeRun",
+        "Scheduler",
+        "Checkpoint",
+        "Artifact",
+        "Evidence"
+      ],
+      "entrypoints": [
+        "StaticPlanIRScheduler",
+        "PlanExecutionService",
+        "GoalOperationService",
+        "dynamic fixture runtime API"
+      ],
+      "consumers": [
+        "GoalOperationService",
+        "dynamic repair fixture",
+        "bounded_task executor"
+      ],
+      "tests": [
+        "tests/test_plan_execution.py",
+        "tests/test_node_executor.py",
+        "tests/test_dynamic_fixture.py",
+        "tests/test_goal_operations.py"
+      ],
       "security_class": "lease/fencing-token state machine with mandatory Capability Admission before runtime side effects",
       "side_effects": "dispatches capability-admitted node executors and records artifacts/evidence",
       "artifact_evidence": "PlanExecution states, NodeRun states, checkpoints, admission refs, terminal failure records"
@@ -208,11 +513,32 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/sqlite_control_store.py"],
-      "serves": ["SQLiteControlStore", "GoalExecution", "PlanExecution", "NodeRun", "Checkpoint", "IdempotencyRecord", "RecoveryEvent"],
-      "entrypoints": ["SQLiteControlStore", "recover_sqlite_control_plane", "GoalOperationService"],
-      "consumers": ["GoalOperationService", "StaticPlanScheduler", "SQLite recovery fixture"],
-      "tests": ["tests/test_sqlite_control_store.py", "tests/test_goal_operations.py"],
+      "paths": [
+        "src/ahra/sqlite_control_store.py"
+      ],
+      "serves": [
+        "SQLiteControlStore",
+        "GoalExecution",
+        "PlanExecution",
+        "NodeRun",
+        "Checkpoint",
+        "IdempotencyRecord",
+        "RecoveryEvent"
+      ],
+      "entrypoints": [
+        "SQLiteControlStore",
+        "recover_sqlite_control_plane",
+        "GoalOperationService"
+      ],
+      "consumers": [
+        "GoalOperationService",
+        "StaticPlanScheduler",
+        "SQLite recovery fixture"
+      ],
+      "tests": [
+        "tests/test_sqlite_control_store.py",
+        "tests/test_goal_operations.py"
+      ],
       "security_class": "local durable control-plane store with schema version checks and CAS writes",
       "side_effects": "creates or updates a local SQLite database only when selected by explicit store path",
       "artifact_evidence": "SQLite rows for goal_executions, plan_executions, node_runs, checkpoints, idempotency_records, and recovery_events"
@@ -224,11 +550,28 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/reference_runner/bounded_task.py", "src/ahra/reference_runner/task_harness.py"],
-      "serves": ["NodeExecutor", "Artifact", "Evidence"],
-      "entrypoints": ["BoundedTaskExecutor"],
-      "consumers": ["StaticPlanIRScheduler", "GoalOperationService real Executor profile", "dynamic repair fixture"],
-      "tests": ["tests/test_node_executor.py", "tests/test_plan_execution.py", "tests/test_real_agent_pilot.py"],
+      "paths": [
+        "src/ahra/reference_runner/bounded_task.py",
+        "src/ahra/reference_runner/task_harness.py"
+      ],
+      "serves": [
+        "NodeExecutor",
+        "Artifact",
+        "Evidence"
+      ],
+      "entrypoints": [
+        "BoundedTaskExecutor"
+      ],
+      "consumers": [
+        "StaticPlanIRScheduler",
+        "GoalOperationService real Executor profile",
+        "dynamic repair fixture"
+      ],
+      "tests": [
+        "tests/test_node_executor.py",
+        "tests/test_plan_execution.py",
+        "tests/test_real_agent_pilot.py"
+      ],
       "security_class": "selected local executor adapter behind NodeExecutor port",
       "side_effects": "mutates only paths granted by the admitted PlanIR node",
       "artifact_evidence": "NodeRun results and task evidence records"
@@ -240,11 +583,26 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/reference_runner/task_harness.py", "src/ahra/reference_runner/standard_harness.py"],
-      "serves": ["TaskHarness", "AgentDriver phase execution", "Task artifact and evidence records"],
-      "entrypoints": ["ahra.reference_runner.task_harness.TaskHarness"],
-      "consumers": ["BoundedTaskExecutor", "legacy LoopEngine compatibility"],
-      "tests": ["tests/test_node_executor.py", "tests/test_reference_runner.py"],
+      "paths": [
+        "src/ahra/reference_runner/task_harness.py",
+        "src/ahra/reference_runner/standard_harness.py"
+      ],
+      "serves": [
+        "TaskHarness",
+        "AgentDriver phase execution",
+        "Task artifact and evidence records"
+      ],
+      "entrypoints": [
+        "ahra.reference_runner.task_harness.TaskHarness"
+      ],
+      "consumers": [
+        "BoundedTaskExecutor",
+        "legacy LoopEngine compatibility"
+      ],
+      "tests": [
+        "tests/test_node_executor.py",
+        "tests/test_reference_runner.py"
+      ],
       "security_class": "shared bounded task AgentDriver phase adapter behind caller-supplied runtime and capability boundaries",
       "side_effects": "mutates only the caller-provided workspace through the caller-provided runtime and policy checks",
       "artifact_evidence": "task attempt artifacts, deterministic evidence, semantic review records, and WorkReport output",
@@ -258,11 +616,24 @@
       "fixture_only": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/planning.py", "src/ahra/dynamic_fixture.py"],
-      "serves": ["PlanDraft"],
-      "entrypoints": ["FixturePlanner via dynamic fixture runtime API"],
-      "consumers": ["dynamic repair fixture", "planner contract tests"],
-      "tests": ["tests/test_planning.py", "tests/test_dynamic_fixture.py"],
+      "paths": [
+        "src/ahra/planning.py",
+        "src/ahra/dynamic_fixture.py"
+      ],
+      "serves": [
+        "PlanDraft"
+      ],
+      "entrypoints": [
+        "FixturePlanner via dynamic fixture runtime API"
+      ],
+      "consumers": [
+        "dynamic repair fixture",
+        "planner contract tests"
+      ],
+      "tests": [
+        "tests/test_planning.py",
+        "tests/test_dynamic_fixture.py"
+      ],
       "security_class": "deterministic fixture adapter; output still passes PlanDraft validation and admission",
       "side_effects": "none",
       "artifact_evidence": "PlanDraft and planner context input artifacts"
@@ -274,11 +645,31 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/context.py", "src/ahra/policy.py", "contracts/schemas/context-manifest.schema.json", "contracts/schemas/policy-decision.schema.json"],
-      "serves": ["ContextManifest", "PolicyDecision"],
-      "entrypoints": ["ContextBuilder", "ReferencePolicyEngine", "dynamic fixture runtime API"],
-      "consumers": ["PlanningService", "CapabilityAdmissionService", "dynamic repair fixture"],
-      "tests": ["tests/test_context.py", "tests/test_policy.py", "tests/test_dynamic_fixture.py"],
+      "paths": [
+        "src/ahra/context.py",
+        "src/ahra/policy.py",
+        "contracts/schemas/context-manifest.schema.json",
+        "contracts/schemas/policy-decision.schema.json"
+      ],
+      "serves": [
+        "ContextManifest",
+        "PolicyDecision"
+      ],
+      "entrypoints": [
+        "ContextBuilder",
+        "ReferencePolicyEngine",
+        "dynamic fixture runtime API"
+      ],
+      "consumers": [
+        "PlanningService",
+        "CapabilityAdmissionService",
+        "dynamic repair fixture"
+      ],
+      "tests": [
+        "tests/test_context.py",
+        "tests/test_policy.py",
+        "tests/test_dynamic_fixture.py"
+      ],
       "security_class": "deterministic context and policy input boundary",
       "side_effects": "none",
       "artifact_evidence": "ContextManifest and PolicyDecision records"
@@ -290,11 +681,27 @@
       "default_visible": true,
       "owner": "team:quality",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/evidence_gate.py"],
-      "serves": ["Task", "Evidence", "CompletionDecision"],
-      "entrypoints": ["ahra evidence-gate evaluate", "ahra-evidence-gate"],
-      "consumers": ["AWKP task review flow", "task review orchestrator", "Goal/AWKP bridge", "local verifier"],
-      "tests": ["tests/test_evidence_gate.py"],
+      "paths": [
+        "src/ahra/evidence_gate.py"
+      ],
+      "serves": [
+        "Task",
+        "Evidence",
+        "CompletionDecision"
+      ],
+      "entrypoints": [
+        "ahra evidence-gate evaluate",
+        "ahra-evidence-gate"
+      ],
+      "consumers": [
+        "AWKP task review flow",
+        "task review orchestrator",
+        "Goal/AWKP bridge",
+        "local verifier"
+      ],
+      "tests": [
+        "tests/test_evidence_gate.py"
+      ],
       "security_class": "expected-version verifier-side completion gate with producer/verifier identity separation",
       "side_effects": "updates task state and appends task event only through EvidenceGate decision",
       "artifact_evidence": "evidence-gate-report JSON and task event records"
@@ -306,11 +713,31 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/orchestrator.py", "src/ahra/awkp_state_writer.py", "src/ahra/evidence_gate.py", "src/ahra/ports.py"],
-      "serves": ["Task", "Evidence", "CompletionDecision"],
-      "entrypoints": ["AwkpTaskReviewOrchestrator", "AwkpTaskOrchestratorPort", "ahra task orchestrate-review"],
-      "consumers": ["AWKP task review flow", "local operators", "Goal/AWKP bridge"],
-      "tests": ["tests/test_evidence_gate.py", "tests/test_cli.py"],
+      "paths": [
+        "src/ahra/orchestrator.py",
+        "src/ahra/awkp_state_writer.py",
+        "src/ahra/evidence_gate.py",
+        "src/ahra/ports.py"
+      ],
+      "serves": [
+        "Task",
+        "Evidence",
+        "CompletionDecision"
+      ],
+      "entrypoints": [
+        "AwkpTaskReviewOrchestrator",
+        "AwkpTaskOrchestratorPort",
+        "ahra task orchestrate-review"
+      ],
+      "consumers": [
+        "AWKP task review flow",
+        "local operators",
+        "Goal/AWKP bridge"
+      ],
+      "tests": [
+        "tests/test_evidence_gate.py",
+        "tests/test_cli.py"
+      ],
       "security_class": "local orchestrator that preserves producer != verifier by failing closed before EvidenceGate when actors coincide and relying on EvidenceGate producer identity rejection",
       "side_effects": "transitions working->review through the CAS writer, invokes EvidenceGate under a verifier actor, reclaims changes_requested through the CAS writer, and adds a blocker when the bounded cycle budget is exhausted",
       "artifact_evidence": "orchestrator result JSON, task events, and EvidenceGate reports"
@@ -322,11 +749,41 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/awkp_state_writer.py", "src/ahra/awkp_task_creator.py", "src/ahra/ports.py", "schemas/task-state.schema.json", "schemas/event.schema.json"],
-      "serves": ["Task", "Event", "Lease", "FencingToken"],
-      "entrypoints": ["AwkpTaskCreator", "AwkpTaskCreatorPort", "AwkpTaskStateWriter", "AwkpTaskStateWriterPort", "ahra task create", "ahra task claim", "ahra task orchestrate-review", "ahra goal bridge-awkp-task"],
-      "consumers": ["AWKP task review flow", "governed task CLI", "task review orchestrator", "Goal/AWKP bridge", "local operators"],
-      "tests": ["tests/test_evidence_gate.py", "tests/test_cli.py", "scripts/lint_awkp.py"],
+      "paths": [
+        "src/ahra/awkp_state_writer.py",
+        "src/ahra/awkp_task_creator.py",
+        "src/ahra/ports.py",
+        "schemas/task-state.schema.json",
+        "schemas/event.schema.json"
+      ],
+      "serves": [
+        "Task",
+        "Event",
+        "Lease",
+        "FencingToken"
+      ],
+      "entrypoints": [
+        "AwkpTaskCreator",
+        "AwkpTaskCreatorPort",
+        "AwkpTaskStateWriter",
+        "AwkpTaskStateWriterPort",
+        "ahra task create",
+        "ahra task claim",
+        "ahra task orchestrate-review",
+        "ahra goal bridge-awkp-task"
+      ],
+      "consumers": [
+        "AWKP task review flow",
+        "governed task CLI",
+        "task review orchestrator",
+        "Goal/AWKP bridge",
+        "local operators"
+      ],
+      "tests": [
+        "tests/test_evidence_gate.py",
+        "tests/test_cli.py",
+        "scripts/lint_awkp.py"
+      ],
       "security_class": "lint-clean task skeleton creation plus CAS-protected local task state writer with per-task lock, idempotency, lease, and fencing-token checks",
       "side_effects": "creates work/tasks/<TASK-ID>/ skeletons, writes state.json, appends events.jsonl, records GoalExecution association events, clears resolved review blockers, and records bounded-loop blockers only through governed task commands or producer transitions",
       "artifact_evidence": "task.md, state.json, manifests, and append-only events.jsonl transition records"
@@ -338,11 +795,37 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["schemas/task-state.schema.json", "schemas/event.schema.json", "schemas/artifact-manifest.schema.json", "schemas/state-machine.json"],
-      "serves": ["Task", "Event", "ArtifactManifest", "EvidenceManifest"],
-      "entrypoints": ["scripts/lint_awkp.py", "ahra task create", "ahra task claim", "ahra task orchestrate-review", "ahra goal bridge-awkp-task", "ahra task inspect", "ahra evidence-gate evaluate"],
-      "consumers": ["work/tasks", "EvidenceGate", "Goal/AWKP bridge", "local operators"],
-      "tests": ["scripts/lint_awkp.py", "tests/test_evidence_gate.py"],
+      "paths": [
+        "schemas/task-state.schema.json",
+        "schemas/event.schema.json",
+        "schemas/artifact-manifest.schema.json",
+        "schemas/state-machine.json"
+      ],
+      "serves": [
+        "Task",
+        "Event",
+        "ArtifactManifest",
+        "EvidenceManifest"
+      ],
+      "entrypoints": [
+        "scripts/lint_awkp.py",
+        "ahra task create",
+        "ahra task claim",
+        "ahra task orchestrate-review",
+        "ahra goal bridge-awkp-task",
+        "ahra task inspect",
+        "ahra evidence-gate evaluate"
+      ],
+      "consumers": [
+        "work/tasks",
+        "EvidenceGate",
+        "Goal/AWKP bridge",
+        "local operators"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py",
+        "tests/test_evidence_gate.py"
+      ],
       "security_class": "append-only event and explicit task state authority",
       "side_effects": "state writes only through current lease holder or verifier gate",
       "artifact_evidence": "state.json, events.jsonl, artifact/evidence manifests"
@@ -354,11 +837,31 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["README.md", "AGENTS.md", "docs/architecture/authority-map.md", "docs/architecture/framework-entrypoints.md", "docs/architecture/component-inventory.json"],
-      "serves": ["ArchitectureAuthority", "ComponentLifecycle", "OperationEntrypoint"],
-      "entrypoints": ["AGENTS.md read order", "docs/architecture/authority-map.md"],
-      "consumers": ["local agents", "human maintainers", "EvidenceGate reviewers"],
-      "tests": ["scripts/lint_awkp.py", "scripts/lint_contracts.py"],
+      "paths": [
+        "README.md",
+        "AGENTS.md",
+        "docs/architecture/authority-map.md",
+        "docs/architecture/framework-entrypoints.md",
+        "docs/architecture/component-inventory.json"
+      ],
+      "serves": [
+        "ArchitectureAuthority",
+        "ComponentLifecycle",
+        "OperationEntrypoint"
+      ],
+      "entrypoints": [
+        "AGENTS.md read order",
+        "docs/architecture/authority-map.md"
+      ],
+      "consumers": [
+        "local agents",
+        "human maintainers",
+        "EvidenceGate reviewers"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py",
+        "scripts/lint_contracts.py"
+      ],
       "security_class": "documentation authority; not executable",
       "side_effects": "none",
       "artifact_evidence": "front matter lint and component inventory lint"
@@ -370,11 +873,24 @@
       "default_visible": true,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["skills/ahra-dynamic-kernel/SKILL.md"],
-      "serves": ["OperationEntrypoint", "Evidence", "CompletionDecision"],
-      "entrypoints": ["local Skill routing"],
-      "consumers": ["AGENTS.md", "local agents"],
-      "tests": ["scripts/lint_contracts.py"],
+      "paths": [
+        "skills/ahra-dynamic-kernel/SKILL.md"
+      ],
+      "serves": [
+        "OperationEntrypoint",
+        "Evidence",
+        "CompletionDecision"
+      ],
+      "entrypoints": [
+        "local Skill routing"
+      ],
+      "consumers": [
+        "AGENTS.md",
+        "local agents"
+      ],
+      "tests": [
+        "scripts/lint_contracts.py"
+      ],
       "security_class": "operational instruction only",
       "side_effects": "none",
       "artifact_evidence": "commands and reports produced by the referenced CLI"
@@ -386,11 +902,24 @@
       "default_visible": false,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/adapters/codex_sdk.py"],
-      "serves": ["AgentDriver"],
-      "entrypoints": ["explicit driverRef: codex-python-sdk"],
-      "consumers": ["legacy workflow compatibility", "adapter tests"],
-      "tests": ["tests/test_codex_driver.py"],
+      "paths": [
+        "src/ahra/adapters/codex_sdk.py"
+      ],
+      "serves": [
+        "AgentDriver"
+      ],
+      "entrypoints": [
+        "explicit driverRef: codex-python-sdk",
+        "ahra goal start --allow-development-agent"
+      ],
+      "consumers": [
+        "development-bounded Agent executor profile",
+        "legacy workflow compatibility",
+        "adapter tests"
+      ],
+      "tests": [
+        "tests/test_codex_driver.py"
+      ],
       "security_class": "optional provider adapter behind AgentDriver port",
       "side_effects": "delegates to user-local Codex SDK when explicitly selected",
       "artifact_evidence": "structured AgentRunResult output or fail-closed output-contract error"
@@ -402,11 +931,28 @@
       "default_visible": false,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/cli.py", "src/ahra/reference_runner/invocation.py", "examples/workflow_runs"],
-      "serves": ["Run", "Task", "Artifact", "Evidence"],
-      "entrypoints": ["explicit ahra workflow ... only"],
-      "consumers": ["legacy tests", "manual compatibility runs"],
-      "tests": ["tests/test_cli.py", "tests/test_reference_runner.py"],
+      "paths": [
+        "src/ahra/cli.py",
+        "src/ahra/reference_runner/invocation.py",
+        "examples/workflow_runs"
+      ],
+      "serves": [
+        "Run",
+        "Task",
+        "Artifact",
+        "Evidence"
+      ],
+      "entrypoints": [
+        "explicit ahra workflow ... only"
+      ],
+      "consumers": [
+        "legacy tests",
+        "manual compatibility runs"
+      ],
+      "tests": [
+        "tests/test_cli.py",
+        "tests/test_reference_runner.py"
+      ],
       "security_class": "legacy local workflow compatibility",
       "side_effects": "creates run-owned worktrees and task-local workflow evidence when explicitly invoked",
       "artifact_evidence": "workflow-run artifacts and manifests",
@@ -421,11 +967,26 @@
       "default_visible": false,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/reference_runner/standard_harness.py", "examples/workflow_modules/standard-harness.yaml"],
-      "serves": ["Run", "Artifact", "Evidence"],
-      "entrypoints": ["deprecated legacy workflow compatibility path"],
-      "consumers": ["tests/test_reference_runner.py", "legacy workflow CLI"],
-      "tests": ["tests/test_reference_runner.py", "tests/test_workflow_modules.py"],
+      "paths": [
+        "src/ahra/reference_runner/standard_harness.py",
+        "examples/workflow_modules/standard-harness.yaml"
+      ],
+      "serves": [
+        "Run",
+        "Artifact",
+        "Evidence"
+      ],
+      "entrypoints": [
+        "deprecated legacy workflow compatibility path"
+      ],
+      "consumers": [
+        "tests/test_reference_runner.py",
+        "legacy workflow CLI"
+      ],
+      "tests": [
+        "tests/test_reference_runner.py",
+        "tests/test_workflow_modules.py"
+      ],
       "security_class": "legacy bounded task workflow",
       "side_effects": "mutates run-owned worktree only when legacy workflow is explicitly invoked",
       "artifact_evidence": "workflow run artifacts",
@@ -440,11 +1001,27 @@
       "default_visible": false,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/reference_runner/loop_engineering.py", "examples/workflow_modules/loop-engineering.yaml"],
-      "serves": ["Run", "Task", "Artifact", "Evidence"],
-      "entrypoints": ["deprecated legacy workflow compatibility path"],
-      "consumers": ["tests/test_reference_runner.py", "legacy workflow CLI"],
-      "tests": ["tests/test_reference_runner.py", "tests/test_workflow_modules.py"],
+      "paths": [
+        "src/ahra/reference_runner/loop_engineering.py",
+        "examples/workflow_modules/loop-engineering.yaml"
+      ],
+      "serves": [
+        "Run",
+        "Task",
+        "Artifact",
+        "Evidence"
+      ],
+      "entrypoints": [
+        "deprecated legacy workflow compatibility path"
+      ],
+      "consumers": [
+        "tests/test_reference_runner.py",
+        "legacy workflow CLI"
+      ],
+      "tests": [
+        "tests/test_reference_runner.py",
+        "tests/test_workflow_modules.py"
+      ],
       "security_class": "legacy goal workflow",
       "side_effects": "creates proposed tasks only when legacy workflow is explicitly invoked and approved",
       "artifact_evidence": "workflow run and resume artifacts",
@@ -458,11 +1035,23 @@
       "default_visible": false,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["src/ahra/memory.py", "contracts/schemas/memory-record.schema.json"],
-      "serves": ["Memory"],
-      "entrypoints": ["direct Python import only"],
-      "consumers": ["tests/test_memory.py", "manual experiments"],
-      "tests": ["tests/test_memory.py"],
+      "paths": [
+        "src/ahra/memory.py",
+        "contracts/schemas/memory-record.schema.json"
+      ],
+      "serves": [
+        "Memory"
+      ],
+      "entrypoints": [
+        "direct Python import only"
+      ],
+      "consumers": [
+        "tests/test_memory.py",
+        "manual experiments"
+      ],
+      "tests": [
+        "tests/test_memory.py"
+      ],
       "security_class": "experimental local memory record model",
       "side_effects": "in-memory candidate/effective record operations in tests",
       "artifact_evidence": "memory-record schema examples",
@@ -476,17 +1065,56 @@
       "default_visible": false,
       "owner": "harness:dispatcher",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": ["work/tasks/TASK-0001..TASK-0031"],
-      "serves": ["AuditTrail"],
-      "entrypoints": ["work/index.md trace links", "ahra task inspect TASK-ID"],
-      "consumers": ["EvidenceGate reviewers", "historical audits"],
-      "tests": ["scripts/lint_awkp.py"],
+      "paths": [
+        "work/tasks/TASK-0001..TASK-0031"
+      ],
+      "serves": [
+        "AuditTrail"
+      ],
+      "entrypoints": [
+        "work/index.md trace links",
+        "ahra task inspect TASK-ID"
+      ],
+      "consumers": [
+        "EvidenceGate reviewers",
+        "historical audits"
+      ],
+      "tests": [
+        "scripts/lint_awkp.py"
+      ],
       "security_class": "read-only historical records",
       "side_effects": "none; history is append-only",
       "artifact_evidence": "task state, events, artifact manifests, evidence manifests",
       "trace_location": "work/tasks/",
       "compatibility_scope": "Excluded from normal context unless a task, event, or evidence record is explicitly referenced.",
       "removal_trigger": "Never silently delete; archive compaction requires a separate audit-preserving migration."
+    },
+    {
+      "id": "component:alignment-engine-template-stub",
+      "kind": "experimental_module",
+      "lifecycle_class": "experimental",
+      "default_visible": false,
+      "owner": "human:maintainer",
+      "review_after": "2026-09-30T00:00:00Z",
+      "paths": [
+        "src/ahra/alignment_engine.py"
+      ],
+      "serves": [
+        "RequestDraft"
+      ],
+      "entrypoints": [
+        "imported only when explicitly constructed; not on any default CLI or workflow-sequence path"
+      ],
+      "consumers": [
+        "tests/test_alignment_engine.py"
+      ],
+      "tests": [
+        "tests/test_alignment_engine.py"
+      ],
+      "security_class": "no side effects; pure deterministic transform",
+      "side_effects": "none; produces an in-memory RequestDraft from a structured IntentDraft",
+      "artifact_evidence": "none at runtime",
+      "x-status-note": "Deprecated by ADR-0009. This is a deterministic template stub, NOT the agent-driven alignment workflow. It does not read dialogue content and fabricates a fixed two-node plan. Superseded design owner: docs/architecture/intent-alignment-workflow.md. Retain as a deterministic test fixture only; do not extend or place on the default path. The real three-Agent alignment workflow is a future task."
     }
   ]
 }

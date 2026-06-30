@@ -2,16 +2,14 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0063",
   "context_id": "CTX-phase1-intent-closure",
-  "state": "changes_requested",
-  "state_version": 6,
-  "attempt": 2,
+  "state": "completed",
+  "state_version": 12,
+  "attempt": 4,
   "owner": null,
   "lease": null,
-  "next_action": "Address EvidenceGate verifier findings and return to review.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "pause_reason": null,
-  "blockers": [
-    "Criterion 3: Failed: RequestDraft exposes to_goal_execution_request_mapping(), which can produce a GoalExecutionRequest-shaped mapping without ApprovalService approval; this violates the strict untrusted RequestDraft boundary."
-  ],
+  "blockers": [],
   "artifact_refs": [
     "evidence/alignment-workflow-engine-report.md",
     "handoffs/HANDOFF-0001.md",
@@ -19,7 +17,12 @@
     "ART-TASK-0063-0002",
     "ART-TASK-0063-0003",
     "ART-TASK-0063-HANDOFF-0001",
-    "ART-TASK-0063-0004"
+    "ART-TASK-0063-0004",
+    "ART-TASK-0063-0005",
+    "ART-TASK-0063-0006",
+    "ART-TASK-0063-0007",
+    "ART-TASK-0063-HANDOFF-0002",
+    "ART-TASK-0063-0008"
   ],
   "evidence_refs": [
     "evidence/verification-summary.json",
@@ -27,7 +30,11 @@
     "EVD-TASK-0063-0001",
     "EVD-TASK-0063-0002",
     "EVD-TASK-0063-0003",
-    "EVD-TASK-0063-0004"
+    "EVD-TASK-0063-0004",
+    "EVD-TASK-0063-0005",
+    "EVD-TASK-0063-0006",
+    "EVD-TASK-0063-0007",
+    "EVD-TASK-0063-0008"
   ],
-  "updated_at": "2026-06-30T10:00:01.000006Z"
+  "updated_at": "2026-06-30T10:00:01.000012Z"
 }

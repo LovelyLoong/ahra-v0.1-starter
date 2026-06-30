@@ -89,7 +89,7 @@ def main(argv: list[str] | None = None) -> int:
     raw_argv = list(sys.argv[1:] if argv is None else argv)
     parser = _build_parser(
         include_legacy_workflow=bool(raw_argv and raw_argv[0] == "workflow"),
-        include_workflow_sequence=bool(raw_argv and raw_argv[0] == "workflow-sequence"),
+        include_workflow_sequence=True,
     )
     args = parser.parse_args(raw_argv)
     try:
@@ -239,7 +239,7 @@ def _fixture_command(args: argparse.Namespace) -> Any:
 
 
 def _goal_command(args: argparse.Namespace) -> Any:
-    service = GoalOperationService()
+    service = _goal_service(args)
     if args.goal_command == "validate":
         return service.validate(Path(args.request))
     if args.goal_command == "plan":
@@ -275,6 +275,14 @@ def _goal_command(args: argparse.Namespace) -> Any:
         )
         return asdict(GoalAwkpBridge(work_root=args.work_root).run(request))
     raise ValueError(f"unknown goal command: {args.goal_command}")
+
+
+def _goal_service(args: argparse.Namespace) -> GoalOperationService:
+    if getattr(args, "allow_development_agent", False):
+        from ahra.adapters.codex_sdk import CodexSDKDriver
+
+        return GoalOperationService(real_executor_driver=CodexSDKDriver())
+    return GoalOperationService()
 
 
 def _evidence_gate_command(args: argparse.Namespace) -> Any:
@@ -504,12 +512,12 @@ def _print(payload: dict[str, Any], *, stream: Any | None = None) -> None:
 def _build_parser(
     *,
     include_legacy_workflow: bool = False,
-    include_workflow_sequence: bool = False,
+    include_workflow_sequence: bool = True,
 ) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ahra", description="Operate the AHRA dynamic-kernel local framework.")
-    visible_groups = "{task,fixture,goal,evidence-gate,doctor}"
+    visible_groups = "{workflow-sequence,task,fixture,goal,evidence-gate,doctor}"
     if include_legacy_workflow:
-        visible_groups = "{workflow,task,fixture,goal,evidence-gate,doctor}"
+        visible_groups = "{workflow,workflow-sequence,task,fixture,goal,evidence-gate,doctor}"
     groups = parser.add_subparsers(dest="group", required=True, metavar=visible_groups)
 
     if include_legacy_workflow:
@@ -624,6 +632,11 @@ def _build_parser(
     goal_start = goal_commands.add_parser("start", help="Start a durable GoalExecution from a request.")
     goal_start.add_argument("request", help="GoalExecutionRequest YAML path.")
     goal_start.add_argument("--run-once", action="store_true", help="Run one scheduler batch and leave remaining work resumable.")
+    goal_start.add_argument(
+        "--allow-development-agent",
+        action="store_true",
+        help="Inject the Codex AgentDriver for requests that explicitly select profile/development-bounded.",
+    )
 
     goal_inspect = goal_commands.add_parser("inspect", help="Inspect durable GoalExecution, Plan, Node, evidence, and metrics.")
     goal_inspect.add_argument("goal_execution_id", help="GoalExecution id such as GEXEC-...")

@@ -1,0 +1,48 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0071",
+  "status": "ready_for_review",
+  "producer": "agent:codex-implementation",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest discover -s tests -p test_node_executor.py -v",
+      "status": "passed",
+      "summary": "9 tests passed."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_capabilities tests.test_goal_operations tests.test_cli -v",
+      "status": "passed",
+      "summary": "46 tests passed, 1 Windows symlink skip."
+    },
+    {
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed",
+      "summary": "277 tests passed, 1 Windows symlink skip."
+    },
+    {
+      "command": "uv run python -B scripts/check.py --lint",
+      "status": "passed",
+      "summary": "AWKP lint 0 errors/warnings; AHRA lint 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "Exit code 0; Git reported line-ending normalization warnings only."
+    }
+  ],
+  "evidence": [
+    "src/ahra/goal_operations.py",
+    "src/ahra/capabilities.py",
+    "src/ahra/reference_runner/bounded_task.py",
+    "src/ahra/cli.py",
+    "contracts/schemas/capability-grant.schema.json",
+    "tests/test_goal_operations.py",
+    "tests/test_capabilities.py",
+    "tests/test_cli.py"
+  ],
+  "notes": [
+    "Final full test evidence is from a standalone test run, not from the earlier concurrent test/lint invocation.",
+    "Producer did not mark TASK-0071 completed.",
+    "EvidenceGate review remains required."
+  ]
+}

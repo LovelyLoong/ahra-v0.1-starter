@@ -21,6 +21,7 @@ from .goal_operations import (
     DETERMINISTIC_GATE_RUNNER_REF,
     DeterministicFileEffectExecutor,
     DeterministicGoalVerificationService,
+    GoalOperationProfileRegistry,
     GoalOperationService,
     _capability_admission_service,
 )
@@ -418,6 +419,7 @@ def _scheduler_for(
     *,
     outcomes: Mapping[str, GateExecutionStatus] | None = None,
 ) -> tuple[StaticPlanScheduler, VerificationExecutor]:
+    profile = GoalOperationProfileRegistry().get(request.profile_ref)
     registry = NodeExecutorRegistry()
     for node_type in ("bounded_task", "repair"):
         registry.register(DeterministicFileEffectExecutor(node_type=node_type, store=store))
@@ -436,11 +438,16 @@ def _scheduler_for(
         verification_executor=verification_executor,
         verification_environment=EvidenceEnvironment(
             runtime_profile_digest=request.runtime_digest,
-            policy_digest=canonical_fingerprint({"allowedCapabilities": list(request.allowed_capabilities)}),
+            policy_digest=canonical_fingerprint(
+                {
+                    "allowedCapabilities": list(request.allowed_capabilities),
+                    "runtimeNetworkEgress": list(profile.runtime_network_egress),
+                }
+            ),
             verifier_release_digest=DETERMINISTIC_GATE_RUNNER_REF,
             test_definition_digest=canonical_fingerprint(dict(request.registered_gate_refs)),
         ),
-        capability_admission=_capability_admission_service(request),
+        capability_admission=_capability_admission_service(request, profile),
         max_concurrency=request.max_concurrency,
         lease_holder="scheduler:m1-experiment",
         lease_ttl_seconds=300,

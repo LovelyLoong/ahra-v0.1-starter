@@ -35,7 +35,7 @@ from .plan_execution import (
     PlanInvalidTransitionError,
     StaticPlanScheduler,
 )
-from .plan_ir import PlanCompilerConfig, PlanDraft, PlanIR, PlanValidationReport, compile_plan_draft
+from .plan_ir import PlanBudget, PlanCompilerConfig, PlanDraft, PlanIR, PlanValidationReport, compile_plan_draft
 from .sqlite_control_store import SQLiteControlStore, recover_sqlite_control_plane
 from .verification import (
     CommandGateRunner,
@@ -63,6 +63,7 @@ M1_PROFILE_REF = "profile/m1-deterministic@sha256:" + "a" * 64
 M1_REAL_PLANNER_PROFILE_REF = "profile/m1-real-planner@sha256:" + "f" * 64
 M1_REAL_EXECUTOR_PROFILE_REF = "profile/m1-real-executor@sha256:" + "9" * 64
 M1_REAL_COMBINED_PROFILE_REF = "profile/m1-real-combined@sha256:" + "8" * 64
+DEVELOPMENT_BOUNDED_PROFILE_REF = "profile/development-bounded"
 INLINE_PLANNER_REF = "planner/inline-plan-draft@sha256:" + "b" * 64
 REAL_PLANNER_ADAPTER_REF = "planner/agent-driver-plan-draft@sha256:" + "7" * 64
 DETERMINISTIC_EXECUTOR_REF = "executor/deterministic-file-effect@sha256:" + "c" * 64
@@ -71,6 +72,56 @@ DETERMINISTIC_GATE_RUNNER_REF = "gate-runner/deterministic@sha256:" + "d" * 64
 COMMAND_GATE_RUNNER_REF = "gate-runner/command@sha256:" + "5" * 64
 LOCAL_GOAL_RUNTIME_REF = "runtime/local-goal@sha256:" + "e" * 64
 LOCAL_GOAL_RUNTIME_DIGEST = "sha256:" + "e" * 64
+LOCAL_GOAL_RUNTIME_EGRESS_ALLOWLIST = ("https://example.invalid/*",)
+DEVELOPMENT_BOUNDED_WRITE_ALLOWLIST = (
+    "alignment_*.py",
+    "intent_*.py",
+    "request_*.py",
+    "src/ahra/alignment_*.py",
+    "src/ahra/intent_*.py",
+    "src/ahra/request_*.py",
+    "contracts/schemas/**",
+    "tests/test_alignment_*.py",
+    "tests/test_intent_*.py",
+    "tests/test_request_*.py",
+    "docs/architecture/intent-*",
+    "examples/intents/**",
+)
+DEVELOPMENT_BOUNDED_WRITE_BLACKLIST = (
+    "evidence_gate.py",
+    "capabilities.py",
+    "verification.py",
+    "goal_operations.py",
+    "sqlite_control_store.py",
+    "ports.py",
+    "awkp_state_writer.py",
+    "src/ahra/evidence_gate.py",
+    "src/ahra/capabilities.py",
+    "src/ahra/verification.py",
+    "src/ahra/goal_operations.py",
+    "src/ahra/sqlite_control_store.py",
+    "src/ahra/ports.py",
+    "src/ahra/awkp_state_writer.py",
+)
+DEVELOPMENT_BOUNDED_PROCESS_COMMANDS = (
+    "uv run python -B scripts/check.py",
+    "uv run python -B scripts/check.py --lint",
+    "uv run python -B scripts/check.py --test",
+    "uv run python -B scripts/lint_awkp.py",
+    "uv run python -B scripts/lint_*.py",
+    "python -B scripts/check.py",
+    "python -B scripts/check.py --lint",
+    "python -B scripts/check.py --test",
+    "python -B scripts/lint_awkp.py",
+    "python -B scripts/lint_*.py",
+)
+DEVELOPMENT_BOUNDED_NODE_BUDGET = PlanBudget(
+    max_model_calls=10,
+    max_tool_calls=50,
+    max_spawned_nodes=0,
+    max_wall_seconds=300,
+    max_cost_usd=1.0,
+)
 
 
 class GoalOperationError(RuntimeError):
@@ -95,6 +146,11 @@ class GoalOperationProfile:
     store_kinds: frozenset[str]
     executable_node_types: frozenset[str]
     scheduler_node_types: frozenset[str]
+    runtime_network_egress: tuple[str, ...] = ()
+    filesystem_write_allowlist: tuple[str, ...] = ()
+    filesystem_write_blacklist: tuple[str, ...] = ()
+    process_exec_allowlist: tuple[str, ...] = ()
+    default_node_budget: PlanBudget | None = None
 
     @property
     def registered_node_types(self) -> frozenset[str]:
@@ -264,6 +320,7 @@ class GoalOperationProfileRegistry:
                 store_kinds=frozenset({"sqlite"}),
                 executable_node_types=frozenset({"bounded_task", "repair"}),
                 scheduler_node_types=frozenset({"goal_verification", "gate_verification"}),
+                runtime_network_egress=LOCAL_GOAL_RUNTIME_EGRESS_ALLOWLIST,
             ),
             GoalOperationProfile(
                 profile_ref=M1_REAL_PLANNER_PROFILE_REF,
@@ -275,6 +332,7 @@ class GoalOperationProfileRegistry:
                 store_kinds=frozenset({"sqlite"}),
                 executable_node_types=frozenset({"bounded_task", "repair"}),
                 scheduler_node_types=frozenset({"goal_verification", "gate_verification"}),
+                runtime_network_egress=LOCAL_GOAL_RUNTIME_EGRESS_ALLOWLIST,
             ),
             GoalOperationProfile(
                 profile_ref=M1_REAL_EXECUTOR_PROFILE_REF,
@@ -286,6 +344,7 @@ class GoalOperationProfileRegistry:
                 store_kinds=frozenset({"sqlite"}),
                 executable_node_types=frozenset({"bounded_task", "repair"}),
                 scheduler_node_types=frozenset({"goal_verification", "gate_verification"}),
+                runtime_network_egress=LOCAL_GOAL_RUNTIME_EGRESS_ALLOWLIST,
             ),
             GoalOperationProfile(
                 profile_ref=M1_REAL_COMBINED_PROFILE_REF,
@@ -297,6 +356,22 @@ class GoalOperationProfileRegistry:
                 store_kinds=frozenset({"sqlite"}),
                 executable_node_types=frozenset({"bounded_task", "repair"}),
                 scheduler_node_types=frozenset({"goal_verification", "gate_verification"}),
+                runtime_network_egress=LOCAL_GOAL_RUNTIME_EGRESS_ALLOWLIST,
+            ),
+            GoalOperationProfile(
+                profile_ref=DEVELOPMENT_BOUNDED_PROFILE_REF,
+                planner_adapter_ref=INLINE_PLANNER_REF,
+                executor_adapter_ref=REAL_BOUNDED_EXECUTOR_REF,
+                gate_runner_adapter_ref=DETERMINISTIC_GATE_RUNNER_REF,
+                runtime_ref=LOCAL_GOAL_RUNTIME_REF,
+                runtime_digest=LOCAL_GOAL_RUNTIME_DIGEST,
+                store_kinds=frozenset({"sqlite"}),
+                executable_node_types=frozenset({"bounded_task", "repair"}),
+                scheduler_node_types=frozenset({"goal_verification", "gate_verification"}),
+                filesystem_write_allowlist=DEVELOPMENT_BOUNDED_WRITE_ALLOWLIST,
+                filesystem_write_blacklist=DEVELOPMENT_BOUNDED_WRITE_BLACKLIST,
+                process_exec_allowlist=DEVELOPMENT_BOUNDED_PROCESS_COMMANDS,
+                default_node_budget=DEVELOPMENT_BOUNDED_NODE_BUDGET,
             ),
         )
         self._profiles = {profile.profile_ref: profile for profile in default_profiles}
@@ -749,6 +824,7 @@ class GoalOperationService:
         return bundle
 
     def _scheduler(self, request: GoalExecutionRequest, store: SQLiteControlStore) -> StaticPlanScheduler:
+        profile = self.profiles.get(request.profile_ref)
         registry = NodeExecutorRegistry()
         executor_release_refs = {
             "bounded_task": DETERMINISTIC_EXECUTOR_REF,
@@ -800,7 +876,6 @@ class GoalOperationService:
             required_claim_refs=request.required_claim_refs,
             evidence_records=lambda: verification_executor.evidence_records,
         )
-        capability_admission = _capability_admission_service(request)
         return StaticPlanScheduler(
             service=PlanExecutionService(store),  # type: ignore[arg-type]
             executor_registry=registry,
@@ -810,11 +885,16 @@ class GoalOperationService:
             gate_definitions={definition.gate_id: definition for definition in request.gate_definitions},
             verification_environment=EvidenceEnvironment(
                 runtime_profile_digest=request.runtime_digest,
-                policy_digest=canonical_fingerprint({"allowedCapabilities": list(request.allowed_capabilities)}),
+                policy_digest=canonical_fingerprint(
+                    {
+                        "allowedCapabilities": list(request.allowed_capabilities),
+                        "runtimeNetworkEgress": list(profile.runtime_network_egress),
+                    }
+                ),
                 verifier_release_digest=request.gate_runner_adapter_ref,
                 test_definition_digest=canonical_fingerprint(dict(request.registered_gate_refs)),
             ),
-            capability_admission=capability_admission,
+            capability_admission=_capability_admission_service(request, profile),
             max_concurrency=request.max_concurrency,
             lease_holder="scheduler:goal-operation-cli",
             lease_ttl_seconds=300,
@@ -1005,6 +1085,39 @@ class DeterministicFileEffectExecutor:
         grant = _first_write_grant(request)
         relative_path = _relative_artifact_path(request)
         gateway = LocalRuntimeGateway(Path(request.workspace_ref))
+        network_audits = []
+        for network_grant in _network_grants(request):
+            for resource in network_grant.resources:
+                network_audit = gateway.record_network_access(
+                    network_grant,
+                    plan_id=request.plan.plan_id,
+                    node_id=request.node.node_id,
+                    actor="executor",
+                    resource=resource,
+                    request_summary={
+                        "method": "GET",
+                        "mode": "deterministic-egress-policy-check",
+                        "payload": "none",
+                    },
+                    response_summary={
+                        "status": "not_performed",
+                        "egressPolicy": "allowed",
+                    },
+                )
+                network_audits.append(network_audit.to_dict())
+                if not network_audit.allowed:
+                    return NodeExecutionResult(
+                        node_run_id=request.run_id,
+                        plan_id=request.plan.plan_id,
+                        node_id=request.node.node_id,
+                        node_type=request.node.node_type,
+                        executor_release=self.release_ref,
+                        status=NodeExecutionStatus.REJECTED,
+                        terminal_failure_refs=(network_audit.audit_id,),
+                        usage=NodeExecutionUsage(model_calls=0, tool_calls=len(network_audits), cost_usd=0.0),
+                        message=f"deterministic network access denied: {network_audit.reason_code}",
+                        details={"failureClass": network_audit.reason_code, "networkAccessAudits": network_audits},
+                    )
         content = (
             f"goal={request.plan.goal_ref}\n"
             f"plan={request.plan.plan_id}\n"
@@ -1028,9 +1141,9 @@ class DeterministicFileEffectExecutor:
                 executor_release=self.release_ref,
                 status=NodeExecutionStatus.REJECTED,
                 terminal_failure_refs=(audit.audit_id,),
-                usage=NodeExecutionUsage(model_calls=0, tool_calls=1, cost_usd=0.0),
+                usage=NodeExecutionUsage(model_calls=0, tool_calls=len(network_audits) + 1, cost_usd=0.0),
                 message=f"deterministic file effect denied: {audit.reason_code}",
-                details={"failureClass": audit.reason_code, "audit": audit.to_dict()},
+                details={"failureClass": audit.reason_code, "audit": audit.to_dict(), "networkAccessAudits": network_audits},
             )
         target = (Path(request.workspace_ref) / relative_path).resolve()
         result = NodeExecutionResult(
@@ -1042,11 +1155,12 @@ class DeterministicFileEffectExecutor:
             status=NodeExecutionStatus.ACCEPTED,
             artifact_refs=(f"file://{target}",),
             gate_refs=request.node.gate_refs,
-            usage=NodeExecutionUsage(model_calls=0, tool_calls=1, cost_usd=0.0),
+            usage=NodeExecutionUsage(model_calls=0, tool_calls=len(network_audits) + 1, cost_usd=0.0),
             message="Deterministic Goal operation executor wrote the requested local artifact.",
             details={
                 "artifactRelativePath": relative_path,
                 "audit": audit.to_dict(),
+                "networkAccessAudits": network_audits,
                 "verificationMetadata": {"claimRefs": tuple(request.node.claim_refs)},
             },
         )
@@ -1487,7 +1601,7 @@ def _command_gate_kinds(request: GoalExecutionRequest) -> tuple[str, ...]:
     )
 
 
-def _capability_admission_service(request: GoalExecutionRequest) -> CapabilityAdmissionService:
+def _capability_admission_service(request: GoalExecutionRequest, profile: GoalOperationProfile) -> CapabilityAdmissionService:
     allowed_actions: dict[str, tuple[str, ...]] = {}
     max_spawn_limit = 0
     for node in request.plan_draft.nodes:
@@ -1505,7 +1619,10 @@ def _capability_admission_service(request: GoalExecutionRequest) -> CapabilityAd
         runtime_profile=RuntimeCapabilityProfile(
             runtime_ref=request.runtime_ref,
             supported_actions=frozenset(request.allowed_capabilities),
-            allowed_commands=allowed_actions.get("process.exec", ()),
+            allowed_write_paths=profile.filesystem_write_allowlist,
+            denied_write_paths=profile.filesystem_write_blacklist,
+            allowed_commands=profile.process_exec_allowlist or allowed_actions.get("process.exec", ()),
+            allowed_network_egress=profile.runtime_network_egress,
         ),
         issuer="goal-operation:capability-admission",
     )
@@ -1516,6 +1633,10 @@ def _first_write_grant(request: NodeExecutionRequest) -> Any:
         if grant.action == "filesystem.write":
             return grant
     raise GoalOperationError("missing_write_grant", f"node {request.node.node_id} has no filesystem.write grant")
+
+
+def _network_grants(request: NodeExecutionRequest) -> tuple[Any, ...]:
+    return tuple(grant for grant in request.capability_grants if grant.action == "network.access")
 
 
 def _relative_artifact_path(request: NodeExecutionRequest) -> str:

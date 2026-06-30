@@ -1,0 +1,91 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0071",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T12:00:00.000003Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent review found TASK-0071 acceptance criteria satisfied by the registered producer evidence and fresh verifier checks.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A new profile `profile/development-bounded` exists in `GoalOperationProfileRegistry` with real AgentDriver + relaxed budget + path whitelist (A-workflow files) + path blacklist (B kernel files), registered and retrievable.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0071-0001",
+        "EVD-TASK-0071-0002"
+      ],
+      "notes": "Verified profile/development-bounded is registered with REAL_BOUNDED_EXECUTOR_REF, relaxed PlanBudget, A-workflow write allowlist, and B-kernel write blacklist."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "The filesystem.write capability gateway enforces the path blacklist: an attempt to write `evidence_gate.py` (a blacklisted B-kernel file) is rejected with audit trail, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0071-0001",
+        "EVD-TASK-0071-0002"
+      ],
+      "notes": "Verified LocalRuntimeGateway rejects blacklisted evidence_gate.py writes with path_blacklisted audit coverage."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The profile grants process.exec for `scripts/check.py` and successfully runs it from a development node, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0071-0001",
+        "EVD-TASK-0071-0002"
+      ],
+      "notes": "Verified process.exec allowlist includes scripts/check.py and the development node fixture executes the granted check."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "`ahra goal start` accepts `--allow-development-agent`, injects CodexSDKDriver, and uses the development profile, covered by a CLI invocation test or fixture.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0071-0001",
+        "EVD-TASK-0071-0002"
+      ],
+      "notes": "Verified ahra goal start accepts --allow-development-agent and CLI construction injects CodexSDKDriver behind GoalOperationService."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "A sample GoalExecutionRequest using this profile can write `alignment_stub.py` (whitelisted) but is rejected when attempting `evidence_gate.py` (blacklisted), end-to-end verified by fixture.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0071-0001",
+        "EVD-TASK-0071-0002"
+      ],
+      "notes": "Verified sample development GoalExecutionRequest succeeds for alignment_stub.py and fails closed for evidence_gate.py before driver execution."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "The domain module imports no adapter/model/cloud dependency in the profile definition (lint passes).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0071-0001",
+        "EVD-TASK-0071-0002"
+      ],
+      "notes": "Verified profile definition stays in the domain service without importing the Codex SDK adapter; adapter import is isolated to the CLI opt-in path."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Unit tests, lint, and diff checks pass: `.\\.venv\\Scripts\\python.exe -B -m unittest tests.test_goal_operations -v` and `.\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint` green.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0071-0002"
+      ],
+      "notes": "Verifier reran target unit tests, node executor tests, scripts/check.py --lint, scripts/check.py --test, and git diff --check successfully."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Producer moves TASK-0071 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0071-0002"
+      ],
+      "notes": "Verified task state is review@2, producer actor is distinct from verifier, and producer did not mark the task completed."
+    }
+  ],
+  "commands": []
+}

@@ -17,14 +17,26 @@ import yaml
 from ahra import cli
 from ahra.evidence_v2 import DigestRef, EvidenceEnvironment, EvidenceResult, EvidenceV2
 from ahra.goal_operations import (
+    DEVELOPMENT_BOUNDED_NODE_BUDGET,
+    DEVELOPMENT_BOUNDED_PROCESS_COMMANDS,
+    DEVELOPMENT_BOUNDED_PROFILE_REF,
+    DEVELOPMENT_BOUNDED_WRITE_ALLOWLIST,
+    DEVELOPMENT_BOUNDED_WRITE_BLACKLIST,
+    DETERMINISTIC_GATE_RUNNER_REF,
     DeterministicGoalVerificationService,
+    GoalOperationProfileRegistry,
     GoalAwkpBridge,
     GoalAwkpBridgeRequest,
     GoalOperationError,
     GoalOperationService,
+    INLINE_PLANNER_REF,
+    LOCAL_GOAL_RUNTIME_DIGEST,
+    LOCAL_GOAL_RUNTIME_REF,
+    REAL_BOUNDED_EXECUTOR_REF,
 )
 from ahra.plan_execution import PlanExecutionService, PlanExecutionStatus
-from ahra.ports import GoalAwkpBridgePort
+from ahra.ports import AgentRunResult, GoalAwkpBridgePort
+from ahra.reference_runner.models import WorkReport
 from ahra.sqlite_control_store import SQLiteControlStore
 
 
@@ -103,6 +115,190 @@ def _mutate_request(path: Path, mutator) -> None:
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     mutator(data)
     path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
+
+class DevelopmentWriterDriver:
+    async def run(self, request):
+        task = request.payload["task"]
+        target_ref = _required_artifact_path(task.requirements)
+        workspace = Path(str(request.workspace_ref))
+        target = workspace / target_ref
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("VALUE = 'development profile'\n", encoding="utf-8")
+        return AgentRunResult(
+            output=WorkReport(
+                summary="Fake development driver wrote the requested artifact.",
+                changed_files=(target_ref,),
+                verification_commands_run=(),
+                known_risks=(),
+            )
+        )
+
+
+class CapturingRuntimeProvider:
+    def __init__(self) -> None:
+        self.commands: list[tuple[str, ...]] = []
+
+    def provision(self, profile_ref: str, workspace_ref: str, identity: str) -> str:
+        return workspace_ref
+
+    def exec(self, handle: str, command: list[str], env: dict[str, str], deadline) -> dict[str, object]:
+        self.commands.append(tuple(command))
+        return {
+            "exit_code": 0,
+            "timed_out": False,
+            "stdout": "DEVELOPMENT_CHECK_OK\n",
+            "stderr": "",
+        }
+
+    def snapshot(self, handle: str) -> str:
+        return "snapshot://development-test"
+
+    def cancel(self, handle: str, execution_id: str) -> None:
+        return None
+
+    def destroy(self, handle: str) -> None:
+        return None
+
+
+def _required_artifact_path(requirements: tuple[str, ...]) -> str:
+    prefix = "Create a non-empty artifact file at "
+    for requirement in requirements:
+        if requirement.startswith(prefix):
+            return requirement.removeprefix(prefix).rstrip(".")
+    raise AssertionError("development task did not include a required artifact path")
+
+
+def _init_git_workspace(path: Path) -> None:
+    path.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(path), "init", "-q"], check=True)
+    (path / ".gitignore").write_text(".ahra/\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(path), "add", "."], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(path),
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "-q",
+            "-m",
+            "initial",
+        ],
+        check=True,
+    )
+
+
+def _write_development_request(root: Path, *, target_path: str) -> Path:
+    workspace = root / "workspace"
+    _init_git_workspace(workspace)
+    command = "uv run python -B scripts/check.py"
+    request = {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "GoalExecutionRequest",
+        "metadata": {
+            "name": "development-profile-fixture",
+            "requestId": f"GREQ-DEVELOPMENT-{target_path.replace('/', '-').replace('.', '-')}",
+            "idempotencyKey": f"development-profile-{target_path.replace('/', '-').replace('.', '-')}",
+        },
+        "spec": {
+            "profileRef": DEVELOPMENT_BOUNDED_PROFILE_REF,
+            "workspaceRef": "workspace",
+            "artifactDir": ".ahra/artifacts",
+            "store": {"kind": "sqlite", "path": ".ahra/goal-control.sqlite3"},
+            "planner": {"adapterRef": INLINE_PLANNER_REF},
+            "executor": {"adapterRef": REAL_BOUNDED_EXECUTOR_REF},
+            "gateRunner": {"adapterRef": DETERMINISTIC_GATE_RUNNER_REF},
+            "runtime": {"runtimeRef": LOCAL_GOAL_RUNTIME_REF, "digest": LOCAL_GOAL_RUNTIME_DIGEST},
+            "goal": {
+                "goalRef": "GOAL-DEVELOPMENT-PROFILE",
+                "goalDigest": "sha256:" + "5" * 64,
+                "claimGraphRef": "claim-graph/development-profile",
+                "claimGraphDigest": "sha256:" + "6" * 64,
+                "requiredClaimRefs": ["CLM-DEVELOPMENT-WRITE", "CLM-DEVELOPMENT-CHECK", "CLM-GOAL-COMPLETE"],
+            },
+            "registry": {
+                "nodeTypes": {
+                    "bounded_task": "sha256:" + "1" * 64,
+                    "goal_verification": "sha256:" + "2" * 64,
+                },
+                "gateRefs": {
+                    "GATE-development-write": "sha256:" + "3" * 64,
+                    "GATE-goal-complete": "sha256:" + "4" * 64,
+                },
+                "runtimeRefs": {LOCAL_GOAL_RUNTIME_REF: LOCAL_GOAL_RUNTIME_DIGEST},
+                "allowedCapabilities": ["filesystem.write", "process.exec"],
+            },
+            "execution": {"maxRepairCycles": 0, "maxConcurrency": 1, "branch": "main"},
+            "planDraft": {
+                "apiVersion": "ahra.dev/v1alpha1",
+                "kind": "PlanDraft",
+                "metadata": {"goalId": "GOAL-DEVELOPMENT-PROFILE", "proposedBy": INLINE_PLANNER_REF},
+                "spec": {
+                    "rationale": "Exercise the guarded development executor profile.",
+                    "nodes": [
+                        {
+                            "id": "NODE-development-edit",
+                            "nodeType": "bounded_task",
+                            "objective": f"Write development artifact {target_path}.",
+                            "claimRefs": ["CLM-DEVELOPMENT-WRITE", "CLM-DEVELOPMENT-CHECK"],
+                            "dependsOn": [],
+                            "inputRefs": ["input/development-profile@sha256:" + "7" * 64],
+                            "expectedOutputs": [
+                                {
+                                    "name": "development-artifact",
+                                    "schemaRef": "schema/development-artifact@sha256:" + "8" * 64,
+                                    "consumerNodeRefs": ["NODE-goal-verification"],
+                                    "artifactRequired": True,
+                                }
+                            ],
+                            "capabilityRequests": [
+                                {"capability": "filesystem.write", "resources": [target_path]},
+                                {"capability": "process.exec", "resources": [command]},
+                            ],
+                            "gateRefs": ["GATE-development-write"],
+                            "runtimeRef": LOCAL_GOAL_RUNTIME_REF,
+                            "budgetRequest": DEVELOPMENT_BOUNDED_NODE_BUDGET.to_dict(),
+                            "retryPolicy": {
+                                "maxAttempts": 1,
+                                "retryableFailureClasses": [],
+                                "idempotencyKeyRequired": True,
+                            },
+                            "timeoutSeconds": 300,
+                            "sideEffect": "idempotent",
+                        },
+                        {
+                            "id": "NODE-goal-verification",
+                            "nodeType": "goal_verification",
+                            "objective": "Verify the development profile fixture claims.",
+                            "claimRefs": ["CLM-DEVELOPMENT-WRITE", "CLM-DEVELOPMENT-CHECK", "CLM-GOAL-COMPLETE"],
+                            "dependsOn": ["NODE-development-edit"],
+                            "inputRefs": ["NODE-development-edit"],
+                            "expectedOutputs": [],
+                            "capabilityRequests": [],
+                            "gateRefs": ["GATE-goal-complete"],
+                            "runtimeRef": LOCAL_GOAL_RUNTIME_REF,
+                            "budgetRequest": {"maxModelCalls": 1, "maxToolCalls": 1, "maxSpawnedNodes": 0, "maxWallSeconds": 30, "maxCostUsd": 0.0},
+                            "retryPolicy": {
+                                "maxAttempts": 1,
+                                "retryableFailureClasses": [],
+                                "idempotencyKeyRequired": False,
+                            },
+                            "timeoutSeconds": 30,
+                            "sideEffect": "idempotent",
+                            "terminalGoalVerification": True,
+                        },
+                    ],
+                },
+            },
+        },
+    }
+    path = root / "development-goal-request.yaml"
+    path.write_text(yaml.safe_dump(request, sort_keys=False), encoding="utf-8")
+    return path
 
 
 def _write_bridge_task(root: Path, *, task_id: str = "TASK-BRIDGE") -> Path:
@@ -265,6 +461,53 @@ def _write_bridge_gate_input(
 
 
 class GoalOperationCliTests(unittest.TestCase):
+    def test_development_bounded_profile_is_registered_with_guardrails(self) -> None:
+        profile = GoalOperationProfileRegistry().get(DEVELOPMENT_BOUNDED_PROFILE_REF)
+
+        self.assertEqual(profile.executor_adapter_ref, REAL_BOUNDED_EXECUTOR_REF)
+        self.assertEqual(profile.default_node_budget, DEVELOPMENT_BOUNDED_NODE_BUDGET)
+        self.assertIn("alignment_*.py", DEVELOPMENT_BOUNDED_WRITE_ALLOWLIST)
+        self.assertIn("src/ahra/evidence_gate.py", DEVELOPMENT_BOUNDED_WRITE_BLACKLIST)
+        self.assertIn("uv run python -B scripts/check.py", DEVELOPMENT_BOUNDED_PROCESS_COMMANDS)
+
+    def test_development_profile_runs_whitelisted_write_and_process_check(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            request = _write_development_request(root, target_path="alignment_stub.py")
+            runtime = CapturingRuntimeProvider()
+            service = GoalOperationService(
+                real_executor_driver=DevelopmentWriterDriver(),
+                real_executor_runtime_provider=runtime,
+            )
+
+            result = service.start(request)
+
+            self.assertEqual(result["planStatus"], "succeeded")
+            self.assertEqual(result["goalStatus"], "succeeded")
+            self.assertTrue((root / "workspace" / "alignment_stub.py").exists())
+            self.assertIn(("uv", "run", "python", "-B", "scripts/check.py"), runtime.commands)
+
+    def test_development_profile_rejects_blacklisted_literal_write_preflight(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            request = _write_development_request(root, target_path="evidence_gate.py")
+            runtime = CapturingRuntimeProvider()
+            service = GoalOperationService(
+                real_executor_driver=DevelopmentWriterDriver(),
+                real_executor_runtime_provider=runtime,
+            )
+
+            result = service.start(request)
+
+            self.assertEqual(result["planStatus"], "failed")
+            self.assertEqual(result["goalStatus"], "failed")
+            self.assertFalse((root / "workspace" / "evidence_gate.py").exists())
+            self.assertEqual(runtime.commands, [])
+            failed_node = next(
+                node for node in result["inspect"]["nodeRuns"] if node["node_id"] == "NODE-development-edit"
+            )
+            self.assertEqual(failed_node["failure_class"], "path_blacklisted")
+
     def test_validate_plan_start_resume_inspect_and_terminal_cancel(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

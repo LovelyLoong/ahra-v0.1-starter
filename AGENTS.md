@@ -68,6 +68,8 @@ framework requirement and must not be treated as a project test failure.
 uv run python -B scripts/check.py
 uv run python -B scripts/check.py --lint
 uv run python -B scripts/check.py --test
+uv run python -B -m ahra.cli workflow-sequence run examples/workflows/phase1-sequence.yaml
+uv run python -B -m ahra.cli goal start <development-request.yaml> --allow-development-agent
 uv run python -m ahra.cli fixture dynamic-repair --fixture tests/fixtures/dynamic-goal-project --report <report.json>
 ```
 
@@ -77,6 +79,8 @@ Framework-neutral commands for normal environments:
 python scripts/check.py
 python scripts/check.py --lint
 python scripts/check.py --test
+python -m ahra.cli workflow-sequence run examples/workflows/phase1-sequence.yaml
+python -m ahra.cli goal start <development-request.yaml> --allow-development-agent
 python -m ahra.cli fixture dynamic-repair --fixture tests/fixtures/dynamic-goal-project --report <report.json>
 make check
 ```

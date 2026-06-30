@@ -53,10 +53,12 @@ The default local operation surface is:
 - `python -m ahra.cli goal validate examples/m1/goal-run-request.yaml`
 - `python -m ahra.cli goal plan examples/m1/goal-run-request.yaml`
 - `python -m ahra.cli goal start examples/m1/goal-run-request.yaml`
+- `python -m ahra.cli goal start <development-request.yaml> --allow-development-agent`
 - `python -m ahra.cli goal inspect <GEXEC-ID> --db <goal-control.sqlite3>`
 - `python -m ahra.cli goal resume <GEXEC-ID> --request examples/m1/goal-run-request.yaml`
 - `python -m ahra.cli goal cancel <GEXEC-ID> --db <goal-control.sqlite3> --reason <reason>`
 - `python -m ahra.cli goal bridge-awkp-task <GEXEC-ID> --task <TASK-ID> --db <goal-control.sqlite3> --artifact-dir <artifact-dir> --expected-task-version <N> --producer-actor <producer> --verifier-actor <verifier> --fencing-token <token> --report <report.json>`
+- `python -m ahra.cli workflow-sequence run examples/workflows/phase1-sequence.yaml`
 - `python -m ahra.cli task create <TASK-ID> --title ... --description ... --context-id ... --acceptance ...`
 - `python -m ahra.cli task claim <TASK-ID> --expected-version <N> --actor <producer>`
 - `python -m ahra.cli task orchestrate-review <TASK-ID> --expected-version <N> --producer-actor <producer> --verifier-actor <verifier> --fencing-token <token> --report <report.json>`
@@ -98,6 +100,7 @@ exposes existing Python services:
 - `goal resume`
 - `goal cancel`
 - `goal bridge-awkp-task`
+- `workflow-sequence run`
 - `task create`
 - `task claim`
 - `task orchestrate-review`
@@ -105,10 +108,12 @@ exposes existing Python services:
 - `evidence-gate evaluate`
 - `doctor`
 
-The default CLI help must not expose demo commands, `fake-reference`, or
-deprecated workflow modules. Historical workflow compatibility remains reachable
-only when explicitly requested by a caller that already knows that compatibility
-route. The local MCP server implementation has been removed.
+The default CLI help must expose `workflow-sequence run` as the governed
+multi-task operation surface. It must not expose demo commands,
+`fake-reference`, or deprecated workflow modules. Historical workflow
+compatibility remains reachable only when explicitly requested by a caller that
+already knows that compatibility route. The local MCP server implementation has
+been removed.
 
 # Regression Dynamic Fixture
 

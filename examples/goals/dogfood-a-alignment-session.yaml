@@ -1,0 +1,298 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: real-alignment-session-manager
+  requestId: GREQ-DOGFOOD-A-001
+  idempotencyKey: dogfood:workflow-a:alignment-session-manager:1
+spec:
+  profileRef: profile/development-bounded
+  workspaceRef: workspace
+  artifactDir: artifacts/dogfood-a-001
+  store:
+    kind: sqlite
+    path: goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666
+  gateRunner:
+    adapterRef: gate-runner/command@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+
+  registry:
+    nodeTypes:
+      bounded_task: sha256:6666666666666666666666666666666666666666666666666666666666666666
+      goal_verification: sha256:7777777777777777777777777777777777777777777777777777777777777777
+    gateRefs:
+      GATE-ALIGNMENT-SESSION-TESTS: sha256:8888888888888888888888888888888888888888888888888888888888888888
+      GATE-LINT-IMPORTS: sha256:9999999999999999999999999999999999999999999999999999999999999999
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+      - filesystem.write
+      - filesystem.read
+      - process.exec
+
+  goal:
+    goalRef: GREQ-DOGFOOD-A-001
+    goalDigest: sha256:aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888
+    claimGraphRef: claim-graph/dogfood-a-001
+    claimGraphDigest: sha256:bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888cccc9999
+    requiredClaimRefs:
+      - CLAIM-ALIGNMENT-SESSION-AGENT-DRIVEN
+      - CLAIM-ALIGNMENT-NO-DIGEST-FABRICATION
+      - CLAIM-ALIGNMENT-RESUMABLE
+      - CLAIM-ALIGNMENT-DOMAIN-CLEAN
+    statement: |
+      Replace the deterministic template stub `AlignmentWorkflowEngine` with a real
+      Agent-driven alignment session manager that performs multi-turn dialogue via
+      AgentDriver to progressively refine an IntentDraft into a RequestDraft.
+
+    context:
+      roadmapRef: docs/architecture/intent-alignment-workflow.md
+      adrRef: architecture/decisions/ADR-0009-agent-driven-intent-alignment-front-workflow.md
+      supersedes: src/ahra/alignment_engine.py (deterministic template stub)
+
+    constraints:
+      - The new implementation must use the existing AgentDriver Port (src/ahra/ports.py).
+      - It must NOT fabricate digests; all profile/digest references must resolve from registry.
+      - Output must be an untrusted RequestDraft (not a frozen GoalExecutionRequest).
+      - The session must be resumable across turns with immutable state snapshots.
+      - Domain code must import no adapter/model/cloud dependencies.
+
+    acceptance:
+      claimGraph:
+        claims:
+          - id: CLAIM-ALIGNMENT-SESSION-AGENT-DRIVEN
+            type: implementation
+            statement: AlignmentSessionManager uses real AgentDriver for multi-turn dialogue
+            requiredEvidence:
+              - kind: code
+                path: src/ahra/alignment_session.py
+              - kind: test
+                path: tests/test_alignment_session.py
+
+          - id: CLAIM-ALIGNMENT-NO-DIGEST-FABRICATION
+            type: behavioral
+            statement: The alignment session resolves profile/digest references from registry and rejects unknown refs
+            requiredEvidence:
+              - kind: test
+                path: tests/test_alignment_session.py
+                assertion: test_rejects_unknown_digest_reference
+
+          - id: CLAIM-ALIGNMENT-RESUMABLE
+            type: behavioral
+            statement: Alignment sessions are resumable with immutable state snapshots
+            requiredEvidence:
+              - kind: test
+                path: tests/test_alignment_session.py
+                assertion: test_resume_from_snapshot
+
+          - id: CLAIM-ALIGNMENT-DOMAIN-CLEAN
+            type: architectural
+            statement: Domain code imports no adapter/model/cloud dependencies
+            requiredEvidence:
+              - kind: gate
+                gateRef: GATE-LINT-IMPORTS
+
+        dependencies:
+          - from: CLAIM-ALIGNMENT-RESUMABLE
+            to: CLAIM-ALIGNMENT-SESSION-AGENT-DRIVEN
+            reason: Resumability depends on session existence
+
+      gates:
+        - id: GATE-ALIGNMENT-SESSION-TESTS
+          gateType: command
+          command: [".venv/Scripts/python.exe", "-B", "-m", "unittest", "tests.test_alignment_session", "-v"]
+          expectedExitCode: 0
+          targetClaims:
+            - CLAIM-ALIGNMENT-SESSION-AGENT-DRIVEN
+            - CLAIM-ALIGNMENT-NO-DIGEST-FABRICATION
+            - CLAIM-ALIGNMENT-RESUMABLE
+
+        - id: GATE-LINT-IMPORTS
+          gateType: command
+          command: [".venv/Scripts/python.exe", "-B", "scripts/check.py", "--lint"]
+          expectedExitCode: 0
+          targetClaims:
+            - CLAIM-ALIGNMENT-DOMAIN-CLEAN
+
+    capabilityGrants:
+      - capability: filesystem.write
+        resources:
+          - src/ahra/alignment_session.py
+          - tests/test_alignment_session.py
+          - src/ahra/__init__.py
+        policy: development-a-workflow-modification
+        reason: Implementing real Agent-driven alignment session manager per ADR-0009
+
+      - capability: filesystem.read
+        resources:
+          - src/ahra/ports.py
+          - src/ahra/intent_draft.py
+          - src/ahra/goal_operations.py
+          - contracts/schemas/intent-draft.schema.json
+        policy: read-only-reference
+        reason: Need to reference existing Ports and contracts
+
+      - capability: process.exec
+        resources:
+          - scripts/check.py
+          - .venv/Scripts/python.exe
+        policy: verification-only
+        reason: Run tests and lint to verify claims
+
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GREQ-DOGFOOD-A-001
+      proposedBy: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    spec:
+      rationale: Build real Agent-driven alignment session manager per ADR-0009 to replace deterministic template stub.
+      nodes:
+      - id: NODE-IMPLEMENT-ALIGNMENT-SESSION
+        nodeType: bounded_task
+        objective: |
+          Implement AlignmentSessionManager in src/ahra/alignment_session.py that:
+          1. Accepts an IntentDraft and uses AgentDriver for multi-turn dialogue
+          2. Maintains immutable state snapshots (AlignmentSessionState) with turn history
+          3. Progressively refines the intent by asking clarifying questions
+          4. Resolves profile/digest references from GoalOperationProfileRegistry
+          5. Rejects unknown digest references with structured errors
+          6. Produces an untrusted RequestDraft when alignment converges
+          7. Is resumable from any state snapshot
+
+          Reference the existing AgentDriver Port pattern from Mode C planner.
+
+        inputRefs: []
+        expectedOutputs:
+          - name: alignment-session-implementation
+            schemaRef: ahra/artifact/code-change/0.1
+
+        claimRefs:
+          - CLAIM-ALIGNMENT-SESSION-AGENT-DRIVEN
+          - CLAIM-ALIGNMENT-NO-DIGEST-FABRICATION
+          - CLAIM-ALIGNMENT-RESUMABLE
+
+        dependsOn: []
+        capabilityRequests:
+          - capability: filesystem.write
+            resources:
+              - src/ahra/alignment_session.py
+          - capability: filesystem.read
+            resources:
+              - src/ahra/ports.py
+              - src/ahra/intent_draft.py
+              - src/ahra/goal_operations.py
+
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 8
+          maxToolCalls: 30
+          maxSpawnedNodes: 0
+          maxWallSeconds: 240
+          maxCostUsd: 0.8
+
+        retryPolicy:
+          maxAttempts: 2
+          retryableFailureClasses: [transient_model_error]
+          idempotencyKeyRequired: true
+
+        timeoutSeconds: 240
+        sideEffect: idempotent
+
+      - id: NODE-IMPLEMENT-TESTS
+        nodeType: bounded_task
+        objective: |
+          Implement tests/test_alignment_session.py with:
+          1. test_agent_driven_dialogue - verifies AgentDriver is actually called
+          2. test_rejects_unknown_digest_reference - asserts unknown refs rejected
+          3. test_resume_from_snapshot - verifies session resumability
+          4. test_produces_untrusted_request_draft - asserts output is RequestDraft not GoalExecutionRequest
+          5. Fixtures using fake AgentDriver responses to make tests deterministic
+
+        inputRefs:
+          - NODE-IMPLEMENT-ALIGNMENT-SESSION
+        expectedOutputs:
+          - name: alignment-session-tests
+            schemaRef: ahra/artifact/code-change/0.1
+
+        claimRefs:
+          - CLAIM-ALIGNMENT-SESSION-AGENT-DRIVEN
+          - CLAIM-ALIGNMENT-NO-DIGEST-FABRICATION
+          - CLAIM-ALIGNMENT-RESUMABLE
+
+        dependsOn:
+          - NODE-IMPLEMENT-ALIGNMENT-SESSION
+
+        capabilityRequests:
+          - capability: filesystem.write
+            resources:
+              - tests/test_alignment_session.py
+          - capability: filesystem.read
+            resources:
+              - src/ahra/alignment_session.py
+
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 6
+          maxToolCalls: 20
+          maxSpawnedNodes: 0
+          maxWallSeconds: 180
+          maxCostUsd: 0.6
+
+        retryPolicy:
+          maxAttempts: 2
+          retryableFailureClasses: [transient_model_error]
+          idempotencyKeyRequired: true
+
+        timeoutSeconds: 180
+        sideEffect: idempotent
+
+      - id: NODE-VERIFY-ALIGNMENT-SESSION
+        nodeType: goal_verification
+        objective: Verify alignment session implementation and tests pass
+        claimRefs:
+          - CLAIM-ALIGNMENT-SESSION-AGENT-DRIVEN
+          - CLAIM-ALIGNMENT-NO-DIGEST-FABRICATION
+          - CLAIM-ALIGNMENT-RESUMABLE
+          - CLAIM-ALIGNMENT-DOMAIN-CLEAN
+
+        inputRefs:
+          - NODE-IMPLEMENT-ALIGNMENT-SESSION
+          - NODE-IMPLEMENT-TESTS
+
+        dependsOn:
+          - NODE-IMPLEMENT-ALIGNMENT-SESSION
+          - NODE-IMPLEMENT-TESTS
+
+        expectedOutputs: []
+        capabilityRequests:
+          - capability: process.exec
+            resources:
+              - scripts/check.py
+              - .venv/Scripts/python.exe
+
+        gateRefs:
+          - GATE-ALIGNMENT-SESSION-TESTS
+          - GATE-LINT-IMPORTS
+
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 3
+          maxSpawnedNodes: 0
+          maxWallSeconds: 60
+          maxCostUsd: 0.0
+
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+
+        timeoutSeconds: 60
+        sideEffect: idempotent
+        terminalGoalVerification: true

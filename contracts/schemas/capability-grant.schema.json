@@ -112,6 +112,9 @@
               "type": "null"
             }
           ]
+        },
+        "deniedResources": {
+          "$ref": "#/$defs/stringList"
         }
       }
     }

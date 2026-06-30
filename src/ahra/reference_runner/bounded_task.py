@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fnmatch
 import json
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
@@ -171,6 +172,48 @@ class BoundedTaskExecutor:
             gate_refs=list(request.node.gate_refs),
             semantic_review_enabled=semantic_review_enabled,
         )
+        preflight_denial = _preflight_literal_write_resources(
+            request=request,
+            gateway=gateway,
+            actor="executor",
+        )
+        if preflight_denial is not None:
+            node_result = NodeExecutionResult(
+                node_run_id=node_run_id,
+                plan_id=request.plan.plan_id,
+                node_id=request.node.node_id,
+                node_type=request.node.node_type,
+                executor_release=self.release_ref,
+                status=NodeExecutionStatus.REJECTED,
+                terminal_failure_refs=(preflight_denial.audit_id,),
+                usage=NodeExecutionUsage(model_calls=0, tool_calls=1, cost_usd=0.0),
+                message=f"bounded task write preflight denied: {preflight_denial.reason_code}",
+                details={"failureClass": preflight_denial.reason_code, "audit": preflight_denial.to_dict()},
+            )
+            self.store.event(
+                "node_run_finished",
+                run_id=request.run_id,
+                node_run_id=node_run_id,
+                plan_id=request.plan.plan_id,
+                node_id=request.node.node_id,
+                status=node_result.status.value,
+                artifact_refs=list(node_result.artifact_refs),
+                evidence_refs=list(node_result.evidence_refs),
+                terminal_failure_refs=list(node_result.terminal_failure_refs),
+                task_completed_state_update_attempted=False,
+            )
+            return TaskRunResult(
+                run_id=request.run_id,
+                task_id=task.id,
+                status=WorkflowOutcome.REJECTED,
+                checkpoint="",
+                workspace=str(workspace),
+                branch=request.branch,
+                artifact_dir=str(self.store.run_dir),
+                attempts=(),
+                commit=None,
+                message=node_result.message,
+            ), node_result
 
         task_result = await TaskHarness(
             self.driver,
@@ -416,6 +459,8 @@ def _task_from_request(request: NodeExecutionRequest) -> TaskSpec:
     if isinstance(task, TaskSpec):
         return task
     write_resources = _filesystem_write_resources(request.node)
+    process_commands = _process_exec_resources(request.node)
+    process_check_commands = _checkable_process_exec_resources(process_commands)
     artifact_paths = _literal_artifact_paths(write_resources)
     output_requirements = _expected_output_requirements(request.node)
     required_artifacts = tuple(f"Create a non-empty artifact file at {path}." for path in artifact_paths)
@@ -432,14 +477,19 @@ def _task_from_request(request: NodeExecutionRequest) -> TaskSpec:
             *output_requirements,
             *(
                 (f"Return WorkReport.changed_files containing: {', '.join(artifact_paths)}",)
-                if artifact_paths
+                if artifact_paths and not process_check_commands
+                else ()
+            ),
+            *(
+                (f"Run only granted process.exec verification commands: {', '.join(process_check_commands)}.",)
+                if process_check_commands
                 else ()
             ),
             *(
                 (
                     "Do not run shell or process verification commands; AHRA deterministic gates verify required artifacts after WorkReport.",
                 )
-                if artifact_paths
+                if artifact_paths and not process_check_commands
                 else ()
             ),
             *(
@@ -465,7 +515,10 @@ def _task_from_request(request: NodeExecutionRequest) -> TaskSpec:
             )
         ),
         requirements=requirements,
-        checks=tuple(_required_artifact_check(path) for path in artifact_paths),
+        checks=(
+            *(tuple(_required_artifact_check(path) for path in artifact_paths)),
+            *(tuple(_process_exec_check(command) for command in process_check_commands)),
+        ),
         policy=ChangePolicy(
             allowed_globs=write_resources or ("**",),
             protected_globs=(),
@@ -483,6 +536,37 @@ def _filesystem_write_resources(node: PlanNodeIR) -> tuple[str, ...]:
             for resource in grant.resources
             if resource
         )
+    )
+
+
+def _process_exec_resources(node: PlanNodeIR) -> tuple[str, ...]:
+    return _unique(
+        tuple(
+            resource.strip()
+            for grant in node.capability_grants
+            if grant.capability == "process.exec"
+            for resource in grant.resources
+            if resource
+        )
+    )
+
+
+def _checkable_process_exec_resources(commands: tuple[str, ...]) -> tuple[str, ...]:
+    return _unique(tuple(command for command in commands if _is_checkable_process_exec(command)))
+
+
+def _is_checkable_process_exec(command: str) -> bool:
+    tokens = tuple(token.strip("\"'").replace("\\", "/") for token in command.split())
+    if not tokens:
+        return False
+    return any(
+        token == "scripts/check.py"
+        or token == "./scripts/check.py"
+        or token == "scripts/lint_awkp.py"
+        or token == "./scripts/lint_awkp.py"
+        or fnmatch.fnmatch(token, "scripts/lint_*.py")
+        or fnmatch.fnmatch(token, "./scripts/lint_*.py")
+        for token in tokens
     )
 
 
@@ -516,6 +600,63 @@ def _required_artifact_check(path: str) -> CheckSpec:
         argv=(INTERNAL_ARTIFACT_EXISTS_COMMAND, path),
         timeout_seconds=30,
     )
+
+
+def _process_exec_check(command: str) -> CheckSpec:
+    return CheckSpec(
+        name=f"granted process.exec: {command}",
+        argv=tuple(command.split()),
+        timeout_seconds=300,
+    )
+
+
+def _preflight_literal_write_resources(
+    *,
+    request: NodeExecutionRequest,
+    gateway: LocalRuntimeGateway,
+    actor: str,
+):
+    grants = tuple(
+        grant
+        for grant in request.capability_grants
+        if grant.action == "filesystem.write" and grant.denied_resources
+    )
+    if not grants:
+        return None
+    resources = _literal_artifact_paths(_filesystem_write_resources(request.node))
+    for relative_path in resources:
+        grant = _grant_for_resource(grants, relative_path)
+        if grant is None:
+            continue
+        record = gateway.authorize_write_path(
+            grant,
+            plan_id=request.plan.plan_id,
+            node_id=request.node.node_id,
+            actor=actor,
+            relative_path=relative_path,
+        )
+        if not record.allowed:
+            return record
+    return None
+
+
+def _grant_for_resource(
+    grants: tuple[RuntimeCapabilityGrant, ...],
+    relative_path: str,
+) -> RuntimeCapabilityGrant | None:
+    normalized = relative_path.replace("\\", "/")
+    for grant in grants:
+        if grant.action == "filesystem.write" and any(
+            _resource_matches(normalized, pattern)
+            for pattern in grant.resources
+        ):
+            return grant
+    return None
+
+
+def _resource_matches(resource: str, pattern: str) -> bool:
+    normalized_pattern = pattern.replace("\\", "/")
+    return resource == normalized_pattern or fnmatch.fnmatch(resource, normalized_pattern)
 
 
 def _unique(items: tuple[str, ...]) -> tuple[str, ...]:

@@ -1,0 +1,89 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0071",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0071-0001",
+      "task_id": "TASK-0071",
+      "kind": "development_executor_profile_report",
+      "name": "development-executor-profile-report.md",
+      "uri": "local://evidence/development-executor-profile-report.md",
+      "sha256": "22253164d5faa40b3d01e4ee502a3f75da22879b5a63a0b1cfe417721d00093f",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T12:00:00.000002Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/goal_operations.py",
+        "../../../src/ahra/capabilities.py",
+        "../../../src/ahra/reference_runner/bounded_task.py",
+        "../../../src/ahra/cli.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0071-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0071-0002",
+      "task_id": "TASK-0071",
+      "kind": "verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "e7841909640bfee98995a7ede13fce6a7a368ead0d6b841029ad861c5909e95e",
+      "media_type": "application/json",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T12:00:00.000002Z",
+      "input_refs": [
+        "task.md",
+        "evidence/development-executor-profile-report.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0071-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0071-HANDOFF-0001",
+      "task_id": "TASK-0071",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "62ebfbc3649ad7e9dd32f8e02aefb247cc69215ecf4decf3477a8ed35e2424a9",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T12:00:00.000002Z",
+      "input_refs": [
+        "task.md",
+        "evidence/development-executor-profile-report.md",
+        "evidence/verification-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0071-0001",
+        "EVD-TASK-0071-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0071-0003",
+      "task_id": "TASK-0071",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "4fe0f9703e63205fdffb032b0838f587954fac112409963539d045176d5347d8",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-30T12:00:00.000003Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0071-0003"
+      ],
+      "supersedes": null
+    }
+  ]
+}
