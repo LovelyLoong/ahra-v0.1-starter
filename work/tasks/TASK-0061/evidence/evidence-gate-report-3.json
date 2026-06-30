@@ -1,0 +1,83 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0061",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T02:29:08.324118Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier accepts TASK-0061: the automated demonstration test, governed transition evidence, distinct verifier boundary, full repository check, and producer-only review transition satisfy the task contract.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "One simple real task is driven ready -> working -> review -> completed autonomously, with no manual CLI invocation or file hand-edit between steps, captured as evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0061-0001",
+        "EVD-TASK-0061-0002"
+      ],
+      "notes": "Verified the non-skipped test drives TASK-AUTO-E2E from task create through EvidenceGate completed, and reran the focused test successfully."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Every state transition in the run was performed by a governed writer (TASK-0057) and the orchestrator (TASK-0059), verifiable from the task's append-only events (no hand-authored state).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0061-0001",
+        "EVD-TASK-0061-0002"
+      ],
+      "notes": "Verified append-only events assert task_created, lease_acquired, goal_awkp_associated, review_requested, and evidence_gate_approved with expected-version checks."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The EvidenceGate decision was made under a verifier identity distinct from every producer identity in the run.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0061-0001",
+        "EVD-TASK-0061-0002"
+      ],
+      "notes": "Verified producer agent:autonomous-producer and verifier agent:autonomous-verifier are distinct in the demonstration, and this gate uses agent:independent-verifier."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The completion rested on real gate evidence (TASK-0053..0056 / TASK-0060 bridge), not a hollow gate.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0061-0001",
+        "EVD-TASK-0061-0002"
+      ],
+      "notes": "Verified the demonstration uses command-backed GoalExecution evidence and materializes kernel EvidenceV2/GateRun records through the Goal-AWKP bridge."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "The end-to-end path is encoded as a non-skipped automated test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0061-0001",
+        "EVD-TASK-0061-0002"
+      ],
+      "notes": "Verified tests.test_goal_operations.GoalOperationCliTests.test_autonomous_task_completion_starts_from_created_ready_task is present and passes."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "`.\\.venv\\Scripts\\python.exe -B scripts\\check.py` (full lint + test) passes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0061-0002"
+      ],
+      "notes": "Reran .\\.venv\\Scripts\\python.exe -B scripts\\check.py; it passed with 238 tests OK, 1 symlink privilege skip, and 0 lint failures."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Producer moves TASK-0061 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0061-0001",
+        "EVD-TASK-0061-0002",
+        "EVD-TASK-0061-0003"
+      ],
+      "notes": "Verified TASK-0061 itself remains producer-moved only to review at state_version 2 before this EvidenceGate approval."
+    }
+  ],
+  "commands": []
+}

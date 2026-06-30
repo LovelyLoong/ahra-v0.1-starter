@@ -227,11 +227,17 @@ def _command_evidence_ref(artifact_dir: Path) -> str:
     raise AssertionError("command-backed EvidenceV2 was not materialized")
 
 
-def _write_bridge_gate_input(root: Path, *, task_id: str, evidence_ref: str) -> Path:
+def _write_bridge_gate_input(
+    root: Path,
+    *,
+    task_id: str,
+    evidence_ref: str,
+    verifier: str = "agent:verifier",
+) -> Path:
     report = {
         "schema_version": "ahra/evidence-gate-input/0.1",
         "task_id": task_id,
-        "verifier": "agent:verifier",
+        "verifier": verifier,
         "decision": "approve",
         "summary": "Verifier mapped the AWKP criterion to kernel GateRun evidence.",
         "criteria": [
@@ -534,6 +540,150 @@ class GoalOperationCliTests(unittest.TestCase):
             artifact_manifest = json.loads((task_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
             self.assertIn(evidence_ref, {record["evidence_id"] for record in evidence_manifest["evidence"]})
             self.assertIn("kernel_gate_run_v2", {record["kind"] for record in artifact_manifest["artifacts"]})
+
+    def test_autonomous_task_completion_starts_from_created_ready_task(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            work_root = root / "work"
+            goal_root = root / "goal"
+            goal_root.mkdir()
+            task_id = "TASK-AUTO-E2E"
+            producer = "agent:autonomous-producer"
+            verifier = "agent:autonomous-verifier"
+
+            create_code, create_payload = _run_cli(
+                [
+                    "task",
+                    "create",
+                    task_id,
+                    "--work-root",
+                    str(work_root),
+                    "--title",
+                    "Autonomous completion task",
+                    "--description",
+                    "Complete one command-backed GoalExecution through the Goal-AWKP bridge.",
+                    "--context-id",
+                    "CTX-autonomous-e2e",
+                    "--acceptance",
+                    "The command-backed GoalExecution evidence is accepted by EvidenceGate.",
+                    "--output-contract",
+                    "verification_summary",
+                    "--actor",
+                    "agent:autonomy-test",
+                ]
+            )
+            self.assertEqual(create_code, 0)
+            self.assertEqual(create_payload["result"]["state"], "ready")
+            self.assertEqual(create_payload["result"]["state_version"], 0)
+
+            claim_code, claim_payload = _run_cli(
+                [
+                    "task",
+                    "claim",
+                    task_id,
+                    "--work-root",
+                    str(work_root),
+                    "--expected-version",
+                    "0",
+                    "--actor",
+                    producer,
+                    "--idempotency-key",
+                    f"{task_id}:autonomous:claim",
+                ]
+            )
+            self.assertEqual(claim_code, 0)
+            self.assertEqual(claim_payload["result"]["to_state"], "working")
+            self.assertEqual(claim_payload["result"]["state_version"], 1)
+            fencing_token = claim_payload["result"]["fencing_token"]
+
+            request_path = _copy_command_gate_request(goal_root)
+            gate_input = goal_root / "workspace" / "inputs" / "command-gate.txt"
+            gate_input.parent.mkdir(parents=True)
+            gate_input.write_text("fixed\n", encoding="utf-8")
+
+            start_code, start_payload = _run_cli(["goal", "start", str(request_path)])
+            self.assertEqual(start_code, 0)
+            start_result = start_payload["result"]
+            self.assertEqual(start_result["goalStatus"], "succeeded")
+            self.assertEqual(start_result["planStatus"], "succeeded")
+
+            artifact_dir = goal_root / ".ahra" / "artifacts"
+            evidence_ref = _command_evidence_ref(artifact_dir)
+            report_path = _write_bridge_gate_input(
+                root,
+                task_id=task_id,
+                evidence_ref=evidence_ref,
+                verifier=verifier,
+            )
+
+            bridge_code, bridge_payload = _run_cli(
+                [
+                    "goal",
+                    "bridge-awkp-task",
+                    start_result["goalExecutionId"],
+                    "--task",
+                    task_id,
+                    "--work-root",
+                    str(work_root),
+                    "--db",
+                    str(goal_root / ".ahra" / "goal-control.sqlite3"),
+                    "--artifact-dir",
+                    str(artifact_dir),
+                    "--expected-task-version",
+                    "1",
+                    "--producer-actor",
+                    producer,
+                    "--verifier-actor",
+                    verifier,
+                    "--fencing-token",
+                    str(fencing_token),
+                    "--report",
+                    str(report_path),
+                    "--idempotency-key-prefix",
+                    f"{task_id}:autonomous:bridge",
+                ]
+            )
+
+            self.assertEqual(bridge_code, 0)
+            bridge_result = bridge_payload["result"]
+            self.assertEqual(bridge_result["orchestration"]["terminal_state"], "completed")
+            self.assertEqual(bridge_result["orchestration"]["state_version"], 4)
+            self.assertEqual(bridge_result["goal_status"], "succeeded")
+
+            task_dir = work_root / "tasks" / task_id
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "completed")
+            self.assertEqual(state["state_version"], 4)
+            self.assertIsNone(state["lease"])
+            self.assertIn(evidence_ref, state["evidence_refs"])
+            events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertEqual(
+                [event["event_type"] for event in events],
+                [
+                    "task_created",
+                    "lease_acquired",
+                    "goal_awkp_associated",
+                    "review_requested",
+                    "evidence_gate_approved",
+                ],
+            )
+            self.assertEqual(events[1]["expected_version"], 0)
+            self.assertEqual(events[2]["expected_version"], 1)
+            self.assertEqual(events[3]["expected_version"], 2)
+            self.assertEqual(events[-1]["actor"], verifier)
+            self.assertNotEqual(events[-1]["actor"], events[1]["actor"])
+            self.assertEqual(events[2]["goal_execution_id"], start_result["goalExecutionId"])
+
+            evidence_manifest = json.loads((task_dir / "evidence-manifest.json").read_text(encoding="utf-8"))
+            artifact_manifest = json.loads((task_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
+            evidence_ids = {record["evidence_id"] for record in evidence_manifest["evidence"]}
+            artifact_kinds = {record["kind"] for record in artifact_manifest["artifacts"]}
+            self.assertIn(evidence_ref, evidence_ids)
+            self.assertIn("kernel_evidence_v2", {record["kind"] for record in evidence_manifest["evidence"]})
+            self.assertIn("kernel_gate_run_v2", artifact_kinds)
 
     def test_goal_awkp_bridge_rejects_same_producer_and_verifier_before_state_write(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

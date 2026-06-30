@@ -1,0 +1,95 @@
+{
+  "schema_version": "ahra/task-verification-summary/0.1",
+  "task_id": "TASK-0061",
+  "generated_at": "2026-06-30T02:03:47Z",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_goal_operations.GoalOperationCliTests.test_autonomous_task_completion_starts_from_created_ready_task -v",
+      "exit_code": 0,
+      "summary": "Ran 1 test: OK."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_cli tests.test_goal_operations tests.test_evidence_gate -v",
+      "exit_code": 0,
+      "summary": "Ran 42 tests: OK."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 errors, 0 warnings. AHRA lint: 0 failures. Ran 238 tests: OK, skipped=1."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 errors, 0 warnings. AHRA lint: 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "Passed with CRLF/LF normalization warnings for TASK-0061 state/events."
+    }
+  ],
+  "autonomous_demonstration": {
+    "test": "tests.test_goal_operations.GoalOperationCliTests.test_autonomous_task_completion_starts_from_created_ready_task",
+    "demonstrated_task_id": "TASK-AUTO-E2E",
+    "producer_actor": "agent:autonomous-producer",
+    "verifier_actor": "agent:autonomous-verifier",
+    "event_sequence": [
+      "task_created",
+      "lease_acquired",
+      "goal_awkp_associated",
+      "review_requested",
+      "evidence_gate_approved"
+    ],
+    "final_state": "completed",
+    "final_state_version": 4,
+    "uses_command_backed_kernel_evidence": true,
+    "state_events_written_by_governed_path": true
+  },
+  "transient_observations": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py",
+      "observed_exit_code": 1,
+      "summary": "One intermediate rerun failed in tests.test_goal_operations.GoalOperationCliTests.test_validate_plan_start_resume_inspect_and_terminal_cancel with resume goalStatus=failed.",
+      "follow_up": "The failing test passed alone, the full tests.test_goal_operations module passed, and a final full scripts/check.py rerun passed without code changes."
+    }
+  ],
+  "acceptance_coverage": [
+    {
+      "criterion": "One simple real task is driven ready -> working -> review -> completed autonomously, with no manual CLI invocation or file hand-edit between steps, captured as evidence.",
+      "status": "covered",
+      "evidence": "The new test performs the full chain from task create to EvidenceGate approval in one automated test body."
+    },
+    {
+      "criterion": "Every state transition in the run was performed by a governed writer and the orchestrator, verifiable from append-only events.",
+      "status": "covered",
+      "evidence": "The asserted event sequence contains task_created, lease_acquired, goal_awkp_associated, review_requested, and evidence_gate_approved with expected versions for writer-controlled transitions."
+    },
+    {
+      "criterion": "The EvidenceGate decision was made under a verifier identity distinct from every producer identity.",
+      "status": "covered",
+      "evidence": "The test uses producer agent:autonomous-producer and verifier agent:autonomous-verifier, and asserts the final gate actor differs from the producer."
+    },
+    {
+      "criterion": "The completion rested on real gate evidence, not a hollow gate.",
+      "status": "covered",
+      "evidence": "The GoalExecution uses the command GateRunner and the test asserts kernel_evidence_v2 and kernel_gate_run_v2 materialization."
+    },
+    {
+      "criterion": "The end-to-end path is encoded as a non-skipped automated test.",
+      "status": "covered",
+      "evidence": "tests.test_goal_operations.GoalOperationCliTests.test_autonomous_task_completion_starts_from_created_ready_task ran in targeted and full suites."
+    },
+    {
+      "criterion": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py passes.",
+      "status": "covered",
+      "evidence": "Full check passed: 238 tests OK, skipped=1, lint passed."
+    },
+    {
+      "criterion": "Producer moves TASK-0061 only to review; EvidenceGate decides completion.",
+      "status": "covered",
+      "evidence": "TASK-0061 was moved working -> review through AwkpTaskStateWriter.request_review at state_version 2; no EvidenceGate completion was performed by the producer."
+    }
+  ],
+  "blockers": []
+}

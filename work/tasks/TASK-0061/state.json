@@ -2,15 +2,25 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0061",
   "context_id": "CTX-workflow-autonomy",
-  "state": "ready",
-  "state_version": 0,
-  "attempt": 0,
+  "state": "completed",
+  "state_version": 3,
+  "attempt": 1,
   "owner": null,
   "lease": null,
-  "next_action": "After TASK-0060, demonstrate autonomous end-to-end completion of one simple real task.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "pause_reason": null,
   "blockers": [],
-  "artifact_refs": [],
-  "evidence_refs": [],
-  "updated_at": "2026-06-29T11:00:00Z"
+  "artifact_refs": [
+    "ART-TASK-0061-0001",
+    "ART-TASK-0061-0002",
+    "ART-TASK-0061-0003",
+    "ART-TASK-0061-0004"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0061-0001",
+    "EVD-TASK-0061-0002",
+    "EVD-TASK-0061-0003",
+    "EVD-TASK-0061-0004"
+  ],
+  "updated_at": "2026-06-30T02:29:08.324118Z"
 }
