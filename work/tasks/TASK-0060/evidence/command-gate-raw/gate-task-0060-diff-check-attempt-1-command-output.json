@@ -1,0 +1,12 @@
+{
+  "schema_version": "ahra/command-gate-output/0.1",
+  "task_id": "TASK-0060",
+  "command_ref": "CMD-task-0060-diff-check",
+  "command": "git diff --check",
+  "started_at": "2026-06-29T17:15:56.718653Z",
+  "completed_at": "2026-06-29T17:15:56.813215Z",
+  "exit_code": 0,
+  "status": "passed",
+  "stdout": "",
+  "stderr": "warning: in the working copy of 'work/tasks/TASK-0060/events.jsonl', CRLF will be replaced by LF the next time Git touches it\nwarning: in the working copy of 'work/tasks/TASK-0060/state.json', CRLF will be replaced by LF the next time Git touches it\n"
+}

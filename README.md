@@ -33,6 +33,7 @@ python -m ahra.cli goal start examples/m1/goal-run-request.yaml
 python -m ahra.cli goal inspect <GEXEC-ID> --db <goal-control.sqlite3>
 python -m ahra.cli goal resume <GEXEC-ID> --request examples/m1/goal-run-request.yaml
 python -m ahra.cli goal cancel <GEXEC-ID> --db <goal-control.sqlite3> --reason <reason>
+python -m ahra.cli goal bridge-awkp-task <GEXEC-ID> --task <TASK-ID> --db <goal-control.sqlite3> --artifact-dir <artifact-dir> --expected-task-version <N> --producer-actor <producer> --verifier-actor <verifier> --fencing-token <token> --report <report.json>
 python -m ahra.cli task create <TASK-ID> --title ... --description ... --context-id ... --acceptance ...
 python -m ahra.cli task claim <TASK-ID> --expected-version <N> --actor <producer>
 python -m ahra.cli task orchestrate-review <TASK-ID> --expected-version <N> --producer-actor <producer> --verifier-actor <verifier> --fencing-token <token> --report <report.json>
@@ -51,6 +52,7 @@ git diff --check
 
 - 当前默认 real-Agent 路径是 `scripts/run_real_agent_pilot.py`，其 `--mode` 默认值为 `mode_c_combined`；它只覆盖本地 M1 有界路径，真实模型成本仍需调用者显式传入 `--allow-model-cost`。
 - `ahra goal ...` 是底层通用 Goal CLI 入口；它支持显式 immutable M1 deterministic profile、SQLite store 和已注册 adapter/runtime refs。
+- `ahra goal bridge-awkp-task` 只把已 succeeded 的 GoalExecution 证据物化并交给 AWKP task review orchestrator；它不替代独立 EvidenceGate 完成判定。
 - `ahra fixture dynamic-repair` 是 regression-only fixture profile，用来保护旧闭环语义，不再是默认推荐入口。
 - `standard-harness`、`loop-engineering`、旧 `WorkflowRunRequest` 和 `fake-reference` driver 是已废弃但暂时保留的 legacy compatibility path；只有用户明确要求旧 workflow 路线时才使用。
 - 本地 MCP server 和 `src/ahra/demo.py` 已从当前实现中删除；历史 ADR 或任务证据中的引用仅作为审计 trace。

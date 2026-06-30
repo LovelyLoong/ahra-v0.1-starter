@@ -12,10 +12,11 @@ from typing import TYPE_CHECKING, Any, Callable, Mapping
 
 import yaml
 
+from .awkp_state_writer import AwkpTaskStateWriter
 from .capabilities import CapabilityAdmissionService, CapabilityScope, LocalRuntimeGateway, RuntimeCapabilityProfile
 from .acceptance_contracts import Claim, ClaimGraph, ClaimType, GateDefinition, RiskLevel
 from .domain import utc_now
-from .evidence_v2 import EvidenceEnvironment, EvidenceV2, canonical_fingerprint
+from .evidence_v2 import DigestRef, EvidenceEnvironment, EvidenceV2, GateRunV2, canonical_fingerprint
 from .node_executor import (
     NodeExecutionRequest,
     NodeExecutionResult,
@@ -23,6 +24,7 @@ from .node_executor import (
     NodeExecutionUsage,
     NodeExecutorRegistry,
 )
+from .orchestrator import AwkpTaskOrchestrationRequest, AwkpTaskReviewOrchestrator
 from .plan_execution import (
     GoalExecutionStatus,
     GOAL_TRANSITIONS,
@@ -211,6 +213,44 @@ class GoalPlanBundle:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class GoalAwkpBridgeRequest:
+    goal_execution_id: str
+    task: str | Path
+    expected_task_version: int
+    producer_actor: str
+    verifier_actor: str
+    fencing_token: str
+    report_paths: tuple[str | Path, ...]
+    db_path: str | Path
+    artifact_dir: str | Path
+    work_root: str | Path = "work"
+    max_cycles: int = 1
+    idempotency_key_prefix: str | None = None
+    lease_ttl_seconds: int | None = None
+    reason: str = "Completed GoalExecution evidence is ready for AWKP EvidenceGate review."
+
+
+@dataclass(frozen=True, slots=True)
+class GoalAwkpBridgeMaterialization:
+    association_event_id: str
+    association_state_version: int
+    artifact_refs: tuple[str, ...]
+    evidence_refs: tuple[str, ...]
+    kernel_evidence_refs: tuple[str, ...]
+    kernel_gate_run_refs: tuple[str, ...]
+    association_ref: str
+
+
+@dataclass(frozen=True, slots=True)
+class GoalAwkpBridgeResult:
+    task_id: str
+    goal_execution_id: str
+    goal_status: str
+    materialization: GoalAwkpBridgeMaterialization
+    orchestration: Any
+
+
 class GoalOperationProfileRegistry:
     def __init__(self, profiles: tuple[GoalOperationProfile, ...] | None = None) -> None:
         default_profiles = profiles or (
@@ -272,6 +312,122 @@ class GoalOperationProfileRegistry:
             return self._profiles[profile_ref]
         except KeyError as exc:
             raise GoalOperationError("unknown_profile", f"unknown Goal operation profile: {profile_ref}", refs=(profile_ref,)) from exc
+
+
+class GoalAwkpBridge:
+    """Associates a completed GoalExecution with one AWKP task review cycle."""
+
+    def __init__(
+        self,
+        *,
+        work_root: str | Path = "work",
+        state_writer: AwkpTaskStateWriter | None = None,
+        task_orchestrator: AwkpTaskReviewOrchestrator | None = None,
+    ) -> None:
+        self.work_root = Path(work_root)
+        self.state_writer = state_writer or AwkpTaskStateWriter(work_root=self.work_root)
+        self.task_orchestrator = task_orchestrator or AwkpTaskReviewOrchestrator(
+            work_root=self.work_root,
+            state_writer=self.state_writer,
+        )
+
+    def run(self, request: GoalAwkpBridgeRequest) -> GoalAwkpBridgeResult:
+        if not request.report_paths:
+            raise GoalOperationError("missing_awkp_gate_report", "Goal-to-AWKP bridge requires a verifier report path")
+        if request.producer_actor == request.verifier_actor:
+            raise GoalOperationError(
+                "producer_verifier_identity_conflict",
+                "Goal-to-AWKP bridge requires distinct producer and verifier actors",
+                refs=(request.producer_actor,),
+            )
+        store = SQLiteControlStore(request.db_path)
+        try:
+            goal = store.get_goal_execution(request.goal_execution_id)
+        except KeyError as exc:
+            raise GoalOperationError(
+                "unknown_goal_execution",
+                f"unknown GoalExecution: {request.goal_execution_id}",
+                refs=(request.goal_execution_id,),
+            ) from exc
+        if goal.status != GoalExecutionStatus.SUCCEEDED:
+            raise GoalOperationError(
+                "goal_execution_not_succeeded",
+                "only a succeeded GoalExecution may advance an AWKP task",
+                refs=(request.goal_execution_id, goal.status.value),
+            )
+
+        task_dir = _awkp_task_dir_for_bridge(request.task, self.work_root)
+        task_id = _task_id_from_awkp_state(task_dir)
+        prefix = request.idempotency_key_prefix or f"{task_id}:goal-awkp-bridge:{goal.goal_execution_id}"
+        materialized = _materialize_goal_awkp_bridge(
+            task_dir=task_dir,
+            goal=goal,
+            artifact_dir=Path(request.artifact_dir),
+            producer_actor=request.producer_actor,
+            idempotency_key_prefix=prefix,
+            db_path=Path(request.db_path),
+        )
+        association = self.state_writer.record_goal_association(
+            request.task,
+            expected_version=request.expected_task_version,
+            actor=request.producer_actor,
+            idempotency_key=f"{prefix}:associate",
+            fencing_token=request.fencing_token,
+            goal_execution_id=goal.goal_execution_id,
+            goal_status=goal.status.value,
+            reason=(
+                "Associated succeeded GoalExecution with this AWKP task and published "
+                "kernel EvidenceV2/GateRun records for EvidenceGate review."
+            ),
+            refs=(
+                "state.json",
+                "artifact-manifest.json",
+                "evidence-manifest.json",
+                materialized.association_ref,
+            ),
+            artifact_refs=materialized.artifact_refs,
+            evidence_refs=materialized.evidence_refs,
+            next_action="GoalExecution evidence is associated; orchestrator should request independent review.",
+        )
+        materialized = GoalAwkpBridgeMaterialization(
+            association_event_id=association.event_id,
+            association_state_version=association.state_version,
+            artifact_refs=materialized.artifact_refs,
+            evidence_refs=materialized.evidence_refs,
+            kernel_evidence_refs=materialized.kernel_evidence_refs,
+            kernel_gate_run_refs=materialized.kernel_gate_run_refs,
+            association_ref=materialized.association_ref,
+        )
+        orchestration = self.task_orchestrator.run(
+            AwkpTaskOrchestrationRequest(
+                task=request.task,
+                work_root=self.work_root,
+                expected_version=association.state_version,
+                producer_actor=request.producer_actor,
+                verifier_actor=request.verifier_actor,
+                fencing_token=request.fencing_token,
+                report_paths=request.report_paths,
+                max_cycles=request.max_cycles,
+                idempotency_key_prefix=f"{prefix}:review",
+                review_refs=(
+                    "state.json",
+                    "artifact-manifest.json",
+                    "evidence-manifest.json",
+                    materialized.association_ref,
+                ),
+                artifact_refs=materialized.artifact_refs,
+                evidence_refs=materialized.evidence_refs,
+                lease_ttl_seconds=request.lease_ttl_seconds,
+                reason=request.reason,
+            )
+        )
+        return GoalAwkpBridgeResult(
+            task_id=task_id,
+            goal_execution_id=goal.goal_execution_id,
+            goal_status=goal.status.value,
+            materialization=materialized,
+            orchestration=orchestration,
+        )
 
 
 class GoalOperationService:
@@ -396,6 +552,7 @@ class GoalOperationService:
                 open_defect_refs=tuple(defect.defect_id for defect in defects),
             )
             ran = True
+        kernel_verification = _write_kernel_verification_records(request.artifact_dir, scheduler.verification_executor)
         result = self.inspect(goal.goal_execution_id, db_path=request.store_path)
         report = {
             "schema_version": "ahra/goal-operation-start/0.1",
@@ -407,6 +564,7 @@ class GoalOperationService:
             "planStatus": latest_execution.status.value,
             "defects": [defect.to_dict() for defect in defects],
             "completion": _completion_dict(completion),
+            "kernelVerification": kernel_verification,
             "inspect": result,
         }
         _write_json(request.artifact_dir / "goal-start-report.json", report)
@@ -467,6 +625,7 @@ class GoalOperationService:
             "planStatus": execution.status.value,
             "defects": [defect.to_dict() for defect in defects],
             "completion": _completion_dict(completion),
+            "kernelVerification": _write_kernel_verification_records(request.artifact_dir, scheduler.verification_executor),
             "inspect": self.inspect(goal_execution_id, db_path=request.store_path),
         }
         _write_json(request.artifact_dir / "goal-resume-report.json", report)
@@ -959,6 +1118,256 @@ class _LocalGoalArtifactStore:
         return (self.root / artifact_ref).read_bytes()
 
 
+def _write_kernel_verification_records(artifact_dir: Path | str, verification_executor: object | None) -> dict[str, Any]:
+    root = Path(artifact_dir)
+    evidence_records = tuple(getattr(verification_executor, "evidence_records", ()) or ())
+    gate_runs = tuple(getattr(verification_executor, "gate_runs", ()) or ())
+    evidence_dir = root / "kernel-evidence"
+    gate_run_dir = root / "kernel-gate-runs"
+    evidence_summaries: list[dict[str, str]] = []
+    gate_run_summaries: list[dict[str, str]] = []
+    for evidence in evidence_records:
+        if not isinstance(evidence, EvidenceV2):
+            continue
+        path = evidence_dir / f"{_safe_ref_filename(evidence.evidence_id)}.json"
+        _write_json(path, _evidence_v2_document(evidence))
+        evidence_summaries.append(
+            {
+                "evidenceRef": evidence.evidence_id,
+                "path": str(path),
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            }
+        )
+    for gate_run in gate_runs:
+        if not isinstance(gate_run, GateRunV2):
+            continue
+        path = gate_run_dir / f"{_safe_ref_filename(gate_run.gate_run_id)}.json"
+        _write_json(path, _gate_run_v2_document(gate_run))
+        gate_run_summaries.append(
+            {
+                "gateRunRef": gate_run.gate_run_id,
+                "path": str(path),
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            }
+        )
+    return {
+        "schema_version": "ahra/kernel-verification-materialization/0.1",
+        "evidenceRecords": evidence_summaries,
+        "gateRuns": gate_run_summaries,
+    }
+
+
+def _materialize_goal_awkp_bridge(
+    *,
+    task_dir: Path,
+    goal: Any,
+    artifact_dir: Path,
+    producer_actor: str,
+    idempotency_key_prefix: str,
+    db_path: Path,
+) -> GoalAwkpBridgeMaterialization:
+    artifact_manifest_path = task_dir / "artifact-manifest.json"
+    evidence_manifest_path = task_dir / "evidence-manifest.json"
+    artifact_manifest = _read_json_file(artifact_manifest_path)
+    evidence_manifest = _read_json_file(evidence_manifest_path)
+    task_id = str(artifact_manifest.get("task_id") or _task_id_from_awkp_state(task_dir))
+    existing_evidence_ids = {
+        str(record.get("evidence_id") or "")
+        for record in evidence_manifest.get("evidence", [])
+        if isinstance(record, dict)
+    }
+    artifact_refs: list[str] = []
+    evidence_refs: list[str] = []
+    kernel_evidence_refs: list[str] = []
+    kernel_gate_run_refs: list[str] = []
+    goal_evidence_ids = set(str(ref) for ref in goal.evidence_refs)
+    source_evidence_dir = artifact_dir / "kernel-evidence"
+    source_gate_run_dir = artifact_dir / "kernel-gate-runs"
+    if not source_evidence_dir.exists() or not source_gate_run_dir.exists():
+        raise GoalOperationError(
+            "missing_kernel_verification_records",
+            "Goal artifact directory has no materialized kernel EvidenceV2/GateRun records",
+            refs=(str(source_evidence_dir), str(source_gate_run_dir)),
+        )
+
+    for source_evidence in sorted(source_evidence_dir.glob("*.json")):
+        evidence_doc = _read_json_file(source_evidence)
+        evidence_id = _metadata_value(evidence_doc, "evidenceId")
+        if evidence_id not in goal_evidence_ids:
+            continue
+        spec = _mapping(evidence_doc.get("spec"), f"{source_evidence}.spec")
+        gate_run_id = str(spec.get("gateRunId") or "")
+        source_gate_run = source_gate_run_dir / f"{_safe_ref_filename(gate_run_id)}.json"
+        if not source_gate_run.exists():
+            raise GoalOperationError(
+                "missing_kernel_gate_run",
+                "Goal evidence has no matching GateRun document",
+                refs=(evidence_id, gate_run_id),
+            )
+        gate_run_doc = _read_json_file(source_gate_run)
+        target_evidence_rel = f"evidence/kernel-evidence/{_safe_ref_filename(evidence_id)}.json"
+        target_gate_run_rel = f"evidence/kernel-gate-runs/{_safe_ref_filename(gate_run_id)}.json"
+        target_evidence = task_dir / target_evidence_rel
+        target_gate_run = task_dir / target_gate_run_rel
+        _write_json(target_evidence, evidence_doc)
+        _write_json(target_gate_run, gate_run_doc)
+        evidence_sha = hashlib.sha256(target_evidence.read_bytes()).hexdigest()
+        gate_run_sha = hashlib.sha256(target_gate_run.read_bytes()).hexdigest()
+        gate_run_uri = f"local://{target_gate_run_rel}"
+        evidence_uri = f"local://{target_evidence_rel}"
+        gate_artifact_id = _existing_artifact_id_by_uri(artifact_manifest, gate_run_uri)
+        if gate_artifact_id is None:
+            gate_artifact_id = _next_manifest_id("ART", task_id, artifact_manifest.get("artifacts", []))
+            artifact_manifest["artifacts"].append(
+                {
+                    "artifact_id": gate_artifact_id,
+                    "task_id": task_id,
+                    "kind": "kernel_gate_run_v2",
+                    "name": Path(target_gate_run_rel).name,
+                    "uri": gate_run_uri,
+                    "sha256": gate_run_sha,
+                    "media_type": "application/json",
+                    "created_by": producer_actor,
+                    "created_at": _now_iso(),
+                    "input_refs": [str(db_path), str(artifact_dir), goal.goal_execution_id],
+                    "evidence_refs": [evidence_id],
+                    "supersedes": None,
+                }
+            )
+        else:
+            _update_manifest_sha(artifact_manifest.get("artifacts", []), gate_artifact_id, gate_run_sha)
+        if evidence_id not in existing_evidence_ids:
+            evidence_manifest["evidence"].append(
+                {
+                    "evidence_id": evidence_id,
+                    "task_id": task_id,
+                    "kind": "kernel_evidence_v2",
+                    "name": Path(target_evidence_rel).name,
+                    "uri": evidence_uri,
+                    "sha256": evidence_sha,
+                    "media_type": "application/json",
+                    "created_by": producer_actor,
+                    "created_at": _now_iso(),
+                    "refs": [gate_artifact_id, gate_run_id, goal.goal_execution_id],
+                }
+            )
+            existing_evidence_ids.add(evidence_id)
+        else:
+            _update_manifest_sha(evidence_manifest.get("evidence", []), evidence_id, evidence_sha)
+        artifact_refs.append(gate_artifact_id)
+        evidence_refs.append(evidence_id)
+        kernel_evidence_refs.append(evidence_id)
+        kernel_gate_run_refs.append(gate_run_id)
+
+    if not kernel_evidence_refs:
+        raise GoalOperationError(
+            "missing_goal_kernel_evidence",
+            "GoalExecution has no materialized kernel EvidenceV2 records referenced by its completed state",
+            refs=tuple(sorted(goal_evidence_ids)),
+        )
+
+    association_rel = f"evidence/goal-awkp-association-{_safe_ref_filename(goal.goal_execution_id)}.json"
+    association_path = task_dir / association_rel
+    association_doc = {
+        "schema_version": "ahra/goal-awkp-association/0.1",
+        "goalExecutionId": goal.goal_execution_id,
+        "goalStatus": goal.status.value,
+        "taskId": task_id,
+        "dbPath": str(db_path),
+        "artifactDir": str(artifact_dir),
+        "kernelEvidenceRefs": sorted(set(kernel_evidence_refs)),
+        "kernelGateRunRefs": sorted(set(kernel_gate_run_refs)),
+        "idempotencyKeyPrefix": idempotency_key_prefix,
+    }
+    _write_json(association_path, association_doc)
+    association_sha = hashlib.sha256(association_path.read_bytes()).hexdigest()
+    association_uri = f"local://{association_rel}"
+    association_artifact_id = _existing_artifact_id_by_uri(artifact_manifest, association_uri)
+    if association_artifact_id is None:
+        association_artifact_id = _next_manifest_id("ART", task_id, artifact_manifest.get("artifacts", []))
+        artifact_manifest["artifacts"].append(
+            {
+                "artifact_id": association_artifact_id,
+                "task_id": task_id,
+                "kind": "goal_awkp_association",
+                "name": Path(association_rel).name,
+                "uri": association_uri,
+                "sha256": association_sha,
+                "media_type": "application/json",
+                "created_by": producer_actor,
+                "created_at": _now_iso(),
+                "input_refs": [str(db_path), str(artifact_dir), goal.goal_execution_id],
+                "evidence_refs": [],
+                "supersedes": None,
+            }
+        )
+    else:
+        _update_manifest_sha(artifact_manifest.get("artifacts", []), association_artifact_id, association_sha)
+    artifact_refs.append(association_artifact_id)
+    _write_json(artifact_manifest_path, artifact_manifest)
+    _write_json(evidence_manifest_path, evidence_manifest)
+    return GoalAwkpBridgeMaterialization(
+        association_event_id="",
+        association_state_version=0,
+        artifact_refs=tuple(sorted(set(artifact_refs))),
+        evidence_refs=tuple(sorted(set(evidence_refs))),
+        kernel_evidence_refs=tuple(sorted(set(kernel_evidence_refs))),
+        kernel_gate_run_refs=tuple(sorted(set(kernel_gate_run_refs))),
+        association_ref=association_rel,
+    )
+
+
+def _evidence_v2_document(evidence: EvidenceV2) -> dict[str, Any]:
+    return {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "Evidence",
+        "metadata": {"evidenceId": evidence.evidence_id},
+        "spec": {
+            "claimRefs": list(evidence.claim_refs),
+            "gateRef": evidence.gate_ref,
+            "gateDefinitionDigest": evidence.gate_definition_digest,
+            "gateRunId": evidence.gate_run_id,
+            "result": evidence.result.value,
+            "confidence": evidence.confidence,
+            "subjects": [_digest_ref_document(item) for item in evidence.subjects],
+            "dependencies": [_digest_ref_document(item) for item in evidence.dependencies],
+            "environment": evidence.environment.to_fingerprint(),
+            "validity": {"state": evidence.validity_state.value, "validUntil": _optional_iso(evidence.valid_until)},
+            "dependencyScope": "complete" if evidence.dependency_scope_complete else "partial",
+            "fingerprint": evidence.stored_fingerprint or evidence.fingerprint(),
+            "refs": list(evidence.refs),
+            "supersedes": list(evidence.supersedes),
+        },
+    }
+
+
+def _gate_run_v2_document(gate_run: GateRunV2) -> dict[str, Any]:
+    return {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "GateRun",
+        "metadata": {"gateRunId": gate_run.gate_run_id},
+        "spec": {
+            "gateRef": gate_run.gate_ref,
+            "gateDefinitionDigest": gate_run.gate_definition_digest,
+            "claimRefs": list(gate_run.claim_refs),
+            "result": gate_run.result.value,
+            "startedAt": _optional_iso(gate_run.started_at),
+            "completedAt": _optional_iso(gate_run.completed_at),
+            "subjects": [_digest_ref_document(item) for item in gate_run.subjects],
+            "dependencies": [_digest_ref_document(item) for item in gate_run.dependencies],
+            "environment": gate_run.environment.to_fingerprint(),
+            "validity": {"state": gate_run.validity_state.value, "validUntil": _optional_iso(gate_run.valid_until)},
+            "fingerprint": gate_run.stored_fingerprint or gate_run.fingerprint(),
+            "command": list(gate_run.command),
+            "evidenceRef": gate_run.evidence_ref,
+        },
+    }
+
+
+def _digest_ref_document(ref: DigestRef) -> dict[str, str]:
+    return {"ref": ref.ref, "digest": ref.digest}
+
+
 def load_goal_execution_request(
     path: Path | str,
     *,
@@ -1276,6 +1685,86 @@ def _count_by(values: list[str]) -> dict[str, int]:
     for value in values:
         counts[value] = counts.get(value, 0) + 1
     return counts
+
+
+def _read_json_file(path: Path) -> dict[str, Any]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise GoalOperationError("invalid_json_document", f"JSON document must be an object: {path}", refs=(str(path),))
+    return data
+
+
+def _metadata_value(data: Mapping[str, Any], key: str) -> str:
+    metadata = _mapping(data.get("metadata"), "metadata")
+    value = metadata.get(key)
+    if not isinstance(value, str) or not value:
+        raise GoalOperationError("invalid_kernel_document", f"metadata.{key} must be a non-empty string")
+    return value
+
+
+def _awkp_task_dir_for_bridge(task: str | Path, work_root: Path) -> Path:
+    candidate = Path(task)
+    if candidate.exists():
+        return candidate
+    task_dir = work_root / "tasks" / str(task)
+    if not task_dir.exists():
+        raise GoalOperationError("unknown_awkp_task", f"AWKP task directory not found: {task}", refs=(str(task_dir),))
+    return task_dir
+
+
+def _task_id_from_awkp_state(task_dir: Path) -> str:
+    state = _read_json_file(task_dir / "state.json")
+    task_id = str(state.get("task_id") or "")
+    if not task_id:
+        raise GoalOperationError("invalid_awkp_task_state", f"task state has no task_id: {task_dir}", refs=(str(task_dir),))
+    return task_id
+
+
+def _existing_artifact_id_by_uri(manifest: Mapping[str, Any], uri: str) -> str | None:
+    for record in manifest.get("artifacts", []):
+        if isinstance(record, Mapping) and record.get("uri") == uri and isinstance(record.get("artifact_id"), str):
+            return str(record["artifact_id"])
+    return None
+
+
+def _next_manifest_id(prefix: str, task_id: str, records: Any) -> str:
+    field = "artifact_id" if prefix == "ART" else "evidence_id"
+    stem = f"{prefix}-{task_id}-"
+    highest = 0
+    for record in (records if isinstance(records, list) else ()):
+        if not isinstance(record, Mapping):
+            continue
+        value = str(record.get(field) or "")
+        if value.startswith(stem):
+            suffix = value.removeprefix(stem)
+            if suffix.isdigit():
+                highest = max(highest, int(suffix))
+    return f"{stem}{highest + 1:04d}"
+
+
+def _update_manifest_sha(records: Any, record_id: str, sha256: str) -> None:
+    if not isinstance(records, list):
+        return
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        if record.get("artifact_id") == record_id or record.get("evidence_id") == record_id:
+            record["sha256"] = sha256
+            return
+
+
+def _safe_ref_filename(value: str) -> str:
+    return "".join(char if char.isalnum() or char in "-._" else "-" for char in value)
+
+
+def _optional_iso(value: datetime | None) -> str | None:
+    if value is None:
+        return None
+    return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
+
+
+def _now_iso() -> str:
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def _write_json(path: Path, payload: Mapping[str, Any]) -> None:

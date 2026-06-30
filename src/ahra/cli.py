@@ -14,7 +14,7 @@ import yaml
 from ahra.awkp_state_writer import AwkpTaskStateWriter
 from ahra.awkp_task_creator import AwkpTaskCreateRequest, AwkpTaskCreator
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
-from ahra.goal_operations import GoalOperationError, GoalOperationService
+from ahra.goal_operations import GoalAwkpBridge, GoalAwkpBridgeRequest, GoalOperationError, GoalOperationService
 from ahra.orchestrator import AwkpTaskOrchestrationRequest, AwkpTaskReviewOrchestrator
 from ahra.ports import AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
 
@@ -233,6 +233,24 @@ def _goal_command(args: argparse.Namespace) -> Any:
         return service.resume(args.goal_execution_id, request_path=Path(args.request))
     if args.goal_command == "cancel":
         return service.cancel(args.goal_execution_id, db_path=Path(args.db), reason=args.reason)
+    if args.goal_command == "bridge-awkp-task":
+        request = GoalAwkpBridgeRequest(
+            goal_execution_id=args.goal_execution_id,
+            task=args.task,
+            work_root=args.work_root,
+            expected_task_version=args.expected_task_version,
+            producer_actor=args.producer_actor,
+            verifier_actor=args.verifier_actor,
+            fencing_token=args.fencing_token,
+            report_paths=tuple(args.report or ()),
+            db_path=Path(args.db),
+            artifact_dir=Path(args.artifact_dir),
+            max_cycles=args.max_cycles,
+            idempotency_key_prefix=args.idempotency_key_prefix,
+            lease_ttl_seconds=args.lease_ttl_seconds,
+            reason=args.reason,
+        )
+        return asdict(GoalAwkpBridge(work_root=args.work_root).run(request))
     raise ValueError(f"unknown goal command: {args.goal_command}")
 
 
@@ -581,6 +599,26 @@ def _build_parser(*, include_legacy_workflow: bool = False) -> argparse.Argument
     goal_cancel.add_argument("goal_execution_id", help="GoalExecution id such as GEXEC-...")
     goal_cancel.add_argument("--db", required=True, help="SQLite control store path.")
     goal_cancel.add_argument("--reason", default="cancellation requested", help="Cancellation reason recorded in state.")
+
+    goal_bridge = goal_commands.add_parser("bridge-awkp-task", help="Bridge a succeeded GoalExecution into AWKP task review.")
+    goal_bridge.add_argument("goal_execution_id", help="GoalExecution id such as GEXEC-...")
+    goal_bridge.add_argument("--task", required=True, help="AWKP task id or task directory.")
+    goal_bridge.add_argument("--work-root", default="work", help="AWKP work root containing tasks/.")
+    goal_bridge.add_argument("--db", required=True, help="SQLite control store path.")
+    goal_bridge.add_argument("--artifact-dir", required=True, help="Goal artifact directory with kernel verification records.")
+    goal_bridge.add_argument("--expected-task-version", required=True, type=int, help="Expected AWKP task state_version.")
+    goal_bridge.add_argument("--producer-actor", required=True, help="Current AWKP task lease holder.")
+    goal_bridge.add_argument("--verifier-actor", required=True, help="Independent EvidenceGate verifier actor.")
+    goal_bridge.add_argument("--fencing-token", required=True, help="Current producer lease fencing token.")
+    goal_bridge.add_argument("--report", action="append", required=True, help="Verifier report JSON path. Repeat for retry cycles.")
+    goal_bridge.add_argument("--max-cycles", type=int, default=1, help="Maximum EvidenceGate cycles before adding a blocker.")
+    goal_bridge.add_argument("--idempotency-key-prefix", help="Prefix for bridge and review events.")
+    goal_bridge.add_argument("--lease-ttl-seconds", type=int, help="Optional reclaim lease TTL.")
+    goal_bridge.add_argument(
+        "--reason",
+        default="Completed GoalExecution evidence is ready for AWKP EvidenceGate review.",
+        help="Reason recorded on review_requested events.",
+    )
 
     gate = groups.add_parser("evidence-gate", help="Evaluate AWKP task completion evidence.")
     gate_commands = gate.add_subparsers(dest="evidence_gate_command", required=True)

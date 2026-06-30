@@ -362,6 +362,40 @@ class CliTests(unittest.TestCase):
             self.assertFalse(payload["ok"])
             self.assertIn("verifier_actor must differ from producer_actor", payload["error"])
 
+    def test_goal_bridge_awkp_task_rejects_same_producer_and_verifier(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+
+            code, payload, _ = _run_cli(
+                [
+                    "goal",
+                    "bridge-awkp-task",
+                    "GEXEC-missing",
+                    "--task",
+                    "TASK-CLI-MISSING",
+                    "--work-root",
+                    str(root / "work"),
+                    "--db",
+                    str(root / "missing.sqlite3"),
+                    "--artifact-dir",
+                    str(root / "artifacts"),
+                    "--expected-task-version",
+                    "1",
+                    "--producer-actor",
+                    "agent:same",
+                    "--verifier-actor",
+                    "agent:same",
+                    "--fencing-token",
+                    "FENCE-1",
+                    "--report",
+                    str(root / "missing-report.json"),
+                ]
+            )
+
+            self.assertEqual(code, 2)
+            self.assertFalse(payload["ok"])
+            self.assertEqual(payload["code"], "producer_verifier_identity_conflict")
+
     def test_task_create_rejects_malformed_input(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

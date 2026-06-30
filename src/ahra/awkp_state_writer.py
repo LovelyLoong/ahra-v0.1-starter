@@ -197,6 +197,92 @@ class AwkpTaskStateWriter:
                 occurred_at=now,
             )
 
+    def record_goal_association(
+        self,
+        task_ref: str | Path,
+        *,
+        expected_version: int,
+        actor: str,
+        idempotency_key: str,
+        fencing_token: str,
+        goal_execution_id: str,
+        goal_status: str,
+        reason: str,
+        refs: Iterable[str] = ("state.json",),
+        next_action: str = "GoalExecution association recorded; prepare task review.",
+        artifact_refs: Iterable[str] = (),
+        evidence_refs: Iterable[str] = (),
+    ) -> AwkpTaskStateTransitionResult:
+        task_dir = self._task_dir(task_ref)
+        with self._locked(task_dir):
+            state_path = task_dir / "state.json"
+            event_path = task_dir / "events.jsonl"
+            state = _load_json(state_path)
+            events = _load_events(event_path)
+            task_id = _task_id_from_state(task_dir, state)
+            _require_non_empty("actor", actor)
+            _require_non_empty("idempotency_key", idempotency_key)
+            _require_non_empty("fencing_token", fencing_token)
+            _require_non_empty("goal_execution_id", goal_execution_id)
+            _require_non_empty("goal_status", goal_status)
+            _assert_expected_version(task_id, state, expected_version)
+            _assert_state(task_id, state, "working")
+            _assert_unique_idempotency(event_path, events, idempotency_key)
+            lease = state.get("lease")
+            if not isinstance(lease, dict):
+                raise AwkpTaskStateFenceError(f"{task_id} working state has no lease")
+            lease_token = str(lease.get("fencing_token") or "")
+            if lease_token != fencing_token:
+                raise AwkpTaskStateFenceError(f"{task_id} fencing token mismatch")
+            holder = str(lease.get("holder") or "")
+            if holder != actor:
+                raise AwkpTaskStateFenceError(f"{task_id} lease holder mismatch: {holder!r}")
+
+            now = _monotonic_now(self._clock, events)
+            new_version = int(state["state_version"]) + 1
+            event_id = _next_event_id(task_id, events)
+            event = _transition_event(
+                state,
+                task_id=task_id,
+                event_id=event_id,
+                idempotency_key=idempotency_key,
+                event_type="goal_awkp_associated",
+                actor=actor,
+                occurred_at=now,
+                causation_id=_last_event_id(events),
+                from_state="working",
+                to_state="working",
+                reason=reason,
+                refs=refs,
+                expected_version=expected_version,
+                new_state_version=new_version,
+                lease_fencing_token=fencing_token,
+            )
+            event["goal_execution_id"] = goal_execution_id
+            event["goal_status"] = goal_status
+            _append_event(event_path, event)
+            updated = dict(state)
+            updated.update(
+                {
+                    "state_version": new_version,
+                    "next_action": next_action,
+                    "artifact_refs": _append_unique_many(state.get("artifact_refs", []), artifact_refs),
+                    "evidence_refs": _append_unique_many(state.get("evidence_refs", []), evidence_refs),
+                    "updated_at": now,
+                }
+            )
+            _write_json(state_path, updated)
+            return AwkpTaskStateTransitionResult(
+                task_id=task_id,
+                from_state="working",
+                to_state="working",
+                state_version=new_version,
+                event_id=event_id,
+                idempotency_key=idempotency_key,
+                fencing_token=fencing_token,
+                occurred_at=now,
+            )
+
     def add_blocker(
         self,
         task_ref: str | Path,

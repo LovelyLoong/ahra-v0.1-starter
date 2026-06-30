@@ -1,0 +1,127 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateRun",
+  "metadata": {
+    "gateRunId": "GATERUN-cdc304ce5ee2fec5",
+    "createdAt": "2026-06-29T17:13:55.874671Z"
+  },
+  "spec": {
+    "gateRef": "GATE-task-0060-diff-check",
+    "gateDefinitionDigest": "sha256:b39dd06406d7409cb47f8e41e87b1c8e0112ce804998ceb437f6fd76f2432ff6",
+    "claimRefs": [
+      "CR7-required-checks"
+    ],
+    "result": "passed",
+    "startedAt": "2026-06-29T17:15:56.718653Z",
+    "completedAt": "2026-06-29T17:15:56.813215Z",
+    "subjects": [
+      {
+        "ref": "README.md",
+        "digest": "sha256:b32fdd7b5485ac5db872bb45b7ee312d7930eb8b6831adc12bb982ae19497d62"
+      },
+      {
+        "ref": "docs/architecture/authority-map.md",
+        "digest": "sha256:3ca80333f7a9404aede3eb4cb2e194f07a6de2232cc004b42ce92595260926a0"
+      },
+      {
+        "ref": "docs/architecture/component-inventory.json",
+        "digest": "sha256:4866dc513b8ab8d80af5bc2c0ac834bf4e6c542e508f67970cbca29519be9abb"
+      },
+      {
+        "ref": "docs/architecture/dynamic-agent-kernel.md",
+        "digest": "sha256:3a2669e6bad2c2e641f680a4a883833864d9788ab7cd5de956cb51daad8135f6"
+      },
+      {
+        "ref": "docs/architecture/framework-entrypoints.md",
+        "digest": "sha256:c9db56b5be1c0e111746a1bfd93cf8c8529818d4d9bb6282cbb6f1da2b9f1ca5"
+      },
+      {
+        "ref": "evidence/command-gate-raw/gate-task-0060-diff-check-attempt-1-command-output.json",
+        "digest": "sha256:2efe2c6ef97ab2813a2d1b2f4690005172b3bdf3fedbb8e28c69cf012606a4f1"
+      },
+      {
+        "ref": "scripts/check.py",
+        "digest": "sha256:b6bbdd6da2b46bc843cf329a6a1b49ecdb49cf4b652f3da1c4cc87594080897f"
+      },
+      {
+        "ref": "scripts/lint_contracts.py",
+        "digest": "sha256:94fc0ba40609b20d75835264aa837dd4a7c566d840a6341078be1d0a116a8356"
+      },
+      {
+        "ref": "skills/ahra-dynamic-kernel/SKILL.md",
+        "digest": "sha256:1590b3f6280245c71035e1e096d12c69d1690b5727251fdc53cb9ea9dede717b"
+      },
+      {
+        "ref": "src/ahra/awkp_state_writer.py",
+        "digest": "sha256:92458e4207690a5becb0b4277905cf2b0583bbf6dffaf2f1155afadbef18780c"
+      },
+      {
+        "ref": "src/ahra/cli.py",
+        "digest": "sha256:854fbf151fa7b675579b963d1ffcd2056f6104ec2868c5fb21d469fb83f8f129"
+      },
+      {
+        "ref": "src/ahra/evidence_gate.py",
+        "digest": "sha256:de42d5130bbdad161fc85681e192efd28986bbb1a7ae66f0cd8aed2a8e3278f6"
+      },
+      {
+        "ref": "src/ahra/goal_operations.py",
+        "digest": "sha256:893bea7e87084eda5b76ad8ad9f31f226f8f087f5bcf96aed0f34c03e7e118f4"
+      },
+      {
+        "ref": "src/ahra/orchestrator.py",
+        "digest": "sha256:c3072edc3e3ba8ab3c55d49d3dfcb616d1794e1a04d73762bffabafbc95fc997"
+      },
+      {
+        "ref": "src/ahra/ports.py",
+        "digest": "sha256:7982d3bdd583cbe93da7fc89fb647a824ca1905037951cf03d7b7ff4ae1beb92"
+      },
+      {
+        "ref": "tests/test_cli.py",
+        "digest": "sha256:71abc1291a1c0f46c5a8f560dd1d991d24e13591f386c54d1677445c263074f2"
+      },
+      {
+        "ref": "tests/test_evidence_gate.py",
+        "digest": "sha256:cb28ec4803a9b82aff76d89554eb1ae5540d626bb6c1db98b18b2c6c8ccd3752"
+      },
+      {
+        "ref": "tests/test_goal_operations.py",
+        "digest": "sha256:3405f4f5875b04bb710da727550ce7e9d565760ee8c1552f329b62ca55109e8f"
+      },
+      {
+        "ref": "work/tasks/TASK-0060/evidence/goal-awkp-bridge-report.md",
+        "digest": "sha256:8581862c931ab5087f4717a6cb0357cadacc28f217659ad9674dfb8ec939b3ac"
+      },
+      {
+        "ref": "work/tasks/TASK-0060/evidence/verification-summary.json",
+        "digest": "sha256:9ed22ae62e71d330967e2691acdf30d63876c28ed679d2d1ba30e8d06292b197"
+      },
+      {
+        "ref": "work/tasks/TASK-0060/handoffs/HANDOFF-0001.md",
+        "digest": "sha256:1e927f7b464641c01f444710e1ec3a90eceeaecd3ef7b74baaed2a0d475c0690"
+      },
+      {
+        "ref": "work/tasks/TASK-0060/task.md",
+        "digest": "sha256:178a53458b7985e01252f48efe9b743128ba102e0ee46e6dd51f29b85ae6f236"
+      }
+    ],
+    "dependencies": [],
+    "environment": {
+      "runtimeProfileDigest": "sha256:7a0ee7b1ebe24a8f1337d90c2e87e9a560b42d24ab472e5cb98179c8e0e4708f",
+      "policyDigest": "sha256:8a4583a94e428035127a7ccc0166a3f72362224a2291e30273abbcaf503c60cf",
+      "verifierReleaseDigest": "sha256:2270e6a94c654c4e7f765e6874499eba69aef086e7fd4b7993d1b58acaf2e62c",
+      "testDefinitionDigest": "sha256:466c2f308b48c7661d646fdd068fbecea974c665fe65dbf8ed508f224180ce0b",
+      "relevantEnvironmentDigest": "sha256:187ecf4d075c70059b05f2fb35c06e3dc3a056b26b71721f9df73afd53cd7797"
+    },
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    },
+    "fingerprint": "sha256:97f4d9c2c129ef7dd21bd1aa51cd947647c24aa875f27cf2c7b4dab9d9cb0d59",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "evidenceRef": "EVD-TASK-0060-0007"
+  }
+}

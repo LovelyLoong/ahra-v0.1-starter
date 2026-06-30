@@ -46,6 +46,21 @@ GoalService
 
 All CLI, Skill and optional protocol adapters call the same services. No adapter owns workflow logic.
 
+# GoalExecution To AWKP Task Bridge
+
+The active bridge from a GoalExecution to an AWKP Task is narrow:
+
+- it requires the GoalExecution to be terminal `succeeded`;
+- it records the GoalExecution id in the task's append-only events;
+- it materializes the kernel's EvidenceV2 and GateRun records into the task
+  evidence manifests;
+- it delegates task advancement to the AWKP task review orchestrator and
+  EvidenceGate.
+
+The bridge is not a second completion authority. It cannot mark a task
+completed directly, cannot use the producer as verifier, and cannot replace the
+task's acceptance criteria.
+
 # Core interfaces
 
 ```python

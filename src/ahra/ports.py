@@ -391,6 +391,23 @@ class AwkpTaskStateWriterPort(Protocol):
         clear_blockers: bool = False,
     ) -> Any: ...
 
+    def record_goal_association(
+        self,
+        task_ref: str | Path,
+        *,
+        expected_version: int,
+        actor: str,
+        idempotency_key: str,
+        fencing_token: str,
+        goal_execution_id: str,
+        goal_status: str,
+        reason: str,
+        refs: Iterable[str] = ("state.json",),
+        next_action: str = "GoalExecution association recorded; prepare task review.",
+        artifact_refs: Iterable[str] = (),
+        evidence_refs: Iterable[str] = (),
+    ) -> Any: ...
+
     def add_blocker(
         self,
         task_ref: str | Path,
@@ -412,6 +429,11 @@ class AwkpTaskCreatorPort(Protocol):
 
 @runtime_checkable
 class AwkpTaskOrchestratorPort(Protocol):
+    def run(self, request: Any) -> Any: ...
+
+
+@runtime_checkable
+class GoalAwkpBridgePort(Protocol):
     def run(self, request: Any) -> Any: ...
 
 

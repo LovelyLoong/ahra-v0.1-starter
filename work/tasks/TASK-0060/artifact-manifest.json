@@ -1,5 +1,250 @@
 {
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0060",
-  "artifacts": []
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0060-0001",
+      "task_id": "TASK-0060",
+      "kind": "goal_awkp_bridge_report",
+      "name": "goal-awkp-bridge-report.md",
+      "uri": "local://evidence/goal-awkp-bridge-report.md",
+      "sha256": "8581862c931ab5087f4717a6cb0357cadacc28f217659ad9674dfb8ec939b3ac",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-29T16:30:05Z",
+      "input_refs": [
+        "task.md",
+        "../../../../src/ahra/goal_operations.py",
+        "../../../../src/ahra/awkp_state_writer.py",
+        "../../../../src/ahra/orchestrator.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0060-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0002",
+      "task_id": "TASK-0060",
+      "kind": "verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "9ed22ae62e71d330967e2691acdf30d63876c28ed679d2d1ba30e8d06292b197",
+      "media_type": "application/json",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-29T16:30:05Z",
+      "input_refs": [
+        "task.md",
+        "../../../../tests/test_goal_operations.py",
+        "../../../../tests/test_evidence_gate.py",
+        "../../../../tests/test_cli.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0060-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0003",
+      "task_id": "TASK-0060",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "1e927f7b464641c01f444710e1ec3a90eceeaecd3ef7b74baaed2a0d475c0690",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-29T16:30:05Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "evidence/goal-awkp-bridge-report.md",
+        "evidence/verification-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0060-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0004",
+      "task_id": "TASK-0060",
+      "kind": "command_gate_raw_output",
+      "name": "gate-task-0060-targeted-tests-attempt-1-command-output.json",
+      "uri": "local://evidence/command-gate-raw/gate-task-0060-targeted-tests-attempt-1-command-output.json",
+      "sha256": "4ab841db5a7c5111c731c98c318fa0fab5ecd508ae41d2ae7b45d9fcc0b6ba85",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T17:13:55.874671Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0005",
+      "task_id": "TASK-0060",
+      "kind": "kernel_gate_run_v2",
+      "name": "GATERUN-b36d58ee0805b277.json",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-b36d58ee0805b277.json",
+      "sha256": "a40e197c1694d56dc3e57c94cb90c182bb2d7b0e257aa3308f31a65f1ea6383b",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T17:13:55.874671Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0060-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0006",
+      "task_id": "TASK-0060",
+      "kind": "command_gate_raw_output",
+      "name": "gate-task-0060-full-check-attempt-1-command-output.json",
+      "uri": "local://evidence/command-gate-raw/gate-task-0060-full-check-attempt-1-command-output.json",
+      "sha256": "8723918766b9f997d1d638df7a6f69e87e6ae8a210465dd8b1d4179856abfc2d",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T17:13:55.874671Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0007",
+      "task_id": "TASK-0060",
+      "kind": "kernel_gate_run_v2",
+      "name": "GATERUN-f3ed34fdb6425c30.json",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-f3ed34fdb6425c30.json",
+      "sha256": "879f6f88ce1898290289a5b5267913e03d9c85f006c2df4d01687ea423ba55fc",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T17:13:55.874671Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0060-0005"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0008",
+      "task_id": "TASK-0060",
+      "kind": "command_gate_raw_output",
+      "name": "gate-task-0060-lint-attempt-1-command-output.json",
+      "uri": "local://evidence/command-gate-raw/gate-task-0060-lint-attempt-1-command-output.json",
+      "sha256": "b567fdc4a5b08e38def8f576f2202fc5515fa03d94b7280cfe44e3cdd2f805db",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T17:13:55.874671Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0009",
+      "task_id": "TASK-0060",
+      "kind": "kernel_gate_run_v2",
+      "name": "GATERUN-4af197596c902148.json",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-4af197596c902148.json",
+      "sha256": "a93638dd022e0d7c628791310341483caceaca8295a0fa1210f786f4726f2621",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T17:13:55.874671Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0060-0006"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0010",
+      "task_id": "TASK-0060",
+      "kind": "command_gate_raw_output",
+      "name": "gate-task-0060-diff-check-attempt-1-command-output.json",
+      "uri": "local://evidence/command-gate-raw/gate-task-0060-diff-check-attempt-1-command-output.json",
+      "sha256": "2efe2c6ef97ab2813a2d1b2f4690005172b3bdf3fedbb8e28c69cf012606a4f1",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T17:13:55.874671Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0011",
+      "task_id": "TASK-0060",
+      "kind": "kernel_gate_run_v2",
+      "name": "GATERUN-cdc304ce5ee2fec5.json",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-cdc304ce5ee2fec5.json",
+      "sha256": "ceeb866a8fb45e6d8dbe219f4c4ab0f603b1bdb364d66b2ad344f6621d3a6b9c",
+      "media_type": "application/json",
+      "created_by": "agent:command-gate-runner",
+      "created_at": "2026-06-29T17:13:55.874671Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0060-0007"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0060-0012",
+      "task_id": "TASK-0060",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "17a55d3f7e10867b6cc96027885e728a14b3f5b5c37a17b798ce4adc9f735039",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-29T17:16:25.289487Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0060-0008"
+      ],
+      "supersedes": null
+    }
+  ]
 }

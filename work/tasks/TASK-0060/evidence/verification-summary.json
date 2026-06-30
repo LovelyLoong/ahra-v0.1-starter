@@ -1,0 +1,65 @@
+{
+  "schema_version": "ahra/task-verification-summary/0.1",
+  "task_id": "TASK-0060",
+  "generated_at": "2026-06-29T16:36:36Z",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_goal_operations tests.test_evidence_gate -v",
+      "exit_code": 0,
+      "summary": "Ran 27 tests: OK."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_cli -v",
+      "exit_code": 0,
+      "summary": "Ran 14 tests: OK."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint",
+      "exit_code": 0,
+      "summary": "AWKP lint: 0 errors, 0 warnings. AHRA lint: 0 failures."
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B scripts\\check.py",
+      "exit_code": 0,
+      "summary": "Ran 237 tests: OK, skipped=2. AWKP lint: 0 errors, 0 warnings. AHRA lint: 0 failures."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "Passed with CRLF/LF normalization warnings for TASK-0060 state/events only."
+    }
+  ],
+  "acceptance_coverage": [
+    {
+      "criterion": "A GoalExecution can be durably associated with an AWKP task id, and the association is recorded in the task's append-only events, covered by a test.",
+      "status": "covered",
+      "evidence": "tests.test_goal_operations.GoalOperationCliTests.test_goal_awkp_bridge_associates_goal_and_completes_task_through_evidence_gate asserts goal_awkp_associated and goal_execution_id."
+    },
+    {
+      "criterion": "A completed GoalExecution advances its associated AWKP task toward review/completion via the governed CAS writer and orchestrator, not by hand-edit, covered by a test.",
+      "status": "covered",
+      "evidence": "The same test asserts goal_awkp_associated -> review_requested -> evidence_gate_approved and completed state."
+    },
+    {
+      "criterion": "The kernel's real GateRun EvidenceV2 is consumed by the AWKP EvidenceGate evidence-lineage review, covered by a test.",
+      "status": "covered",
+      "evidence": "The bridge test uses the real command GateRunner output from goal-run-request-command-gate.yaml and references its kernel EvidenceV2 in the AWKP EvidenceGate report."
+    },
+    {
+      "criterion": "The producer != verifier boundary still holds across the bridge; the kernel cannot self-complete the AWKP task.",
+      "status": "covered",
+      "evidence": "tests.test_goal_operations rejects same producer/verifier before state write; tests.test_cli covers structured CLI failure."
+    },
+    {
+      "criterion": "The bridge concept has exactly one active owner entry in docs/architecture/authority-map.md, and the AWKP linter passes.",
+      "status": "covered",
+      "evidence": "AUTH-goal-awkp-bridge points to docs/architecture/dynamic-agent-kernel.md; scripts/check.py --lint passed."
+    },
+    {
+      "criterion": "The standalone Goal path and standalone AWKP path both still work.",
+      "status": "covered",
+      "evidence": "Existing tests.test_goal_operations and tests.test_evidence_gate regressions passed in targeted unittest."
+    }
+  ],
+  "blockers": []
+}

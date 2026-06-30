@@ -16,8 +16,15 @@ import yaml
 
 from ahra import cli
 from ahra.evidence_v2 import DigestRef, EvidenceEnvironment, EvidenceResult, EvidenceV2
-from ahra.goal_operations import DeterministicGoalVerificationService, GoalOperationService
+from ahra.goal_operations import (
+    DeterministicGoalVerificationService,
+    GoalAwkpBridge,
+    GoalAwkpBridgeRequest,
+    GoalOperationError,
+    GoalOperationService,
+)
 from ahra.plan_execution import PlanExecutionService, PlanExecutionStatus
+from ahra.ports import GoalAwkpBridgePort
 from ahra.sqlite_control_store import SQLiteControlStore
 
 
@@ -96,6 +103,159 @@ def _mutate_request(path: Path, mutator) -> None:
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     mutator(data)
     path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
+
+def _write_bridge_task(root: Path, *, task_id: str = "TASK-BRIDGE") -> Path:
+    task_dir = root / "work" / "tasks" / task_id
+    task_dir.mkdir(parents=True)
+    (task_dir / "evidence").mkdir()
+    (task_dir / "handoffs").mkdir()
+    (task_dir / "task.md").write_text(
+        f"""---
+type: WorkItem
+id: {task_id}
+schema_version: awkp/0.1
+title: Bridge task
+description: Temporary bridge task.
+context_id: CTX-bridge-test
+priority: P1
+risk_level: R2
+requester: human:maintainer
+reviewer: agent:verifier
+created_at: 2026-06-29T00:00:00Z
+depends_on: []
+input_refs: []
+output_contract: []
+---
+
+# Goal
+
+Bridge a completed GoalExecution.
+
+# Acceptance criteria
+
+- [ ] The command-backed GoalExecution evidence is accepted by EvidenceGate.
+""",
+        encoding="utf-8",
+    )
+    (task_dir / "state.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "awkp/0.1",
+                "task_id": task_id,
+                "context_id": "CTX-bridge-test",
+                "state": "working",
+                "state_version": 1,
+                "owner": "agent:producer",
+                "attempt": 1,
+                "lease": {
+                    "holder": "agent:producer",
+                    "fencing_token": "FENCE-bridge",
+                    "acquired_at": "2026-06-29T00:01:00Z",
+                    "heartbeat_at": "2026-06-29T00:01:00Z",
+                    "expires_at": None,
+                },
+                "next_action": "Await GoalExecution bridge.",
+                "pause_reason": None,
+                "blockers": [],
+                "artifact_refs": [],
+                "evidence_refs": [],
+                "updated_at": "2026-06-29T00:01:00Z",
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (task_dir / "artifact-manifest.json").write_text(
+        json.dumps({"schema_version": "awkp/0.1", "task_id": task_id, "artifacts": []}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (task_dir / "evidence-manifest.json").write_text(
+        json.dumps({"schema_version": "awkp/0.1", "task_id": task_id, "evidence": []}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    events = [
+        {
+            "schema_version": "awkp/0.1",
+            "event_id": f"EVT-{task_id}-0001",
+            "idempotency_key": f"{task_id}:created",
+            "task_id": task_id,
+            "context_id": "CTX-bridge-test",
+            "event_type": "task_created",
+            "actor": "human:maintainer",
+            "occurred_at": "2026-06-29T00:00:00Z",
+            "causation_id": None,
+            "correlation_id": "CTX-bridge-test",
+            "from_state": None,
+            "to_state": "ready",
+            "reason": "Created for bridge test.",
+            "refs": ["task.md"],
+        },
+        {
+            "schema_version": "awkp/0.1",
+            "event_id": f"EVT-{task_id}-0002",
+            "idempotency_key": f"{task_id}:lease",
+            "task_id": task_id,
+            "context_id": "CTX-bridge-test",
+            "event_type": "lease_acquired",
+            "actor": "agent:producer",
+            "occurred_at": "2026-06-29T00:01:00Z",
+            "causation_id": f"EVT-{task_id}-0001",
+            "correlation_id": "CTX-bridge-test",
+            "from_state": "ready",
+            "to_state": "working",
+            "reason": "Producer claimed bridge task.",
+            "refs": ["state.json"],
+            "expected_version": 0,
+            "new_state_version": 1,
+            "lease_fencing_token": "FENCE-bridge",
+        },
+    ]
+    (task_dir / "events.jsonl").write_text(
+        "".join(json.dumps(event, separators=(",", ":")) + "\n" for event in events),
+        encoding="utf-8",
+    )
+    return task_dir
+
+
+def _command_evidence_ref(artifact_dir: Path) -> str:
+    for path in sorted((artifact_dir / "kernel-evidence").glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if data["spec"]["gateRef"] == "GATE-command-sentinel":
+            return data["metadata"]["evidenceId"]
+    raise AssertionError("command-backed EvidenceV2 was not materialized")
+
+
+def _write_bridge_gate_input(root: Path, *, task_id: str, evidence_ref: str) -> Path:
+    report = {
+        "schema_version": "ahra/evidence-gate-input/0.1",
+        "task_id": task_id,
+        "verifier": "agent:verifier",
+        "decision": "approve",
+        "summary": "Verifier mapped the AWKP criterion to kernel GateRun evidence.",
+        "criteria": [
+            {
+                "criterion_index": 1,
+                "status": "passed",
+                "evidence_refs": [evidence_ref],
+                "command_refs": ["CMD-command-gate"],
+                "notes": "The command-backed GoalExecution gate passed.",
+            }
+        ],
+        "commands": [
+            {
+                "command_id": "CMD-command-gate",
+                "command": "python -c COMMAND_GATE_OK",
+                "status": "passed",
+                "criterion_indices": [1],
+                "evidence_refs": [evidence_ref],
+            }
+        ],
+    }
+    path = root / "awkp-gate-input.json"
+    path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    return path
 
 
 class GoalOperationCliTests(unittest.TestCase):
@@ -314,6 +474,90 @@ class GoalOperationCliTests(unittest.TestCase):
             self.assertIsNone(passed_raw["failureClass"])
             self.assertEqual(passed_raw["exitCode"], 0)
             self.assertIn("COMMAND_GATE_OK", passed_raw["stdout"])
+            self.assertTrue(pass_result["kernelVerification"]["evidenceRecords"])
+            self.assertTrue(pass_result["kernelVerification"]["gateRuns"])
+
+    def test_goal_awkp_bridge_associates_goal_and_completes_task_through_evidence_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            goal_root = root / "goal"
+            goal_root.mkdir()
+            task_dir = _write_bridge_task(root)
+            request_path = _copy_command_gate_request(goal_root)
+            gate_input = goal_root / "workspace" / "inputs" / "command-gate.txt"
+            gate_input.parent.mkdir(parents=True)
+            gate_input.write_text("fixed\n", encoding="utf-8")
+
+            start_code, start_payload = _run_cli(["goal", "start", str(request_path)])
+
+            self.assertEqual(start_code, 0)
+            start_result = start_payload["result"]
+            self.assertEqual(start_result["goalStatus"], "succeeded")
+            artifact_dir = goal_root / ".ahra" / "artifacts"
+            evidence_ref = _command_evidence_ref(artifact_dir)
+            report_path = _write_bridge_gate_input(root, task_id="TASK-BRIDGE", evidence_ref=evidence_ref)
+
+            bridge = GoalAwkpBridge(work_root=root / "work")
+            self.assertIsInstance(bridge, GoalAwkpBridgePort)
+            result = bridge.run(
+                GoalAwkpBridgeRequest(
+                    goal_execution_id=start_result["goalExecutionId"],
+                    task="TASK-BRIDGE",
+                    work_root=root / "work",
+                    expected_task_version=1,
+                    producer_actor="agent:producer",
+                    verifier_actor="agent:verifier",
+                    fencing_token="FENCE-bridge",
+                    report_paths=(report_path,),
+                    db_path=goal_root / ".ahra" / "goal-control.sqlite3",
+                    artifact_dir=artifact_dir,
+                    idempotency_key_prefix="TASK-BRIDGE:goal-awkp-test",
+                )
+            )
+
+            self.assertEqual(result.goal_status, "succeeded")
+            self.assertEqual(result.orchestration.terminal_state, "completed")
+            self.assertIn(evidence_ref, result.materialization.kernel_evidence_refs)
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "completed")
+            self.assertIn(evidence_ref, state["evidence_refs"])
+            events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertEqual(
+                [event["event_type"] for event in events[-3:]],
+                ["goal_awkp_associated", "review_requested", "evidence_gate_approved"],
+            )
+            self.assertEqual(events[-3]["goal_execution_id"], start_result["goalExecutionId"])
+            evidence_manifest = json.loads((task_dir / "evidence-manifest.json").read_text(encoding="utf-8"))
+            artifact_manifest = json.loads((task_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
+            self.assertIn(evidence_ref, {record["evidence_id"] for record in evidence_manifest["evidence"]})
+            self.assertIn("kernel_gate_run_v2", {record["kind"] for record in artifact_manifest["artifacts"]})
+
+    def test_goal_awkp_bridge_rejects_same_producer_and_verifier_before_state_write(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _write_bridge_task(root)
+            before = (task_dir / "state.json").read_text(encoding="utf-8")
+
+            with self.assertRaisesRegex(GoalOperationError, "distinct producer and verifier"):
+                GoalAwkpBridge(work_root=root / "work").run(
+                    GoalAwkpBridgeRequest(
+                        goal_execution_id="GEXEC-missing",
+                        task="TASK-BRIDGE",
+                        work_root=root / "work",
+                        expected_task_version=1,
+                        producer_actor="agent:same",
+                        verifier_actor="agent:same",
+                        fencing_token="FENCE-bridge",
+                        report_paths=(root / "missing-report.json",),
+                        db_path=root / "missing.sqlite3",
+                        artifact_dir=root / "artifacts",
+                    )
+                )
+
+            self.assertEqual((task_dir / "state.json").read_text(encoding="utf-8"), before)
 
     def test_finish_active_plan_if_terminal_finalizes_failed_goal(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
