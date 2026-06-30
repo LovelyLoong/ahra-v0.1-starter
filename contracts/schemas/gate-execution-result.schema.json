@@ -40,6 +40,7 @@
         "status": { "enum": ["passed", "failed", "blocked", "error", "timed_out", "canceled"] },
         "startedAt": { "type": "string", "format": "date-time" },
         "completedAt": { "type": "string", "format": "date-time" },
+        "decisionAt": { "type": ["string", "null"], "format": "date-time" },
         "artifactRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
         "subjects": { "type": "array", "items": { "$ref": "#/$defs/digestRef" } },
         "dependencies": { "type": "array", "items": { "$ref": "#/$defs/digestRef" } },

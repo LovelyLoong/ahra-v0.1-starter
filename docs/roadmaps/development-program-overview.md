@@ -70,18 +70,33 @@ handoff is manual; Goal and AWKP worlds are disconnected).
 After B, later tasks - including Phase 1 itself - can be executed
 semi-autonomously by the workflow.
 
-# Increment C - Intent closure, Phase 1 (after TASK-0061)
+# Increment C - Intent closure, Phase 1 (TASK-0062..0069, plus TASK-0070 infrastructure)
 
 Close the input boundary: an Agent-assisted alignment workflow turns an abstract
 human Goal into a frozen, authorized GoalExecutionRequest, plus the governed
 network and subjective-judgment gates that let arbitrary-direction Goals
 actually execute and be verified.
 
+- 0062 IntentDraft contract.
+- 0063 Alignment workflow engine.
+- 0064 RequestDraft admission.
+- 0065 ApprovalService + waiting_auth (human authorization gate).
+- 0066 Governed network.access admission.
+- 0067 Real semantic_review / human_approval gate runners.
+- 0068 End-to-end demonstration (simple objective Goal).
+- 0069 **Comprehensive Phase 1 verification** (5 test scenarios: objective,
+  network, subjective, authorization, multi-turn; MOST COMPLETE criteria).
+
+TASK-0070 (multi-task workflow sequence runner) solves the "scattered parts"
+problem: enables executing Phase 1 as `ahra workflow-sequence run
+phase1-sequence.yaml` instead of manual per-task invocations.
+
 Owner roadmap: [Phase 1 minimal-loop intent-closure roadmap](phase1-minimal-loop-intent-roadmap.md),
 stages SG-P1-A..G. Binding rule recorded there: every Phase 1 development task is
 command-gate-decidable and therefore autonomously executable by Increment B's
 workflow, while the human authorization gate is a feature of the deliverable,
-not a manual build step.
+not a manual build step. TASK-0062..0070 now have producer implementation
+evidence in review state; EvidenceGate remains the completion authority.
 
 # Increment D - Governance depth, Phase 2 / Phase 3 (sketch)
 
@@ -99,9 +114,10 @@ strategy generation must sit above a real authorization gate.
 # Status pointer
 
 Live task states are authoritative in `work/tasks/*/state.json` and summarized
-in [the work index](../../work/index.md). As of this writing: Increment A is in
-progress (0052-0053 completed, 0054 working), Increments B-E are planned with
-skeletons created for B (0057-0061) and a roadmap for C.
+in [the work index](../../work/index.md). As of 2026-06-30: Increments A and B
+are complete (0052-0061 all completed by EvidenceGate), Increment C task
+implementations are in review (0062-0069), workflow infrastructure is in review
+(0070), and Increments D-E are conceptual only.
 
 # Sequencing rule
 

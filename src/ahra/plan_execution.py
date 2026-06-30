@@ -1763,9 +1763,10 @@ class StaticPlanScheduler(SchedulerPort):
                 action=capability.capability,
                 resources=capability.resources,
                 scope=capability.resources,
-                risk_level="R1",
+                risk_level=capability.risk_level,
                 expires_at=now + timedelta(seconds=max(_node_wall_timeout_seconds(node) or 0, self.lease_ttl_seconds)),
                 spawn_limit=node.budget.max_spawned_nodes,
+                approval_refs=capability.approval_refs,
             )
             decision = self.capability_admission.admit(request, now=now)
             decisions.append(decision)

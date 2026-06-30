@@ -1,0 +1,33 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0063",
+  "context_id": "CTX-phase1-intent-closure",
+  "state": "changes_requested",
+  "state_version": 6,
+  "attempt": 2,
+  "owner": null,
+  "lease": null,
+  "next_action": "Address EvidenceGate verifier findings and return to review.",
+  "pause_reason": null,
+  "blockers": [
+    "Criterion 3: Failed: RequestDraft exposes to_goal_execution_request_mapping(), which can produce a GoalExecutionRequest-shaped mapping without ApprovalService approval; this violates the strict untrusted RequestDraft boundary."
+  ],
+  "artifact_refs": [
+    "evidence/alignment-workflow-engine-report.md",
+    "handoffs/HANDOFF-0001.md",
+    "ART-TASK-0063-0001",
+    "ART-TASK-0063-0002",
+    "ART-TASK-0063-0003",
+    "ART-TASK-0063-HANDOFF-0001",
+    "ART-TASK-0063-0004"
+  ],
+  "evidence_refs": [
+    "evidence/verification-summary.json",
+    "evidence/alignment-workflow-engine-report.md",
+    "EVD-TASK-0063-0001",
+    "EVD-TASK-0063-0002",
+    "EVD-TASK-0063-0003",
+    "EVD-TASK-0063-0004"
+  ],
+  "updated_at": "2026-06-30T10:00:01.000006Z"
+}

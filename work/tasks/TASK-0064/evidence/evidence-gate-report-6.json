@@ -1,0 +1,83 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0064",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T10:00:02.000006Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Approved: RequestDraftAdmission now validates trusted registry digests, capability policy, and ClaimGraph structure with manifest-registered producer evidence.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "`RequestDraftAdmission` performs the three checks (digest resolution, capability allowed-set, ClaimGraph validity) and rejects bad drafts with structured reasons, covered by tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0064-0002",
+        "EVD-TASK-0064-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "A draft with an unknown digest is rejected (test asserts this).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0064-0002",
+        "EVD-TASK-0064-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "A draft declaring a high-risk capability without policy is rejected (test asserts this).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0064-0002",
+        "EVD-TASK-0064-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "A draft with a cyclic ClaimGraph is rejected (test asserts this).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0064-0002",
+        "EVD-TASK-0064-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "The domain module imports no adapter/model/cloud dependency (lint passes).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0064-0002",
+        "EVD-TASK-0064-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Unit tests, lint, and diff checks pass: `.\\.venv\\Scripts\\python.exe -B -m unittest tests.test_request_admission -v` and `.\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint` green.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0064-0002",
+        "EVD-TASK-0064-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Producer moves TASK-0064 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0064-0002",
+        "EVD-TASK-0064-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    }
+  ],
+  "commands": []
+}

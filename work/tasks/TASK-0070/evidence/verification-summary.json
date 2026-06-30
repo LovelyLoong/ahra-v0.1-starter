@@ -1,0 +1,37 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0070",
+  "status": "ready_for_review",
+  "producer": "agent:codex-implementation",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_workflow_sequence -v",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --lint",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B -m ahra.cli workflow-sequence run examples/workflows/phase1-sequence.yaml --dry-run",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ],
+  "evidence": [
+    "evidence/workflow-sequence-runner-report.md",
+    "contracts/schemas/workflow-sequence.schema.json",
+    "src/ahra/workflow_sequence.py",
+    "examples/workflows/phase1-sequence.yaml",
+    "tests/test_workflow_sequence.py"
+  ],
+  "notes": [
+    "tests.test_workflow_sequence now covers the real claim -> GoalExecution -> GoalAwkpBridge -> EvidenceGate completion path with existing governed components.",
+    "Missing verifier reports fail closed with an explicit WorkflowSequenceError instead of being silently skipped.",
+    "Producer did not mark the task completed.",
+    "EvidenceGate review remains required."
+  ]
+}

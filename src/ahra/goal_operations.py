@@ -1353,6 +1353,7 @@ def _gate_run_v2_document(gate_run: GateRunV2) -> dict[str, Any]:
             "result": gate_run.result.value,
             "startedAt": _optional_iso(gate_run.started_at),
             "completedAt": _optional_iso(gate_run.completed_at),
+            "decisionAt": _optional_iso(gate_run.decision_at),
             "subjects": [_digest_ref_document(item) for item in gate_run.subjects],
             "dependencies": [_digest_ref_document(item) for item in gate_run.dependencies],
             "environment": gate_run.environment.to_fingerprint(),

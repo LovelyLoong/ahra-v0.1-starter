@@ -28,11 +28,13 @@ class CapabilityAdmissionTests(unittest.TestCase):
                     "filesystem.write": ("src/**", "tests/**", "safe/*.txt"),
                     "process.exec": ("uv run python -B scripts/check.py",),
                     "spawn.agent": ("agent:reviewer",),
+                    "network.access": ("https://example.invalid/*",),
                 },
                 allowed_roles_by_action={
                     "filesystem.write": ("executor",),
                     "process.exec": ("executor",),
                     "spawn.agent": ("executor",),
+                    "network.access": ("executor",),
                 },
                 max_spawn_limit=1,
             ),
@@ -41,11 +43,13 @@ class CapabilityAdmissionTests(unittest.TestCase):
                     "filesystem.write": ("src/ahra/*.py", "safe/*.txt"),
                     "process.exec": ("uv run python -B scripts/check.py",),
                     "spawn.agent": ("agent:reviewer",),
+                    "network.access": ("https://example.invalid/status",),
                 },
                 allowed_roles_by_action={
                     "filesystem.write": ("executor",),
                     "process.exec": ("executor",),
                     "spawn.agent": ("executor",),
+                    "network.access": ("executor",),
                 },
                 max_spawn_limit=1,
             ),
@@ -110,15 +114,46 @@ class CapabilityAdmissionTests(unittest.TestCase):
     def test_unsupported_high_risk_capability_fails_closed(self) -> None:
         decision = self.service.admit(
             self._request(
-                "network.access",
-                ("https://example.invalid",),
+                "secret.read",
+                ("secret://prod/api-key",),
                 risk_level="R2",
-                approval_refs=("APR-network",),
+                approval_refs=("APR-secret",),
             ),
             now=NOW,
         )
         self.assertFalse(decision.allow)
         self.assertEqual(decision.reason_code, "unsupported_high_risk_capability")
+
+    def test_network_access_is_admitted_with_explicit_policy_and_approval(self) -> None:
+        decision = self.service.admit(
+            self._request(
+                "network.access",
+                ("https://example.invalid/status",),
+                risk_level="R2",
+                approval_refs=("APR-network",),
+            ),
+            now=NOW,
+        )
+
+        self.assertTrue(decision.allow)
+        self.assertIsNotNone(decision.grant)
+        assert decision.grant is not None
+        self.assertEqual(decision.grant.action, "network.access")
+        self.assertEqual(decision.grant.resources, ("https://example.invalid/status",))
+
+    def test_network_access_still_requires_approval(self) -> None:
+        decision = self.service.admit(
+            self._request(
+                "network.access",
+                ("https://example.invalid/status",),
+                risk_level="R2",
+                approval_refs=(),
+            ),
+            now=NOW,
+        )
+
+        self.assertFalse(decision.allow)
+        self.assertEqual(decision.reason_code, "approval_required")
 
     def test_spawn_limit_and_approval_absence_are_denied(self) -> None:
         spawn = self.service.admit(
@@ -391,6 +426,66 @@ class LocalRuntimeGatewayTests(unittest.TestCase):
             self.assertEqual(record.policy_decision_id, self.command_grant.policy_decision_id)
             self.assertIsNotNone(record.argument_digest)
             self.assertIsNotNone(record.result_digest)
+
+    def test_network_access_audit_records_summary_and_default_deny(self) -> None:
+        grant = CapabilityAdmissionService(
+            goal_scope=CapabilityScope(
+                allowed_actions={"network.access": ("https://example.invalid/status",)},
+                allowed_roles_by_action={"network.access": ("executor",)},
+            ),
+            runtime_profile=RuntimeCapabilityProfile(
+                runtime_ref="runtime/local-test",
+                supported_actions=frozenset({"network.access"}),
+            ),
+        ).admit(
+            CapabilityRequest(
+                request_id="CREQ-network",
+                plan_id="PLAN-capability-test",
+                node_id="NODE-capability-test",
+                requested_by="agent:test",
+                role="executor",
+                capability="network.access",
+                action="network.access",
+                resources=("https://example.invalid/status",),
+                scope=("https://example.invalid/status",),
+                risk_level="R2",
+                expires_at=NOW + timedelta(minutes=10),
+                approval_refs=("APR-network",),
+            ),
+            now=NOW,
+        ).grant
+        assert grant is not None
+        audit = InMemoryAuditSink()
+        gateway = LocalRuntimeGateway(Path("."), audit)
+
+        allowed = gateway.record_network_access(
+            grant,
+            plan_id="PLAN-capability-test",
+            node_id="NODE-capability-test",
+            actor="executor",
+            resource="https://example.invalid/status",
+            request_summary={"method": "GET", "payload": "redacted"},
+            response_summary={"status": 200, "bytes": 2},
+            now=NOW,
+        )
+        denied = gateway.record_network_access(
+            None,
+            plan_id="PLAN-capability-test",
+            node_id="NODE-capability-test",
+            actor="executor",
+            resource="https://example.invalid/status",
+            request_summary={"method": "GET"},
+            now=NOW,
+        )
+
+        self.assertTrue(allowed.allowed)
+        self.assertEqual(allowed.resource_scope, ("https://example.invalid/status",))
+        self.assertIsNotNone(allowed.evidence_summary)
+        self.assertIsNotNone(allowed.result_digest)
+        self.assertFalse(denied.allowed)
+        self.assertEqual(denied.reason_code, "missing_grant")
+        self.assertIsNone(denied.grant_digest)
+        self.assertEqual([record.action for record in audit.records], ["network.access", "network.access"])
 
 
 if __name__ == "__main__":

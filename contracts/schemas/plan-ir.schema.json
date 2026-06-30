@@ -139,6 +139,17 @@
         },
         "grantDigest": {
           "$ref": "#/$defs/digest"
+        },
+        "riskLevel": {
+          "enum": [
+            "R0",
+            "R1",
+            "R2",
+            "R3"
+          ]
+        },
+        "approvalRefs": {
+          "$ref": "#/$defs/stringList"
         }
       }
     },

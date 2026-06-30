@@ -1,0 +1,103 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0069",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T10:00:07.000003Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Requesting changes: the comprehensive integration suite does not cover the direct RequestDraft.to_goal_execution_request_mapping authorization bypass identified in TASK-0063.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Test scenario 1 (objective Goal) passes: IntentDraft -> alignment -> admission -> approval -> execution with command gates only -> completion, non-skipped test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0069-0001",
+        "EVD-TASK-0069-0002"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Test scenario 2 (network Goal) passes: network.access is admitted with audit, execution succeeds, evidence captures network summary, non-skipped test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0069-0001",
+        "EVD-TASK-0069-0002"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Test scenario 3 (subjective Goal) passes: semantic_review gate judges artifact, producer != judge enforced, decision recorded with lineage, non-skipped test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0069-0001",
+        "EVD-TASK-0069-0002"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Test scenario 4 (authorization boundary) passes: freeze without approval is rejected, self-authorization is rejected, non-skipped tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0069-0001",
+        "EVD-TASK-0069-0002"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Test scenario 5 (multi-turn alignment) passes: alignment engine refines scope over multiple turns, rejects out-of-envelope request with structured reason, non-skipped test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0069-0001",
+        "EVD-TASK-0069-0002"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "All Phase 1 components integrate without patching: IntentDraft, AlignmentWorkflowEngine, RequestDraftAdmission, ApprovalService, network.access gate, SemanticReviewGateRunner, HumanApprovalGateRunner, 57-61 orchestrator.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0069-0001",
+        "EVD-TASK-0069-0002"
+      ],
+      "notes": "Failed: full Phase 1 integration is incomplete while RequestDraft can directly produce a GoalExecutionRequest-shaped mapping without ApprovalService authorization; the comprehensive tests do not cover that bypass."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "`.\\.venv\\Scripts\\python.exe -B scripts\\check.py` (full lint + all tests) passes with zero errors.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0069-0001",
+        "EVD-TASK-0069-0002"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "A comprehensive evidence report documents all five scenarios with concrete artifacts, logs, and audit trails.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0069-0001",
+        "EVD-TASK-0069-0002"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Producer moves TASK-0069 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0069-0001",
+        "EVD-TASK-0069-0002"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    }
+  ],
+  "commands": []
+}

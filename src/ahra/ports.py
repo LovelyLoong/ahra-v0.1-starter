@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Iterable, Mapping, Protocol, runtime_checkable
 
 from .capabilities import (
     AdmissionDecision,
@@ -48,6 +48,11 @@ from .verification import (
     VerificationSelection,
     VerificationTrigger,
 )
+
+if TYPE_CHECKING:
+    from .alignment_engine import RequestDraft
+    from .approval_service import ApprovalEvent, ApprovalRecord
+    from .goal_operations import GoalExecutionRequest
 
 
 class AgentRole(StrEnum):
@@ -492,8 +497,15 @@ class NodeExecutorPort(Protocol):
 
 @runtime_checkable
 class ApprovalService(Protocol):
-    def request(self, request: dict[str, Any]) -> str: ...
+    @property
+    def events(self) -> tuple["ApprovalEvent", ...]: ...
+
+    def request_authorization(self, draft: "RequestDraft", *, actor: str, reason: str = "") -> "ApprovalRecord": ...
+    def approve(self, approval_id: str, *, actor: str, reason: str = "") -> "ApprovalRecord": ...
+    def reject(self, approval_id: str, *, actor: str, reason: str) -> "ApprovalRecord": ...
+    def freeze(self, draft: "RequestDraft", *, approval_id: str) -> "GoalExecutionRequest": ...
     def status(self, approval_id: str) -> str: ...
+    def get(self, approval_id: str) -> "ApprovalRecord": ...
 
 
 @runtime_checkable

@@ -105,6 +105,17 @@
               "type": "null"
             }
           ]
+        },
+        "resourceScope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidenceSummary": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     }

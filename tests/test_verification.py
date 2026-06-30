@@ -28,7 +28,11 @@ from ahra.verification import (
     DeterministicGateRunner,
     GateExecutionRequest,
     GateExecutionStatus,
+    GateLevel,
     GateRunnerRegistry,
+    HumanApprovalGateRunner,
+    SemanticReviewGateRunner,
+    SubjectiveGateDecision,
     VerificationExecutionContext,
     VerificationExecutor,
     VerificationResult,
@@ -582,6 +586,101 @@ class CommandGateRunnerTests(unittest.TestCase):
         self.assertEqual(report.evidence_records[0].result, EvidenceResult.BLOCKED)
 
 
+class SubjectiveGateRunnerTests(unittest.TestCase):
+    def test_semantic_review_runner_maps_pass_and_fail_with_lineage(self) -> None:
+        passing = SemanticReviewGateRunner(
+            lambda request: SubjectiveGateDecision(
+                verdict="pass",
+                confidence=0.91,
+                rationale=f"{request.gate_ref} satisfies the criterion.",
+                verifier_identity="agent:semantic-judge",
+                trace_ref="trace://semantic-pass",
+            ),
+            verifier_identity="agent:semantic-judge",
+        )
+        failing = SemanticReviewGateRunner(
+            lambda request: {"verdict": "fail", "confidence": 0.99, "rationale": "missing criterion", "traceRef": "trace://semantic-fail"},
+            verifier_identity="agent:semantic-judge",
+        )
+
+        pass_result = asyncio.run(passing.run(_subjective_request("semantic_review")))
+        fail_result = asyncio.run(failing.run(_subjective_request("semantic_review")))
+
+        self.assertEqual(pass_result.status, GateExecutionStatus.PASSED)
+        self.assertEqual(pass_result.raw_output_ref, "trace://semantic-pass")
+        self.assertIn("verifier:agent:semantic-judge", pass_result.artifact_refs)
+        self.assertEqual(fail_result.status, GateExecutionStatus.FAILED)
+        self.assertEqual(fail_result.failure_class, "semantic_review_failed")
+
+    def test_subjective_runners_enforce_producer_verifier_separation(self) -> None:
+        runner = SemanticReviewGateRunner(
+            lambda _: {"verdict": "pass", "confidence": 1.0, "rationale": "ok"},
+            verifier_identity="agent:producer",
+        )
+
+        result = asyncio.run(runner.run(_subjective_request("semantic_review", producer="agent:producer")))
+
+        self.assertEqual(result.status, GateExecutionStatus.BLOCKED)
+        self.assertEqual(result.failure_class, "producer_verifier_identity_conflict")
+
+        human_runner = HumanApprovalGateRunner(
+            lambda _: {
+                "verdict": "approved",
+                "confidence": 1.0,
+                "actor": "human:producer",
+                "rationale": "self approval is not allowed",
+            }
+        )
+
+        human_result = asyncio.run(human_runner.run(_subjective_request("human_approval", producer="human:producer")))
+
+        self.assertEqual(human_result.status, GateExecutionStatus.BLOCKED)
+        self.assertEqual(human_result.failure_class, "producer_verifier_identity_conflict")
+
+    def test_human_approval_runner_blocks_until_human_decision_then_records_actor(self) -> None:
+        waiting = HumanApprovalGateRunner(lambda _: None)
+        decided_at = datetime(2026, 6, 30, 10, 15, tzinfo=UTC)
+        approved = HumanApprovalGateRunner(
+            lambda _: {
+                "verdict": "approved",
+                "confidence": 1.0,
+                "actor": "human:maintainer",
+                "rationale": "Approved after reviewing acceptance and capability boundary.",
+                "traceRef": "approval://APR-1",
+                "decidedAt": decided_at.isoformat().replace("+00:00", "Z"),
+            }
+        )
+
+        waiting_result = asyncio.run(waiting.run(_subjective_request("human_approval")))
+        approved_result = asyncio.run(approved.run(_subjective_request("human_approval")))
+
+        self.assertEqual(waiting_result.status, GateExecutionStatus.BLOCKED)
+        self.assertEqual(waiting_result.failure_class, "human_approval_waiting")
+        self.assertEqual(approved_result.status, GateExecutionStatus.PASSED)
+        self.assertIn("verifier:human:maintainer", approved_result.artifact_refs)
+        self.assertEqual(approved_result.raw_output_ref, "approval://APR-1")
+        self.assertEqual(approved_result.decision_at, decided_at)
+        self.assertEqual(approved_result.usage["decidedAt"], "2026-06-30T10:15:00Z")
+
+        registry = GateRunnerRegistry()
+        registry.register(approved, gate_kind="human_approval", release_ref="subjective-test")
+        executor_report = asyncio.run(
+            VerificationExecutor(registry).execute_selection(
+                VerificationSelection(
+                    selected_gate_refs=("GATE-subjective",),
+                    full_gate_refs=("GATE-subjective",),
+                    affected_claim_refs=("CLAIM-subjective",),
+                    reused_evidence_refs=(),
+                    stale_evidence_refs=(),
+                    rationale=("human approval decision timestamp preservation",),
+                ),
+                _subjective_execution_context("human_approval"),
+            )
+        )
+
+        self.assertEqual(executor_report.attempts[0].gate_run.decision_at, decided_at)
+
+
 class _ExplodingGateRunner:
     gate_kind = "*"
     release_ref = "*"
@@ -671,6 +770,60 @@ def _command_request(
     )
     executor = VerificationExecutor(GateRunnerRegistry())
     return executor._request_for_gate(_execution_selection("GATE-command-unit"), context, "GATE-command-unit")
+
+
+def _subjective_request(gate_kind: str, *, producer: str = "agent:producer") -> GateExecutionRequest:
+    return GateExecutionRequest(
+        goal_execution_id="GOAL-subjective",
+        plan_execution_id="PEX-subjective",
+        node_run_id="NRUN-subjective",
+        gate_ref="GATE-subjective",
+        gate_kind=gate_kind,
+        runner_release_ref="subjective-test",
+        gate_definition_digest=D1,
+        claim_refs=("CLAIM-subjective",),
+        level=GateLevel.L2,
+        evidence_kind=gate_kind,
+        subjects=(DigestRef("ART-subjective", D2),),
+        dependency_evidence=(),
+        environment=EvidenceEnvironment(
+            runtime_profile_digest=D4,
+            policy_digest=D5,
+            verifier_release_digest=D6,
+            test_definition_digest=D7,
+        ),
+        workspace_ref=None,
+        idempotency_key=f"{gate_kind}-subjective-test",
+        metadata={"producerIdentity": producer},
+    )
+
+
+def _subjective_execution_context(gate_kind: str, *, producer: str = "agent:producer") -> VerificationExecutionContext:
+    gate = GateDefinition(
+        gate_id="GATE-subjective",
+        version=1,
+        level="L2",
+        evidence_kind=gate_kind,
+        verifier_mode="subjective-test",
+        risk_level=RiskLevel.R1,
+    )
+    return VerificationExecutionContext(
+        goal_execution_id="GOAL-subjective",
+        plan_execution_id="PEX-subjective",
+        node_run_id="NRUN-subjective",
+        gate_definitions={gate.gate_id: gate},
+        gate_definition_digests={gate.gate_id: D1},
+        gate_claim_refs={gate.gate_id: ("CLAIM-subjective",)},
+        subjects=(DigestRef("ART-subjective", D2),),
+        dependency_evidence=(),
+        environment=EvidenceEnvironment(
+            runtime_profile_digest=D4,
+            policy_digest=D5,
+            verifier_release_digest=D6,
+            test_definition_digest=D7,
+        ),
+        metadata={"producerIdentity": producer},
+    )
 
 
 def _command_grant(command: tuple[str, ...] = ("verify-command",)) -> CapabilityGrant:

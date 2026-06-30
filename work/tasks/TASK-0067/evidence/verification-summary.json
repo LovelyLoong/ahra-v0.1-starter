@@ -1,0 +1,24 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0067",
+  "status": "ready_for_review",
+  "producer": "agent:codex-implementation",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_verification -v",
+      "status": "passed"
+    }
+  ],
+  "evidence": [
+    "evidence/subjective-gate-runners-report.md",
+    "src/ahra/verification.py",
+    "src/ahra/evidence_v2.py",
+    "contracts/schemas/gate-execution-result.schema.json",
+    "contracts/schemas/gate-run-v2.schema.json",
+    "tests/test_verification.py"
+  ],
+  "notes": [
+    "Producer did not mark the task completed.",
+    "EvidenceGate review remains required."
+  ]
+}

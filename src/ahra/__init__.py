@@ -26,6 +26,15 @@ from .capabilities import (
     LocalRuntimeGateway,
     RuntimeCapabilityProfile,
 )
+from .alignment_engine import (
+    AlignmentError,
+    AlignmentRegistry,
+    AlignmentSession,
+    AlignmentTurn,
+    AlignmentWorkflowEngine,
+    RequestDraft,
+)
+from .approval_service import ApprovalEvent, ApprovalRecord, ApprovalService
 from .domain import (
     Budget,
     ContextItem,
@@ -70,6 +79,7 @@ from .goal_operations import (
     M1_PROFILE_REF,
     load_goal_execution_request,
 )
+from .intent_draft import IntentCapabilityNeed, IntentConstraint, IntentDraft
 from .node_executor import (
     NodeExecutionRequest,
     NodeExecutionResult,
@@ -138,6 +148,7 @@ from .planning import (
     make_planner_artifact,
     planner_read_only_runtime_profile,
 )
+from .request_admission import RequestDraftAdmission, RequestDraftAdmissionResult, RequestDraftRejection
 from .ports import (
     AcceptancePlanner,
     AgentDriver,
@@ -193,9 +204,12 @@ from .verification import (
     GateExecutionStatus,
     GateLevel,
     GateRunnerRegistry,
+    HumanApprovalGateRunner,
     L0Gate,
     L1Gate,
     L2Gate,
+    SemanticReviewGateRunner,
+    SubjectiveGateDecision,
     VerificationExecutionContext,
     VerificationExecutionReport,
     VerificationExecutor,
@@ -209,6 +223,15 @@ from .verification import (
     evaluate_completion,
     select_gates,
     validate_gate_run_lineage,
+)
+from .workflow_sequence import (
+    DefaultWorkflowSequenceOperations,
+    WorkflowSequence,
+    WorkflowSequenceError,
+    WorkflowSequenceRunner,
+    WorkflowSequenceTask,
+    load_workflow_sequence,
+    run_workflow_sequence,
 )
 from .workflow_modules import WorkflowModuleContract, WorkflowModuleRegistry
 
@@ -229,6 +252,14 @@ __all__ = [
     "AcceptancePlanner",
     "AcceptancePlanningRequest",
     "AcceptancePlanningResult",
+    "AlignmentError",
+    "AlignmentRegistry",
+    "AlignmentSession",
+    "AlignmentTurn",
+    "AlignmentWorkflowEngine",
+    "ApprovalEvent",
+    "ApprovalRecord",
+    "ApprovalService",
     "Budget",
     "CapabilityAdmissionPort",
     "CapabilityAdmissionService",
@@ -287,8 +318,12 @@ __all__ = [
     "GoalOperationProfile",
     "GoalOperationProfileRegistry",
     "GoalOperationService",
+    "HumanApprovalGateRunner",
     "InMemoryAuditSink",
     "INLINE_PLANNER_REF",
+    "IntentCapabilityNeed",
+    "IntentConstraint",
+    "IntentDraft",
     "L0Gate",
     "L1Gate",
     "L2Gate",
@@ -351,6 +386,10 @@ __all__ = [
     "RepairPlanningRequest",
     "RepairPlanningResult",
     "ReplanTriggerType",
+    "RequestDraft",
+    "RequestDraftAdmission",
+    "RequestDraftAdmissionResult",
+    "RequestDraftRejection",
     "RetryPolicy",
     "RuntimeCapabilityGrant",
     "RuntimeCapabilityProfile",
@@ -359,12 +398,14 @@ __all__ = [
     "RunRecord",
     "RunStatus",
     "SchedulerPort",
+    "SemanticReviewGateRunner",
     "SideEffect",
     "SQLITE_CONTROL_SCHEMA_VERSION",
     "SQLiteControlStore",
     "SQLiteControlStoreError",
     "SQLiteRecoveryReport",
     "StaticPlanScheduler",
+    "SubjectiveGateDecision",
     "ToolDescriptor",
     "VerificationExecutionContext",
     "VerificationExecutionReport",
@@ -379,6 +420,11 @@ __all__ = [
     "VerificationTrigger",
     "WorkflowModuleContract",
     "WorkflowModuleRegistry",
+    "WorkflowSequence",
+    "WorkflowSequenceError",
+    "WorkflowSequenceRunner",
+    "WorkflowSequenceTask",
+    "DefaultWorkflowSequenceOperations",
     "adapt_legacy_evidence_manifest",
     "canonical_fingerprint",
     "compile_plan_draft",
@@ -401,6 +447,8 @@ __all__ = [
     "validate_plan_ir",
     "write_dynamic_repair_fixture_report",
     "load_goal_execution_request",
+    "load_workflow_sequence",
+    "run_workflow_sequence",
 ]
 
 

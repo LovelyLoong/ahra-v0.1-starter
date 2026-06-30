@@ -1,0 +1,106 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0070",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0070-0001",
+      "task_id": "TASK-0070",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "90d37e6b46f28112b48ceb60d572b54fdc355bdfa7dff946fef4db4f7c00440f",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-30T10:00:08.000003Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0070-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0070-0002",
+      "task_id": "TASK-0070",
+      "kind": "workflow_sequence_runner_report",
+      "name": "workflow-sequence-runner-report.md",
+      "uri": "local://evidence/workflow-sequence-runner-report.md",
+      "sha256": "9230a3bc27abb998804589ca5011589e536bb0e7efd6f12bb8d83efcb363a2c0",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T10:00:00Z",
+      "input_refs": [
+        "task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0070-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0070-0003",
+      "task_id": "TASK-0070",
+      "kind": "verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "ab650c158eb33c2058f5b901118ac1c8ca01a55817729517386caf7290c76909",
+      "media_type": "application/json",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T10:00:00Z",
+      "input_refs": [
+        "task.md",
+        "evidence/workflow-sequence-runner-report.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0070-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0070-HANDOFF-0001",
+      "task_id": "TASK-0070",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "e90a69605b84ab4f0c714d404918d6ba34b5cb2cd190f304f4a27b9769de7411",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T10:00:00Z",
+      "input_refs": [
+        "task.md",
+        "evidence/workflow-sequence-runner-report.md",
+        "evidence/verification-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0070-0002",
+        "EVD-TASK-0070-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0070-0004",
+      "task_id": "TASK-0070",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-6.json",
+      "uri": "local://evidence/evidence-gate-report-6.json",
+      "sha256": "a2c91ed32a5ac8f0e700e5c8b99490e37f49e3068e45d2dc2beb7c23285c9402",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-30T10:00:08.000006Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0070-0004"
+      ],
+      "supersedes": null
+    }
+  ]
+}

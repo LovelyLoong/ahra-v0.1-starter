@@ -1,0 +1,65 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0063",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0063-0001",
+      "task_id": "TASK-0063",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "6434106b7b9fd08aaec44b3b6491680d6fad8e5283a7b43dff450e9a681866bd",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-30T10:00:01.000003Z",
+      "refs": [
+        "ART-TASK-0063-0001"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0063-0002",
+      "task_id": "TASK-0063",
+      "kind": "alignment_workflow_engine_report",
+      "name": "alignment-workflow-engine-report.md",
+      "uri": "local://evidence/alignment-workflow-engine-report.md",
+      "sha256": "cfb74e9f75059965bd01ae09a3bb65c56954c75d28843f13b3523301744fe666",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T10:00:00Z",
+      "refs": [
+        "ART-TASK-0063-0002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0063-0003",
+      "task_id": "TASK-0063",
+      "kind": "local_verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "13b68da9428cc093fafc6a32302701f3536810cea4488d51f18199d66633bdb2",
+      "media_type": "application/json",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T10:00:00Z",
+      "refs": [
+        "ART-TASK-0063-0003",
+        "EVD-TASK-0063-0002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0063-0004",
+      "task_id": "TASK-0063",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-6.json",
+      "uri": "local://evidence/evidence-gate-report-6.json",
+      "sha256": "69f29f4e6b4bc7bf1c7dfe74760670f46451e05617a3ee3c2a59be3f7081c11c",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-30T10:00:01.000006Z",
+      "refs": [
+        "ART-TASK-0063-0004",
+        "EVD-TASK-0063-0002",
+        "EVD-TASK-0063-0003"
+      ]
+    }
+  ]
+}

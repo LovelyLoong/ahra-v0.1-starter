@@ -1,0 +1,73 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0065",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T10:00:03.000006Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Approved: ApprovalService Port and human authorization workflow satisfy the task acceptance criteria.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "`ApprovalService` implements the approval workflow: RequestDraft -> waiting_auth -> approve -> frozen GoalExecutionRequest, covered by tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0065-0002",
+        "EVD-TASK-0065-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "An attempt to freeze a RequestDraft without approval is rejected with a clear error, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0065-0002",
+        "EVD-TASK-0065-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The approval event is recorded with actor and timestamp in an append-only log, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0065-0002",
+        "EVD-TASK-0065-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The domain module imports no adapter/model/cloud dependency (lint passes).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0065-0002",
+        "EVD-TASK-0065-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Unit tests, lint, and diff checks pass: `.\\.venv\\Scripts\\python.exe -B -m unittest tests.test_approval_service -v` and `.\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint` green.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0065-0002",
+        "EVD-TASK-0065-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Producer moves TASK-0065 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0065-0002",
+        "EVD-TASK-0065-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    }
+  ],
+  "commands": []
+}

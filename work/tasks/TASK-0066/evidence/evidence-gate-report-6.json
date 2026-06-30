@@ -1,0 +1,83 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0066",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T10:00:04.000006Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Approved: governed network.access admission, default-deny behavior, approval refs, and audit evidence satisfy the task acceptance criteria.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "network.access is no longer unconditionally denied; it can be admitted with an explicit grant, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0066-0002",
+        "EVD-TASK-0066-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Every network use is audited (actor, timestamp, resource scope) and the audit is append-only, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0066-0002",
+        "EVD-TASK-0066-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "An attempt to use network.access without a grant is rejected (default-deny holds), covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0066-0002",
+        "EVD-TASK-0066-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Network operation evidence is captured (summary, not full payloads), covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0066-0002",
+        "EVD-TASK-0066-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "The domain module imports no adapter/model/cloud dependency (lint passes).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0066-0002",
+        "EVD-TASK-0066-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Unit tests, lint, and diff checks pass: `.\\.venv\\Scripts\\python.exe -B -m unittest tests.test_capabilities -v` and `.\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint` green.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0066-0002",
+        "EVD-TASK-0066-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Producer moves TASK-0066 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0066-0002",
+        "EVD-TASK-0066-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    }
+  ],
+  "commands": []
+}

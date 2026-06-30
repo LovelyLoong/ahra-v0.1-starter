@@ -1,0 +1,31 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0067",
+  "context_id": "CTX-phase1-intent-closure",
+  "state": "completed",
+  "state_version": 6,
+  "attempt": 2,
+  "owner": null,
+  "lease": null,
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "evidence/subjective-gate-runners-report.md",
+    "handoffs/HANDOFF-0001.md",
+    "ART-TASK-0067-0001",
+    "ART-TASK-0067-0002",
+    "ART-TASK-0067-0003",
+    "ART-TASK-0067-HANDOFF-0001",
+    "ART-TASK-0067-0004"
+  ],
+  "evidence_refs": [
+    "evidence/verification-summary.json",
+    "evidence/subjective-gate-runners-report.md",
+    "EVD-TASK-0067-0001",
+    "EVD-TASK-0067-0002",
+    "EVD-TASK-0067-0003",
+    "EVD-TASK-0067-0004"
+  ],
+  "updated_at": "2026-06-30T10:00:05.000006Z"
+}

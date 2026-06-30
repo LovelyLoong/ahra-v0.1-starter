@@ -1,0 +1,27 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0066",
+  "status": "ready_for_review",
+  "producer": "agent:codex-implementation",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_capabilities -v",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_phase1_comprehensive.Phase1ComprehensiveTests.test_scenario_2_network_goal_has_governed_admission_audit_and_execution -v",
+      "status": "passed"
+    }
+  ],
+  "evidence": [
+    "evidence/network-admission-gate-report.md",
+    "src/ahra/capabilities.py",
+    "src/ahra/plan_ir.py",
+    "src/ahra/plan_execution.py",
+    "tests/test_capabilities.py"
+  ],
+  "notes": [
+    "Producer did not mark the task completed.",
+    "EvidenceGate review remains required."
+  ]
+}

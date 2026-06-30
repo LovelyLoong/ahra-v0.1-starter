@@ -1,0 +1,79 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0066",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T10:00:04.000003Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Requesting changes: implementation checks passed, but producer evidence is not registered in manifests, so EvidenceGate approval cannot map criteria to evidence IDs.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "network.access is no longer unconditionally denied; it can be admitted with an explicit grant, covered by a test.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Independent targeted tests/lint/diff passed for network.access behavior; this criterion remains blocked only by missing manifest evidence IDs. Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Every network use is audited (actor, timestamp, resource scope) and the audit is append-only, covered by a test.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Independent targeted tests/lint/diff passed for network.access behavior; this criterion remains blocked only by missing manifest evidence IDs. Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "An attempt to use network.access without a grant is rejected (default-deny holds), covered by a test.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Independent targeted tests/lint/diff passed for network.access behavior; this criterion remains blocked only by missing manifest evidence IDs. Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Network operation evidence is captured (summary, not full payloads), covered by a test.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Independent targeted tests/lint/diff passed for network.access behavior; this criterion remains blocked only by missing manifest evidence IDs. Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "The domain module imports no adapter/model/cloud dependency (lint passes).",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Independent targeted tests/lint/diff passed for network.access behavior; this criterion remains blocked only by missing manifest evidence IDs. Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Unit tests, lint, and diff checks pass: `.\\.venv\\Scripts\\python.exe -B -m unittest tests.test_capabilities -v` and `.\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint` green.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Independent targeted tests/lint/diff passed for network.access behavior; this criterion remains blocked only by missing manifest evidence IDs. Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Producer moves TASK-0066 only to review; EvidenceGate decides completion.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Independent targeted tests/lint/diff passed for network.access behavior; this criterion remains blocked only by missing manifest evidence IDs. Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --lint",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ]
+}

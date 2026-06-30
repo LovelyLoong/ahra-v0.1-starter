@@ -1,0 +1,65 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0065",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0065-0001",
+      "task_id": "TASK-0065",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "4cbaaa4c54f65c9192ec62270a530adea047518008e0dde4ca7452e38f4ae9ca",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-30T10:00:03.000003Z",
+      "refs": [
+        "ART-TASK-0065-0001"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0065-0002",
+      "task_id": "TASK-0065",
+      "kind": "approval_service_report",
+      "name": "approval-service-report.md",
+      "uri": "local://evidence/approval-service-report.md",
+      "sha256": "ce83cd882fdce5d96f2aad38f299a2c8ed0d2aa1c00e08c463f069268154f77e",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T10:00:00Z",
+      "refs": [
+        "ART-TASK-0065-0002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0065-0003",
+      "task_id": "TASK-0065",
+      "kind": "local_verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "909a96025f6e95b92249cdbcfadc97c236d769ffc9c2c6116e91481b45cde444",
+      "media_type": "application/json",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-06-30T10:00:00Z",
+      "refs": [
+        "ART-TASK-0065-0003",
+        "EVD-TASK-0065-0002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0065-0004",
+      "task_id": "TASK-0065",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-6.json",
+      "uri": "local://evidence/evidence-gate-report-6.json",
+      "sha256": "364067233252b177937c4bf868c36d8bb642928eac70c29296cea8f5eb92c8c0",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-06-30T10:00:03.000006Z",
+      "refs": [
+        "ART-TASK-0065-0004",
+        "EVD-TASK-0065-0002",
+        "EVD-TASK-0065-0003"
+      ]
+    }
+  ]
+}

@@ -14,7 +14,7 @@ from .evidence_v2 import canonical_fingerprint
 
 REFERENCE_MONITOR_VERSION = "ahra-reference-monitor/0.1"
 HIGH_RISK_ACTIONS = {"network.access", "secret.read", "external.write", "production.deploy"}
-SUPPORTED_LOCAL_ACTIONS = {"filesystem.write", "process.exec", "spawn.agent"}
+SUPPORTED_LOCAL_ACTIONS = {"filesystem.write", "process.exec", "spawn.agent", "network.access"}
 DEFAULT_WRITE_DENY_ROLES = {"planner", "task_reviewer", "goal_reviewer", "verifier"}
 COMMAND_META_CHARS = ("&&", "||", "|", "$(", "`", ">", "<", "\n", "\r")
 
@@ -294,8 +294,26 @@ class CapabilityAuditRecord:
     argument_digest: str
     result_digest: str | None
     occurred_at: datetime
+    resource_scope: tuple[str, ...] = ()
+    evidence_summary: Mapping[str, object] | None = None
 
     def to_dict(self) -> dict:
+        spec = {
+            "planId": self.plan_id,
+            "nodeId": self.node_id,
+            "actor": self.actor,
+            "action": self.action,
+            "allowed": self.allowed,
+            "reasonCode": self.reason_code,
+            "policyDecisionId": self.policy_decision_id,
+            "grantDigest": self.grant_digest,
+            "argumentDigest": self.argument_digest,
+            "resultDigest": self.result_digest,
+        }
+        if self.resource_scope:
+            spec["resourceScope"] = list(self.resource_scope)
+        if self.evidence_summary is not None:
+            spec["evidenceSummary"] = dict(self.evidence_summary)
         return {
             "apiVersion": "ahra.dev/v1alpha1",
             "kind": "CapabilityAuditRecord",
@@ -303,18 +321,7 @@ class CapabilityAuditRecord:
                 "auditId": self.audit_id,
                 "occurredAt": _iso(self.occurred_at),
             },
-            "spec": {
-                "planId": self.plan_id,
-                "nodeId": self.node_id,
-                "actor": self.actor,
-                "action": self.action,
-                "allowed": self.allowed,
-                "reasonCode": self.reason_code,
-                "policyDecisionId": self.policy_decision_id,
-                "grantDigest": self.grant_digest,
-                "argumentDigest": self.argument_digest,
-                "resultDigest": self.result_digest,
-            },
+            "spec": spec,
         }
 
 
@@ -406,6 +413,75 @@ class LocalRuntimeGateway:
             return self._audit(grant, plan_id, node_id, actor, "process.exec", True, "allow", args, result, now)
         return self._audit(grant, plan_id, node_id, actor, "process.exec", False, reason, args, None, now)
 
+    def record_network_access(
+        self,
+        grant: CapabilityGrant | None,
+        *,
+        plan_id: str,
+        node_id: str,
+        actor: str,
+        resource: str,
+        request_summary: Mapping[str, object],
+        response_summary: Mapping[str, object] | None = None,
+        now: datetime | None = None,
+    ) -> CapabilityAuditRecord:
+        now = now or _now()
+        args = {
+            "resource": resource,
+            "requestSummaryDigest": canonical_fingerprint(dict(request_summary)),
+        }
+        result = {
+            "resource": resource,
+            "requestSummary": dict(request_summary),
+            "responseSummary": dict(response_summary or {}),
+        }
+        if grant is None:
+            return self._audit_without_grant(
+                plan_id,
+                node_id,
+                actor,
+                "network.access",
+                False,
+                "missing_grant",
+                args,
+                None,
+                now,
+                resource_scope=(resource,),
+                evidence_summary=result,
+            )
+        reason = self._grant_denial(grant, "network.access", plan_id, node_id, actor, now)
+        if reason == "allow" and not _resource_allowed(resource, grant.resources):
+            reason = "resource_not_granted"
+        if reason == "allow":
+            return self._audit(
+                grant,
+                plan_id,
+                node_id,
+                actor,
+                "network.access",
+                True,
+                "allow",
+                args,
+                result,
+                now,
+                resource_scope=(resource,),
+                evidence_summary=result,
+            )
+        return self._audit(
+            grant,
+            plan_id,
+            node_id,
+            actor,
+            "network.access",
+            False,
+            reason,
+            args,
+            None,
+            now,
+            resource_scope=(resource,),
+            evidence_summary=result,
+        )
+
     def _grant_denial(
         self,
         grant: CapabilityGrant,
@@ -459,6 +535,9 @@ class LocalRuntimeGateway:
         arguments: Mapping[str, object],
         result: Mapping[str, object] | None,
         occurred_at: datetime,
+        *,
+        resource_scope: tuple[str, ...] = (),
+        evidence_summary: Mapping[str, object] | None = None,
     ) -> CapabilityAuditRecord:
         record = CapabilityAuditRecord(
             audit_id=f"AUD-{uuid.uuid4()}",
@@ -473,6 +552,42 @@ class LocalRuntimeGateway:
             argument_digest=canonical_fingerprint(dict(arguments)),
             result_digest=canonical_fingerprint(dict(result)) if result is not None else None,
             occurred_at=occurred_at,
+            resource_scope=resource_scope,
+            evidence_summary=evidence_summary,
+        )
+        self.audit_sink.append(record)
+        return record
+
+    def _audit_without_grant(
+        self,
+        plan_id: str,
+        node_id: str,
+        actor: str,
+        action: str,
+        allowed: bool,
+        reason_code: str,
+        arguments: Mapping[str, object],
+        result: Mapping[str, object] | None,
+        occurred_at: datetime,
+        *,
+        resource_scope: tuple[str, ...] = (),
+        evidence_summary: Mapping[str, object] | None = None,
+    ) -> CapabilityAuditRecord:
+        record = CapabilityAuditRecord(
+            audit_id=f"AUD-{uuid.uuid4()}",
+            plan_id=plan_id,
+            node_id=node_id,
+            actor=actor,
+            action=action,
+            allowed=allowed,
+            reason_code=reason_code,
+            policy_decision_id=None,
+            grant_digest=None,
+            argument_digest=canonical_fingerprint(dict(arguments)),
+            result_digest=canonical_fingerprint(dict(result)) if result is not None else None,
+            occurred_at=occurred_at,
+            resource_scope=resource_scope,
+            evidence_summary=evidence_summary,
         )
         self.audit_sink.append(record)
         return record

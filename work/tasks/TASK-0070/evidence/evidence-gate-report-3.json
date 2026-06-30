@@ -1,0 +1,93 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0070",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T10:00:08.000003Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Requesting changes: workflow sequence dry-run works, but the real Phase 1 example non-dry-run path references missing verifier report inputs; producer evidence is not manifest-registered.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "`contracts/schemas/workflow-sequence.schema.json` defines WorkflowSequence with task list, dependencies, and optional per-task templates, and validates an example sequence.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "`WorkflowSequenceRunner` executes a multi-task sequence: claim -> Goal execution -> bridge -> completion for each task in order, covered by a test.",
+      "status": "failed",
+      "evidence_refs": [],
+      "notes": "Failed: examples/workflows/phase1-sequence.yaml non-dry-run expects per-task verifier reports under work/tasks/${TASK_ID}/evidence/${VERIFICATION_STRATEGY}-gate-report.json, but those reports are absent for TASK-0062..0069. Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "On task failure, the runner halts and surfaces the blocker; it does not silently skip or continue, covered by a test.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "`ahra workflow-sequence run` CLI command exists and invokes the runner.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Per-task verification remains simple (unit); final task verification remains comprehensive (as designed in TASK-0069).",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "An example `examples/workflows/phase1-sequence.yaml` lists TASK-0062..0069 and validates against the schema.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "The runner depends only on existing governed components (task claim, Goal start, goal bridge-awkp-task, orchestrate-review); no new side effects.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Unit tests, lint, and diff checks pass: `.\\.venv\\Scripts\\python.exe -B -m unittest tests.test_workflow_sequence -v` and `.\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint` green.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Producer moves TASK-0070 only to review; EvidenceGate decides completion.",
+      "status": "blocked",
+      "evidence_refs": [],
+      "notes": "Evidence package is not EvidenceGate-verifiable: artifact-manifest.json and evidence-manifest.json contain zero producer artifact/evidence records, so existing producer files cannot be referenced by Evidence ID during approval."
+    }
+  ],
+  "commands": [
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --lint",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ]
+}

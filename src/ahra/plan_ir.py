@@ -118,13 +118,25 @@ class RetryPolicy:
 class CapabilityRequest:
     capability: str
     resources: tuple[str, ...]
+    risk_level: str = "R1"
+    approval_refs: tuple[str, ...] = ()
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, Any]) -> "CapabilityRequest":
-        return cls(capability=str(data["capability"]), resources=tuple(sorted(str(item) for item in data.get("resources", ()))))
+        return cls(
+            capability=str(data["capability"]),
+            resources=tuple(sorted(str(item) for item in data.get("resources", ()))),
+            risk_level=str(data.get("riskLevel", "R1")),
+            approval_refs=tuple(sorted(str(item) for item in data.get("approvalRefs", ()))),
+        )
 
     def to_dict(self) -> dict[str, Any]:
-        return {"capability": self.capability, "resources": list(self.resources)}
+        data: dict[str, Any] = {"capability": self.capability, "resources": list(self.resources)}
+        if self.risk_level != "R1":
+            data["riskLevel"] = self.risk_level
+        if self.approval_refs:
+            data["approvalRefs"] = list(self.approval_refs)
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -132,22 +144,36 @@ class CapabilityGrant:
     capability: str
     resources: tuple[str, ...]
     grant_digest: str
+    risk_level: str = "R1"
+    approval_refs: tuple[str, ...] = ()
 
     @classmethod
     def from_request(cls, request: CapabilityRequest) -> "CapabilityGrant":
-        payload = {"capability": request.capability, "resources": list(request.resources)}
+        payload = {
+            "approvalRefs": list(request.approval_refs),
+            "capability": request.capability,
+            "resources": list(request.resources),
+            "riskLevel": request.risk_level,
+        }
         return cls(
             capability=request.capability,
             resources=request.resources,
             grant_digest=canonical_fingerprint(payload),
+            risk_level=request.risk_level,
+            approval_refs=request.approval_refs,
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data: dict[str, Any] = {
             "capability": self.capability,
             "resources": list(self.resources),
             "grantDigest": self.grant_digest,
         }
+        if self.risk_level != "R1":
+            data["riskLevel"] = self.risk_level
+        if self.approval_refs:
+            data["approvalRefs"] = list(self.approval_refs)
+        return data
 
 
 @dataclass(frozen=True, slots=True)
@@ -839,7 +865,15 @@ def _draft_from_ir_node(node: PlanNodeIR) -> PlanNodeDraft:
         depends_on=node.depends_on,
         input_refs=node.input_refs,
         expected_outputs=node.expected_outputs,
-        capability_requests=tuple(CapabilityRequest(grant.capability, grant.resources) for grant in node.capability_grants),
+        capability_requests=tuple(
+            CapabilityRequest(
+                grant.capability,
+                grant.resources,
+                risk_level=grant.risk_level,
+                approval_refs=grant.approval_refs,
+            )
+            for grant in node.capability_grants
+        ),
         gate_refs=node.gate_refs,
         runtime_ref=node.runtime_ref,
         budget=node.budget,

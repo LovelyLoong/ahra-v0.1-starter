@@ -1,0 +1,25 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0063",
+  "status": "ready_for_review",
+  "producer": "agent:codex-implementation",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_alignment_engine -v",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_intent_draft tests.test_alignment_engine tests.test_request_admission tests.test_approval_service -v",
+      "status": "passed"
+    }
+  ],
+  "evidence": [
+    "evidence/alignment-workflow-engine-report.md",
+    "src/ahra/alignment_engine.py",
+    "tests/test_alignment_engine.py"
+  ],
+  "notes": [
+    "Producer did not mark the task completed.",
+    "EvidenceGate review remains required."
+  ]
+}

@@ -18,6 +18,7 @@ MAPPINGS = [
     ("examples/tools/git-apply-patch.yaml", "contracts/schemas/tool.schema.json"),
     ("examples/runtimes/local-worktree.yaml", "contracts/schemas/runtime-profile.schema.json"),
     ("examples/workflows/repository-maintenance.yaml", "contracts/schemas/workflow.schema.json"),
+    ("examples/workflows/phase1-sequence.yaml", "contracts/schemas/workflow-sequence.schema.json"),
     ("examples/workflow_modules/standard-harness.yaml", "contracts/schemas/workflow-module.schema.json"),
     ("examples/workflow_modules/loop-engineering.yaml", "contracts/schemas/workflow-module.schema.json"),
     ("examples/workflow_runs/fixtures/standard-task.yaml", "contracts/schemas/workflow-run-request.schema.json"),
@@ -34,6 +35,7 @@ MAPPINGS = [
     ("examples/records/approval.json", "contracts/schemas/approval.schema.json"),
     ("examples/records/event.json", "contracts/schemas/event.schema.json"),
     ("examples/records/goal-contract.json", "contracts/schemas/goal-contract.schema.json"),
+    ("examples/intents/phase1-example-intent.yaml", "contracts/schemas/intent-draft.schema.json"),
     ("examples/m1/goal-run-request.yaml", "contracts/schemas/goal-execution-request.schema.json"),
     ("examples/records/claim-graph.json", "contracts/schemas/claim-graph.schema.json"),
     ("examples/records/gate-definition.json", "contracts/schemas/gate-definition.schema.json"),
@@ -120,6 +122,7 @@ def main() -> int:
         ROOT / "src/ahra/ports.py",
         ROOT / "src/ahra/validation.py",
         ROOT / "src/ahra/verification.py",
+        ROOT / "src/ahra/workflow_sequence.py",
         ROOT / "src/ahra/workflow_modules.py",
         *sorted((ROOT / "src/ahra/reference_runner").glob("*.py")),
     ]:
@@ -158,10 +161,13 @@ def _check_default_exposure() -> int:
     from ahra import cli  # noqa: WPS433 - local lint verifies CLI default exposure.
 
     help_text = cli._build_parser().format_help()
-    for token in ["workflow", "mcp", "demo", "fake-reference", "standard-harness", "loop-engineering"]:
+    for token in [" mcp", " demo", "fake-reference", "standard-harness", "loop-engineering"]:
         if token in help_text:
             failures += 1
             print(f"ERROR default CLI help exposes default-excluded token: {token}")
+    if "{workflow," in help_text or " workflow " in help_text:
+        failures += 1
+        print("ERROR default CLI help exposes legacy workflow command")
 
     for path in DEFAULT_DOC_PATHS:
         text = path.read_text(encoding="utf-8")

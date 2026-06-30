@@ -1,0 +1,103 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0070",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T10:00:08.000006Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Approved: WorkflowSequenceRunner, schema, CLI dry-run, fail-closed missing verifier report behavior, and real claim-goal-bridge-completion test satisfy the task acceptance criteria.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "`contracts/schemas/workflow-sequence.schema.json` defines WorkflowSequence with task list, dependencies, and optional per-task templates, and validates an example sequence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0070-0002",
+        "EVD-TASK-0070-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "`WorkflowSequenceRunner` executes a multi-task sequence: claim -> Goal execution -> bridge -> completion for each task in order, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0070-0002",
+        "EVD-TASK-0070-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "On task failure, the runner halts and surfaces the blocker; it does not silently skip or continue, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0070-0002",
+        "EVD-TASK-0070-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "`ahra workflow-sequence run` CLI command exists and invokes the runner.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0070-0002",
+        "EVD-TASK-0070-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Per-task verification remains simple (unit); final task verification remains comprehensive (as designed in TASK-0069).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0070-0002",
+        "EVD-TASK-0070-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "An example `examples/workflows/phase1-sequence.yaml` lists TASK-0062..0069 and validates against the schema.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0070-0002",
+        "EVD-TASK-0070-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "The runner depends only on existing governed components (task claim, Goal start, goal bridge-awkp-task, orchestrate-review); no new side effects.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0070-0002",
+        "EVD-TASK-0070-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "Unit tests, lint, and diff checks pass: `.\\.venv\\Scripts\\python.exe -B -m unittest tests.test_workflow_sequence -v` and `.\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint` green.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0070-0002",
+        "EVD-TASK-0070-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "Producer moves TASK-0070 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0070-0002",
+        "EVD-TASK-0070-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    }
+  ],
+  "commands": []
+}

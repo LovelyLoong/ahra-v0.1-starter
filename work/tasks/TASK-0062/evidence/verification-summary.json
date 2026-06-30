@@ -1,0 +1,27 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0062",
+  "status": "ready_for_review",
+  "producer": "agent:codex-implementation",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_intent_draft -v",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B scripts/lint_contracts.py",
+      "status": "passed"
+    }
+  ],
+  "evidence": [
+    "evidence/intent-draft-contract-report.md",
+    "contracts/schemas/intent-draft.schema.json",
+    "examples/intents/phase1-example-intent.yaml",
+    "src/ahra/intent_draft.py",
+    "tests/test_intent_draft.py"
+  ],
+  "notes": [
+    "Producer did not mark the task completed.",
+    "EvidenceGate review remains required."
+  ]
+}

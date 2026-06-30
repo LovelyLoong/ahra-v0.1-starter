@@ -1,0 +1,73 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0067",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T10:00:05.000006Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Approved: semantic_review and human_approval gate runners preserve producer/verifier separation and decision timestamp lineage.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "`SemanticReviewGateRunner` exists, implements GateRunnerPort, invokes an LLM judge, and records decisions with lineage, covered by fixture tests on PASS/FAIL routing.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0067-0002",
+        "EVD-TASK-0067-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "`HumanApprovalGateRunner` exists, blocks for human input, records the decision with actor and timestamp, covered by tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0067-0002",
+        "EVD-TASK-0067-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Both runners enforce producer != verifier; an attempt to use a producer identity as the judge/human is rejected, covered by tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0067-0002",
+        "EVD-TASK-0067-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The domain module imports no adapter/model/cloud dependency in the port definitions (implementations may adapt, lint passes).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0067-0002",
+        "EVD-TASK-0067-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Unit tests, lint, and diff checks pass: `.\\.venv\\Scripts\\python.exe -B -m unittest tests.test_verification -v` and `.\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint` green.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0067-0002",
+        "EVD-TASK-0067-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Producer moves TASK-0067 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0067-0002",
+        "EVD-TASK-0067-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    }
+  ],
+  "commands": []
+}

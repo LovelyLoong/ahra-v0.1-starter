@@ -1,0 +1,73 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0063",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-06-30T10:00:01.000006Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Requesting changes: RequestDraft exposes direct GoalExecutionRequest mapping without ApprovalService authorization, so the alignment boundary is not strictly untrusted RequestDraft only.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "`AlignmentWorkflowEngine` exists and implements a multi-turn dialogue flow from IntentDraft to RequestDraft, covered by tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0063-0002",
+        "EVD-TASK-0063-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "The engine resolves profile/digest references from the registry; a test asserts it never fabricates a digest (rejects an unknown reference).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0063-0002",
+        "EVD-TASK-0063-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The engine emits a `RequestDraft` (untrusted), never a frozen GoalExecutionRequest, covered by a test.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0063-0002",
+        "EVD-TASK-0063-0003"
+      ],
+      "notes": "Failed: RequestDraft exposes to_goal_execution_request_mapping(), which can produce a GoalExecutionRequest-shaped mapping without ApprovalService approval; this violates the strict untrusted RequestDraft boundary."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The domain module imports no adapter/model/cloud dependency (lint passes).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0063-0002",
+        "EVD-TASK-0063-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Unit tests, lint, and diff checks pass: `.\\.venv\\Scripts\\python.exe -B -m unittest tests.test_alignment_engine -v` and `.\\.venv\\Scripts\\python.exe -B scripts\\check.py --lint` green.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0063-0002",
+        "EVD-TASK-0063-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Producer moves TASK-0063 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0063-0002",
+        "EVD-TASK-0063-0003"
+      ],
+      "notes": "Verifier mapped this criterion to manifest-registered producer evidence and independent command results from this review pass."
+    }
+  ],
+  "commands": []
+}

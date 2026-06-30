@@ -1,0 +1,31 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0070",
+  "context_id": "CTX-workflow-infrastructure",
+  "state": "completed",
+  "state_version": 6,
+  "attempt": 2,
+  "owner": null,
+  "lease": null,
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "evidence/workflow-sequence-runner-report.md",
+    "handoffs/HANDOFF-0001.md",
+    "ART-TASK-0070-0001",
+    "ART-TASK-0070-0002",
+    "ART-TASK-0070-0003",
+    "ART-TASK-0070-HANDOFF-0001",
+    "ART-TASK-0070-0004"
+  ],
+  "evidence_refs": [
+    "evidence/verification-summary.json",
+    "evidence/workflow-sequence-runner-report.md",
+    "EVD-TASK-0070-0001",
+    "EVD-TASK-0070-0002",
+    "EVD-TASK-0070-0003",
+    "EVD-TASK-0070-0004"
+  ],
+  "updated_at": "2026-06-30T10:00:08.000006Z"
+}

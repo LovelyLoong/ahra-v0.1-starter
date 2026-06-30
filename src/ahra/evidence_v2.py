@@ -148,6 +148,7 @@ class GateRunV2:
     stored_fingerprint: str | None = None
     command: tuple[str, ...] = ()
     evidence_ref: str | None = None
+    decision_at: datetime | None = None
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, Any]) -> "GateRunV2":
@@ -171,6 +172,7 @@ class GateRunV2:
             stored_fingerprint=str(spec["fingerprint"]) if spec.get("fingerprint") else None,
             command=tuple(str(item) for item in spec.get("command", ())),
             evidence_ref=str(spec["evidenceRef"]) if spec.get("evidenceRef") else None,
+            decision_at=_parse_datetime(spec.get("decisionAt")),
         )
 
     def fingerprint_payload(self) -> dict[str, Any]:

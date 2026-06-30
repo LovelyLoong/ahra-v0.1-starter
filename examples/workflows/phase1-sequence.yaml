@@ -1,0 +1,44 @@
+apiVersion: ahra.dev/v1alpha1
+kind: WorkflowSequence
+metadata:
+  name: phase1-sequence
+  sequenceId: WSEQ-PHASE1-INTENT-CLOSURE
+spec:
+  workRoot: work
+  producerActor: agent:workflow-sequence-runner
+  verifierActor: agent:independent-verifier
+  maxCycles: 1
+  taskDefaults:
+    goalRequestTemplate: phase1-goal-request-template.yaml
+    reviewReport: ../../work/tasks/${TASK_ID}/evidence/${VERIFICATION_STRATEGY}-gate-report.json
+  tasks:
+    - taskId: TASK-0062
+      verificationStrategy: simple
+    - taskId: TASK-0063
+      dependsOn:
+        - TASK-0062
+      verificationStrategy: simple
+    - taskId: TASK-0064
+      dependsOn:
+        - TASK-0063
+      verificationStrategy: simple
+    - taskId: TASK-0065
+      dependsOn:
+        - TASK-0064
+      verificationStrategy: simple
+    - taskId: TASK-0066
+      dependsOn:
+        - TASK-0065
+      verificationStrategy: simple
+    - taskId: TASK-0067
+      dependsOn:
+        - TASK-0066
+      verificationStrategy: simple
+    - taskId: TASK-0068
+      dependsOn:
+        - TASK-0067
+      verificationStrategy: simple
+    - taskId: TASK-0069
+      dependsOn:
+        - TASK-0068
+      verificationStrategy: comprehensive

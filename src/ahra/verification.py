@@ -102,6 +102,7 @@ class GateExecutionResult:
     failure_class: str | None = None
     reason: str = ""
     raw_output_ref: str | None = None
+    decision_at: datetime | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -473,6 +474,137 @@ class CommandGateRunner:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class SubjectiveGateDecision:
+    verdict: str
+    confidence: float
+    rationale: str
+    verifier_identity: str
+    trace_ref: str | None = None
+    decided_at: datetime | None = None
+
+
+class SemanticReviewGateRunner:
+    gate_kind = "semantic_review"
+
+    def __init__(
+        self,
+        judge: object,
+        *,
+        verifier_identity: str,
+        release_ref: str = "semantic-review-fixture",
+        pass_threshold: float = 0.70,
+    ) -> None:
+        self._judge = judge
+        self._verifier_identity = verifier_identity
+        self._release_ref = release_ref
+        self._pass_threshold = pass_threshold
+        self.calls: list[GateExecutionRequest] = []
+
+    @property
+    def release_ref(self) -> str:
+        return self._release_ref
+
+    async def run(self, request: GateExecutionRequest) -> GateExecutionResult:
+        self.calls.append(request)
+        started_at = datetime.now(UTC)
+        producer = str(request.metadata.get("producerIdentity") or "")
+        if producer and producer == self._verifier_identity:
+            return _subjective_result(
+                request,
+                status=GateExecutionStatus.BLOCKED,
+                started_at=started_at,
+                failure_class="producer_verifier_identity_conflict",
+                reason="semantic_review verifier identity must differ from producer identity",
+                verifier_identity=self._verifier_identity,
+            )
+        decision = _coerce_subjective_decision(_invoke_subjective_provider(self._judge, request), self._verifier_identity)
+        status = _semantic_status(decision, self._pass_threshold)
+        failure_class = None
+        if status == GateExecutionStatus.FAILED:
+            failure_class = "semantic_review_failed"
+        elif status == GateExecutionStatus.BLOCKED:
+            failure_class = "semantic_review_uncertain"
+        return _subjective_result(
+            request,
+            status=status,
+            started_at=started_at,
+            failure_class=failure_class,
+            reason=decision.rationale,
+            verifier_identity=decision.verifier_identity,
+            trace_ref=decision.trace_ref,
+            usage={"modelCalls": 1, "toolCalls": 0, "costUsd": 0.0, "confidence": decision.confidence},
+            decided_at=decision.decided_at,
+        )
+
+
+class HumanApprovalGateRunner:
+    gate_kind = "human_approval"
+
+    def __init__(
+        self,
+        decision_provider: object,
+        *,
+        release_ref: str = "human-approval-local",
+    ) -> None:
+        self._decision_provider = decision_provider
+        self._release_ref = release_ref
+        self.calls: list[GateExecutionRequest] = []
+
+    @property
+    def release_ref(self) -> str:
+        return self._release_ref
+
+    async def run(self, request: GateExecutionRequest) -> GateExecutionResult:
+        self.calls.append(request)
+        started_at = datetime.now(UTC)
+        raw_decision = _invoke_subjective_provider(self._decision_provider, request)
+        if raw_decision is None:
+            return _subjective_result(
+                request,
+                status=GateExecutionStatus.BLOCKED,
+                started_at=started_at,
+                failure_class="human_approval_waiting",
+                reason="human approval decision is not available yet",
+                verifier_identity="human:pending",
+            )
+        decision = _coerce_subjective_decision(raw_decision, "human:unknown")
+        producer = str(request.metadata.get("producerIdentity") or "")
+        if producer and producer == decision.verifier_identity:
+            return _subjective_result(
+                request,
+                status=GateExecutionStatus.BLOCKED,
+                started_at=started_at,
+                failure_class="producer_verifier_identity_conflict",
+                reason="human_approval actor must differ from producer identity",
+                verifier_identity=decision.verifier_identity,
+                decided_at=decision.decided_at,
+            )
+        if not decision.verifier_identity.startswith("human:"):
+            return _subjective_result(
+                request,
+                status=GateExecutionStatus.BLOCKED,
+                started_at=started_at,
+                failure_class="human_identity_required",
+                reason="human_approval requires a human:* actor",
+                verifier_identity=decision.verifier_identity,
+                decided_at=decision.decided_at,
+            )
+        status = _semantic_status(decision, 0.0)
+        failure_class = "human_approval_rejected" if status == GateExecutionStatus.FAILED else None
+        return _subjective_result(
+            request,
+            status=status,
+            started_at=started_at,
+            failure_class=failure_class,
+            reason=decision.rationale,
+            verifier_identity=decision.verifier_identity,
+            trace_ref=decision.trace_ref,
+            usage={"modelCalls": 0, "toolCalls": 0, "costUsd": 0.0, "confidence": decision.confidence},
+            decided_at=decision.decided_at,
+        )
+
+
 class VerificationExecutor:
     def __init__(self, registry: GateRunnerRegistry) -> None:
         self.registry = registry
@@ -639,6 +771,7 @@ class VerificationExecutor:
                 failure_class="unexpected_workspace_mutation",
                 reason="GateRunner mutated the governed workspace without an isolated mutation contract.",
                 raw_output_ref=result.raw_output_ref,
+                decision_at=result.decision_at,
             )
         return self._attempt_from_result(request, result)
 
@@ -674,6 +807,7 @@ class VerificationExecutor:
                 completed_at=result.completed_at,
                 failure_class="malformed_gate_result",
                 reason="GateExecutionResult gate_ref does not match request.",
+                decision_at=result.decision_at,
             )
         gate_run, evidence = _gate_run_and_evidence_from_result(request, result)
         if request.metadata.get("supersedeMatchingGateEvidence") is True:
@@ -1107,6 +1241,7 @@ def _gate_run_and_evidence_from_result(
         environment=request.environment,
         command=command,
         evidence_ref=evidence_id,
+        decision_at=result.decision_at,
     )
     gate_run = GateRunV2(
         gate_run_id=gate_run.gate_run_id,
@@ -1122,6 +1257,7 @@ def _gate_run_and_evidence_from_result(
         stored_fingerprint=gate_run.fingerprint(),
         command=gate_run.command,
         evidence_ref=evidence_id,
+        decision_at=gate_run.decision_at,
     )
     evidence = EvidenceV2(
         evidence_id=evidence_id,
@@ -1222,6 +1358,95 @@ def _process_exec_grant_for(
         if command_text in resources:
             return grant
     return None
+
+
+def _invoke_subjective_provider(provider: object, request: GateExecutionRequest) -> object:
+    if provider is None:
+        return None
+    if callable(provider):
+        return provider(request)
+    review = getattr(provider, "review", None)
+    if callable(review):
+        return review(request)
+    decision_for = getattr(provider, "decision_for", None)
+    if callable(decision_for):
+        return decision_for(request)
+    raise TypeError("subjective gate provider must be callable or expose review()/decision_for()")
+
+
+def _coerce_subjective_decision(raw: object, default_identity: str) -> SubjectiveGateDecision:
+    if isinstance(raw, SubjectiveGateDecision):
+        return raw
+    if not isinstance(raw, Mapping):
+        raise TypeError("subjective gate decision must be a mapping or SubjectiveGateDecision")
+    return SubjectiveGateDecision(
+        verdict=str(raw.get("verdict") or raw.get("decision") or "uncertain"),
+        confidence=float(raw.get("confidence", 0.0)),
+        rationale=str(raw.get("rationale") or raw.get("reason") or ""),
+        verifier_identity=str(raw.get("verifierIdentity") or raw.get("actor") or default_identity),
+        trace_ref=str(raw["traceRef"]) if raw.get("traceRef") else None,
+        decided_at=_coerce_decided_at(raw.get("decidedAt") or raw.get("decisionAt") or raw.get("decided_at")),
+    )
+
+
+def _coerce_decided_at(value: object) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
+    if isinstance(value, str):
+        raw = value.strip()
+        if not raw:
+            return None
+        if raw.endswith("Z"):
+            raw = raw[:-1] + "+00:00"
+        return datetime.fromisoformat(raw).astimezone(UTC)
+    raise TypeError("subjective gate decision timestamp must be a datetime or ISO string")
+
+
+def _semantic_status(decision: SubjectiveGateDecision, pass_threshold: float) -> GateExecutionStatus:
+    verdict = decision.verdict.lower()
+    if verdict in {"pass", "passed", "approve", "approved"} and decision.confidence >= pass_threshold:
+        return GateExecutionStatus.PASSED
+    if verdict in {"fail", "failed", "reject", "rejected"}:
+        return GateExecutionStatus.FAILED
+    return GateExecutionStatus.BLOCKED
+
+
+def _subjective_result(
+    request: GateExecutionRequest,
+    *,
+    status: GateExecutionStatus,
+    started_at: datetime,
+    failure_class: str | None,
+    reason: str,
+    verifier_identity: str,
+    trace_ref: str | None = None,
+    usage: Mapping[str, object] | None = None,
+    decided_at: datetime | None = None,
+) -> GateExecutionResult:
+    completed_at = datetime.now(UTC)
+    refs = []
+    if trace_ref:
+        refs.append(trace_ref)
+    refs.append(f"verifier:{verifier_identity}")
+    result_usage = dict(usage or {"modelCalls": 0, "toolCalls": 0, "costUsd": 0.0})
+    if decided_at is not None:
+        result_usage["decidedAt"] = decided_at.astimezone(UTC).isoformat().replace("+00:00", "Z")
+    return GateExecutionResult(
+        gate_ref=request.gate_ref,
+        status=status,
+        started_at=started_at,
+        completed_at=completed_at,
+        artifact_refs=tuple(refs),
+        subjects=request.subjects,
+        command=(request.gate_kind, request.gate_ref),
+        usage=result_usage,
+        failure_class=failure_class,
+        reason=reason,
+        raw_output_ref=trace_ref,
+        decision_at=decided_at,
+    )
 
 
 def _judge_command_result(

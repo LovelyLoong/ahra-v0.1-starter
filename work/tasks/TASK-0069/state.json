@@ -1,0 +1,26 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0069",
+  "context_id": "CTX-phase1-intent-closure",
+  "state": "changes_requested",
+  "state_version": 3,
+  "attempt": 1,
+  "owner": null,
+  "lease": null,
+  "next_action": "Address EvidenceGate verifier findings and return to review.",
+  "pause_reason": null,
+  "blockers": [
+    "Criterion 6: Failed: full Phase 1 integration is incomplete while RequestDraft can directly produce a GoalExecutionRequest-shaped mapping without ApprovalService authorization; the comprehensive tests do not cover that bypass."
+  ],
+  "artifact_refs": [
+    "evidence/phase1-comprehensive-verification-report.md",
+    "handoffs/HANDOFF-0001.md",
+    "ART-TASK-0069-0003"
+  ],
+  "evidence_refs": [
+    "evidence/verification-summary.json",
+    "evidence/phase1-comprehensive-verification-report.md",
+    "EVD-TASK-0069-0003"
+  ],
+  "updated_at": "2026-06-30T10:00:07.000003Z"
+}

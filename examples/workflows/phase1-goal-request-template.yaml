@@ -1,0 +1,115 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: phase1-${TASK_ID_LOWER}
+  requestId: GREQ-${SEQUENCE_ID}-${TASK_ID}
+  idempotencyKey: ${SEQUENCE_ID}:${TASK_ID}:goal
+spec:
+  profileRef: profile/m1-deterministic@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  workspaceRef: workspace
+  artifactDir: artifacts
+  store:
+    kind: sqlite
+    path: goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-${TASK_ID}
+    goalDigest: sha256:5555555555555555555555555555555555555555555555555555555555555555
+    claimGraphRef: claim-graph/${TASK_ID}
+    claimGraphDigest: sha256:6666666666666666666666666666666666666666666666666666666666666666
+    requiredClaimRefs:
+      - CLAIM-${TASK_ID}-WRITE
+      - CLAIM-${TASK_ID}-COMPLETE
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-${TASK_ID}-WRITE: sha256:3333333333333333333333333333333333333333333333333333333333333333
+      GATE-${TASK_ID}-COMPLETE: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+      - filesystem.write
+  execution:
+    maxRepairCycles: 0
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-${TASK_ID}
+      proposedBy: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    spec:
+      rationale: Task-scoped deterministic GoalExecution request materialized by WorkflowSequenceRunner.
+      nodes:
+        - id: NODE-${TASK_ID}-WRITE
+          nodeType: bounded_task
+          objective: Produce deterministic task evidence for ${TASK_ID}.
+          claimRefs:
+            - CLAIM-${TASK_ID}-WRITE
+          dependsOn: []
+          inputRefs:
+            - input/${TASK_ID}@sha256:7777777777777777777777777777777777777777777777777777777777777777
+          expectedOutputs:
+            - name: deterministic-artifact
+              schemaRef: schema/phase1-sequence-artifact@sha256:8888888888888888888888888888888888888888888888888888888888888888
+              consumerNodeRefs:
+                - NODE-${TASK_ID}-COMPLETE
+              artifactRequired: true
+          capabilityRequests:
+            - capability: filesystem.write
+              resources:
+                - outputs/summary.txt
+          gateRefs:
+            - GATE-${TASK_ID}-WRITE
+          runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+          budgetRequest:
+            maxModelCalls: 1
+            maxToolCalls: 1
+            maxSpawnedNodes: 0
+            maxWallSeconds: 30
+            maxCostUsd: 0.0
+          retryPolicy:
+            maxAttempts: 1
+            retryableFailureClasses: []
+            idempotencyKeyRequired: true
+          timeoutSeconds: 30
+          sideEffect: idempotent
+        - id: NODE-${TASK_ID}-COMPLETE
+          nodeType: goal_verification
+          objective: Verify deterministic task evidence for ${TASK_ID}.
+          claimRefs:
+            - CLAIM-${TASK_ID}-WRITE
+            - CLAIM-${TASK_ID}-COMPLETE
+          dependsOn:
+            - NODE-${TASK_ID}-WRITE
+          inputRefs:
+            - NODE-${TASK_ID}-WRITE
+          expectedOutputs: []
+          capabilityRequests: []
+          gateRefs:
+            - GATE-${TASK_ID}-COMPLETE
+          runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+          budgetRequest:
+            maxModelCalls: 1
+            maxToolCalls: 1
+            maxSpawnedNodes: 0
+            maxWallSeconds: 30
+            maxCostUsd: 0.0
+          retryPolicy:
+            maxAttempts: 1
+            retryableFailureClasses: []
+            idempotencyKeyRequired: false
+          timeoutSeconds: 30
+          sideEffect: idempotent
+          terminalGoalVerification: true

@@ -87,7 +87,10 @@ class FixtureDriver:
 
 def main(argv: list[str] | None = None) -> int:
     raw_argv = list(sys.argv[1:] if argv is None else argv)
-    parser = _build_parser(include_legacy_workflow=bool(raw_argv and raw_argv[0] == "workflow"))
+    parser = _build_parser(
+        include_legacy_workflow=bool(raw_argv and raw_argv[0] == "workflow"),
+        include_workflow_sequence=bool(raw_argv and raw_argv[0] == "workflow-sequence"),
+    )
     args = parser.parse_args(raw_argv)
     try:
         result = _dispatch(args)
@@ -107,6 +110,8 @@ def main(argv: list[str] | None = None) -> int:
 def _dispatch(args: argparse.Namespace) -> Any:
     if args.group == "workflow":
         return _workflow_command(args)
+    if args.group == "workflow-sequence":
+        return _workflow_sequence_command(args)
     if args.group == "task":
         return _task_command(args)
     if args.group == "fixture":
@@ -143,6 +148,24 @@ def _workflow_command(args: argparse.Namespace) -> Any:
     if args.workflow_command == "inspect":
         return _inspect_workflow(Path(args.artifact_dir))
     raise ValueError(f"unknown workflow command: {args.workflow_command}")
+
+
+def _workflow_sequence_command(args: argparse.Namespace) -> Any:
+    from ahra.workflow_sequence import WorkflowSequenceRunner, load_workflow_sequence
+
+    if args.workflow_sequence_command != "run":
+        raise ValueError(f"unknown workflow-sequence command: {args.workflow_sequence_command}")
+    sequence = load_workflow_sequence(Path(args.sequence))
+    if args.work_root:
+        from dataclasses import replace
+
+        sequence = replace(sequence, work_root=args.work_root)
+    runner = WorkflowSequenceRunner(
+        sequence,
+        sequence_path=Path(args.sequence),
+        run_root=Path(args.run_root) if args.run_root else None,
+    )
+    return runner.run(dry_run=args.dry_run).to_dict()
 
 
 def _task_command(args: argparse.Namespace) -> Any:
@@ -478,9 +501,16 @@ def _print(payload: dict[str, Any], *, stream: Any | None = None) -> None:
     print(json.dumps(payload, ensure_ascii=False, indent=2), file=stream)
 
 
-def _build_parser(*, include_legacy_workflow: bool = False) -> argparse.ArgumentParser:
+def _build_parser(
+    *,
+    include_legacy_workflow: bool = False,
+    include_workflow_sequence: bool = False,
+) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ahra", description="Operate the AHRA dynamic-kernel local framework.")
-    groups = parser.add_subparsers(dest="group", required=True)
+    visible_groups = "{task,fixture,goal,evidence-gate,doctor}"
+    if include_legacy_workflow:
+        visible_groups = "{workflow,task,fixture,goal,evidence-gate,doctor}"
+    groups = parser.add_subparsers(dest="group", required=True, metavar=visible_groups)
 
     if include_legacy_workflow:
         workflow = groups.add_parser("workflow", help="Legacy workflow compatibility commands.")
@@ -506,6 +536,15 @@ def _build_parser(*, include_legacy_workflow: bool = False) -> argparse.Argument
             action="store_true",
             help="Register fake-reference for local fixture smoke tests only.",
         )
+
+    if include_workflow_sequence:
+        sequence = groups.add_parser("workflow-sequence", help="Run a governed multi-task sequence.")
+        sequence_commands = sequence.add_subparsers(dest="workflow_sequence_command", required=True)
+        sequence_run = sequence_commands.add_parser("run", help="Run a WorkflowSequence YAML definition.")
+        sequence_run.add_argument("sequence", help="WorkflowSequence YAML path.")
+        sequence_run.add_argument("--work-root", help="Override the sequence workRoot.")
+        sequence_run.add_argument("--run-root", help="Directory for materialized task-scoped request templates.")
+        sequence_run.add_argument("--dry-run", action="store_true", help="Validate ordering and CLI wiring without side effects.")
 
     task = groups.add_parser("task", help="create, claim, orchestrate-review, and inspect AWKP tasks.")
     task_commands = task.add_subparsers(dest="task_command", required=True)

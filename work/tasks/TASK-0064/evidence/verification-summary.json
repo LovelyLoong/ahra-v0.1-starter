@@ -1,0 +1,25 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0064",
+  "status": "ready_for_review",
+  "producer": "agent:codex-implementation",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_request_admission -v",
+      "status": "passed"
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_intent_draft tests.test_alignment_engine tests.test_request_admission tests.test_approval_service -v",
+      "status": "passed"
+    }
+  ],
+  "evidence": [
+    "evidence/request-draft-admission-report.md",
+    "src/ahra/request_admission.py",
+    "tests/test_request_admission.py"
+  ],
+  "notes": [
+    "Producer did not mark the task completed.",
+    "EvidenceGate review remains required."
+  ]
+}

@@ -183,22 +183,27 @@ because SG-P1-F makes those gates real. The constraint above is only about how
 the Phase 1 DEVELOPMENT tasks are verified, not about what the finished alignment
 workflow may later authorize.
 
-# Tasks (to be scaffolded as AWKP skeletons when 57-61 reduce the stall)
+# Tasks (scaffolded as AWKP skeletons after 57-61 autonomy increment)
 
-Numbering continues after TASK-0061; each will follow the contract order in
+Numbering continues after TASK-0061; each follows the contract order in
 CLAUDE.md (schemas -> SPEC/ADR -> domain+ports -> adapters -> tests -> check.py)
-and each acceptance criterion will be command-gate-decidable per the binding
-rule above.
+and each acceptance criterion is command-gate-decidable per the binding rule
+above. All task skeletons (TASK-0062..0069) exist under work/tasks/ and now have
+producer implementation evidence in review state.
 
-| Stage | Task theme | Command-gate verification anchor |
-|---|---|---|
-| SG-P1-A | IntentDraft contract + declared scope/capability-need | schema validates; domain round-trip test; lint clean |
-| SG-P1-B | Alignment workflow engine (multi-turn drafting) | tests assert it emits an untrusted RequestDraft and never fabricates a digest |
-| SG-P1-C | RequestDraft admission | tests assert digest/capability/ClaimGraph checks reject bad drafts |
-| SG-P1-D | ApprovalService + waiting_auth | tests assert freeze requires approval; unapproved freeze rejected |
-| SG-P1-E | Governed network.access admission gate | tests assert grant-required, audited, denied without grant |
-| SG-P1-F | Real semantic_review / human_approval gates | fixture tests assert correct PASS/FAIL routing and lineage |
-| SG-P1-G | End-to-end intent-to-completion (simple task first) | non-skipped end-to-end test; check.py green |
+| Stage | Task ID | Theme | Command-gate verification anchor |
+|---|---|---|---|
+| SG-P1-A | TASK-0062 | IntentDraft contract + declared scope/capability-need | schema validates; domain round-trip test; lint clean |
+| SG-P1-B | TASK-0063 | Alignment workflow engine (multi-turn drafting) | tests assert it emits an untrusted RequestDraft and never fabricates a digest |
+| SG-P1-C | TASK-0064 | RequestDraft admission | tests assert digest/capability/ClaimGraph checks reject bad drafts |
+| SG-P1-D | TASK-0065 | ApprovalService + waiting_auth | tests assert freeze requires approval; unapproved freeze rejected |
+| SG-P1-E | TASK-0066 | Governed network.access admission gate | tests assert grant-required, audited, denied without grant |
+| SG-P1-F | TASK-0067 | Real semantic_review / human_approval gates | fixture tests assert correct PASS/FAIL routing and lineage |
+| SG-P1-G | TASK-0068 | End-to-end intent-to-completion (simple task first) | non-skipped end-to-end test; check.py green |
+| Final | TASK-0069 | **Comprehensive Phase 1 verification** | **5 test scenarios (objective/network/subjective/authorization/multi-turn); MOST COMPLETE criteria** |
+
+TASK-0070 (workflow sequence runner) enables executing TASK-0062..0069 as a
+single coherent workflow via `ahra workflow-sequence run phase1-sequence.yaml`.
 
 # Later phases (sketch, beyond Phase 1)
 
@@ -208,4 +213,3 @@ rule above.
 - Phase 4: the deferred self-iteration - memory-driven strategy synthesis that
   summarizes each work session into reusable strategy context. Scheduled last,
   only on top of Phases 1-3, and out of scope here.
-

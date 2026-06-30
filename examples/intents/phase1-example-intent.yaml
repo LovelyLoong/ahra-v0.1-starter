@@ -1,0 +1,26 @@
+apiVersion: ahra.dev/v1alpha1
+kind: IntentDraft
+metadata:
+  intentId: INTENT-PHASE1-EXAMPLE
+  name: phase1-example-intent
+spec:
+  abstractGoal: Write one governed deterministic summary artifact for the Phase 1 example.
+  constraints:
+    - key: scope
+      value: Keep the change inside the local workspace outputs directory.
+      required: true
+    - key: verification
+      value: The result must be command-gate decidable.
+      required: true
+  capabilityNeeds:
+    - action: filesystem.write
+      resources:
+        - outputs/summary.txt
+      reason: The deterministic executor writes the summary artifact.
+      riskLevel: R1
+  context:
+    roadmapRef: docs/roadmaps/phase1-minimal-loop-intent-roadmap.md
+    taskRef: TASK-0062
+  priorityHint: P0
+  riskHint: R1
+  requester: human:maintainer
