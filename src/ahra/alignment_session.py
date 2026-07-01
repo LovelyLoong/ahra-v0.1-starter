@@ -5,10 +5,10 @@ from typing import Any, Mapping
 
 from .acceptance_contracts import ClaimGraph
 from .approval_service import ApprovalRecord
-from .alignment_engine import (
-    AlignmentError,
-    AlignmentRegistry,
+from .request_draft import (
     RequestDraft,
+    RequestDraftError,
+    RequestDraftRegistry,
     _claim_graph_to_mapping,
     _goal_ref_from_intent,
     _request_id,
@@ -179,7 +179,7 @@ class AlignmentSessionManager:
         self,
         agent_driver: AgentDriver,
         *,
-        registry: AlignmentRegistry | None = None,
+        registry: RequestDraftRegistry | None = None,
         profile_registry: GoalOperationProfileRegistry | None = None,
         default_profile_ref: str = DEVELOPMENT_BOUNDED_PROFILE_REF,
         max_dialogue_turns: int = 8,
@@ -187,7 +187,7 @@ class AlignmentSessionManager:
         if registry is not None and profile_registry is not None:
             raise ValueError("pass either registry or profile_registry, not both")
         self.agent_driver = agent_driver
-        self.registry = registry or AlignmentRegistry(profiles=profile_registry or GoalOperationProfileRegistry())
+        self.registry = registry or RequestDraftRegistry(profiles=profile_registry or GoalOperationProfileRegistry())
         self.default_profile_ref = default_profile_ref
         self.max_dialogue_turns = max_dialogue_turns
 
@@ -423,7 +423,7 @@ class AlignmentSessionManager:
     ) -> GoalOperationProfile:
         try:
             profile = self.registry.resolve_profile(profile_ref)
-        except (AlignmentError, GoalOperationError) as exc:
+        except (RequestDraftError, GoalOperationError) as exc:
             raise AlignmentSessionError(
                 "unknown_profile_ref",
                 f"unknown Goal operation profile: {profile_ref}",

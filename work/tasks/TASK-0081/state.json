@@ -2,12 +2,12 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0081",
   "context_id": "CTX-workflow-a-cli",
-  "state": "review",
-  "state_version": 2,
+  "state": "completed",
+  "state_version": 3,
   "attempt": 1,
   "owner": null,
   "lease": null,
-  "next_action": "Await unified independent EvidenceGate review for TASK-0079..TASK-0082.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "pause_reason": null,
   "blockers": [],
   "artifact_refs": [
@@ -16,10 +16,12 @@
     "ART-TASK-0081-0003",
     "ART-TASK-0081-0004",
     "ART-TASK-0081-0005",
-    "ART-TASK-0081-HANDOFF-0001"
+    "ART-TASK-0081-HANDOFF-0001",
+    "ART-TASK-0081-0006"
   ],
   "evidence_refs": [
-    "EVD-TASK-0081-0001"
+    "EVD-TASK-0081-0001",
+    "EVD-TASK-0081-0002"
   ],
-  "updated_at": "2026-07-01T12:13:39.821076Z"
+  "updated_at": "2026-07-01T13:12:04.628499Z"
 }

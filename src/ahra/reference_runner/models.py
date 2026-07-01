@@ -203,6 +203,8 @@ class CheckEvidence:
     duration_seconds: float = 0.0
     stdout: str = ""
     stderr: str = ""
+    status: str = "completed"
+    failure_class: str | None = None
 
     @property
     def passed(self) -> bool:

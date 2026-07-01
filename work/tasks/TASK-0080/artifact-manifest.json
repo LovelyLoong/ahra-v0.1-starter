@@ -8,12 +8,16 @@
       "kind": "request_config_change",
       "name": "dogfood-a-alignment-session.yaml",
       "uri": "local://examples/goals/dogfood-a-alignment-session.yaml",
-      "sha256": "89d08954711f0d73eaa68353000ff329e50209c4cf8e8b4ab632952e9f0fb3d9",
+      "sha256": "1d29225ec395c06352c41a822f0f58e0acb68e294a9aa58da8b89b1db162eede",
       "media_type": "application/x-yaml",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["docs/architecture/framework-entrypoints.md"],
-      "evidence_refs": ["EVD-TASK-0080-0001"],
+      "input_refs": [
+        "docs/architecture/framework-entrypoints.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0080-0001"
+      ],
       "supersedes": null
     },
     {
@@ -26,8 +30,12 @@
       "media_type": "text/x-python",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["TASK-0080"],
-      "evidence_refs": ["EVD-TASK-0080-0001"],
+      "input_refs": [
+        "TASK-0080"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0080-0001"
+      ],
       "supersedes": null
     },
     {
@@ -36,12 +44,16 @@
       "kind": "goal_operation_artifact",
       "name": "goal-execution-request.json",
       "uri": "local://work/tasks/TASK-0080/runs/dogfood-a-004/artifacts/goal-execution-request.json",
-      "sha256": "eb8e27873054a357a18b0e75e804c58ced8db61c18a087830d7b578179d44ae6",
+      "sha256": "486fcebbdff4689574cdae1dd7d2f20f477a1c1e81446f25753c483148c5b759",
       "media_type": "application/json",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["examples/goals/dogfood-a-alignment-session.yaml"],
-      "evidence_refs": ["EVD-TASK-0080-0001"],
+      "input_refs": [
+        "examples/goals/dogfood-a-alignment-session.yaml"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0080-0001"
+      ],
       "supersedes": null
     },
     {
@@ -50,12 +62,16 @@
       "kind": "goal_operation_artifact",
       "name": "plan-draft.json",
       "uri": "local://work/tasks/TASK-0080/runs/dogfood-a-004/artifacts/plan-draft.json",
-      "sha256": "6039c97eb5ad1802704b124320b8374337c853c73120ec707f29a07c99a7faa1",
+      "sha256": "2fd680d529285f3362fc1550fe1af022f936ed97b161b0b13c4d5d5c666226b5",
       "media_type": "application/json",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["examples/goals/dogfood-a-alignment-session.yaml"],
-      "evidence_refs": ["EVD-TASK-0080-0001"],
+      "input_refs": [
+        "examples/goals/dogfood-a-alignment-session.yaml"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0080-0001"
+      ],
       "supersedes": null
     },
     {
@@ -64,12 +80,16 @@
       "kind": "goal_operation_artifact",
       "name": "plan-ir.json",
       "uri": "local://work/tasks/TASK-0080/runs/dogfood-a-004/artifacts/plan-ir.json",
-      "sha256": "98b53a8dc8c6a87b839d59923466d4aba1d41e2edd976c38a6460938d06b48e6",
+      "sha256": "f8747d75366a61d69062035df7212c7730e23696c8b9559ae08fc5217cb96ba0",
       "media_type": "application/json",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["examples/goals/dogfood-a-alignment-session.yaml"],
-      "evidence_refs": ["EVD-TASK-0080-0001"],
+      "input_refs": [
+        "examples/goals/dogfood-a-alignment-session.yaml"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0080-0001"
+      ],
       "supersedes": null
     },
     {
@@ -78,12 +98,16 @@
       "kind": "goal_operation_artifact",
       "name": "plan-validation-report.json",
       "uri": "local://work/tasks/TASK-0080/runs/dogfood-a-004/artifacts/plan-validation-report.json",
-      "sha256": "500d0bf60993b7994caefa5d427011dae156d2ecd7345c94b15c3b22baadc34d",
+      "sha256": "c19255bea815afc6bb3e31c1d1e29a5017bb3c37713db20ca1353ead1383a61e",
       "media_type": "application/json",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["examples/goals/dogfood-a-alignment-session.yaml"],
-      "evidence_refs": ["EVD-TASK-0080-0001"],
+      "input_refs": [
+        "examples/goals/dogfood-a-alignment-session.yaml"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0080-0001"
+      ],
       "supersedes": null
     },
     {
@@ -96,8 +120,33 @@
       "media_type": "text/markdown",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["evidence/verification-summary.json"],
-      "evidence_refs": ["EVD-TASK-0080-0001"],
+      "input_refs": [
+        "evidence/verification-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0080-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0080-0003",
+      "task_id": "TASK-0080",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "1f06fc5f7803c69fb76a17f4039691316f2a52be831be406b65e48d9e123bbdf",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T13:12:03.854983Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0080-0002"
+      ],
       "supersedes": null
     }
   ]

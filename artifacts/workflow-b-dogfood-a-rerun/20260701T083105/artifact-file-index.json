@@ -1,0 +1,57 @@
+[
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\artifact-manifest.json",
+    "Length": 2792,
+    "LastWriteTime": "2026-07-01T08:43:17.8479098-07:00"
+  },
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\events.jsonl",
+    "Length": 11067,
+    "LastWriteTime": "2026-07-01T08:43:17.8479098-07:00"
+  },
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\nodes\\NODE-alignment-session\\node-run.json",
+    "Length": 1587,
+    "LastWriteTime": "2026-07-01T08:43:17.8463975-07:00"
+  },
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\evidence-manifest.json",
+    "Length": 2453,
+    "LastWriteTime": "2026-07-01T08:43:17.8447863-07:00"
+  },
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\nodes\\NODE-alignment-session\\node-gates.json",
+    "Length": 465,
+    "LastWriteTime": "2026-07-01T08:43:17.8447863-07:00"
+  },
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\tasks\\alignment-session\\terminal-failure.json",
+    "Length": 65991,
+    "LastWriteTime": "2026-07-01T08:43:17.8280117-07:00"
+  },
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\tasks\\alignment-session\\rejected.patch",
+    "Length": 77122,
+    "LastWriteTime": "2026-07-01T08:43:17.6903321-07:00"
+  },
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\tasks\\alignment-session\\attempt-1\\review.json",
+    "Length": 518,
+    "LastWriteTime": "2026-07-01T08:43:17.6888171-07:00"
+  },
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\tasks\\alignment-session\\attempt-1\\deterministic-evidence.json",
+    "Length": 63015,
+    "LastWriteTime": "2026-07-01T08:43:17.6872778-07:00"
+  },
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\tasks\\alignment-session\\attempt-1\\patch.diff",
+    "Length": 77122,
+    "LastWriteTime": "2026-07-01T08:43:17.6857678-07:00"
+  },
+  {
+    "FullName": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-b-dogfood-a-rerun\\20260701T083105\\artifacts\\bounded-task-executor\\tasks\\alignment-session\\attempt-1\\work-report.json",
+    "Length": 998,
+    "LastWriteTime": "2026-07-01T08:43:17.6857678-07:00"
+  }
+]

@@ -2,12 +2,12 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0079",
   "context_id": "CTX-workflow-b-review-gate",
-  "state": "review",
-  "state_version": 2,
+  "state": "completed",
+  "state_version": 3,
   "attempt": 1,
   "owner": null,
   "lease": null,
-  "next_action": "Await unified independent EvidenceGate review for TASK-0079..TASK-0082.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "pause_reason": null,
   "blockers": [],
   "artifact_refs": [
@@ -15,10 +15,12 @@
     "ART-TASK-0079-0002",
     "ART-TASK-0079-0003",
     "ART-TASK-0079-0004",
-    "ART-TASK-0079-HANDOFF-0001"
+    "ART-TASK-0079-HANDOFF-0001",
+    "ART-TASK-0079-0005"
   ],
   "evidence_refs": [
-    "EVD-TASK-0079-0001"
+    "EVD-TASK-0079-0001",
+    "EVD-TASK-0079-0002"
   ],
-  "updated_at": "2026-07-01T12:13:39.815881Z"
+  "updated_at": "2026-07-01T13:12:03.070681Z"
 }

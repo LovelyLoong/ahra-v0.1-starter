@@ -1,0 +1,41 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0082",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-01T13:12:05.377985Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Verifier reviewed lifecycle inventory and entrypoint docs after prerequisite task review order; criteria keep component experimental and non-default.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "component:alignment-session-manager remains lifecycle_class experimental and default_visible false until prerequisite Workflow A CLI, dogfood path, and semantic review gate tasks pass EvidenceGate.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0082-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 1 to task evidence EVD-TASK-0082-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Promotion criteria are explicit, EvidenceGate-verifiable, and mapped to component-lifecycle policy rather than asserted from implementation presence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0082-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 2 to task evidence EVD-TASK-0082-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Authority docs and component inventory are updated only to the lifecycle level proven by evidence, with no default-route claim before approval.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0082-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 3 to task evidence EVD-TASK-0082-0001 after source/evidence review and current baseline checks."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": []
+}

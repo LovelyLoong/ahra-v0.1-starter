@@ -1,0 +1,125 @@
+{
+  "schema_version": "ahra/workflow-terminal-failure/0.1",
+  "task_id": "alignment-session",
+  "run_id": "NRUN-7d1abb7b417ca4bf",
+  "status": "rejected",
+  "summary": "Task exhausted its bounded attempts and was rolled back.",
+  "attempt_count": 1,
+  "last_error": "Required check failed: granted process.exec: uv run python -B scripts/check.py --test",
+  "execution_policy": {
+    "max_attempts": 1,
+    "startup_timeout_seconds": 120,
+    "idle_timeout_seconds": 900,
+    "heartbeat_interval_seconds": 60,
+    "attempt_wall_timeout_seconds": 900,
+    "run_deadline_seconds": 900
+  },
+  "workspace": "D:\\Work\\ahra-v0.1-starter\\work\\tasks\\TASK-0080\\runs\\dogfood-a-004\\artifacts\\development-worktrees\\GEXEC-c9e26a1e588ede10\\development-bounded-c93f4291",
+  "branch": "main",
+  "checkpoint": "3381aa194965ab05b51bd56e373824de8aadd8bb",
+  "artifact_dir": "D:\\Work\\ahra-v0.1-starter\\work\\tasks\\TASK-0080\\runs\\dogfood-a-004\\artifacts\\bounded-task-executor",
+  "refs": [
+    "ART-1269d25b3ea0419c94115da05297b4ef"
+  ],
+  "attempts": [
+    {
+      "attempt": 1,
+      "work_report": {
+        "summary": "Updated the alignment session implementation and tests: structured errors now expose a GoalOperation-style error dict alias, Requirement and Acceptance Agent drafting is invoked independently from the same frozen requirement with resolved runtime digest context, and tests now assert immutable snapshots, mapping-based resume, structured digest rejection, and untrusted RequestDraft separation.",
+        "changed_files": [
+          "src/ahra/alignment_session.py",
+          "tests/test_alignment_session.py"
+        ],
+        "verification_commands_run": [
+          "uv run python -B scripts/check.py --test"
+        ],
+        "known_risks": [
+          "The required verification command could not complete because uv is not available on PATH in this runtime."
+        ],
+        "unresolved_items": [
+          "Re-run uv run python -B scripts/check.py --test in an environment where uv is installed or on PATH."
+        ]
+      },
+      "deterministic": {
+        "policy": {
+          "changed_files": [
+            "src/ahra/alignment_session.py",
+            "tests/test_alignment_session.py"
+          ],
+          "sensitive_files": [],
+          "violations": [],
+          "added_lines": 40,
+          "deleted_lines": 25
+        },
+        "checks": [
+          {
+            "name": "required artifact exists: src/ahra/alignment_session.py",
+            "argv": [
+              "ahra.internal.artifact_exists.v1",
+              "src/ahra/alignment_session.py"
+            ],
+            "required": true,
+            "exit_code": 0,
+            "timed_out": false,
+            "duration_seconds": 0.0,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "required artifact exists: tests/test_alignment_session.py",
+            "argv": [
+              "ahra.internal.artifact_exists.v1",
+              "tests/test_alignment_session.py"
+            ],
+            "required": true,
+            "exit_code": 0,
+            "timed_out": false,
+            "duration_seconds": 0.0,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "granted process.exec: uv run python -B scripts/check.py --test",
+            "argv": [
+              "uv",
+              "run",
+              "python",
+              "-B",
+              "scripts/check.py",
+              "--test"
+            ],
+            "required": true,
+            "exit_code": null,
+            "timed_out": false,
+            "duration_seconds": 0.0,
+            "stdout": "",
+            "stderr": "[WinError 2] 系统找不到指定的文件。"
+          }
+        ],
+        "verification_mutated_workspace": false,
+        "verification_mutation_files": [],
+        "patch_excerpt": "diff --git a/src/ahra/alignment_session.py b/src/ahra/alignment_session.py\nindex df24e0c..2c7e491 100644\n--- a/src/ahra/alignment_session.py\n+++ b/src/ahra/alignment_session.py\n@@ -1,5 +1,6 @@\n from __future__ import annotations\n \n+import asyncio\n from dataclasses import dataclass, replace\n from typing import Any, Mapping\n \n@@ -51,6 +52,9 @@ class AlignmentSessionError(ValueError):\n     def to_dict(self) -> dict[str, Any]:\n         return {\"code\": self.code, \"message\": self.message, \"ref\": self.ref, \"refs\": list(self.refs)}\n \n+    def to_error_dict(self) -> dict[str, Any]:\n+        return self.to_dict()\n+\n \n @dataclass(frozen=True, slots=True)\n class AlignmentSessionTurn:\n@@ -336,27 +340,31 @@ class AlignmentSessionManager:\n                 \"request drafting requires a frozen requirement snapshot\",\n                 ref=\"session.frozenRequirement\",\n             )\n-        requirement_result = await self._run_agent(\n-            current,\n-            expected_output=REQUIREMENT_DRAFT_OUTPUT,\n-            payload={\n-                \"phase\": \"requirement-draft\",\n-                \"intent\": current.intent.to_mapping(),\n-                \"frozenRequirement\": current.frozen_requirement,\n-                \"profileRef\": current.profile_ref,\n-                \"runtimeRef\": current.runtime_ref,\n-            },\n-        )\n-        acceptance_result = await self._run_agent(\n-            current,\n-            expected_output=ACCEPTANCE_DRAFT_OUTPUT,\n-            payload={\n-                \"phase\": \"acceptance-draft\",\n-                \"intent\": current.intent.to_mapping(),\n-                \"frozenRequirement\": current.frozen_requirement,\n-                \"profileRef\": current.profile_ref,\n-                \"runtimeRef\": current.runtime_ref,\n-            },\n+        requirement_result, acceptance_result = await asyncio.gather(\n+            self._run_agent(\n+                current,\n+                expected_output=REQUIREMENT_DRAFT_OUTPUT,\n+                payload={\n+                    \"phase\": \"requirement-draft\",\n+                    \"intent\": current.intent.to_mapping(),\n+                    \"frozenRequirement\": current.frozen_requirement,\n+                    \"profileRef\": current.profile_ref,\n+                    \"runtimeRef\": current.runtime_ref,\n+                    \"runtimeDigest\": current.runtime_digest,\n+                },\n+            ),\n+            self._run_agent(\n+                current,\n+                expected_output=ACCEPTANCE_DRAFT_OUTPUT,\n+                payload={\n+                    \"phase\": \"acceptance-draft\",\n+                    \"intent\": current.intent.to_mapping(),\n+                    \"frozenRequirement\": current.frozen_requirement,\n+                    \"profileRef\": current.profile_ref,\n+                    \"runtimeRef\": current.runtime_ref,\n+                    \"runtimeDigest\": current.runtime_digest,\n+                },\n+            ),\n         )\n         requirement = _mapping(requirement_result.output, REQUIREMENT_DRAFT_OUTPUT)\n         acceptance = _mapping(acceptance_result.output, ACCEPTANCE_DRAFT_OUTPUT)\ndiff --git a/tests/test_alignment_session.py b/tests/test_alignment_session.py\nindex ec15001..5e37e7a 100644\n--- a/tests/test_alignment_session.py\n+++ b/tests/test_alignment_session.py\n@@ -31,12 +31,13 @@ class AlignmentSessionManagerTests(unittest.TestCase):\n         manager = AlignmentSessionManager(driver)\n         snapshot = manager.start(_intent())\n \n-        snapshot = asyncio.run(manager.advance(snapshot, \"Keep scope local.\"))\n+        advanced = asyncio.run(manager.advance(snapshot, \"Keep scope local.\"))\n \n         self.assertEqual(driver.calls[0].expected_output, ALIGNMENT_DECISION_OUTPUT)\n         self.assertEqual(driver.calls[0].payload[\"userMessage\"], \"Keep scope local.\")\n-        self.assertEqual(snapshot.turns[-1].actor, \"agent:alignment\")\n-        self.assertEqual(snapshot.stage, \"awaiting_user\")\n+        self.assertEqual(snapshot.turns, ())\n+        self.assertEqual(advanced.turns[-1].actor, \"agent:alignment\")\n+        self.assertEqual(advanced.stage, \"awaiting_user\")\n \n     def test_unknown_digest_is_rejected_before_agent_invocation(self) -> None:\n         driver = FakeAlignmentDriver()\n@@ -46,6 +47,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):\n             manager.start(_intent(), runtime_digest=\"sha256:\" + \"9\" * 64)\n \n         self.assertEqual(raised.exception.code, \"runtime_digest_mismatch\")\n+        self.assertEqual(raised.exception.to_error_dict()[\"ref\"], \"spec.runtime.digest\")\n         self.assertEqual(driver.calls, [])\n \n     def test_resume_from_snapshot_works(self) -> None:\n@@ -53,7 +55,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):\n         manager = AlignmentSessionManager(driver)\n         snapshot = manager.start(_intent())\n         snapshot = asyncio.run(manager.advance(snapshot, \"Keep scope local.\"))\n-        restored = AlignmentSessionSnapshot.from_mapping(snapshot.to_mapping())\n+        restored = snapshot.to_mapping()\n \n         resumed = asyncio.run(manager.advance(restored, \"Freeze that boundary.\"))\n \n@@ -84,6 +86,11 @@ class AlignmentSessionManagerTests(unittest.TestCase):\n         self.assertIn(REQUIREMENT_DRAFT_OUTPUT, [call.expected_output for call in driver.calls])\n         self.assertIn(ACCEPTANCE_DRAFT_OUTPUT, [call.expected_output for call in driver.calls])\n         self.assertFalse(hasattr(result.request_draft, \"to_goal_execution_request_mapping\"))\n+        requirement_call = next(call for call in driver.calls if call.expected_output == REQUIREMENT_DRAFT_OUTPUT)\n+        acceptance_call = next(call for call in driver.calls if call.expected_output == ACCEPTANCE_DRAFT_OUTPUT)\n+        self.assertEqual(requirement_call.payload[\"frozenRequirement\"], acceptance_call.payload[\"frozenRequirement\"])\n+        self.assertNotIn(\"planDraft\", acceptance_call.payload)\n+        self.assertNotIn(\"claimGraph\", requirement_call.payload)\n \n     def test_request_draft_passes_admission(self) -> None:\n         driver = FakeAlignmentDriver()\n"
+      },
+      "review": {
+        "verdict": "fail",
+        "summary": "Semantic review was skipped because the deterministic gate failed.",
+        "criteria": [
+          {
+            "criterion": "Deterministic preconditions",
+            "passed": false,
+            "evidence": "Required checks and policy must pass before semantic review.",
+            "concerns": [
+              "Required check failed: granted process.exec: uv run python -B scripts/check.py --test"
+            ]
+          }
+        ],
+        "blocking_issues": [
+          "Required check failed: granted process.exec: uv run python -B scripts/check.py --test"
+        ],
+        "non_blocking_issues": [],
+        "confidence": 1.0
+      },
+      "error": null
+    }
+  ]
+}

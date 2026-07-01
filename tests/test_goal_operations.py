@@ -20,6 +20,7 @@ from ahra.goal_operations import (
     DEVELOPMENT_BOUNDED_NODE_BUDGET,
     DEVELOPMENT_BOUNDED_PROCESS_COMMANDS,
     DEVELOPMENT_BOUNDED_PROFILE_REF,
+    DEVELOPMENT_BOUNDED_TERMINAL_WRITE_GRACE_SECONDS,
     DEVELOPMENT_BOUNDED_WRITE_ALLOWLIST,
     DEVELOPMENT_BOUNDED_WRITE_BLACKLIST,
     DETERMINISTIC_GATE_RUNNER_REF,
@@ -472,6 +473,7 @@ class GoalOperationCliTests(unittest.TestCase):
         self.assertIn("alignment_*.py", DEVELOPMENT_BOUNDED_WRITE_ALLOWLIST)
         self.assertIn("src/ahra/evidence_gate.py", DEVELOPMENT_BOUNDED_WRITE_BLACKLIST)
         self.assertIn("uv run python -B scripts/check.py", DEVELOPMENT_BOUNDED_PROCESS_COMMANDS)
+        self.assertTrue(all(command.startswith("uv run ") for command in DEVELOPMENT_BOUNDED_PROCESS_COMMANDS))
 
     def test_development_scheduler_uses_profile_node_budget_for_lease_ttl(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -487,6 +489,7 @@ class GoalOperationCliTests(unittest.TestCase):
             node = next(node for node in bundle.plan.nodes if node.node_id == "NODE-development-edit")
 
             self.assertEqual(scheduler.lease_ttl_seconds, DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds)
+            self.assertEqual(scheduler.terminal_write_grace_seconds, DEVELOPMENT_BOUNDED_TERMINAL_WRITE_GRACE_SECONDS)
             self.assertEqual(node.timeout_seconds, DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds)
             self.assertEqual(node.budget.max_wall_seconds, DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds)
             self.assertEqual(
@@ -521,6 +524,8 @@ class GoalOperationCliTests(unittest.TestCase):
 
             self.assertEqual(result["planStatus"], "succeeded")
             self.assertEqual(result["goalStatus"], "succeeded")
+            self.assertFalse(result["executionWorkspacePreserved"])
+            self.assertFalse(Path(result["executionWorkspaceRef"]).exists())
             self.assertTrue((root / "workspace" / "alignment_stub.py").exists())
             self.assertIn(("uv", "run", "python", "-B", "scripts/check.py"), runtime.commands)
 
@@ -538,8 +543,12 @@ class GoalOperationCliTests(unittest.TestCase):
 
             self.assertEqual(result["planStatus"], "failed")
             self.assertEqual(result["goalStatus"], "failed")
+            self.assertTrue(result["executionWorkspacePreserved"])
+            self.assertTrue(Path(result["executionWorkspaceRef"]).exists())
             self.assertFalse((root / "workspace" / "evidence_gate.py").exists())
             self.assertEqual(runtime.commands, [])
+            self.assertEqual(len(result["defects"]), 1)
+            self.assertEqual(result["defects"][0]["spec"]["gateRef"], "GATE-development-write")
             failed_node = next(
                 node for node in result["inspect"]["nodeRuns"] if node["node_id"] == "NODE-development-edit"
             )

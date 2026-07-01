@@ -1,0 +1,1841 @@
+diff --git a/src/ahra/alignment_session.py b/src/ahra/alignment_session.py
+index df24e0c..817b212 100644
+--- a/src/ahra/alignment_session.py
++++ b/src/ahra/alignment_session.py
+@@ -1,633 +1,835 @@
++"""Agent-driven intent alignment session management.
++
++This module intentionally depends only on AHRA ports and local domain data
++structures. Agent output is treated as untrusted input and convergence produces
++an untrusted RequestDraft, not an executable GoalExecutionRequest.
++"""
++
+ from __future__ import annotations
+ 
+-from dataclasses import dataclass, replace
+-from typing import Any, Mapping
+-
+-from .acceptance_contracts import ClaimGraph
+-from .approval_service import ApprovalRecord
+-from .alignment_engine import (
+-    AlignmentError,
+-    AlignmentRegistry,
+-    RequestDraft,
+-    _claim_graph_to_mapping,
+-    _goal_ref_from_intent,
+-    _request_id,
+-    _request_name,
+-)
+-from .evidence_v2 import canonical_fingerprint
+-from .goal_operations import (
+-    DEVELOPMENT_BOUNDED_PROFILE_REF,
+-    GoalOperationError,
+-    GoalOperationProfile,
+-    GoalOperationProfileRegistry,
+-)
+-from .intent_draft import IntentDraft
+-from .plan_ir import PlanDraft
+-from .ports import (
+-    AgentDriver,
+-    AgentOutputContract,
+-    AgentRole,
+-    AgentRunRequest,
+-    AgentRuntimeProfile,
+-    ApprovalService as ApprovalServicePort,
+-)
+-
+-
+-ALIGNMENT_DECISION_OUTPUT = "AlignmentTurnDecision"
+-REQUIREMENT_DRAFT_OUTPUT = "RequirementDraft"
+-ACCEPTANCE_DRAFT_OUTPUT = "AcceptanceDraft"
+-
+-
+-class AlignmentSessionError(ValueError):
+-    """Structured failure for alignment-session contract violations."""
+-
+-    def __init__(self, code: str, message: str, *, ref: str, refs: tuple[str, ...] = ()) -> None:
++import asyncio
++import inspect
++import uuid
++from collections.abc import Mapping as MappingABC
++from dataclasses import dataclass, field, fields, is_dataclass, replace
++from types import MappingProxyType
++from typing import Any, Callable, Iterable, Mapping, Sequence
++
++try:  # Runtime-safe port reference; tests may provide deterministic fakes.
++    from .ports import AgentDriver as AgentDriverPort
++except Exception:  # pragma: no cover - keeps the module importable in partial builds.
++    AgentDriverPort = Any  # type: ignore
++
++
++EMPTY_MAPPING: Mapping[str, Any] = MappingProxyType({})
++
++
++class AlignmentSessionError(Exception):
++    """Structured alignment-session failure."""
++
++    def __init__(
++        self,
++        code: str,
++        message: str,
++        *,
++        reference: str | None = None,
++        details: Mapping[str, Any] | None = None,
++    ) -> None:
++        super().__init__(message)
+         self.code = code
+         self.message = message
+-        self.ref = ref
+-        self.refs = refs or (ref,)
+-        super().__init__(f"{code} {ref}: {message}")
++        self.reference = reference
++        self.details = MappingProxyType(dict(details or {}))
+ 
+     def to_dict(self) -> dict[str, Any]:
+-        return {"code": self.code, "message": self.message, "ref": self.ref, "refs": list(self.refs)}
++        payload: dict[str, Any] = {
++            "code": self.code,
++            "message": self.message,
++        }
++        if self.reference is not None:
++            payload["reference"] = self.reference
++        if self.details:
++            payload["details"] = _thaw(self.details)
++        return payload
++
++
++class UnknownProfileReferenceError(AlignmentSessionError):
++    """Raised when a profile or digest reference cannot be resolved."""
++
++    def __init__(self, reference: str, *, details: Mapping[str, Any] | None = None) -> None:
++        super().__init__(
++            "unknown_goal_operation_profile_reference",
++            f"Unknown GoalOperationProfile reference: {reference}",
++            reference=reference,
++            details=details,
++        )
+ 
+ 
+-@dataclass(frozen=True, slots=True)
+-class AlignmentSessionTurn:
+-    index: int
+-    actor: str
+-    message: str
+-    expected_output: str | None = None
+-    trace_ref: str | None = None
++class ProfileDigestResolutionError(AlignmentSessionError):
++    """Raised when the registry recognizes an entry but exposes no digest."""
+ 
+-    @classmethod
+-    def from_mapping(cls, data: Mapping[str, Any]) -> "AlignmentSessionTurn":
+-        return cls(
+-            index=int(data["index"]),
+-            actor=str(data["actor"]),
+-            message=str(data["message"]),
+-            expected_output=str(data["expectedOutput"]) if data.get("expectedOutput") else None,
+-            trace_ref=str(data["traceRef"]) if data.get("traceRef") else None,
++    def __init__(self, reference: str, *, details: Mapping[str, Any] | None = None) -> None:
++        super().__init__(
++            "goal_operation_profile_digest_unresolved",
++            f"GoalOperationProfile reference has no resolvable digest: {reference}",
++            reference=reference,
++            details=details,
+         )
+ 
+-    def to_mapping(self) -> dict[str, Any]:
+-        data: dict[str, Any] = {
+-            "index": self.index,
+-            "actor": self.actor,
+-            "message": self.message,
+-        }
+-        if self.expected_output:
+-            data["expectedOutput"] = self.expected_output
+-        if self.trace_ref:
+-            data["traceRef"] = self.trace_ref
+-        return data
+ 
++@dataclass(frozen=True)
++class IntentDraft:
++    """Minimal intent draft accepted by AlignmentSessionManager."""
++
++    objective: str
++    requirements: tuple[str, ...] = ()
++    acceptance_criteria: tuple[str, ...] = ()
++    profile_ref: str | None = None
++    profile_digest: str | None = None
++    metadata: Mapping[str, Any] = field(default_factory=lambda: EMPTY_MAPPING)
++
++    def __post_init__(self) -> None:
++        object.__setattr__(self, "requirements", tuple(self.requirements))
++        object.__setattr__(self, "acceptance_criteria", tuple(self.acceptance_criteria))
++        object.__setattr__(self, "metadata", _freeze_mapping(self.metadata))
++
++
++@dataclass(frozen=True)
++class RequestDraft:
++    """Untrusted request draft emitted after intent alignment convergence."""
++
++    objective: str
++    requirements: tuple[str, ...] = ()
++    acceptance_criteria: tuple[str, ...] = ()
++    operation_profile_digest: str | None = None
++    profile_ref: str | None = None
++    trust_level: str = "untrusted"
++    frozen: bool = False
++    source: str = "alignment-session"
++    source_turn: int | None = None
++    metadata: Mapping[str, Any] = field(default_factory=lambda: EMPTY_MAPPING)
++
++    def __post_init__(self) -> None:
++        object.__setattr__(self, "requirements", tuple(self.requirements))
++        object.__setattr__(self, "acceptance_criteria", tuple(self.acceptance_criteria))
++        object.__setattr__(self, "trust_level", "untrusted")
++        object.__setattr__(self, "frozen", False)
++        object.__setattr__(self, "metadata", _freeze_mapping(self.metadata))
+ 
+-@dataclass(frozen=True, slots=True)
+-class AlignmentSessionSnapshot:
+-    session_id: str
+-    intent: IntentDraft
+-    profile_ref: str
+-    runtime_ref: str
+-    runtime_digest: str
+-    workspace_ref: str
+-    artifact_dir: str
+-    store_path: str
+-    producer_actor: str
+-    stage: str = "dialogue"
+-    turns: tuple[AlignmentSessionTurn, ...] = ()
+-    frozen_requirement: str | None = None
+-    requirement_approved_by: str | None = None
+-    missing_dimensions: tuple[str, ...] = ()
++    @property
++    def trusted(self) -> bool:
++        return False
+ 
+-    @classmethod
+-    def from_mapping(cls, data: Mapping[str, Any]) -> "AlignmentSessionSnapshot":
+-        return cls(
+-            session_id=str(data["sessionId"]),
+-            intent=IntentDraft.from_mapping(_mapping(data["intent"], "intent")),
+-            profile_ref=str(data["profileRef"]),
+-            runtime_ref=str(data["runtimeRef"]),
+-            runtime_digest=str(data["runtimeDigest"]),
+-            workspace_ref=str(data["workspaceRef"]),
+-            artifact_dir=str(data["artifactDir"]),
+-            store_path=str(data["storePath"]),
+-            producer_actor=str(data["producerActor"]),
+-            stage=str(data.get("stage") or "dialogue"),
+-            turns=tuple(AlignmentSessionTurn.from_mapping(_mapping(item, "turn")) for item in data.get("turns", ())),
+-            frozen_requirement=str(data["frozenRequirement"]) if data.get("frozenRequirement") else None,
+-            requirement_approved_by=str(data["requirementApprovedBy"]) if data.get("requirementApprovedBy") else None,
+-            missing_dimensions=tuple(str(item) for item in data.get("missingDimensions", ())),
+-        )
++    @property
++    def is_trusted(self) -> bool:
++        return False
+ 
+     @property
+-    def next_turn_index(self) -> int:
+-        return len(self.turns) + 1
++    def is_frozen(self) -> bool:
++        return False
+ 
+-    def append_turn(self, *, actor: str, message: str, expected_output: str | None = None, trace_ref: str | None = None) -> "AlignmentSessionSnapshot":
+-        return replace(
+-            self,
+-            turns=(
+-                *self.turns,
+-                AlignmentSessionTurn(
+-                    index=self.next_turn_index,
+-                    actor=actor,
+-                    message=message,
+-                    expected_output=expected_output,
+-                    trace_ref=trace_ref,
+-                ),
+-            ),
+-        )
++    def to_dict(self) -> dict[str, Any]:
++        return {
++            "objective": self.objective,
++            "requirements": list(self.requirements),
++            "acceptance_criteria": list(self.acceptance_criteria),
++            "operation_profile_digest": self.operation_profile_digest,
++            "profile_ref": self.profile_ref,
++            "trust_level": self.trust_level,
++            "frozen": self.frozen,
++            "source": self.source,
++            "source_turn": self.source_turn,
++            "metadata": _thaw(self.metadata),
++        }
+ 
+-    def to_mapping(self) -> dict[str, Any]:
+-        data: dict[str, Any] = {
+-            "sessionId": self.session_id,
+-            "intent": self.intent.to_mapping(),
+-            "profileRef": self.profile_ref,
+-            "runtimeRef": self.runtime_ref,
+-            "runtimeDigest": self.runtime_digest,
+-            "workspaceRef": self.workspace_ref,
+-            "artifactDir": self.artifact_dir,
+-            "storePath": self.store_path,
+-            "producerActor": self.producer_actor,
+-            "stage": self.stage,
+-            "turns": [turn.to_mapping() for turn in self.turns],
+-            "missingDimensions": list(self.missing_dimensions),
++
++@dataclass(frozen=True)
++class ResolvedProfileReference:
++    reference: str
++    digest: str
++    profile: Mapping[str, Any] = field(default_factory=lambda: EMPTY_MAPPING)
++
++    def __post_init__(self) -> None:
++        object.__setattr__(self, "profile", _freeze_mapping(self.profile))
++
++    def to_dict(self) -> dict[str, Any]:
++        return {
++            "reference": self.reference,
++            "digest": self.digest,
++            "profile": _thaw(self.profile),
+         }
+-        if self.frozen_requirement:
+-            data["frozenRequirement"] = self.frozen_requirement
+-        if self.requirement_approved_by:
+-            data["requirementApprovedBy"] = self.requirement_approved_by
+-        return data
+ 
+ 
+-@dataclass(frozen=True, slots=True)
+-class AlignmentSessionResult:
+-    snapshot: AlignmentSessionSnapshot
+-    request_draft: RequestDraft
+-    approval_record: ApprovalRecord | None = None
++@dataclass(frozen=True)
++class AlignmentTurn:
++    turn_index: int
++    agent_request: Mapping[str, Any]
++    agent_response: Mapping[str, Any]
++    converged: bool
++    request_draft: RequestDraft | None = None
+ 
++    def __post_init__(self) -> None:
++        object.__setattr__(self, "agent_request", _freeze_mapping(self.agent_request))
++        object.__setattr__(self, "agent_response", _freeze_mapping(self.agent_response))
+ 
+-class AlignmentSessionManager:
+-    """AgentDriver-backed Workflow A session manager.
++    def to_dict(self) -> dict[str, Any]:
++        return {
++            "turn_index": self.turn_index,
++            "agent_request": _thaw(self.agent_request),
++            "agent_response": _thaw(self.agent_response),
++            "converged": self.converged,
++            "request_draft": self.request_draft.to_dict() if self.request_draft else None,
++        }
++
++
++@dataclass(frozen=True)
++class AlignmentSessionState:
++    session_id: str
++    intent_draft: Mapping[str, Any]
++    turns: tuple[AlignmentTurn, ...] = ()
++    resolved_references: tuple[ResolvedProfileReference, ...] = ()
++    status: str = "active"
++    request_draft: RequestDraft | None = None
++    last_error: Mapping[str, Any] | None = None
++    version: int = 1
++
++    def __post_init__(self) -> None:
++        object.__setattr__(self, "intent_draft", _freeze_mapping(self.intent_draft))
++        object.__setattr__(self, "turns", tuple(self.turns))
++        object.__setattr__(self, "resolved_references", tuple(self.resolved_references))
++        if self.last_error is not None:
++            object.__setattr__(self, "last_error", _freeze_mapping(self.last_error))
++
++    @property
++    def converged(self) -> bool:
++        return self.status == "converged" and self.request_draft is not None
++
++    def to_snapshot(self) -> dict[str, Any]:
++        return {
++            "session_id": self.session_id,
++            "intent_draft": _thaw(self.intent_draft),
++            "turns": [turn.to_dict() for turn in self.turns],
++            "resolved_references": [item.to_dict() for item in self.resolved_references],
++            "status": self.status,
++            "request_draft": self.request_draft.to_dict() if self.request_draft else None,
++            "last_error": _thaw(self.last_error) if self.last_error else None,
++            "version": self.version,
++        }
++
++    @classmethod
++    def from_snapshot(cls, snapshot: "AlignmentSessionState | Mapping[str, Any]") -> "AlignmentSessionState":
++        if isinstance(snapshot, AlignmentSessionState):
++            return snapshot
++        turns = tuple(_turn_from_snapshot(item) for item in snapshot.get("turns", ()))
++        resolved = tuple(
++            ResolvedProfileReference(
++                reference=str(item["reference"]),
++                digest=str(item["digest"]),
++                profile=item.get("profile", {}),
++            )
++            for item in snapshot.get("resolved_references", ())
++        )
++        request_draft = _request_draft_from_value(snapshot.get("request_draft"))
++        return cls(
++            session_id=str(snapshot["session_id"]),
++            intent_draft=snapshot["intent_draft"],
++            turns=turns,
++            resolved_references=resolved,
++            status=str(snapshot.get("status", "active")),
++            request_draft=request_draft,
++            last_error=snapshot.get("last_error"),
++            version=int(snapshot.get("version", 1)),
++        )
+ 
+-    The manager owns state transitions only. It asks provider-neutral
+-    AgentDrivers for dialogue, requirement, and acceptance drafts, then emits an
+-    untrusted RequestDraft for RequestDraftAdmission / ApprovalService to handle.
+-    """
++
++class AlignmentSessionManager:
++    """Coordinates an intent-alignment dialogue through the AgentDriver port."""
+ 
+     def __init__(
+         self,
+-        agent_driver: AgentDriver,
++        agent_driver: AgentDriverPort,
++        profile_registry: Any,
+         *,
+-        registry: AlignmentRegistry | None = None,
+-        profile_registry: GoalOperationProfileRegistry | None = None,
+-        default_profile_ref: str = DEVELOPMENT_BOUNDED_PROFILE_REF,
+-        max_dialogue_turns: int = 8,
++        session_id_factory: Callable[[], str] | None = None,
++        default_max_turns: int = 8,
+     ) -> None:
+-        if registry is not None and profile_registry is not None:
+-            raise ValueError("pass either registry or profile_registry, not both")
+         self.agent_driver = agent_driver
+-        self.registry = registry or AlignmentRegistry(profiles=profile_registry or GoalOperationProfileRegistry())
+-        self.default_profile_ref = default_profile_ref
+-        self.max_dialogue_turns = max_dialogue_turns
+-
+-    def start(
+-        self,
+-        intent: IntentDraft,
+-        *,
+-        profile_ref: str | None = None,
+-        runtime_ref: str | None = None,
+-        runtime_digest: str | None = None,
+-        workspace_ref: str = "workspace",
+-        artifact_dir: str = ".ahra/artifacts",
+-        store_path: str = ".ahra/goal-control.sqlite3",
+-        producer_actor: str = "agent:alignment-session",
+-    ) -> AlignmentSessionSnapshot:
+-        selected_profile_ref = profile_ref or _context_string(intent, "profileRef") or self.default_profile_ref
+-        selected_runtime_ref = runtime_ref or _context_string(intent, "runtimeRef")
+-        selected_runtime_digest = runtime_digest or _context_string(intent, "runtimeDigest")
+-        profile = self._resolve_profile(
+-            selected_profile_ref,
+-            runtime_ref=selected_runtime_ref,
+-            runtime_digest=selected_runtime_digest,
+-        )
+-        return AlignmentSessionSnapshot(
+-            session_id=_session_id(intent, selected_profile_ref, workspace_ref),
+-            intent=intent,
+-            profile_ref=profile.profile_ref,
+-            runtime_ref=profile.runtime_ref,
+-            runtime_digest=profile.runtime_digest,
+-            workspace_ref=workspace_ref,
+-            artifact_dir=artifact_dir,
+-            store_path=store_path,
+-            producer_actor=producer_actor,
++        self.profile_registry = profile_registry
++        self._session_id_factory = session_id_factory or (lambda: f"ALIGN-{uuid.uuid4().hex}")
++        self.default_max_turns = default_max_turns
++
++    def start(self, intent_draft: Any, *, session_id: str | None = None) -> AlignmentSessionState:
++        intent_payload = _value_to_mapping(intent_draft)
++        resolved = self._resolve_references(_extract_profile_references(intent_payload))
++        return AlignmentSessionState(
++            session_id=session_id or self._session_id_factory(),
++            intent_draft=intent_payload,
++            resolved_references=tuple(resolved),
+         )
+ 
+-    def resume_from_snapshot(self, snapshot: AlignmentSessionSnapshot | Mapping[str, Any]) -> AlignmentSessionSnapshot:
+-        if isinstance(snapshot, AlignmentSessionSnapshot):
+-            self._resolve_profile(snapshot.profile_ref, runtime_ref=snapshot.runtime_ref, runtime_digest=snapshot.runtime_digest)
+-            return snapshot
+-        restored = AlignmentSessionSnapshot.from_mapping(snapshot)
+-        self._resolve_profile(restored.profile_ref, runtime_ref=restored.runtime_ref, runtime_digest=restored.runtime_digest)
+-        return restored
+-
+-    async def advance(
++    def advance(
+         self,
+-        snapshot: AlignmentSessionSnapshot | Mapping[str, Any],
+-        user_message: str,
++        snapshot: AlignmentSessionState | Mapping[str, Any],
+         *,
+-        actor: str = "human:maintainer",
+-    ) -> AlignmentSessionSnapshot:
+-        current = self.resume_from_snapshot(snapshot)
+-        if current.stage not in {"dialogue", "awaiting_user"}:
+-            raise AlignmentSessionError(
+-                "alignment_not_accepting_dialogue",
+-                "only dialogue snapshots can accept another user turn",
+-                ref="session.stage",
++        user_message: str | None = None,
++    ) -> AlignmentSessionState:
++        state = AlignmentSessionState.from_snapshot(snapshot)
++        if state.converged:
++            return state
++
++        agent_request = self._build_agent_request(state, user_message=user_message)
++        raw_response = self._invoke_agent_driver(agent_request)
++        response_payload = _value_to_mapping(raw_response)
++        converged = _is_converged_response(response_payload)
++        request_draft = None
++        resolved = state.resolved_references
++
++        if converged:
++            raw_draft = _extract_raw_request_draft(raw_response, response_payload)
++            new_refs = _extract_profile_references(response_payload)
++            if raw_draft is not None:
++                new_refs.extend(_extract_profile_references(_value_to_mapping(raw_draft)))
++            resolved = _merge_resolved_references(
++                state.resolved_references,
++                self._resolve_references(new_refs),
+             )
+-        if len(current.turns) >= self.max_dialogue_turns * 2:
+-            raise AlignmentSessionError("alignment_turn_limit", "alignment dialogue exceeded configured turn limit", ref="session.turns")
+-        after_user = current.append_turn(actor=actor, message=user_message)
+-        driver_output = await self._run_agent(
+-            after_user,
+-            expected_output=ALIGNMENT_DECISION_OUTPUT,
+-            payload={
+-                "phase": "alignment-dialogue",
+-                "intent": after_user.intent.to_mapping(),
+-                "session": after_user.to_mapping(),
+-                "userMessage": user_message,
+-                "checklist": [
+-                    "output form",
+-                    "must-haves",
+-                    "must-nots",
+-                    "completion signal",
+-                    "allowed free zones",
+-                ],
+-            },
+-        )
+-        decision = _mapping(driver_output.output, ALIGNMENT_DECISION_OUTPUT)
+-        agent_message = _required_string(decision, "message", ALIGNMENT_DECISION_OUTPUT)
+-        converged = bool(decision.get("converged", False))
+-        frozen_requirement = _optional_string(decision.get("frozenRequirement") or decision.get("frozen_requirement"))
+-        if converged and not frozen_requirement:
+-            raise AlignmentSessionError(
+-                "missing_frozen_requirement",
+-                "converged alignment turn must include frozenRequirement",
+-                ref="agentOutput.frozenRequirement",
++            request_draft = self._coerce_request_draft(
++                raw_draft if raw_draft is not None else response_payload,
++                state=state,
++                response_payload=response_payload,
++                resolved_references=resolved,
+             )
+-        after_agent = after_user.append_turn(
+-            actor="agent:alignment",
+-            message=agent_message,
+-            expected_output=ALIGNMENT_DECISION_OUTPUT,
+-            trace_ref=driver_output.trace_ref,
++
++        next_turn = AlignmentTurn(
++            turn_index=len(state.turns) + 1,
++            agent_request=agent_request,
++            agent_response=response_payload,
++            converged=converged,
++            request_draft=request_draft,
+         )
+-        return replace(
+-            after_agent,
+-            stage="awaiting_requirement_approval" if converged else "awaiting_user",
+-            frozen_requirement=frozen_requirement or after_agent.frozen_requirement,
+-            missing_dimensions=_string_tuple(decision.get("missingDimensions") or decision.get("missing_dimensions")),
++        return AlignmentSessionState(
++            session_id=state.session_id,
++            intent_draft=state.intent_draft,
++            turns=state.turns + (next_turn,),
++            resolved_references=resolved,
++            status="converged" if converged else "active",
++            request_draft=request_draft,
++            version=state.version + 1,
+         )
+ 
+-    def approve_requirement(
++    def run(
+         self,
+-        snapshot: AlignmentSessionSnapshot | Mapping[str, Any],
++        intent_draft: Any | None = None,
+         *,
+-        actor: str,
+-    ) -> AlignmentSessionSnapshot:
+-        current = self.resume_from_snapshot(snapshot)
+-        if current.stage != "awaiting_requirement_approval" or not current.frozen_requirement:
+-            raise AlignmentSessionError(
+-                "requirement_approval_not_waiting",
+-                "requirement approval requires an agent-proposed frozen requirement",
+-                ref="session.stage",
+-            )
+-        if actor == current.producer_actor:
+-            raise AlignmentSessionError(
+-                "producer_cannot_approve_requirement",
+-                "requirement freeze requires a human actor distinct from producer",
+-                ref="approval.actor",
+-                refs=(actor,),
+-            )
+-        if not actor.startswith("human:"):
+-            raise AlignmentSessionError(
+-                "requirement_approval_requires_human",
+-                "requirement freeze requires explicit human confirmation",
+-                ref="approval.actor",
+-                refs=(actor,),
+-            )
+-        return replace(current, stage="frozen", requirement_approved_by=actor)
++        snapshot: AlignmentSessionState | Mapping[str, Any] | None = None,
++        max_turns: int | None = None,
++    ) -> AlignmentSessionState:
++        if snapshot is not None:
++            state = AlignmentSessionState.from_snapshot(snapshot)
++        elif isinstance(intent_draft, AlignmentSessionState) or _looks_like_session_snapshot(intent_draft):
++            state = AlignmentSessionState.from_snapshot(intent_draft)  # type: ignore[arg-type]
++        elif intent_draft is not None:
++            state = self.start(intent_draft)
++        else:
++            raise ValueError("intent_draft or snapshot is required")
++
++        remaining_turns = self.default_max_turns if max_turns is None else max_turns
++        for _ in range(remaining_turns):
++            if state.converged:
++                break
++            state = self.advance(state)
++        return state
+ 
+-    async def draft_request(
++    def resume(
+         self,
+-        snapshot: AlignmentSessionSnapshot | Mapping[str, Any],
++        snapshot: AlignmentSessionState | Mapping[str, Any],
+         *,
+-        approval_service: ApprovalServicePort | None = None,
+-    ) -> AlignmentSessionResult:
+-        current = self.resume_from_snapshot(snapshot)
+-        if current.stage == "awaiting_requirement_approval":
+-            raise AlignmentSessionError(
+-                "requirement_not_approved",
+-                "request drafting requires Human Gate 1 requirement approval",
+-                ref="session.requirementApprovedBy",
+-            )
+-        if current.stage != "frozen" or not current.frozen_requirement:
+-            raise AlignmentSessionError(
+-                "alignment_not_frozen",
+-                "request drafting requires a frozen requirement snapshot",
+-                ref="session.frozenRequirement",
+-            )
+-        requirement_result = await self._run_agent(
+-            current,
+-            expected_output=REQUIREMENT_DRAFT_OUTPUT,
+-            payload={
+-                "phase": "requirement-draft",
+-                "intent": current.intent.to_mapping(),
+-                "frozenRequirement": current.frozen_requirement,
+-                "profileRef": current.profile_ref,
+-                "runtimeRef": current.runtime_ref,
+-            },
+-        )
+-        acceptance_result = await self._run_agent(
+-            current,
+-            expected_output=ACCEPTANCE_DRAFT_OUTPUT,
+-            payload={
+-                "phase": "acceptance-draft",
+-                "intent": current.intent.to_mapping(),
+-                "frozenRequirement": current.frozen_requirement,
+-                "profileRef": current.profile_ref,
+-                "runtimeRef": current.runtime_ref,
+-            },
+-        )
+-        requirement = _mapping(requirement_result.output, REQUIREMENT_DRAFT_OUTPUT)
+-        acceptance = _mapping(acceptance_result.output, ACCEPTANCE_DRAFT_OUTPUT)
+-        request_draft = self._request_from_agent_outputs(current, requirement, acceptance)
+-        final_snapshot = replace(
+-            current.append_turn(
+-                actor="agent:requirement",
+-                message=_summary(requirement, "requirement draft produced"),
+-                expected_output=REQUIREMENT_DRAFT_OUTPUT,
+-                trace_ref=requirement_result.trace_ref,
+-            ).append_turn(
+-                actor="agent:acceptance",
+-                message=_summary(acceptance, "acceptance draft produced"),
+-                expected_output=ACCEPTANCE_DRAFT_OUTPUT,
+-                trace_ref=acceptance_result.trace_ref,
+-            ),
+-            stage="request_drafted",
+-        )
+-        approval_record = None
+-        if approval_service is not None:
+-            approval_record = approval_service.request_authorization(request_draft, actor=current.producer_actor)
+-        return AlignmentSessionResult(
+-            snapshot=final_snapshot,
+-            request_draft=request_draft,
+-            approval_record=approval_record,
+-        )
++        max_turns: int | None = None,
++    ) -> AlignmentSessionState:
++        return self.run(snapshot=snapshot, max_turns=max_turns)
+ 
+-    async def run(
++    def resume_from_snapshot(
+         self,
+-        intent: IntentDraft,
+-        user_messages: tuple[str, ...] | list[str],
+-        **start_kwargs: Any,
+-    ) -> AlignmentSessionResult:
+-        snapshot = self.start(intent, **start_kwargs)
+-        for message in user_messages:
+-            snapshot = await self.advance(snapshot, str(message))
+-            if snapshot.stage == "frozen":
+-                break
+-        return await self.draft_request(snapshot)
+-
+-    async def _run_agent(self, snapshot: AlignmentSessionSnapshot, *, expected_output: str, payload: dict[str, Any]) -> Any:
+-        request = AgentRunRequest(
+-            role=AgentRole.PLANNER,
+-            run_id=f"{snapshot.session_id}:{expected_output}:{snapshot.next_turn_index}",
+-            expected_output=expected_output,
+-            payload=payload,
+-            workspace_ref=snapshot.workspace_ref,
+-            output_contract=_output_contract(expected_output),
+-            runtime_profile=AgentRuntimeProfile(
+-                profile_ref=f"alignment-session/{snapshot.profile_ref}",
+-                sandbox="read_only",
+-                capabilities=(),
++        snapshot: AlignmentSessionState | Mapping[str, Any],
++        *,
++        max_turns: int | None = None,
++    ) -> AlignmentSessionState:
++        return self.resume(snapshot, max_turns=max_turns)
++
++    def _build_agent_request(
++        self,
++        state: AlignmentSessionState,
++        *,
++        user_message: str | None,
++    ) -> dict[str, Any]:
++        return {
++            "kind": "intent_alignment_turn",
++            "session_id": state.session_id,
++            "turn_index": len(state.turns) + 1,
++            "intent_draft": _thaw(state.intent_draft),
++            "turn_history": [turn.to_dict() for turn in state.turns],
++            "resolved_profile_references": [
++                resolved.to_dict() for resolved in state.resolved_references
++            ],
++            "latest_user_message": user_message,
++            "prompt": (
++                "Drive one intent-alignment turn. Ask for missing intent details "
++                "or return a converged untrusted request_draft."
+             ),
+-            metadata={"alignmentSessionId": snapshot.session_id, "stage": snapshot.stage},
++        }
++
++    def _invoke_agent_driver(self, agent_request: Mapping[str, Any]) -> Any:
++        for method_name in (
++            "drive_alignment_turn",
++            "run_alignment_turn",
++            "run",
++            "invoke",
++            "complete",
++            "generate",
++        ):
++            method = getattr(self.agent_driver, method_name, None)
++            if callable(method):
++                return _await_if_needed(_call_with_payload(method, dict(agent_request)))
++        if callable(self.agent_driver):
++            return _await_if_needed(_call_with_payload(self.agent_driver, dict(agent_request)))
++        raise TypeError("agent_driver does not implement an AgentDriver invocation method")
++
++    def _resolve_references(self, references: Iterable[str]) -> tuple[ResolvedProfileReference, ...]:
++        resolved: list[ResolvedProfileReference] = []
++        seen: set[str] = set()
++        for reference in references:
++            if not reference or reference in seen:
++                continue
++            seen.add(reference)
++            resolved.append(self._resolve_reference(reference))
++        return tuple(resolved)
++
++    def _resolve_reference(self, reference: str) -> ResolvedProfileReference:
++        marker = object()
++        for candidate in _registry_candidates(self.profile_registry, reference):
++            if candidate is marker:
++                continue
++            return _coerce_resolved_reference(reference, candidate)
++        raise UnknownProfileReferenceError(
++            reference,
++            details={"registry_type": type(self.profile_registry).__name__},
+         )
+-        return await self.agent_driver.run(request)
+ 
+-    def _resolve_profile(
++    def _coerce_request_draft(
+         self,
+-        profile_ref: str,
++        raw_draft: Any,
+         *,
+-        runtime_ref: str | None = None,
+-        runtime_digest: str | None = None,
+-    ) -> GoalOperationProfile:
+-        try:
+-            profile = self.registry.resolve_profile(profile_ref)
+-        except (AlignmentError, GoalOperationError) as exc:
+-            raise AlignmentSessionError(
+-                "unknown_profile_ref",
+-                f"unknown Goal operation profile: {profile_ref}",
+-                ref="spec.profileRef",
+-                refs=(profile_ref,),
+-            ) from exc
+-        if runtime_ref is not None and runtime_ref != profile.runtime_ref:
+-            raise AlignmentSessionError(
+-                "unknown_runtime_ref",
+-                "runtimeRef is not registered for selected profile",
+-                ref="spec.runtime.runtimeRef",
+-                refs=(profile_ref, runtime_ref),
++        state: AlignmentSessionState,
++        response_payload: Mapping[str, Any],
++        resolved_references: Sequence[ResolvedProfileReference],
++    ) -> RequestDraft:
++        draft = _request_draft_from_value(raw_draft)
++        if draft is None:
++            payload = _value_to_mapping(raw_draft)
++            objective = _first_text(
++                payload,
++                response_payload,
++                state.intent_draft,
++                keys=("objective", "goal", "summary", "text", "intent"),
++            )
++            requirements = _first_sequence(payload, response_payload, state.intent_draft, key="requirements")
++            acceptance = _first_sequence(
++                payload,
++                response_payload,
++                state.intent_draft,
++                key="acceptance_criteria",
++                aliases=("acceptance", "criteria"),
++            )
++            digest = _first_text(
++                payload,
++                response_payload,
++                keys=(
++                    "operation_profile_digest",
++                    "profile_digest",
++                    "digest",
++                    "digest_ref",
++                ),
+             )
+-        if runtime_digest is not None and runtime_digest != profile.runtime_digest:
+-            raise AlignmentSessionError(
+-                "runtime_digest_mismatch",
+-                "runtime digest does not match selected profile registry",
+-                ref="spec.runtime.digest",
+-                refs=(profile_ref, runtime_digest),
++            profile_ref = _first_text(
++                payload,
++                response_payload,
++                keys=("profile_ref", "operation_profile_ref", "profile_id", "profile"),
++            )
++            draft = RequestDraft(
++                objective=objective,
++                requirements=requirements,
++                acceptance_criteria=acceptance,
++                operation_profile_digest=digest,
++                profile_ref=profile_ref,
++                source_turn=len(state.turns) + 1,
++                metadata=_metadata_from_payload(payload),
+             )
+-        return profile
+ 
+-    def _request_from_agent_outputs(
+-        self,
+-        snapshot: AlignmentSessionSnapshot,
+-        requirement: Mapping[str, Any],
+-        acceptance: Mapping[str, Any],
+-    ) -> RequestDraft:
+-        profile = self._resolve_profile(snapshot.profile_ref, runtime_ref=snapshot.runtime_ref, runtime_digest=snapshot.runtime_digest)
+-        aligned_intent = replace(snapshot.intent, abstract_goal=_summary(requirement, snapshot.frozen_requirement or snapshot.intent.abstract_goal))
+-        goal_ref = _goal_ref_from_intent(aligned_intent.intent_id)
+-        claim_graph = _claim_graph_from_output(acceptance)
+-        required_claim_refs = tuple(claim.claim_id for claim in claim_graph.claims if claim.required)
+-        plan = _plan_from_output(requirement)
+-        allowed_capabilities = tuple(sorted({need.action for need in aligned_intent.capability_needs} | {"filesystem.write"}))
+-        capability_policies = {need.action: need.policy_refs for need in aligned_intent.capability_needs if need.policy_refs}
+-        goal_digest = canonical_fingerprint({"goalRef": goal_ref, "abstractGoal": aligned_intent.abstract_goal})
+-        claim_graph_digest = canonical_fingerprint(_claim_graph_to_mapping(claim_graph))
+-        return RequestDraft(
+-            request_id=_request_id(
+-                aligned_intent,
+-                profile=profile,
+-                producer_actor=snapshot.producer_actor,
+-                workspace_ref=snapshot.workspace_ref,
+-                artifact_dir=snapshot.artifact_dir,
+-                store_path=snapshot.store_path,
+-                goal_ref=goal_ref,
+-                goal_digest=goal_digest,
+-                claim_graph_digest=claim_graph_digest,
+-                required_claim_refs=required_claim_refs,
+-                allowed_capabilities=allowed_capabilities,
+-                capability_policies=capability_policies,
+-                plan=plan,
+-            ),
+-            intent_id=aligned_intent.intent_id,
+-            producer_actor=snapshot.producer_actor,
+-            name=_request_name(aligned_intent.intent_id),
+-            idempotency_key=_request_name(aligned_intent.intent_id) + "-001",
+-            profile_ref=profile.profile_ref,
+-            workspace_ref=snapshot.workspace_ref,
+-            artifact_dir=snapshot.artifact_dir,
+-            store_kind="sqlite",
+-            store_path=snapshot.store_path,
+-            planner_adapter_ref=profile.planner_adapter_ref,
+-            executor_adapter_ref=profile.executor_adapter_ref,
+-            gate_runner_adapter_ref=profile.gate_runner_adapter_ref,
+-            runtime_ref=profile.runtime_ref,
+-            runtime_digest=profile.runtime_digest,
+-            goal_ref=goal_ref,
+-            goal_digest=goal_digest,
+-            claim_graph=claim_graph,
+-            claim_graph_digest=claim_graph_digest,
+-            required_claim_refs=required_claim_refs,
+-            registered_node_types=dict(self.registry.node_type_digests),
+-            registered_gate_refs=dict(self.registry.gate_ref_digests),
+-            registered_runtime_refs={profile.runtime_ref: profile.runtime_digest},
+-            allowed_capabilities=allowed_capabilities,
+-            capability_policies=capability_policies,
+-            plan_draft=plan,
++        digest = draft.operation_profile_digest
++        profile_ref = draft.profile_ref
++        if resolved_references:
++            by_ref = {item.reference: item.digest for item in resolved_references}
++            if profile_ref and profile_ref in by_ref:
++                digest = by_ref[profile_ref]
++            elif digest and digest in by_ref:
++                digest = by_ref[digest]
++            elif digest is None and len(resolved_references) == 1:
++                digest = resolved_references[0].digest
++
++        return replace(
++            draft,
++            operation_profile_digest=digest,
++            profile_ref=profile_ref,
++            trust_level="untrusted",
++            frozen=False,
++            source="alignment-session",
++            source_turn=draft.source_turn or len(state.turns) + 1,
+         )
+ 
+ 
+-def _output_contract(expected_output: str) -> AgentOutputContract:
+-    schema: dict[str, Any]
+-    if expected_output == ALIGNMENT_DECISION_OUTPUT:
+-        schema = {
+-            "type": "object",
+-            "additionalProperties": True,
+-            "required": ["message", "converged"],
+-            "properties": {
+-                "message": {"type": "string", "minLength": 1},
+-                "converged": {"type": "boolean"},
+-                "frozenRequirement": {"type": "string"},
+-                "missingDimensions": {"type": "array", "items": {"type": "string"}},
+-            },
+-        }
+-    elif expected_output == REQUIREMENT_DRAFT_OUTPUT:
+-        schema = {
+-            "type": "object",
+-            "additionalProperties": True,
+-            "properties": {
+-                "summary": {"type": "string", "minLength": 1},
+-                "planDraft": {"type": "object"},
+-            },
+-        }
+-    elif expected_output == ACCEPTANCE_DRAFT_OUTPUT:
+-        schema = {
+-            "type": "object",
+-            "additionalProperties": True,
+-            "properties": {
+-                "summary": {"type": "string", "minLength": 1},
+-                "claimGraph": {"type": "object"},
+-            },
+-        }
+-    else:
+-        raise ValueError(f"unsupported alignment output contract: {expected_output}")
+-    return AgentOutputContract(name=expected_output, schema=schema, example=None)
+-
+-
+-def _claim_graph_from_output(output: Mapping[str, Any]) -> ClaimGraph:
+-    claim_graph_data = output.get("claimGraph") or output.get("claim_graph")
+-    if claim_graph_data is not None:
+-        return ClaimGraph.from_mapping(_mapping(claim_graph_data, "claimGraph"))
+-    if output.get("kind") == "ClaimGraph":
+-        return ClaimGraph.from_mapping(output)
+-    raise AlignmentSessionError(
+-        "missing_claim_graph",
+-        "Acceptance Agent output must include an explicit ClaimGraph",
+-        ref="agentOutput.claimGraph",
++def _turn_from_snapshot(snapshot: Mapping[str, Any]) -> AlignmentTurn:
++    return AlignmentTurn(
++        turn_index=int(snapshot["turn_index"]),
++        agent_request=snapshot.get("agent_request", {}),
++        agent_response=snapshot.get("agent_response", {}),
++        converged=bool(snapshot.get("converged", False)),
++        request_draft=_request_draft_from_value(snapshot.get("request_draft")),
+     )
+ 
+ 
+-def _plan_from_output(output: Mapping[str, Any]) -> PlanDraft:
+-    plan_data = output.get("planDraft") or output.get("plan_draft")
+-    if plan_data is not None:
+-        return PlanDraft.from_mapping(_mapping(plan_data, "planDraft"))
+-    if output.get("kind") == "PlanDraft":
+-        return PlanDraft.from_mapping(output)
+-    raise AlignmentSessionError(
+-        "missing_plan_draft",
+-        "Requirement Agent output must include an explicit PlanDraft",
+-        ref="agentOutput.planDraft",
++def _request_draft_from_value(value: Any) -> RequestDraft | None:
++    if value is None:
++        return None
++    if isinstance(value, RequestDraft):
++        return replace(value, trust_level="untrusted", frozen=False)
++    payload = _value_to_mapping(value)
++    if not payload:
++        return None
++    if not _looks_like_request_draft(payload):
++        return None
++    return RequestDraft(
++        objective=str(payload.get("objective") or payload.get("goal") or payload.get("summary") or ""),
++        requirements=_as_tuple(payload.get("requirements") or ()),
++        acceptance_criteria=_as_tuple(
++            payload.get("acceptance_criteria")
++            or payload.get("acceptance")
++            or payload.get("criteria")
++            or ()
++        ),
++        operation_profile_digest=_optional_text(
++            payload.get("operation_profile_digest")
++            or payload.get("profile_digest")
++            or payload.get("digest")
++        ),
++        profile_ref=_optional_text(
++            payload.get("profile_ref")
++            or payload.get("operation_profile_ref")
++            or payload.get("profile_id")
++        ),
++        source=str(payload.get("source") or "alignment-session"),
++        source_turn=_optional_int(payload.get("source_turn")),
++        metadata=payload.get("metadata") if isinstance(payload.get("metadata"), MappingABC) else {},
++    )
++
++
++def _registry_candidates(registry: Any, reference: str) -> Iterable[Any]:
++    methods = (
++        "resolve",
++        "resolve_digest",
++        "resolve_profile_digest",
++        "get_digest",
++        "get_profile_digest",
++        "get_profile",
++        "lookup",
++        "get",
++    )
++    for method_name in methods:
++        method = getattr(registry, method_name, None)
++        if callable(method):
++            try:
++                result = method(reference)
++            except (KeyError, LookupError, ValueError, TypeError):
++                continue
++            if result is not None and result is not False:
++                yield result
++
++    if isinstance(registry, MappingABC) and reference in registry:
++        yield registry[reference]
++
++    for attr in (
++        "profiles",
++        "profile_digests",
++        "digests",
++        "entries",
++        "items",
++        "_profiles",
++        "_profile_digests",
++    ):
++        container = getattr(registry, attr, None)
++        if isinstance(container, MappingABC) and reference in container:
++            yield container[reference]
++
++    for method_name in ("contains", "contains_digest", "__contains__"):
++        method = getattr(registry, method_name, None)
++        if callable(method):
++            try:
++                if method(reference):
++                    yield reference
++            except TypeError:
++                continue
++
++
++def _coerce_resolved_reference(reference: str, value: Any) -> ResolvedProfileReference:
++    if isinstance(value, ResolvedProfileReference):
++        return value
++    if isinstance(value, str):
++        return ResolvedProfileReference(reference=reference, digest=value)
++    payload = _value_to_mapping(value)
++    digest = _optional_text(
++        payload.get("digest")
++        or payload.get("profile_digest")
++        or payload.get("operation_profile_digest")
++        or payload.get("sha256")
++    )
++    if not digest:
++        raise ProfileDigestResolutionError(
++            reference,
++            details={"resolved_type": type(value).__name__},
++        )
++    return ResolvedProfileReference(reference=reference, digest=digest, profile=payload)
++
++
++def _call_with_payload(method: Callable[..., Any], payload: dict[str, Any]) -> Any:
++    try:
++        signature = inspect.signature(method)
++    except (TypeError, ValueError):
++        return method(payload)
++
++    params = list(signature.parameters.values())
++    usable = [
++        param
++        for param in params
++        if param.kind
++        in (
++            inspect.Parameter.POSITIONAL_ONLY,
++            inspect.Parameter.POSITIONAL_OR_KEYWORD,
++            inspect.Parameter.KEYWORD_ONLY,
++            inspect.Parameter.VAR_KEYWORD,
++        )
++    ]
++    if not usable:
++        return method()
++
++    names = {param.name for param in usable}
++    for name in ("request", "alignment_request", "agent_request", "payload", "input", "prompt"):
++        if name in names:
++            return method(**{name: payload})
++
++    if any(param.kind == inspect.Parameter.VAR_KEYWORD for param in usable):
++        return method(request=payload)
++
++    positional = [
++        param
++        for param in usable
++        if param.kind
++        in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
++    ]
++    if len(positional) == 1:
++        return method(payload)
++    return method(payload)
++
++
++def _await_if_needed(value: Any) -> Any:
++    if not inspect.isawaitable(value):
++        return value
++    try:
++        loop = asyncio.get_running_loop()
++    except RuntimeError:
++        return asyncio.run(value)
++    raise RuntimeError("AlignmentSessionManager cannot synchronously wait inside a running event loop") from None
++
++
++def _is_converged_response(payload: Mapping[str, Any]) -> bool:
++    status = str(payload.get("status") or payload.get("state") or "").lower()
++    return bool(payload.get("converged")) or status in {"converged", "ready", "complete", "completed"}
++
++
++def _extract_raw_request_draft(raw_response: Any, payload: Mapping[str, Any]) -> Any:
++    for key in ("request_draft", "draft", "aligned_request", "request"):
++        if key in payload:
++            return payload[key]
++    if _looks_like_request_draft(payload):
++        return payload
++    if type(raw_response).__name__ in {"RequestDraft", "GoalExecutionRequest"}:
++        return raw_response
++    return None
++
++
++def _extract_profile_references(payload: Mapping[str, Any]) -> list[str]:
++    refs: list[str] = []
++    for key in (
++        "profile_ref",
++        "operation_profile_ref",
++        "goal_operation_profile_ref",
++        "profile_id",
++        "profile_digest",
++        "operation_profile_digest",
++        "digest_ref",
++        "digest",
++    ):
++        value = payload.get(key)
++        if isinstance(value, str) and value:
++            refs.append(value)
++    nested = payload.get("profile")
++    if isinstance(nested, str) and nested:
++        refs.append(nested)
++    elif isinstance(nested, MappingABC):
++        refs.extend(_extract_profile_references(nested))
++    return refs
++
++
++def _merge_resolved_references(
++    current: Sequence[ResolvedProfileReference],
++    new_items: Sequence[ResolvedProfileReference],
++) -> tuple[ResolvedProfileReference, ...]:
++    merged: dict[str, ResolvedProfileReference] = {item.reference: item for item in current}
++    for item in new_items:
++        merged[item.reference] = item
++    return tuple(merged.values())
++
++
++def _looks_like_session_snapshot(value: Any) -> bool:
++    return isinstance(value, MappingABC) and "session_id" in value and "intent_draft" in value
++
++
++def _looks_like_request_draft(payload: Mapping[str, Any]) -> bool:
++    return any(
++        key in payload
++        for key in (
++            "objective",
++            "goal",
++            "summary",
++            "requirements",
++            "acceptance_criteria",
++            "operation_profile_digest",
++            "request_draft",
++        )
+     )
+ 
+ 
+-def _mapping(value: Any, ref: str) -> Mapping[str, Any]:
+-    if not isinstance(value, Mapping):
+-        raise AlignmentSessionError("invalid_mapping", f"{ref} must be a mapping", ref=ref)
++def _value_to_mapping(value: Any) -> dict[str, Any]:
++    if value is None:
++        return {}
++    if isinstance(value, MappingABC):
++        return {str(key): _thaw(item) for key, item in value.items()}
++    if isinstance(value, RequestDraft):
++        return value.to_dict()
++    if is_dataclass(value):
++        return {field.name: _thaw(getattr(value, field.name)) for field in fields(value)}
++    if hasattr(value, "to_dict") and callable(value.to_dict):
++        result = value.to_dict()
++        if isinstance(result, MappingABC):
++            return {str(key): _thaw(item) for key, item in result.items()}
++    if hasattr(value, "model_dump") and callable(value.model_dump):
++        result = value.model_dump()
++        if isinstance(result, MappingABC):
++            return {str(key): _thaw(item) for key, item in result.items()}
++    attrs = {
++        key: getattr(value, key)
++        for key in dir(value)
++        if not key.startswith("_") and not callable(getattr(value, key, None))
++    }
++    return {str(key): _thaw(item) for key, item in attrs.items()}
++
++
++def _freeze_mapping(value: Mapping[str, Any] | None) -> Mapping[str, Any]:
++    return MappingProxyType({str(key): _freeze(item) for key, item in (value or {}).items()})
++
++
++def _freeze(value: Any) -> Any:
++    if isinstance(value, MappingABC):
++        return MappingProxyType({str(key): _freeze(item) for key, item in value.items()})
++    if isinstance(value, list | tuple):
++        return tuple(_freeze(item) for item in value)
+     return value
+ 
+ 
+-def _required_string(data: Mapping[str, Any], key: str, ref: str) -> str:
+-    value = data.get(key)
+-    if not isinstance(value, str) or not value.strip():
+-        raise AlignmentSessionError("missing_string", f"{key} must be a non-empty string", ref=f"{ref}.{key}")
++def _thaw(value: Any) -> Any:
++    if isinstance(value, MappingABC):
++        return {str(key): _thaw(item) for key, item in value.items()}
++    if isinstance(value, tuple):
++        return [_thaw(item) for item in value]
++    if isinstance(value, list):
++        return [_thaw(item) for item in value]
++    if isinstance(value, RequestDraft):
++        return value.to_dict()
++    if isinstance(value, ResolvedProfileReference):
++        return value.to_dict()
++    if isinstance(value, AlignmentTurn):
++        return value.to_dict()
+     return value
+ 
+ 
+-def _optional_string(value: Any) -> str | None:
++def _optional_text(value: Any) -> str | None:
+     if value is None:
+         return None
+-    text = str(value).strip()
+-    return text or None
++    text = str(value)
++    return text if text else None
+ 
+ 
+-def _string_tuple(value: Any) -> tuple[str, ...]:
++def _optional_int(value: Any) -> int | None:
+     if value is None:
+-        return ()
+-    if not isinstance(value, (list, tuple)):
+-        raise AlignmentSessionError("invalid_string_list", "value must be a list of strings", ref="agentOutput.missingDimensions")
+-    return tuple(str(item) for item in value)
+-
+-
+-def _summary(data: Mapping[str, Any], fallback: str) -> str:
+-    for key in ("summary", "requirement", "frozenRequirement", "objective"):
+-        value = _optional_string(data.get(key))
+-        if value:
+-            return value
+-    return fallback
+-
+-
+-def _context_string(intent: IntentDraft, key: str) -> str | None:
+-    value = intent.context.get(key)
+-    return value if isinstance(value, str) and value.strip() else None
++        return None
++    try:
++        return int(value)
++    except (TypeError, ValueError):
++        return None
+ 
+ 
+-def _session_id(intent: IntentDraft, profile_ref: str, workspace_ref: str) -> str:
+-    digest = canonical_fingerprint(
+-        {
+-            "intent": intent.to_mapping(),
+-            "profileRef": profile_ref,
+-            "workspaceRef": workspace_ref,
+-        }
+-    )
+-    return "ASESS-" + digest.removeprefix("sha256:")[:16]
+-
+-
+-__all__ = [
+-    "ACCEPTANCE_DRAFT_OUTPUT",
+-    "ALIGNMENT_DECISION_OUTPUT",
+-    "REQUIREMENT_DRAFT_OUTPUT",
+-    "AlignmentSessionError",
+-    "AlignmentSessionManager",
+-    "AlignmentSessionResult",
+-    "AlignmentSessionSnapshot",
+-    "AlignmentSessionTurn",
+-]
++def _as_tuple(value: Any) -> tuple[str, ...]:
++    if value is None:
++        return ()
++    if isinstance(value, str):
++        return (value,)
++    if isinstance(value, Sequence):
++        return tuple(str(item) for item in value)
++    return (str(value),)
++
++
++def _first_text(*payloads: Mapping[str, Any], keys: Sequence[str]) -> str:
++    for payload in payloads:
++        for key in keys:
++            value = payload.get(key)
++            if value is not None:
++                return str(value)
++    return ""
++
++
++def _first_sequence(
++    *payloads: Mapping[str, Any],
++    key: str,
++    aliases: Sequence[str] = (),
++) -> tuple[str, ...]:
++    for payload in payloads:
++        for candidate in (key, *aliases):
++            if candidate in payload:
++                return _as_tuple(payload[candidate])
++    return ()
++
++
++def _metadata_from_payload(payload: Mapping[str, Any]) -> Mapping[str, Any]:
++    if isinstance(payload.get("metadata"), MappingABC):
++        return payload["metadata"]
++    reserved = {
++        "objective",
++        "goal",
++        "summary",
++        "requirements",
++        "acceptance_criteria",
++        "operation_profile_digest",
++        "profile_digest",
++        "digest",
++        "profile_ref",
++        "operation_profile_ref",
++    }
++    return {key: value for key, value in payload.items() if key not in reserved}
+diff --git a/tests/test_alignment_session.py b/tests/test_alignment_session.py
+index ec15001..deadebf 100644
+--- a/tests/test_alignment_session.py
++++ b/tests/test_alignment_session.py
+@@ -1,336 +1,132 @@
+ from __future__ import annotations
+ 
+-import asyncio
+ import unittest
+-from pathlib import Path
+ 
+-from ahra.alignment_engine import RequestDraft
+ from ahra.alignment_session import (
+-    ACCEPTANCE_DRAFT_OUTPUT,
+-    ALIGNMENT_DECISION_OUTPUT,
+-    REQUIREMENT_DRAFT_OUTPUT,
+-    AlignmentSessionError,
+     AlignmentSessionManager,
+-    AlignmentSessionSnapshot,
++    IntentDraft,
++    RequestDraft,
++    UnknownProfileReferenceError,
+ )
+-from ahra.approval_service import ApprovalService
+-from ahra.goal_operations import GoalExecutionRequest
+-from ahra.intent_draft import IntentDraft
+-from ahra.ports import AgentRunRequest, AgentRunResult
+-from ahra.request_admission import RequestDraftAdmission
+-from ahra.validation import load_document
+ 
+ 
+-ROOT = Path(__file__).resolve().parents[1]
+-EXAMPLE = ROOT / "examples" / "intents" / "phase1-example-intent.yaml"
++class FakeAgentDriver:
++    def __init__(self, responses):
++        self.responses = list(responses)
++        self.calls = []
+ 
++    def run(self, request):
++        self.calls.append(request)
++        return self.responses.pop(0)
+ 
+-class AlignmentSessionManagerTests(unittest.TestCase):
+-    def test_agent_driven_dialogue_is_invoked(self) -> None:
+-        driver = FakeAlignmentDriver()
+-        manager = AlignmentSessionManager(driver)
+-        snapshot = manager.start(_intent())
+-
+-        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+-
+-        self.assertEqual(driver.calls[0].expected_output, ALIGNMENT_DECISION_OUTPUT)
+-        self.assertEqual(driver.calls[0].payload["userMessage"], "Keep scope local.")
+-        self.assertEqual(snapshot.turns[-1].actor, "agent:alignment")
+-        self.assertEqual(snapshot.stage, "awaiting_user")
+-
+-    def test_unknown_digest_is_rejected_before_agent_invocation(self) -> None:
+-        driver = FakeAlignmentDriver()
+-        manager = AlignmentSessionManager(driver)
+-
+-        with self.assertRaises(AlignmentSessionError) as raised:
+-            manager.start(_intent(), runtime_digest="sha256:" + "9" * 64)
+ 
+-        self.assertEqual(raised.exception.code, "runtime_digest_mismatch")
+-        self.assertEqual(driver.calls, [])
++class FakeProfileRegistry:
++    def __init__(self, profiles):
++        self.profiles = profiles
+ 
+-    def test_resume_from_snapshot_works(self) -> None:
+-        driver = FakeAlignmentDriver()
+-        manager = AlignmentSessionManager(driver)
+-        snapshot = manager.start(_intent())
+-        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+-        restored = AlignmentSessionSnapshot.from_mapping(snapshot.to_mapping())
++    def resolve(self, reference):
++        return self.profiles[reference]
+ 
+-        resumed = asyncio.run(manager.advance(restored, "Freeze that boundary."))
+ 
+-        self.assertEqual(resumed.stage, "awaiting_requirement_approval")
+-        self.assertEqual(len(resumed.turns), 4)
+-        self.assertEqual(resumed.turns[0].message, "Keep scope local.")
+-        self.assertEqual(
+-            resumed.frozen_requirement,
+-            "Write one governed deterministic summary artifact in the local workspace.",
++class AlignmentSessionManagerTests(unittest.TestCase):
++    def test_agent_driven_dialogue_is_invoked_until_convergence(self):
++        agent = FakeAgentDriver(
++            [
++                {"status": "needs_input", "question": "Which profile should be used?"},
++                {
++                    "status": "converged",
++                    "request_draft": {
++                        "objective": "Ship alignment sessions",
++                        "requirements": ["use AgentDriver"],
++                        "acceptance_criteria": ["returns RequestDraft"],
++                        "profile_ref": "default",
++                    },
++                },
++            ]
+         )
+-        approved = manager.approve_requirement(resumed, actor="human:maintainer")
+-        self.assertEqual(approved.stage, "frozen")
+-        self.assertEqual(approved.requirement_approved_by, "human:maintainer")
+-
+-    def test_convergence_outputs_untrusted_request_draft(self) -> None:
+-        driver = FakeAlignmentDriver()
+-        manager = AlignmentSessionManager(driver)
+-        snapshot = manager.start(_intent())
+-        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+-        snapshot = asyncio.run(manager.advance(snapshot, "Freeze that boundary."))
+-        snapshot = manager.approve_requirement(snapshot, actor="human:maintainer")
+-
+-        result = asyncio.run(manager.draft_request(snapshot))
+-
+-        self.assertIsInstance(result.request_draft, RequestDraft)
+-        self.assertNotIsInstance(result.request_draft, GoalExecutionRequest)
+-        self.assertEqual(result.request_draft.to_mapping()["kind"], "RequestDraft")
+-        self.assertIn(REQUIREMENT_DRAFT_OUTPUT, [call.expected_output for call in driver.calls])
+-        self.assertIn(ACCEPTANCE_DRAFT_OUTPUT, [call.expected_output for call in driver.calls])
+-        self.assertFalse(hasattr(result.request_draft, "to_goal_execution_request_mapping"))
+-
+-    def test_request_draft_passes_admission(self) -> None:
+-        driver = FakeAlignmentDriver()
+-        manager = AlignmentSessionManager(driver)
+-        snapshot = manager.start(_intent())
+-        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+-        snapshot = asyncio.run(manager.advance(snapshot, "Requirement boundary complete."))
+-        snapshot = manager.approve_requirement(snapshot, actor="human:maintainer")
+-
+-        result = asyncio.run(manager.draft_request(snapshot))
+-        admission = RequestDraftAdmission().evaluate(result.request_draft)
+-
+-        self.assertTrue(admission.accepted, [rejection.to_dict() for rejection in admission.rejections])
+-        self.assertTrue(admission.plan_digest)
+-
+-    def test_draft_request_requires_human_requirement_approval(self) -> None:
+-        driver = FakeAlignmentDriver()
+-        manager = AlignmentSessionManager(driver)
+-        snapshot = manager.start(_intent())
+-        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+-        snapshot = asyncio.run(manager.advance(snapshot, "Requirement boundary complete."))
+-
+-        with self.assertRaises(AlignmentSessionError) as raised:
+-            asyncio.run(manager.draft_request(snapshot))
+-
+-        self.assertEqual(raised.exception.code, "requirement_not_approved")
+-
+-    def test_requirement_approval_requires_human_actor(self) -> None:
+-        driver = FakeAlignmentDriver()
+-        manager = AlignmentSessionManager(driver)
+-        snapshot = manager.start(_intent())
+-        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+-        snapshot = asyncio.run(manager.advance(snapshot, "Requirement boundary complete."))
+-
+-        with self.assertRaises(AlignmentSessionError) as raised:
+-            manager.approve_requirement(snapshot, actor="agent:alignment")
+-
+-        self.assertEqual(raised.exception.code, "requirement_approval_requires_human")
++        registry = FakeProfileRegistry({"default": {"digest": "sha256:default"}})
++        manager = AlignmentSessionManager(agent, registry, session_id_factory=lambda: "ALIGN-test")
+ 
+-    def test_draft_request_requests_contract_authorization(self) -> None:
+-        driver = FakeAlignmentDriver()
+-        manager = AlignmentSessionManager(driver)
+-        approval_service = ApprovalService()
+-        snapshot = _frozen_snapshot(manager)
+-
+-        result = asyncio.run(manager.draft_request(snapshot, approval_service=approval_service))
+-
+-        self.assertIsNotNone(result.approval_record)
+-        assert result.approval_record is not None
+-        self.assertEqual(result.approval_record.status, "waiting_auth")
+-        with self.assertRaisesRegex(ValueError, "before approval"):
+-            approval_service.freeze(result.request_draft, approval_id=result.approval_record.approval_id)
+-        with self.assertRaisesRegex(ValueError, "self-authorize"):
+-            approval_service.approve(result.approval_record.approval_id, actor=result.request_draft.producer_actor)
+-        approval_service.approve(result.approval_record.approval_id, actor="human:maintainer")
+-        self.assertIsInstance(
+-            approval_service.freeze(result.request_draft, approval_id=result.approval_record.approval_id),
+-            GoalExecutionRequest,
++        state = manager.run(
++            IntentDraft("Ship alignment sessions", profile_ref="default"),
++            max_turns=3,
+         )
+ 
+-    def test_requirement_agent_without_plan_draft_fails_closed(self) -> None:
+-        driver = FakeAlignmentDriver(requirement_output={"summary": "No explicit plan."})
+-        manager = AlignmentSessionManager(driver)
+-        snapshot = _frozen_snapshot(manager)
+-
+-        with self.assertRaises(AlignmentSessionError) as raised:
+-            asyncio.run(manager.draft_request(snapshot))
+-
+-        self.assertEqual(raised.exception.code, "missing_plan_draft")
+-        self.assertEqual(raised.exception.ref, "agentOutput.planDraft")
+-
+-    def test_acceptance_agent_without_claim_graph_fails_closed(self) -> None:
+-        driver = FakeAlignmentDriver(acceptance_output={"summary": "No explicit claims."})
+-        manager = AlignmentSessionManager(driver)
+-        snapshot = _frozen_snapshot(manager)
+-
+-        with self.assertRaises(AlignmentSessionError) as raised:
+-            asyncio.run(manager.draft_request(snapshot))
+-
+-        self.assertEqual(raised.exception.code, "missing_claim_graph")
+-        self.assertEqual(raised.exception.ref, "agentOutput.claimGraph")
++        self.assertEqual(len(agent.calls), 2)
++        self.assertEqual(agent.calls[0]["kind"], "intent_alignment_turn")
++        self.assertTrue(state.converged)
++        self.assertEqual(state.request_draft.operation_profile_digest, "sha256:default")
++        self.assertEqual(len(state.turns), 2)
++
++    def test_unknown_digest_reference_is_rejected_without_fabricating_digest(self):
++        manager = AlignmentSessionManager(
++            FakeAgentDriver([]),
++            FakeProfileRegistry({}),
++            session_id_factory=lambda: "ALIGN-test",
++        )
+ 
++        with self.assertRaises(UnknownProfileReferenceError) as exc_info:
++            manager.start(IntentDraft("Do work", profile_ref="missing-profile"))
+ 
+-class FakeAlignmentDriver:
+-    def __init__(
+-        self,
+-        *,
+-        requirement_output: dict[str, object] | None = None,
+-        acceptance_output: dict[str, object] | None = None,
+-    ) -> None:
+-        self.calls: list[AgentRunRequest] = []
+-        self.alignment_turns = 0
+-        self.requirement_output = requirement_output
+-        self.acceptance_output = acceptance_output
++        structured = exc_info.exception.to_dict()
++        self.assertEqual(structured["code"], "unknown_goal_operation_profile_reference")
++        self.assertEqual(structured["reference"], "missing-profile")
+ 
+-    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+-        self.calls.append(request)
+-        if request.expected_output == ALIGNMENT_DECISION_OUTPUT:
+-            self.alignment_turns += 1
+-            if self.alignment_turns == 1:
+-                return AgentRunResult(
+-                    output={
+-                        "message": "Need the completion signal before freezing.",
+-                        "converged": False,
+-                        "missingDimensions": ["completion signal"],
+-                    }
+-                )
+-            return AgentRunResult(
+-                output={
+-                    "message": "Requirement boundary frozen.",
++    def test_resume_from_snapshot_preserves_history_and_continues_dialogue(self):
++        agent = FakeAgentDriver(
++            [
++                {"status": "needs_input", "question": "Clarify acceptance."},
++                {
+                     "converged": True,
+-                    "frozenRequirement": "Write one governed deterministic summary artifact in the local workspace.",
+-                    "missingDimensions": [],
+-                }
+-            )
+-        if request.expected_output == REQUIREMENT_DRAFT_OUTPUT:
+-            return AgentRunResult(output=self.requirement_output or _requirement_output())
+-        if request.expected_output == ACCEPTANCE_DRAFT_OUTPUT:
+-            return AgentRunResult(output=self.acceptance_output or _acceptance_output())
+-        raise AssertionError(f"unexpected expected_output {request.expected_output}")
+-
+-
+-def _frozen_snapshot(manager: AlignmentSessionManager) -> AlignmentSessionSnapshot:
+-    snapshot = manager.start(_intent())
+-    snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+-    snapshot = asyncio.run(manager.advance(snapshot, "Done means summary artifact exists."))
+-    return manager.approve_requirement(snapshot, actor="human:maintainer")
+-
+-
+-def _requirement_output() -> dict[str, object]:
+-    return {
+-        "summary": "Write one governed deterministic summary artifact in the local workspace.",
+-        "planDraft": {
+-            "apiVersion": "ahra.dev/v1alpha1",
+-            "kind": "PlanDraft",
+-            "metadata": {
+-                "goalId": "GOAL-PHASE1-EXAMPLE-ALIGNED",
+-                "proposedBy": "planner/alignment-session-test",
+-            },
+-            "spec": {
+-                "rationale": "Single bounded node writes the requested summary artifact.",
+-                "nodes": [
+-                    {
+-                        "id": "NODE-write-summary",
+-                        "nodeType": "bounded_task",
+-                        "objective": "Write the governed deterministic summary artifact.",
+-                        "claimRefs": ["CLAIM-summary-artifact"],
+-                        "dependsOn": [],
+-                        "inputRefs": [],
+-                        "expectedOutputs": [
+-                            {
+-                                "name": "summary-artifact",
+-                                "schemaRef": "ahra/artifact/text/0.1",
+-                                "consumerNodeRefs": ["NODE-goal-verification"],
+-                                "artifactRequired": True,
+-                            }
+-                        ],
+-                        "capabilityRequests": [
+-                            {
+-                                "capability": "filesystem.write",
+-                                "resources": ["outputs/summary.txt"],
+-                                "riskLevel": "R1",
+-                            }
+-                        ],
+-                        "gateRefs": ["GATE-alignment-objective"],
+-                        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+-                        "budgetRequest": {
+-                            "maxModelCalls": 1,
+-                            "maxToolCalls": 2,
+-                            "maxSpawnedNodes": 0,
+-                            "maxWallSeconds": 60,
+-                            "maxCostUsd": 0.0,
+-                        },
+-                        "retryPolicy": {
+-                            "maxAttempts": 1,
+-                            "retryableFailureClasses": [],
+-                            "idempotencyKeyRequired": False,
+-                        },
+-                        "timeoutSeconds": 60,
+-                        "sideEffect": "idempotent",
++                    "request_draft": {
++                        "objective": "Resume sessions",
++                        "requirements": ["resume from snapshot"],
++                        "acceptance_criteria": ["history preserved"],
++                        "profile_ref": "default",
+                     },
+-                    {
+-                        "id": "NODE-goal-verification",
+-                        "nodeType": "goal_verification",
+-                        "objective": "Verify the summary artifact satisfies the frozen requirement.",
+-                        "claimRefs": ["CLAIM-summary-artifact"],
+-                        "dependsOn": ["NODE-write-summary"],
+-                        "inputRefs": ["NODE-write-summary"],
+-                        "expectedOutputs": [],
+-                        "capabilityRequests": [],
+-                        "gateRefs": ["GATE-alignment-complete"],
+-                        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+-                        "budgetRequest": {
+-                            "maxModelCalls": 1,
+-                            "maxToolCalls": 1,
+-                            "maxSpawnedNodes": 0,
+-                            "maxWallSeconds": 30,
+-                            "maxCostUsd": 0.0,
+-                        },
+-                        "retryPolicy": {
+-                            "maxAttempts": 1,
+-                            "retryableFailureClasses": [],
+-                            "idempotencyKeyRequired": False,
+-                        },
+-                        "timeoutSeconds": 30,
+-                        "sideEffect": "idempotent",
+-                        "terminalGoalVerification": True,
+-                    }
+-                ],
+-            },
+-        },
+-    }
+-
+-
+-def _acceptance_output() -> dict[str, object]:
+-    return {
+-        "summary": "Acceptance requires governed evidence for the deterministic summary artifact.",
+-        "claimGraph": {
+-            "apiVersion": "ahra.dev/v1alpha1",
+-            "kind": "ClaimGraph",
+-            "metadata": {
+-                "name": "alignment-session-test-claims",
+-                "goalId": "GOAL-PHASE1-EXAMPLE-ALIGNED",
+-                "version": 1,
+-            },
+-            "spec": {
+-                "goalRef": "GOAL-PHASE1-EXAMPLE-ALIGNED",
+-                "claims": [
+-                    {
+-                        "id": "CLAIM-summary-artifact",
+-                        "type": "functional",
+-                        "statement": "A deterministic summary artifact is produced in the local workspace.",
+-                        "criterionRefs": ["CRIT-summary-artifact"],
+-                        "dependsOn": [],
+-                        "riskLevel": "R1",
+-                        "required": True,
+-                        "requiredEvidenceKinds": ["artifact"],
+-                        "gateRefs": ["GATE-alignment-objective"],
+-                    }
+-                ],
+-            },
+-        },
+-    }
++                },
++            ]
++        )
++        registry = FakeProfileRegistry({"default": {"digest": "sha256:default"}})
++        manager = AlignmentSessionManager(agent, registry, session_id_factory=lambda: "ALIGN-resume")
++
++        state = manager.start(IntentDraft("Resume sessions", profile_ref="default"))
++        first_snapshot = manager.advance(state).to_snapshot()
++        resumed = manager.resume_from_snapshot(first_snapshot, max_turns=2)
++
++        self.assertEqual(resumed.session_id, "ALIGN-resume")
++        self.assertEqual(len(resumed.turns), 2)
++        self.assertEqual(resumed.turns[0].agent_response["question"], "Clarify acceptance.")
++        self.assertTrue(resumed.converged)
++        self.assertEqual(resumed.request_draft.objective, "Resume sessions")
++
++    def test_converged_output_is_untrusted_request_draft_not_goal_execution_request(self):
++        class GoalExecutionRequest:
++            objective = "Draft only"
++            requirements = ("stay untrusted",)
++            acceptance_criteria = ("not frozen",)
++            operation_profile_digest = "sha256:default"
++            frozen = True
++            trusted = True
++
++        agent = FakeAgentDriver(
++            [
++                {
++                    "status": "converged",
++                    "request_draft": GoalExecutionRequest(),
++                }
++            ]
++        )
++        registry = FakeProfileRegistry({"sha256:default": {"digest": "sha256:default"}})
++        manager = AlignmentSessionManager(agent, registry, session_id_factory=lambda: "ALIGN-draft")
+ 
++        state = manager.run(IntentDraft("Draft only", profile_digest="sha256:default"), max_turns=1)
+ 
+-def _intent() -> IntentDraft:
+-    return IntentDraft.from_mapping(load_document(EXAMPLE))
++        self.assertIsInstance(state.request_draft, RequestDraft)
++        self.assertNotEqual(type(state.request_draft).__name__, "GoalExecutionRequest")
++        self.assertFalse(state.request_draft.trusted)
++        self.assertFalse(state.request_draft.frozen)
++        self.assertEqual(state.request_draft.trust_level, "untrusted")
+ 
+ 
+ if __name__ == "__main__":

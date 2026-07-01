@@ -53,8 +53,8 @@ spec:
     spec:
       rationale: |
         Dogfood: use Workflow B (development-bounded profile, real Agent) to build
-        a real Agent-driven alignment session manager for Workflow A, per ADR-0009,
-        replacing the deterministic template stub. Writes are confined to the
+        a real Agent-driven alignment session manager for Workflow A, per ADR-0009.
+        Writes are confined to the
         A-workflow path allowlist; the B kernel is on the write blacklist.
       nodes:
         - id: NODE-alignment-session

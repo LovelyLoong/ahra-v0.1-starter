@@ -1,0 +1,21 @@
+{
+  "schema_version": "ahra/node-gate-summary/0.1",
+  "plan_id": "PLAN-9e66b027a3d048b5",
+  "node_id": "NODE-alignment-session",
+  "node_type": "bounded_task",
+  "gate_refs": [
+    "GATE-alignment-session"
+  ],
+  "l0_gates": [],
+  "semantic_review_enabled": false,
+  "status": "rejected",
+  "attempts": [
+    {
+      "attempt": 1,
+      "deterministicPassed": false,
+      "requiredChecksPassed": false,
+      "reviewVerdict": "fail",
+      "error": null
+    }
+  ]
+}

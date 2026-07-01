@@ -1,0 +1,41 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0081",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-01T13:12:04.628499Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Verifier reviewed workflow-a CLI lifecycle, gate behavior, docs, and tests; criteria are covered by CLI implementation and lifecycle test.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "CLI exposes Workflow A start, advance, snapshot, draft, admit, and authorize operations with durable session snapshots.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0081-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 1 to task evidence EVD-TASK-0081-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "draft requires Human Gate 1 approval, admit runs RequestDraftAdmission, and authorize uses ApprovalService so agents cannot freeze a GoalExecutionRequest themselves.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0081-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 2 to task evidence EVD-TASK-0081-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The CLI remains explicitly experimental/non-default in component inventory and framework entrypoints until EvidenceGate promotion tasks approve it.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0081-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 3 to task evidence EVD-TASK-0081-0001 after source/evidence review and current baseline checks."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": []
+}

@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "result": {
+    "schema_version": "ahra/goal-operation-plan/0.1",
+    "goalExecutionId": "GEXEC-57d51a7077e83114",
+    "artifactDir": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-a-formal\\20260701T222019+0800\\supervised-e2e\\artifacts",
+    "planId": "PLAN-7f3912e0b58a9411",
+    "planDigest": "sha256:a123c82c696fb1cfab191de6b821616abd0841ae8498d1a9ba13266ad3c119be",
+    "executedNodeCount": 0,
+    "metrics": {
+      "planNodeCount": 2,
+      "gateRefCount": 2,
+      "executableNodeCount": 1,
+      "declaredCapabilityCount": 1
+    }
+  }
+}

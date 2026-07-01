@@ -128,7 +128,26 @@ GOAL_TRANSITIONS: dict[GoalExecutionStatus, frozenset[GoalExecutionStatus]] = {
     GoalExecutionStatus.CANCELED: frozenset(),
 }
 
-TERMINAL_GOAL_DEFECT_FAILURE_CLASSES = frozenset({"agent_timeout", "node_lease_expired"})
+TERMINAL_GOAL_DEFECT_FAILURE_CLASSES = frozenset(
+    {
+        "agent_timeout",
+        "node_lease_expired",
+        "path_blacklisted",
+        "path_outside_workspace",
+        "process_exec_not_granted",
+        "rejected",
+    }
+)
+NODE_EXECUTION_DEFECT_FAILURE_CLASSES = frozenset(
+    {
+        "agent_timeout",
+        "node_lease_expired",
+        "path_blacklisted",
+        "path_outside_workspace",
+        "process_exec_not_granted",
+        "rejected",
+    }
+)
 
 NODE_TRANSITIONS: dict[NodeRunStatus, frozenset[NodeRunStatus]] = {
     NodeRunStatus.PENDING: frozenset({NodeRunStatus.READY, NodeRunStatus.CANCELED}),
@@ -1999,7 +2018,7 @@ class StaticPlanScheduler(SchedulerPort):
         node: PlanNodeIR,
         node_run: NodeRunRecord,
     ) -> None:
-        if node_run.failure_class not in TERMINAL_GOAL_DEFECT_FAILURE_CLASSES:
+        if node_run.failure_class not in NODE_EXECUTION_DEFECT_FAILURE_CLASSES:
             return
         direct_claim_refs = tuple(node.claim_refs) or (node.node_id,)
         gate_ref = node.gate_refs[0] if node.gate_refs else f"GATE-{node.node_id.removeprefix('NODE-')}"

@@ -50,7 +50,7 @@
       "kind": "inventory_update",
       "media_type": "application/json",
       "name": "component-inventory.json",
-      "sha256": "f5e666492f19a5a636a99b89d5aedea1ff39fa5c80ecd7d0d3c801f6ea172459",
+      "sha256": "7c888b9514955d826c296db5f981c3e9dcf6de3cb66d5322a05f7b3b6431ad19",
       "supersedes": null,
       "task_id": "TASK-0078",
       "uri": "local://docs/architecture/component-inventory.json"
@@ -69,10 +69,31 @@
       "kind": "handoff",
       "media_type": "text/markdown",
       "name": "HANDOFF-0001.md",
-      "sha256": "e2128d8bd8486873968b5ba03dc8bf423015bb286a9c655e5f00c41b666bebbc",
+      "sha256": "b64491c892238f4419c7434fe2cee27e888142368ff6a850261bd18beae577bb",
       "supersedes": null,
       "task_id": "TASK-0078",
       "uri": "local://handoffs/HANDOFF-0001.md"
+    },
+    {
+      "artifact_id": "ART-TASK-0078-0004",
+      "task_id": "TASK-0078",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "d71a91c9dee436627914a68cd52411b348cf282032b39052dba03afa8dcdf4bc",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T13:12:02.305248Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0078-0002"
+      ],
+      "supersedes": null
     }
   ],
   "schema_version": "awkp/0.1",

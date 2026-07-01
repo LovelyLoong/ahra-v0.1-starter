@@ -1,0 +1,61 @@
+diff --git a/src/ahra/alignment_session.py b/src/ahra/alignment_session.py
+index df24e0c..1d4fc39 100644
+--- a/src/ahra/alignment_session.py
++++ b/src/ahra/alignment_session.py
+@@ -36,6 +36,13 @@ from .ports import (
+ ALIGNMENT_DECISION_OUTPUT = "AlignmentTurnDecision"
+ REQUIREMENT_DRAFT_OUTPUT = "RequirementDraft"
+ ACCEPTANCE_DRAFT_OUTPUT = "AcceptanceDraft"
++ALIGNMENT_CHECKLIST = (
++    "output form",
++    "must-haves",
++    "must-nots",
++    "completion signal",
++    "allowed free zones",
++)
+ 
+ 
+ class AlignmentSessionError(ValueError):
+@@ -256,13 +263,7 @@ class AlignmentSessionManager:
+                 "intent": after_user.intent.to_mapping(),
+                 "session": after_user.to_mapping(),
+                 "userMessage": user_message,
+-                "checklist": [
+-                    "output form",
+-                    "must-haves",
+-                    "must-nots",
+-                    "completion signal",
+-                    "allowed free zones",
+-                ],
++                "checklist": list(ALIGNMENT_CHECKLIST),
+             },
+         )
+         decision = _mapping(driver_output.output, ALIGNMENT_DECISION_OUTPUT)
+@@ -623,6 +624,7 @@ def _session_id(intent: IntentDraft, profile_ref: str, workspace_ref: str) -> st
+ 
+ __all__ = [
+     "ACCEPTANCE_DRAFT_OUTPUT",
++    "ALIGNMENT_CHECKLIST",
+     "ALIGNMENT_DECISION_OUTPUT",
+     "REQUIREMENT_DRAFT_OUTPUT",
+     "AlignmentSessionError",
+diff --git a/tests/test_alignment_session.py b/tests/test_alignment_session.py
+index ec15001..d64bfd1 100644
+--- a/tests/test_alignment_session.py
++++ b/tests/test_alignment_session.py
+@@ -7,6 +7,7 @@ from pathlib import Path
+ from ahra.alignment_engine import RequestDraft
+ from ahra.alignment_session import (
+     ACCEPTANCE_DRAFT_OUTPUT,
++    ALIGNMENT_CHECKLIST,
+     ALIGNMENT_DECISION_OUTPUT,
+     REQUIREMENT_DRAFT_OUTPUT,
+     AlignmentSessionError,
+@@ -35,6 +36,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+ 
+         self.assertEqual(driver.calls[0].expected_output, ALIGNMENT_DECISION_OUTPUT)
+         self.assertEqual(driver.calls[0].payload["userMessage"], "Keep scope local.")
++        self.assertEqual(tuple(driver.calls[0].payload["checklist"]), ALIGNMENT_CHECKLIST)
+         self.assertEqual(snapshot.turns[-1].actor, "agent:alignment")
+         self.assertEqual(snapshot.stage, "awaiting_user")
+ 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -7,13 +8,22 @@ from typing import Any
 
 import yaml
 
-from ahra.alignment_engine import AlignmentWorkflowEngine
+from ahra.acceptance_contracts import Claim, ClaimGraph, ClaimType, RiskLevel
+from ahra.alignment_session import (
+    ACCEPTANCE_DRAFT_OUTPUT,
+    ALIGNMENT_DECISION_OUTPUT,
+    REQUIREMENT_DRAFT_OUTPUT,
+    AlignmentSessionManager,
+)
 from ahra.approval_service import ApprovalService
 from ahra.awkp_state_writer import AwkpTaskStateWriter
 from ahra.awkp_task_creator import AwkpTaskCreateRequest, AwkpTaskCreator
-from ahra.goal_operations import GoalAwkpBridge, GoalAwkpBridgeRequest, GoalExecutionRequest, GoalOperationService
+from ahra.goal_operations import GoalAwkpBridge, GoalAwkpBridgeRequest, GoalExecutionRequest, GoalOperationService, M1_PROFILE_REF
 from ahra.intent_draft import IntentCapabilityNeed, IntentDraft
+from ahra.plan_ir import CapabilityRequest, PlanBudget, PlanDraft, PlanNodeDraft, PlanOutputContract, RetryPolicy
+from ahra.ports import AgentRunRequest, AgentRunResult
 from ahra.request_admission import RequestDraftAdmission
+from ahra.request_draft import RequestDraft, _claim_graph_to_mapping
 from ahra.validation import load_document
 
 
@@ -27,26 +37,159 @@ def example_intent(**replacements: Any) -> IntentDraft:
 
 
 def aligned_approved_request(root: Path, intent: IntentDraft | None = None) -> GoalExecutionRequest:
-    engine = AlignmentWorkflowEngine()
-    session = engine.start(intent or example_intent())
-    for actor, message in (
-        ("human:maintainer", "Keep the scope bounded."),
-        ("agent:alignment", "Draft the claims."),
-        ("agent:alignment", "Draft the plan."),
-    ):
-        session = engine.advance(session, actor=actor, message=message)
-    draft = engine.draft_request(
-        session,
-        producer_actor="agent:producer",
-        workspace_ref=str(root / "workspace"),
-        artifact_dir=str(root / ".ahra" / "artifacts"),
-        store_path=str(root / ".ahra" / "goal-control.sqlite3"),
-    )
+    draft = request_draft_from_intent(root, intent or example_intent())
     RequestDraftAdmission().require_accepted(draft)
     approvals = ApprovalService()
     approval = approvals.request_authorization(draft, actor="agent:producer")
     approvals.approve(approval.approval_id, actor="human:maintainer")
     return approvals.freeze(draft, approval_id=approval.approval_id)
+
+
+def request_draft_from_intent(root: Path, intent: IntentDraft) -> RequestDraft:
+    manager = AlignmentSessionManager(_Phase1AlignmentDriver(intent))
+    snapshot = manager.start(
+        intent,
+        profile_ref=M1_PROFILE_REF,
+        producer_actor="agent:producer",
+        workspace_ref=str(root / "workspace"),
+        artifact_dir=str(root / ".ahra" / "artifacts"),
+        store_path=str(root / ".ahra" / "goal-control.sqlite3"),
+    )
+    snapshot = asyncio.run(manager.advance(snapshot, "Keep the scope bounded.", actor="human:maintainer"))
+    snapshot = manager.approve_requirement(snapshot, actor="human:maintainer")
+    result = asyncio.run(manager.draft_request(snapshot))
+    return result.request_draft
+
+
+class _Phase1AlignmentDriver:
+    def __init__(self, intent: IntentDraft) -> None:
+        self.intent = intent
+
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.expected_output == ALIGNMENT_DECISION_OUTPUT:
+            return AgentRunResult(
+                output={
+                    "message": "Requirement boundary is ready for human approval.",
+                    "converged": True,
+                    "frozenRequirement": self.intent.abstract_goal,
+                    "missingDimensions": [],
+                }
+            )
+        if request.expected_output == REQUIREMENT_DRAFT_OUTPUT:
+            return AgentRunResult(
+                output={
+                    "summary": self.intent.abstract_goal,
+                    "planDraft": _plan_from_intent(self.intent).to_dict(),
+                }
+            )
+        if request.expected_output == ACCEPTANCE_DRAFT_OUTPUT:
+            return AgentRunResult(
+                output={
+                    "summary": "Acceptance requires governed evidence for the requested output.",
+                    "claimGraph": _claim_graph_to_mapping(_claim_graph_from_intent(self.intent)),
+                }
+            )
+        raise AssertionError(f"unexpected Workflow A fixture output {request.expected_output}")
+
+
+def _claim_graph_from_intent(intent: IntentDraft) -> ClaimGraph:
+    goal_ref = _goal_ref_from_intent(intent.intent_id)
+    objective_claim = Claim(
+        claim_id="CLAIM-" + _id_tail(intent.intent_id, "OBJECTIVE"),
+        claim_type=ClaimType.FUNCTIONAL,
+        statement=intent.abstract_goal,
+        criterion_refs=("CRIT-" + _id_tail(intent.intent_id, "OBJECTIVE"),),
+        depends_on=(),
+        risk_level=RiskLevel(intent.risk_hint or "R1"),
+        required_evidence_kinds=("contract_test",),
+        gate_refs=("GATE-alignment-objective",),
+        required=True,
+    )
+    completion_claim = Claim(
+        claim_id="CLAIM-" + _id_tail(intent.intent_id, "COMPLETE"),
+        claim_type=ClaimType.GOVERNANCE,
+        statement=f"{goal_ref} reaches completion only from governed evidence.",
+        criterion_refs=("CRIT-" + _id_tail(intent.intent_id, "COMPLETE"),),
+        depends_on=(objective_claim.claim_id,),
+        risk_level=RiskLevel.R1,
+        required_evidence_kinds=("gate_run",),
+        gate_refs=("GATE-alignment-complete",),
+        required=True,
+    )
+    return ClaimGraph(goal_ref=goal_ref, version=1, claims=(objective_claim, completion_claim))
+
+
+def _plan_from_intent(intent: IntentDraft) -> PlanDraft:
+    goal_ref = _goal_ref_from_intent(intent.intent_id)
+    objective_claim = "CLAIM-" + _id_tail(intent.intent_id, "OBJECTIVE")
+    complete_claim = "CLAIM-" + _id_tail(intent.intent_id, "COMPLETE")
+    capability_requests = tuple(
+        CapabilityRequest(
+            need.action,
+            need.resources,
+            risk_level=need.risk_level,
+            approval_refs=need.policy_refs,
+        )
+        for need in intent.capability_needs
+    )
+    if not any(request.capability == "filesystem.write" for request in capability_requests):
+        capability_requests = (*capability_requests, CapabilityRequest("filesystem.write", ("outputs/summary.txt",)))
+    return PlanDraft(
+        goal_ref=goal_ref,
+        proposed_by="planner/phase1-test-fixture",
+        rationale="Phase 1 test fixture produces an explicit untrusted RequestDraft for admission and authorization.",
+        nodes=(
+            PlanNodeDraft(
+                node_id="NODE-" + _id_tail(intent.intent_id, "WRITE"),
+                node_type="bounded_task",
+                objective=intent.abstract_goal,
+                claim_refs=(objective_claim,),
+                depends_on=(),
+                input_refs=(intent.intent_id,),
+                expected_outputs=(
+                    PlanOutputContract(
+                        name="phase1-output",
+                        schema_ref="schema/phase1-output@sha256:" + "8" * 64,
+                        consumer_node_refs=("NODE-" + _id_tail(intent.intent_id, "VERIFY"),),
+                    ),
+                ),
+                capability_requests=capability_requests,
+                gate_refs=("GATE-alignment-objective",),
+                runtime_ref="runtime/local-goal@sha256:" + "e" * 64,
+                budget=PlanBudget(max_model_calls=1, max_tool_calls=2, max_spawned_nodes=0, max_wall_seconds=30, max_cost_usd=0.0),
+                retry_policy=RetryPolicy(max_attempts=1, idempotency_key_required=True),
+                timeout_seconds=30,
+            ),
+            PlanNodeDraft(
+                node_id="NODE-" + _id_tail(intent.intent_id, "VERIFY"),
+                node_type="goal_verification",
+                objective="Verify Phase 1 aligned request completion.",
+                claim_refs=(objective_claim, complete_claim),
+                depends_on=("NODE-" + _id_tail(intent.intent_id, "WRITE"),),
+                input_refs=("NODE-" + _id_tail(intent.intent_id, "WRITE"),),
+                expected_outputs=(),
+                capability_requests=(),
+                gate_refs=("GATE-alignment-complete",),
+                runtime_ref="runtime/local-goal@sha256:" + "e" * 64,
+                budget=PlanBudget(max_model_calls=1, max_tool_calls=1, max_spawned_nodes=0, max_wall_seconds=30, max_cost_usd=0.0),
+                retry_policy=RetryPolicy(max_attempts=1),
+                timeout_seconds=30,
+                terminal_goal_verification=True,
+            ),
+        ),
+    )
+
+
+def _goal_ref_from_intent(intent_id: str) -> str:
+    return "GOAL-" + _id_tail(intent_id, "ALIGNED")
+
+
+def _id_tail(intent_id: str, fallback: str) -> str:
+    cleaned = "".join(char if char.isalnum() else "-" for char in intent_id.upper())
+    cleaned = cleaned.removeprefix("INTENT-").strip("-")
+    if not cleaned:
+        return fallback
+    return f"{cleaned}-{fallback}"
 
 
 def write_request(path: Path, request: GoalExecutionRequest) -> Path:

@@ -37,9 +37,9 @@
   ],
   "verification_commands": [
     {
-      "command": "uv run python -B -m unittest tests.test_evidence_gate.EvidenceGateTests.test_development_code_change_rejects_commands_only_without_semantic_review tests.test_evidence_gate.EvidenceGateTests.test_development_code_change_accepts_independent_semantic_review tests.test_evidence_gate.EvidenceGateTests.test_development_code_change_rejects_stale_semantic_review tests.test_evidence_gate.EvidenceGateTests.test_development_code_change_rejects_producer_authored_semantic_review tests.test_evidence_gate.EvidenceGateTests.test_development_code_change_rejects_unmanifested_semantic_review tests.test_goal_operations.GoalOperationCliTests.test_goal_awkp_bridge_associates_goal_and_completes_task_through_evidence_gate -v",
+      "command": ".venv\\Scripts\\python.exe -B -m unittest tests.test_evidence_gate -v",
       "status": "passed",
-      "observed": "6 tests OK"
+      "observed": "23 tests OK"
     },
     {
       "command": "uv run python -B -m unittest tests.test_cli tests.test_alignment_session tests.test_evidence_gate tests.test_goal_operations tests.test_verification -v",
@@ -49,20 +49,21 @@
     {
       "command": "uv run python -B scripts/check.py --test",
       "status": "passed",
-      "observed": "316 OK, skipped=1"
+      "observed": "318 tests OK, skipped=2"
     },
     {
       "command": "uv run python -B scripts/check.py --lint",
       "status": "passed",
-      "observed": "AWKP lint 0 error(s), 0 warning(s)"
+      "observed": "AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s)"
     },
     {
       "command": "git diff --check",
       "status": "passed",
-      "observed": "exit 0; Git emitted CRLF normalization warnings only"
+      "observed": "exit 0; no output"
     }
   ],
   "residual_risks": [
     "This is producer evidence only. Independent EvidenceGate review must decide completion."
-  ]
+  ],
+  "refreshed_at": "2026-07-01T12:55:26.4725579Z"
 }

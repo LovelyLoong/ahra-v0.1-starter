@@ -14,7 +14,7 @@ dependencies = [
 
 [project.optional-dependencies]
 codex = ["openai-codex"]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "uv"]
 
 [project.scripts]
 ahra = "ahra.cli:main"

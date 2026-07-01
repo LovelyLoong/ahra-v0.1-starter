@@ -7,7 +7,7 @@ import re
 import sys
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
 
@@ -15,6 +15,7 @@ ALLOWED_DECISIONS = {"approve", "request_changes"}
 PASSED_STATUSES = {"passed", "pass"}
 FAILED_STATUSES = {"failed", "fail", "missing", "blocked"}
 DEVELOPMENT_BOUNDED_PROFILE_REF = "profile/development-bounded"
+TASK_LOCAL_URI_PREFIXES = {"evidence", "handoffs", "local-records", "runs"}
 
 
 class EvidenceGateError(ValueError):
@@ -373,13 +374,48 @@ def _validate_manifest_hashes(task_dir: Path, manifest: dict[str, Any], key: str
 
 
 def _local_uri_path(task_dir: Path, uri: str) -> Path:
-    relative = uri.removeprefix("local://")
-    path = (task_dir / relative).resolve()
+    relative = _local_uri_relative(uri)
+    task_root = task_dir.resolve()
+    repo_root = _repository_root_for_task(task_root)
+    if relative.parts and relative.parts[0] not in TASK_LOCAL_URI_PREFIXES and repo_root is not None:
+        repo_path = (repo_root / relative).resolve()
+        _ensure_inside(repo_path, repo_root, uri, "repository root")
+        if repo_path.exists():
+            return repo_path
+    task_path = (task_root / relative).resolve()
+    _ensure_inside(task_path, task_root, uri, "task directory")
+    return task_path
+
+
+def _local_uri_relative(uri: str) -> Path:
+    raw = uri.removeprefix("local://").replace("\\", "/").strip()
+    parsed = PurePosixPath(raw)
+    parts = [part for part in parsed.parts if part]
+    if (
+        not raw
+        or raw.startswith("/")
+        or re.match(r"^[A-Za-z]:", raw)
+        or "." in parts
+        or ".." in parts
+    ):
+        raise EvidenceGateError(f"local uri must be a clean relative path: {uri}")
+    return Path(*parts)
+
+
+def _repository_root_for_task(task_dir: Path) -> Path | None:
+    if task_dir.parent.name == "tasks":
+        return task_dir.parent.parent.parent.resolve()
+    for candidate in (task_dir, *task_dir.parents):
+        if (candidate / ".git").exists() and (candidate / "work").exists():
+            return candidate.resolve()
+    return None
+
+
+def _ensure_inside(path: Path, root: Path, uri: str, root_name: str) -> None:
     try:
-        path.relative_to(task_dir.resolve())
+        path.relative_to(root.resolve())
     except ValueError as exc:
-        raise EvidenceGateError(f"local uri escapes task directory: {uri}") from exc
-    return path
+        raise EvidenceGateError(f"local uri escapes {root_name}: {uri}") from exc
 
 
 def _producer_identities(

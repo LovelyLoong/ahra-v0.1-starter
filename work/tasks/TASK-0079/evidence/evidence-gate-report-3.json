@@ -1,0 +1,41 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0079",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-01T13:12:03.070681Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Verifier reviewed EvidenceGate semantic/code-review enforcement and fail-closed tests; criteria are covered by gate implementation and regression cases.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A development-bounded framework-code output requires an independent semantic/code-review evidence record mapped to changed files and task criteria.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0079-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 1 to task evidence EVD-TASK-0079-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "The gate fails closed when semantic review evidence is missing, stale, produced by the same producer actor, or not mapped in evidence-manifest.json.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0079-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 2 to task evidence EVD-TASK-0079-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Tests demonstrate that file existence plus passing commands alone is insufficient for acceptance.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0079-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 3 to task evidence EVD-TASK-0079-0001 after source/evidence review and current baseline checks."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": []
+}

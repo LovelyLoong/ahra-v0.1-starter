@@ -1,0 +1,50 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0078",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-01T13:12:02.305248Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Verifier reviewed Workflow A session gate hardening evidence and rerun baseline; criteria are covered by alignment_session and focused tests.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Requirement Agent output without an explicit PlanDraft fails closed and cannot be filled from alignment_engine template helpers.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0078-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 1 to task evidence EVD-TASK-0078-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Acceptance Agent output without an explicit ClaimGraph fails closed and cannot be filled from alignment_engine template helpers.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0078-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 2 to task evidence EVD-TASK-0078-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Alignment Agent convergence leaves the session waiting for human requirement approval; draft_request fails before Human Gate 1.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0078-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 3 to task evidence EVD-TASK-0078-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "draft_request can request ApprovalService authorization for Gate 2 but cannot freeze a GoalExecutionRequest before human approval.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0078-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 4 to task evidence EVD-TASK-0078-0001 after source/evidence review and current baseline checks."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": []
+}

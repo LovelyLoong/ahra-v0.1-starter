@@ -1,0 +1,12 @@
+{
+  "approvalId": "APR-d4ce55d6fff423d3",
+  "decidedAt": "2026-07-01T14:17:44.878955Z",
+  "decisionBy": "human:maintainer",
+  "intentId": "INTENT-PHASE1-EXAMPLE",
+  "producerActor": "agent:workflow-a-smoke",
+  "reason": "Smoke Gate 2 approval.",
+  "requestId": "REQ-d4ce55d6fff423d3",
+  "requestedAt": "2026-07-01T14:17:44.878955Z",
+  "requestedBy": "agent:workflow-a-smoke",
+  "status": "approved"
+}

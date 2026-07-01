@@ -4,6 +4,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -21,11 +22,18 @@ from ahra.ports import AwkpTaskCreatorPort
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def _run_cli(argv: list[str]) -> tuple[int, dict, str]:
+def _run_cli(argv: list[str], *, cwd: Path | None = None) -> tuple[int, dict, str]:
     stdout = io.StringIO()
     stderr = io.StringIO()
-    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-        code = cli.main(argv)
+    old_cwd = Path.cwd()
+    if cwd is not None:
+        os.chdir(cwd)
+    try:
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            code = cli.main(argv)
+    finally:
+        if cwd is not None:
+            os.chdir(old_cwd)
     payload = json.loads(stdout.getvalue() or stderr.getvalue())
     return code, payload, stderr.getvalue()
 
@@ -216,6 +224,9 @@ class CliTests(unittest.TestCase):
             request_draft = root / "workflow-a" / "request-draft.json"
             approval = root / "workflow-a" / "approval.json"
             authorized = root / "workflow-a" / "goal-execution-request.yaml"
+            expected_workspace = (root / "workflow-a" / "workspace").resolve()
+            expected_artifacts = (root / "workflow-a" / "artifacts").resolve()
+            expected_store = (root / "workflow-a" / "goal-control.sqlite3").resolve()
 
             start_code, start_payload, _ = _run_cli(
                 [
@@ -224,14 +235,20 @@ class CliTests(unittest.TestCase):
                     str(intent),
                     "--session",
                     str(session),
+                    "--workspace-ref",
+                    str(Path("workflow-a") / "workspace"),
                     "--artifact-dir",
-                    "work/tasks/TASK-0081/runs/workflow-a-cli/artifacts",
+                    str(Path("workflow-a") / "artifacts"),
                     "--store-path",
-                    "work/tasks/TASK-0081/runs/workflow-a-cli/goal-control.sqlite3",
-                ]
+                    str(Path("workflow-a") / "goal-control.sqlite3"),
+                ],
+                cwd=root,
             )
             self.assertEqual(start_code, 0)
             self.assertEqual(start_payload["result"]["snapshot"]["stage"], "dialogue")
+            self.assertEqual(Path(start_payload["result"]["snapshot"]["workspaceRef"]), expected_workspace)
+            self.assertEqual(Path(start_payload["result"]["snapshot"]["artifactDir"]), expected_artifacts)
+            self.assertEqual(Path(start_payload["result"]["snapshot"]["storePath"]), expected_store)
 
             advance_code, advance_payload, _ = _run_cli(
                 [
@@ -244,7 +261,8 @@ class CliTests(unittest.TestCase):
                     "--driver-ref",
                     "workflow-a-fixture",
                     "--enable-fixture-driver",
-                ]
+                ],
+                cwd=root,
             )
             self.assertEqual(advance_code, 0)
             self.assertEqual(
@@ -265,7 +283,8 @@ class CliTests(unittest.TestCase):
                     "--driver-ref",
                     "workflow-a-fixture",
                     "--enable-fixture-driver",
-                ]
+                ],
+                cwd=root,
             )
             self.assertEqual(draft_code, 2)
             self.assertIn("requirement approval", draft_payload["error"])
@@ -278,7 +297,8 @@ class CliTests(unittest.TestCase):
                     str(session),
                     "--actor",
                     "agent:alignment-session",
-                ]
+                ],
+                cwd=root,
             )
             self.assertEqual(bad_gate_code, 2)
             self.assertIn("human actor", bad_gate_payload["error"])
@@ -291,7 +311,8 @@ class CliTests(unittest.TestCase):
                     str(session),
                     "--actor",
                     "human:maintainer",
-                ]
+                ],
+                cwd=root,
             )
             self.assertEqual(approve_code, 0)
             self.assertEqual(approve_payload["result"]["snapshot"]["stage"], "frozen")
@@ -309,15 +330,18 @@ class CliTests(unittest.TestCase):
                     "--driver-ref",
                     "workflow-a-fixture",
                     "--enable-fixture-driver",
-                ]
+                ],
+                cwd=root,
             )
             self.assertEqual(draft_code, 0)
             self.assertEqual(draft_payload["result"]["approval"]["status"], "waiting_auth")
+            self.assertEqual(Path(draft_payload["result"]["requestDraft"]["spec"]["artifactDir"]), expected_artifacts)
             self.assertTrue(request_draft.exists())
             self.assertTrue(approval.exists())
 
             admit_code, admit_payload, _ = _run_cli(
-                ["workflow-a", "admit", "--request-draft", str(request_draft)]
+                ["workflow-a", "admit", "--request-draft", str(request_draft)],
+                cwd=root,
             )
             self.assertEqual(admit_code, 0)
             self.assertTrue(admit_payload["result"]["accepted"])
@@ -336,14 +360,27 @@ class CliTests(unittest.TestCase):
                     "human:maintainer",
                     "--reason",
                     "Gate 2 approved in CLI lifecycle test.",
-                ]
+                ],
+                cwd=root,
             )
             self.assertEqual(authorize_code, 0)
             self.assertTrue(authorized.exists())
+            approval_record = json.loads(approval.read_text(encoding="utf-8"))
+            self.assertEqual(approval_record["status"], "approved")
+            self.assertEqual(approval_record["decisionBy"], "human:maintainer")
             self.assertEqual(
                 authorize_payload["result"]["goalExecutionRequest"]["kind"],
                 "GoalExecutionRequest",
             )
+            self.assertEqual(
+                Path(authorize_payload["result"]["goalExecutionRequest"]["spec"]["artifactDir"]),
+                expected_artifacts,
+            )
+
+            plan_code, plan_payload, _ = _run_cli(["goal", "plan", str(authorized)], cwd=root)
+            self.assertEqual(plan_code, 0)
+            self.assertEqual(Path(plan_payload["result"]["artifactDir"]), expected_artifacts)
+            self.assertTrue((expected_artifacts / "plan-ir.json").exists())
 
     def test_goal_start_allow_development_agent_injects_codex_driver(self) -> None:
         with mock.patch("ahra.cli.GoalOperationService") as service_cls, mock.patch(

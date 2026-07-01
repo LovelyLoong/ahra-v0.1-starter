@@ -1,0 +1,189 @@
+{
+  "ok": true,
+  "result": {
+    "schema_version": "ahra/goal-operation-inspect/0.1",
+    "goalExecution": {
+      "schema_version": "ahra/goal-execution/0.1",
+      "goal_execution_id": "GEXEC-f76f9856fb821e45",
+      "goal_ref": "GOAL-DOGFOOD-A-001",
+      "goal_digest": "sha256:aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888",
+      "claim_graph_ref": "claim-graph/dogfood-a-001",
+      "claim_graph_digest": "sha256:bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888cccc9999",
+      "status": "running",
+      "status_version": 1,
+      "active_plan_execution_ref": "PEXEC-9d219994a4b34e81",
+      "plan_execution_refs": [
+        "PEXEC-9d219994a4b34e81"
+      ],
+      "open_defect_refs": [],
+      "resolved_defect_refs": [],
+      "repair_cycle": 0,
+      "max_repair_cycles": 0,
+      "budget_summary": {
+        "profileRef": "profile/development-bounded"
+      },
+      "usage": {},
+      "workspace_ref": "D:\\Work\\ahra-v0.1-starter",
+      "checkpoint_ref": null,
+      "artifact_refs": [],
+      "evidence_refs": [],
+      "approval_refs": [],
+      "failure_class": null,
+      "message": "Attached active PlanExecution PEXEC-9d219994a4b34e81.",
+      "created_at": "2026-07-01T15:04:24.791247Z",
+      "updated_at": "2026-07-01T15:04:24.825151Z"
+    },
+    "planExecutions": [
+      {
+        "schema_version": "ahra/plan-execution/0.1",
+        "plan_execution_id": "PEXEC-9d219994a4b34e81",
+        "plan_id": "PLAN-9e66b027a3d048b5",
+        "plan_version": 1,
+        "plan_digest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+        "goal_ref": "GOAL-DOGFOOD-A-001",
+        "goal_execution_ref": "GEXEC-f76f9856fb821e45",
+        "parent_plan_execution_ref": null,
+        "parent_plan_digest": null,
+        "reused_node_refs": [],
+        "reused_evidence_refs": [],
+        "task_ref": null,
+        "validation_report_ref": "PLANVAL-a0d5b24bac6d155e",
+        "validation_report_digest": "sha256:4e12221ebe10fb90ec7dc357ab8d50a4aabe2ad0a51135489f0c4e6b3bc595a0",
+        "status": "running",
+        "status_version": 6,
+        "max_concurrency": 1,
+        "budget_summary": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 9,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 41,
+          "maxWallSeconds": 960,
+          "nodeCount": 2
+        },
+        "node_run_refs": [
+          "NRUN-7d1abb7b417ca4bf",
+          "NRUN-fc6bccffeda93ab8"
+        ],
+        "lease": null,
+        "checkpoint_ref": "checkpoint://CHK-31f131dc8e86e486",
+        "artifact_refs": [],
+        "evidence_refs": [],
+        "trace_refs": [
+          "TRACE-PEXEC-9d219994a4b34e81"
+        ],
+        "handoff_refs": [],
+        "cancel_requested": false,
+        "deadline_at": null,
+        "failure_class": null,
+        "message": "Static PlanIR DAG scheduling started.",
+        "created_at": "2026-07-01T15:04:24.799001Z",
+        "updated_at": "2026-07-01T15:04:28.058067Z"
+      }
+    ],
+    "nodeRuns": [
+      {
+        "schema_version": "ahra/node-run-state/0.1",
+        "node_run_id": "NRUN-7d1abb7b417ca4bf",
+        "plan_execution_id": "PEXEC-9d219994a4b34e81",
+        "plan_id": "PLAN-9e66b027a3d048b5",
+        "plan_digest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+        "node_id": "NODE-alignment-session",
+        "node_type": "bounded_task",
+        "attempt": 1,
+        "status": "running",
+        "status_version": 4,
+        "dependency_node_refs": [],
+        "gate_refs": [
+          "GATE-alignment-session"
+        ],
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 8,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 40,
+          "maxWallSeconds": 900
+        },
+        "usage": {},
+        "artifact_refs": [],
+        "evidence_refs": [],
+        "terminal_failure_refs": [],
+        "admission_decision_refs": [
+          "PDEC-a549379e-daba-4a70-92ee-3bb90d5d8689",
+          "PDEC-00fd296e-bd27-4700-ac30-8c79e7240c35"
+        ],
+        "capability_grant_refs": [
+          "CGRANT-ebc04c73-283b-4deb-b5da-e0111edf27ce",
+          "CGRANT-7b51efce-7248-40c3-b436-1a3b19c640df"
+        ],
+        "capability_grant_digests": [
+          "sha256:080408ad1f249290d3e0c23a61da39fcb73d41cd33c70466c7f28c5f9efe6624",
+          "sha256:6693561953789fd8c41402ac89dc663adae6bab859c0e39f95e942abbf9c45a5"
+        ],
+        "executor_release": null,
+        "lease": {
+          "holder": "scheduler:goal-operation-cli",
+          "fencing_token": 1,
+          "heartbeat_at": "2026-07-01T15:04:28.048415Z",
+          "expires_at": "2026-07-01T15:19:58.048415Z"
+        },
+        "failure_class": null,
+        "message": "Node is running.",
+        "created_at": "2026-07-01T15:04:24.799001Z",
+        "updated_at": "2026-07-01T15:04:28.058067Z"
+      },
+      {
+        "schema_version": "ahra/node-run-state/0.1",
+        "node_run_id": "NRUN-fc6bccffeda93ab8",
+        "plan_execution_id": "PEXEC-9d219994a4b34e81",
+        "plan_id": "PLAN-9e66b027a3d048b5",
+        "plan_digest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+        "node_id": "NODE-goal-verification",
+        "node_type": "goal_verification",
+        "attempt": 1,
+        "status": "pending",
+        "status_version": 0,
+        "dependency_node_refs": [
+          "NODE-alignment-session"
+        ],
+        "gate_refs": [
+          "GATE-goal-complete"
+        ],
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "usage": {},
+        "artifact_refs": [],
+        "evidence_refs": [],
+        "terminal_failure_refs": [],
+        "admission_decision_refs": [],
+        "capability_grant_refs": [],
+        "capability_grant_digests": [],
+        "executor_release": null,
+        "lease": null,
+        "failure_class": null,
+        "message": "",
+        "created_at": "2026-07-01T15:04:24.799001Z",
+        "updated_at": "2026-07-01T15:04:24.799001Z"
+      }
+    ],
+    "idempotencyRecords": [],
+    "recoveryEvents": [],
+    "artifactFindings": [],
+    "metrics": {
+      "goalStatus": "running",
+      "planExecutionCount": 1,
+      "nodeRunCount": 2,
+      "nodeStatusCounts": {
+        "running": 1,
+        "pending": 1
+      },
+      "evidenceRefCount": 0,
+      "capabilityGrantRefCount": 2,
+      "missingArtifactCount": 0
+    }
+  }
+}

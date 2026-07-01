@@ -40,21 +40,22 @@
     {
       "command": "uv run python -B scripts/check.py --test",
       "status": "passed",
-      "observed": "316 OK, skipped=1"
+      "observed": "318 tests OK, skipped=2"
     },
     {
       "command": "uv run python -B scripts/check.py --lint",
       "status": "passed",
-      "observed": "AWKP lint 0 error(s), 0 warning(s)"
+      "observed": "AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s)"
     },
     {
       "command": "git diff --check",
       "status": "passed",
-      "observed": "exit 0; Git emitted CRLF normalization warnings only"
+      "observed": "exit 0; no output"
     }
   ],
   "residual_risks": [
     "This task intentionally does not promote component:alignment-session-manager to default-visible.",
     "This is producer evidence only. Independent EvidenceGate review must decide completion."
-  ]
+  ],
+  "refreshed_at": "2026-07-01T12:55:26.4725579Z"
 }

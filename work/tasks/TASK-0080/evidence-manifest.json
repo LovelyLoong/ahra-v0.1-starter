@@ -8,7 +8,7 @@
       "kind": "verification_summary",
       "name": "verification-summary.json",
       "uri": "local://evidence/verification-summary.json",
-      "sha256": "962961bafbd73ad0bc1c1b2f145a216a3a4a28c06604aaabbacd47c38e87d94e",
+      "sha256": "5efca3616e5db33e666df36baaf935bc4219aec125e6f111d47a9bdba48ab4d1",
       "media_type": "application/json",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
@@ -20,6 +20,21 @@
         "ART-TASK-0080-RUN-0003",
         "ART-TASK-0080-RUN-0004",
         "ART-TASK-0080-HANDOFF-0001"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0080-0002",
+      "task_id": "TASK-0080",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "1f06fc5f7803c69fb76a17f4039691316f2a52be831be406b65e48d9e123bbdf",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T13:12:03.854983Z",
+      "refs": [
+        "ART-TASK-0080-0003",
+        "EVD-TASK-0080-0001"
       ]
     }
   ]

@@ -1,0 +1,77 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "alignment-session",
+  "artifacts": [
+    {
+      "artifact_id": "ART-617dd362ab4b4caebf26b39c61c8bd4b",
+      "task_id": "alignment-session",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/alignment-session/attempt-1/patch.diff",
+      "sha256": "10d8b29803e07498165a2edee162dc4c81568e3c21d6c3b0891982f114328cf6",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-01T14:37:57.232793Z",
+      "input_refs": [
+        "alignment-session",
+        "NRUN-7d1abb7b417ca4bf"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-9b7ca6e443de42dcb473f8d67191dce4",
+      "task_id": "alignment-session",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/alignment-session/attempt-1/work-report.json",
+      "sha256": "4e85fb433b86286b55db07f8a2591667c57ff2b0aa0dd2fda9792ec3f8fe0289",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-01T14:37:57.234886Z",
+      "input_refs": [
+        "alignment-session",
+        "NRUN-7d1abb7b417ca4bf"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-1269d25b3ea0419c94115da05297b4ef",
+      "task_id": "alignment-session",
+      "kind": "rejected_patch",
+      "name": "rejected.patch",
+      "uri": "local://tasks/alignment-session/rejected.patch",
+      "sha256": "10d8b29803e07498165a2edee162dc4c81568e3c21d6c3b0891982f114328cf6",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-01T14:37:57.240993Z",
+      "input_refs": [
+        "alignment-session",
+        "NRUN-7d1abb7b417ca4bf"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-c0eccea4fe6848fd89a0cf9aa5d72cc3",
+      "task_id": "alignment-session",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-alignment-session/node-run.json",
+      "sha256": "c4c8a80b9f42cb7d5a5bb11b078c6b547702cc0a592ae825283d6a988e9e159f",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-01T14:37:57.525964Z",
+      "input_refs": [
+        "PLAN-9e66b027a3d048b5",
+        "NODE-alignment-session",
+        "NRUN-7d1abb7b417ca4bf"
+      ],
+      "evidence_refs": [
+        "EVD-2f1a858aa55845b9a146b005156a9ac5"
+      ],
+      "supersedes": null
+    }
+  ]
+}

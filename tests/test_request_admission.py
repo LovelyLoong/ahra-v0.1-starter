@@ -5,10 +5,10 @@ from dataclasses import replace
 from pathlib import Path
 
 from ahra.acceptance_contracts import ClaimGraph
-from ahra.alignment_engine import AlignmentWorkflowEngine
 from ahra.intent_draft import IntentCapabilityNeed, IntentDraft
 from ahra.request_admission import RequestDraftAdmission
 from ahra.validation import load_document
+from tests.phase1_helpers import request_draft_from_intent
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -89,11 +89,7 @@ def _intent() -> IntentDraft:
 
 
 def _draft(intent: IntentDraft):
-    engine = AlignmentWorkflowEngine()
-    session = engine.start(intent)
-    for message in ("scope", "claims", "plan"):
-        session = engine.advance(session, actor="agent:alignment", message=message)
-    return engine.draft_request(session, producer_actor="agent:producer")
+    return request_draft_from_intent(ROOT / ".tmp-phase1-request-admission", intent)
 
 
 if __name__ == "__main__":

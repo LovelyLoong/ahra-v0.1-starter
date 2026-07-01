@@ -1,0 +1,190 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "RequestDraft",
+  "metadata": {
+    "idempotencyKey": "phase1-phase1-example-001",
+    "intentId": "INTENT-PHASE1-EXAMPLE",
+    "name": "phase1-phase1-example",
+    "producerActor": "agent:workflow-a-smoke",
+    "requestId": "REQ-d4ce55d6fff423d3"
+  },
+  "spec": {
+    "artifactDir": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-a-smoke\\20260701T221645+0800\\artifacts",
+    "capabilityPolicies": {},
+    "claimGraph": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "ClaimGraph",
+      "metadata": {
+        "goalId": "GOAL-PHASE1-EXAMPLE-ALIGNED",
+        "name": "phase1-example-aligned",
+        "version": 1
+      },
+      "spec": {
+        "claims": [
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "CRIT-summary-artifact"
+            ],
+            "dependsOn": [],
+            "gateRefs": [
+              "GATE-alignment-objective"
+            ],
+            "id": "CLAIM-summary-artifact",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "artifact"
+            ],
+            "riskLevel": "R1",
+            "statement": "A deterministic summary artifact is produced in the local workspace.",
+            "type": "functional"
+          }
+        ],
+        "goalRef": "GOAL-PHASE1-EXAMPLE-ALIGNED"
+      }
+    },
+    "execution": {
+      "branch": "main",
+      "maxConcurrency": 1,
+      "maxRepairCycles": 0
+    },
+    "executor": {
+      "adapterRef": "executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    "gateRunner": {
+      "adapterRef": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "goal": {
+      "claimGraphDigest": "sha256:9f6d5212c1973717466fe92468da59abbd5193157dc56fe39b5c0254ef5fc5a6",
+      "goalDigest": "sha256:b65b71a18457685c59f36bc92286d649c2a9db338713113adbbd2333e23d235c",
+      "goalRef": "GOAL-PHASE1-EXAMPLE-ALIGNED",
+      "requiredClaimRefs": [
+        "CLAIM-summary-artifact"
+      ]
+    },
+    "planDraft": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanDraft",
+      "metadata": {
+        "goalId": "GOAL-PHASE1-EXAMPLE-ALIGNED",
+        "proposedBy": "planner/workflow-a-cli-fixture"
+      },
+      "spec": {
+        "nodes": [
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 2,
+              "maxWallSeconds": 60
+            },
+            "capabilityRequests": [
+              {
+                "capability": "filesystem.write",
+                "resources": [
+                  "outputs/summary.txt"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLAIM-summary-artifact"
+            ],
+            "dependsOn": [],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [
+                  "NODE-goal-verification"
+                ],
+                "name": "summary-artifact",
+                "schemaRef": "ahra/artifact/text/0.1"
+              }
+            ],
+            "gateRefs": [
+              "GATE-alignment-objective"
+            ],
+            "id": "NODE-write-summary",
+            "inputRefs": [],
+            "nodeType": "bounded_task",
+            "objective": "Write the governed deterministic summary artifact.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 60
+          },
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 1,
+              "maxWallSeconds": 30
+            },
+            "capabilityRequests": [],
+            "claimRefs": [
+              "CLAIM-summary-artifact"
+            ],
+            "dependsOn": [
+              "NODE-write-summary"
+            ],
+            "expectedOutputs": [],
+            "gateRefs": [
+              "GATE-alignment-complete"
+            ],
+            "id": "NODE-goal-verification",
+            "inputRefs": [
+              "NODE-write-summary"
+            ],
+            "nodeType": "goal_verification",
+            "objective": "Verify the summary artifact satisfies the frozen requirement.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": true,
+            "timeoutSeconds": 30
+          }
+        ],
+        "rationale": "Single bounded node writes the requested summary artifact."
+      }
+    },
+    "planner": {
+      "adapterRef": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "profileRef": "profile/m1-deterministic@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "registry": {
+      "allowedCapabilities": [
+        "filesystem.write"
+      ],
+      "gateRefs": {
+        "GATE-alignment-complete": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "GATE-alignment-objective": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "nodeTypes": {
+        "bounded_task": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "goal_verification": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "runtimeRefs": {
+        "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    },
+    "runtime": {
+      "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "store": {
+      "kind": "sqlite",
+      "path": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-a-smoke\\20260701T221645+0800\\goal-control.sqlite3"
+    },
+    "workspaceRef": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-a-smoke\\20260701T221645+0800\\workspace"
+  }
+}

@@ -108,8 +108,8 @@ class D2OutOfAllowlistWriteTests(unittest.TestCase):
             self.assertFalse((main_workspace / "src" / "ahra" / "evidence_gate.py").exists())
             # The main tree's uncommitted sentinel survives the hostile run.
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "keep me\n")
-            worktree_root = root / ".ahra" / "artifacts" / "development-worktrees"
-            self.assertFalse(worktree_root.exists() and any(worktree_root.rglob(".git")))
+            self.assertTrue(result["executionWorkspacePreserved"])
+            self.assertTrue(Path(result["executionWorkspaceRef"]).exists())
 
 
 class D4MaxAttemptsTests(unittest.TestCase):

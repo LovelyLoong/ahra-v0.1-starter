@@ -7,7 +7,7 @@
     "requestId": "GREQ-DOGFOOD-A-001"
   },
   "spec": {
-    "artifactDir": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0080\\runs\\dogfood-a-004\\artifacts",
+    "artifactDir": "D:\\Work\\ahra-v0.1-starter\\work\\tasks\\TASK-0080\\runs\\dogfood-a-004\\artifacts",
     "execution": {
       "branch": "main",
       "maxConcurrency": 1,
@@ -131,7 +131,7 @@
             "timeoutSeconds": 60
           }
         ],
-        "rationale": "Dogfood: use Workflow B (development-bounded profile, real Agent) to build\na real Agent-driven alignment session manager for Workflow A, per ADR-0009,\nreplacing the deterministic template stub. Writes are confined to the\nA-workflow path allowlist; the B kernel is on the write blacklist.\n"
+        "rationale": "Dogfood: use Workflow B (development-bounded profile, real Agent) to build\na real Agent-driven alignment session manager for Workflow A, per ADR-0009.\nWrites are confined to the\nA-workflow path allowlist; the B kernel is on the write blacklist.\n"
       }
     },
     "planner": {
@@ -162,8 +162,8 @@
     },
     "store": {
       "kind": "sqlite",
-      "path": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0080\\runs\\dogfood-a-004\\goal-control.sqlite3"
+      "path": "D:\\Work\\ahra-v0.1-starter\\work\\tasks\\TASK-0080\\runs\\dogfood-a-004\\goal-control.sqlite3"
     },
-    "workspaceRef": "E:\\ahra-v0.1-starter"
+    "workspaceRef": "D:\\Work\\ahra-v0.1-starter"
   }
 }

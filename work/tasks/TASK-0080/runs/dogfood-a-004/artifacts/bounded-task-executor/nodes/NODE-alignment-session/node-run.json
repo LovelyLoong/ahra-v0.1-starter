@@ -1,0 +1,53 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "NodeRun",
+  "metadata": {
+    "nodeRunId": "NRUN-cd93406b00f64238afe4fd30259a6613",
+    "planId": "PLAN-9e66b027a3d048b5",
+    "nodeId": "NODE-alignment-session",
+    "executorRelease": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "spec": {
+    "nodeType": "bounded_task",
+    "status": "rejected",
+    "artifactRefs": [
+      "ART-617dd362ab4b4caebf26b39c61c8bd4b",
+      "ART-9b7ca6e443de42dcb473f8d67191dce4",
+      "ART-1269d25b3ea0419c94115da05297b4ef"
+    ],
+    "evidenceRefs": [
+      "EVD-2a65e0f5b62e4b34a62102b704db5fed",
+      "EVD-855b83f03e17414e8b2cbfee6984a8b0",
+      "EVD-5cf5949bc1fb489090f9c7e55e106ea7",
+      "EVD-2f1a858aa55845b9a146b005156a9ac5"
+    ],
+    "gateRefs": [
+      "GATE-alignment-session"
+    ],
+    "terminalFailureRefs": [
+      "tasks/alignment-session/terminal-failure.json"
+    ],
+    "taskCompletedStateUpdateAttempted": false,
+    "usage": {
+      "modelCalls": 1,
+      "toolCalls": 2,
+      "spawnedNodes": 0,
+      "costUsd": 0.0
+    },
+    "message": "Task exhausted its bounded attempts and was rolled back.",
+    "details": {
+      "taskId": "alignment-session",
+      "taskStatus": "rejected",
+      "commit": null,
+      "semanticReviewEnabled": false,
+      "executionPolicy": {
+        "maxAttempts": 1,
+        "startupTimeoutSeconds": 120,
+        "idleTimeoutSeconds": 900,
+        "heartbeatIntervalSeconds": 60,
+        "attemptWallTimeoutSeconds": 900,
+        "runDeadlineSeconds": 900
+      }
+    }
+  }
+}

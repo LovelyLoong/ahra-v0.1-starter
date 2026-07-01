@@ -1,0 +1,16 @@
+{
+  "summary": "Updated the alignment session implementation and tests: structured errors now expose a GoalOperation-style error dict alias, Requirement and Acceptance Agent drafting is invoked independently from the same frozen requirement with resolved runtime digest context, and tests now assert immutable snapshots, mapping-based resume, structured digest rejection, and untrusted RequestDraft separation.",
+  "changed_files": [
+    "src/ahra/alignment_session.py",
+    "tests/test_alignment_session.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --test"
+  ],
+  "known_risks": [
+    "The required verification command could not complete because uv is not available on PATH in this runtime."
+  ],
+  "unresolved_items": [
+    "Re-run uv run python -B scripts/check.py --test in an environment where uv is installed or on PATH."
+  ]
+}

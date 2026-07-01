@@ -1,0 +1,4 @@
+goal=GOAL-PHASE1-EXAMPLE-ALIGNED
+plan=PLAN-7f3912e0b58a9411
+node=NODE-write-summary
+node_run=NRUN-c6533dbb7cf6afc6

@@ -1,0 +1,59 @@
+{
+  "ok": true,
+  "result": {
+    "sessionPath": "artifacts\\workflow-a-formal\\20260701T222019+0800\\supervised-e2e\\session.json",
+    "snapshot": {
+      "sessionId": "ASESS-4ee43498a3d495ae",
+      "intent": {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "IntentDraft",
+        "metadata": {
+          "intentId": "INTENT-PHASE1-EXAMPLE",
+          "name": "phase1-example-intent"
+        },
+        "spec": {
+          "abstractGoal": "Write one governed deterministic summary artifact for the Phase 1 example.",
+          "constraints": [
+            {
+              "key": "scope",
+              "value": "Keep the change inside the local workspace outputs directory.",
+              "required": true
+            },
+            {
+              "key": "verification",
+              "value": "The result must be command-gate decidable.",
+              "required": true
+            }
+          ],
+          "capabilityNeeds": [
+            {
+              "action": "filesystem.write",
+              "resources": [
+                "outputs/summary.txt"
+              ],
+              "riskLevel": "R1",
+              "reason": "The deterministic executor writes the summary artifact."
+            }
+          ],
+          "context": {
+            "roadmapRef": "docs/roadmaps/phase1-minimal-loop-intent-roadmap.md",
+            "taskRef": "TASK-0062"
+          },
+          "priorityHint": "P0",
+          "riskHint": "R1",
+          "requester": "human:maintainer"
+        }
+      },
+      "profileRef": "profile/m1-deterministic@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "workspaceRef": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-a-formal\\20260701T222019+0800\\supervised-e2e\\workspace",
+      "artifactDir": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-a-formal\\20260701T222019+0800\\supervised-e2e\\artifacts",
+      "storePath": "D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-a-formal\\20260701T222019+0800\\supervised-e2e\\goal-control.sqlite3",
+      "producerActor": "agent:workflow-a-formal-supervisor",
+      "stage": "dialogue",
+      "turns": [],
+      "missingDimensions": []
+    }
+  }
+}

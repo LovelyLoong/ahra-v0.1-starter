@@ -65,18 +65,19 @@
     },
     {
       "command": "uv run python -B scripts/check.py --test",
-      "observed": "309 OK, skipped=1",
+      "observed": "318 tests OK, skipped=2",
       "status": "passed"
     },
     {
       "command": "uv run python -B scripts/check.py --lint",
-      "observed": "AHRA lint 0 errors, 0 warnings",
+      "observed": "AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s)",
       "status": "passed"
     },
     {
       "command": "git diff --check",
-      "observed": "exit 0; Git emitted a component-inventory CRLF normalization warning only",
+      "observed": "exit 0; no output",
       "status": "passed"
     }
-  ]
+  ],
+  "refreshed_at": "2026-07-01T12:55:26.4725579Z"
 }

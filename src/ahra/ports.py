@@ -50,9 +50,9 @@ from .verification import (
 )
 
 if TYPE_CHECKING:
-    from .alignment_engine import RequestDraft
     from .approval_service import ApprovalEvent, ApprovalRecord
     from .goal_operations import GoalExecutionRequest
+    from .request_draft import RequestDraft
 
 
 class AgentRole(StrEnum):

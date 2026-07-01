@@ -6,19 +6,20 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 
-from ahra.alignment_engine import AlignmentError, AlignmentWorkflowEngine
+from ahra.alignment_session import AlignmentSessionError, AlignmentSessionManager
 from ahra.approval_service import ApprovalService
 from ahra.evidence_v2 import DigestRef, EvidenceEnvironment
 from ahra.intent_draft import IntentCapabilityNeed
 from ahra.request_admission import RequestDraftAdmission
 from ahra.verification import GateExecutionRequest, GateExecutionStatus, GateLevel, SemanticReviewGateRunner, SubjectiveGateDecision
-from tests.phase1_helpers import example_intent, network_intent_with_policy, start_goal
+from tests.phase1_helpers import _Phase1AlignmentDriver, example_intent, network_intent_with_policy, request_draft_from_intent, start_goal
 
 
 D1 = "sha256:" + "1" * 64
 D2 = "sha256:" + "2" * 64
 D3 = "sha256:" + "3" * 64
 D4 = "sha256:" + "4" * 64
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class Phase1ComprehensiveTests(unittest.TestCase):
@@ -111,17 +112,10 @@ class Phase1ComprehensiveTests(unittest.TestCase):
             approvals.approve(approval.approval_id, actor="agent:producer")
 
     def test_scenario_5_multi_turn_alignment_refines_and_rejects_out_of_envelope_request(self) -> None:
-        engine = AlignmentWorkflowEngine()
-        session = engine.start(example_intent())
-        stages = []
-        for message in ("refine scope", "draft claims", "draft plan"):
-            stages.append(session.stage)
-            session = engine.advance(session, actor="agent:alignment", message=message)
-        self.assertEqual(stages, ["refining_scope", "drafting_claims", "drafting_plan"])
-        self.assertEqual(session.stage, "ready")
+        manager = AlignmentSessionManager(_Phase1AlignmentDriver(example_intent()))
 
-        with self.assertRaises(AlignmentError):
-            engine.draft_request(session, profile_ref="profile/out-of-envelope@sha256:" + "9" * 64)
+        with self.assertRaises(AlignmentSessionError):
+            manager.start(example_intent(), profile_ref="profile/out-of-envelope@sha256:" + "9" * 64)
 
         risky_intent = replace(
             example_intent(),
@@ -140,11 +134,7 @@ class Phase1ComprehensiveTests(unittest.TestCase):
 
 
 def _draft(intent):
-    engine = AlignmentWorkflowEngine()
-    session = engine.start(intent)
-    for message in ("scope", "claims", "plan"):
-        session = engine.advance(session, actor="agent:alignment", message=message)
-    return engine.draft_request(session, producer_actor="agent:producer")
+    return request_draft_from_intent(ROOT / ".tmp-phase1-comprehensive", intent)
 
 
 def _subjective_request() -> GateExecutionRequest:

@@ -1,0 +1,5 @@
+exitCode=2
+{
+  "ok": false,
+  "error": "producer cannot self-authorize a RequestDraft"
+}

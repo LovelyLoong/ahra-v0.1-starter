@@ -1,0 +1,142 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: real-alignment-session-manager
+  requestId: GREQ-DOGFOOD-A-UV-FIX-20260701T083105
+  idempotencyKey: dogfood:workflow-a:alignment-session-manager:uv-fix:20260701T083105
+spec:
+  profileRef: profile/development-bounded
+  workspaceRef: D:/Work/ahra-v0.1-starter
+  artifactDir: D:/Work/ahra-v0.1-starter/artifacts/workflow-b-dogfood-a-rerun/20260701T083105/artifacts
+  store:
+    kind: sqlite
+    path: D:/Work/ahra-v0.1-starter/artifacts/workflow-b-dogfood-a-rerun/20260701T083105/goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-DOGFOOD-A-001
+    goalDigest: sha256:aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888
+    claimGraphRef: claim-graph/dogfood-a-001
+    claimGraphDigest: sha256:bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888cccc9999
+    requiredClaimRefs:
+    - CLM-ALIGNMENT-SESSION
+    - CLM-GOAL-COMPLETE
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-alignment-session: sha256:3333333333333333333333333333333333333333333333333333333333333333
+      GATE-goal-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+    - filesystem.write
+    - process.exec
+  execution:
+    maxRepairCycles: 0
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-DOGFOOD-A-001
+      proposedBy: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    spec:
+      rationale: 'Dogfood: use Workflow B (development-bounded profile, real Agent)
+        to build
+
+        a real Agent-driven alignment session manager for Workflow A, per ADR-0009.
+
+        Writes are confined to the
+
+        A-workflow path allowlist; the B kernel is on the write blacklist.
+
+        '
+      nodes:
+      - id: NODE-alignment-session
+        nodeType: bounded_task
+        objective: "Create src/ahra/alignment_session.py implementing a real Agent-driven\n\
+          AlignmentSessionManager per docs/architecture/intent-alignment-workflow.md\n\
+          and ADR-0009. It must:\n1. Accept an IntentDraft and drive multi-turn dialogue\
+          \ via the AgentDriver\n   port (src/ahra/ports.py) - do not import any model/cloud\
+          \ SDK directly.\n2. Keep immutable per-turn session state snapshots with\
+          \ turn history.\n3. Resolve profile/digest references from GoalOperationProfileRegistry\
+          \ and\n   reject unknown references with a structured error (never fabricate\
+          \ a digest).\n4. Emit an untrusted RequestDraft on convergence, never a\
+          \ frozen\n   GoalExecutionRequest.\n5. Be resumable from any state snapshot.\n\
+          Also create tests/test_alignment_session.py with deterministic fake-AgentDriver\n\
+          fixtures asserting: agent-driven dialogue is actually invoked; unknown digest\
+          \ is\nrejected; resume-from-snapshot works; output is an untrusted RequestDraft.\n\
+          Run uv run python -B scripts/check.py --test and record it in\nWorkReport.verification_commands_run.\n"
+        claimRefs:
+        - CLM-ALIGNMENT-SESSION
+        dependsOn: []
+        inputRefs:
+        - input/dogfood-a-001@sha256:7777777777777777777777777777777777777777777777777777777777777777
+        expectedOutputs:
+        - name: alignment-session-code
+          schemaRef: ahra/artifact/code-change/0.1
+          consumerNodeRefs:
+          - NODE-goal-verification
+          artifactRequired: true
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - src/ahra/alignment_session.py
+          - tests/test_alignment_session.py
+        - capability: process.exec
+          resources:
+          - uv run python -B scripts/check.py --test
+        gateRefs:
+        - GATE-alignment-session
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 8
+          maxToolCalls: 40
+          maxSpawnedNodes: 0
+          maxWallSeconds: 900
+          maxCostUsd: 1.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: true
+        timeoutSeconds: 900
+        sideEffect: mutating
+      - id: NODE-goal-verification
+        nodeType: goal_verification
+        objective: Verify the alignment session implementation and its tests are present
+          and consistent.
+        claimRefs:
+        - CLM-ALIGNMENT-SESSION
+        - CLM-GOAL-COMPLETE
+        dependsOn:
+        - NODE-alignment-session
+        inputRefs:
+        - NODE-alignment-session
+        expectedOutputs: []
+        capabilityRequests: []
+        gateRefs:
+        - GATE-goal-complete
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 1
+          maxSpawnedNodes: 0
+          maxWallSeconds: 60
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        timeoutSeconds: 60
+        sideEffect: idempotent
+        terminalGoalVerification: true

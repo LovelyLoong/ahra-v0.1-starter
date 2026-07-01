@@ -2,22 +2,24 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0078",
   "context_id": "CTX-workflow-a-hardening",
-  "state": "review",
-  "state_version": 2,
+  "state": "completed",
+  "state_version": 3,
   "attempt": 1,
   "owner": null,
   "lease": null,
-  "next_action": "Await independent EvidenceGate review.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "pause_reason": null,
   "blockers": [],
   "artifact_refs": [
     "ART-TASK-0078-0001",
     "ART-TASK-0078-0002",
     "ART-TASK-0078-0003",
-    "ART-TASK-0078-HANDOFF-0001"
+    "ART-TASK-0078-HANDOFF-0001",
+    "ART-TASK-0078-0004"
   ],
   "evidence_refs": [
-    "EVD-TASK-0078-0001"
+    "EVD-TASK-0078-0001",
+    "EVD-TASK-0078-0002"
   ],
-  "updated_at": "2026-07-01T11:08:07.582117Z"
+  "updated_at": "2026-07-01T13:12:02.305248Z"
 }

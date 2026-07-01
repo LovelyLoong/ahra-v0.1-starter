@@ -1,0 +1,64 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "alignment-session",
+  "evidence": [
+    {
+      "evidence_id": "EVD-de2d1f707d00485e83238083d8c633ef",
+      "task_id": "alignment-session",
+      "kind": "deterministic_gate",
+      "name": "deterministic-evidence.json",
+      "uri": "local://tasks/alignment-session/attempt-1/deterministic-evidence.json",
+      "sha256": "cc54cbeae8e89e87b8e6240e4fe1eae5474b82359b5911ceeeeade725feda918",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-01T15:22:29.751799Z",
+      "refs": [
+        "ART-0779869e27c2433dbe3af3072cef60f0",
+        "ART-7aaf22312dd6436690186c64a2a5a80b"
+      ]
+    },
+    {
+      "evidence_id": "EVD-eed7f523f21d4dd684ebe59a501d0ebe",
+      "task_id": "alignment-session",
+      "kind": "semantic_review",
+      "name": "review.json",
+      "uri": "local://tasks/alignment-session/attempt-1/review.json",
+      "sha256": "f9ea2d1f42fd53b6b5483c112040aa1ed1f59844c2682ce04551ce4e64482735",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-01T15:22:29.759111Z",
+      "refs": [
+        "EVD-de2d1f707d00485e83238083d8c633ef"
+      ]
+    },
+    {
+      "evidence_id": "EVD-003e096624a1453bb89b3fad83371045",
+      "task_id": "alignment-session",
+      "kind": "terminal_failure",
+      "name": "terminal-failure.json",
+      "uri": "local://tasks/alignment-session/terminal-failure.json",
+      "sha256": "f038de83255d1f5dbff96df8ad78caa613d990e9f4e3b819e5abf4871c3ccb2f",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-01T15:22:30.278819Z",
+      "refs": [
+        "ART-27eb55db1ab1406a8eb5d4b3e32ce24d"
+      ]
+    },
+    {
+      "evidence_id": "EVD-41162a908b034c1fbb61adc6220f4b63",
+      "task_id": "alignment-session",
+      "kind": "node_gate_summary",
+      "name": "node-gates.json",
+      "uri": "local://nodes/NODE-alignment-session/node-gates.json",
+      "sha256": "8a8eb83374c622b28af82a1555f867f0f50edb8869f8b220cdb0ec1d29116f7a",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-01T15:22:30.326341Z",
+      "refs": [
+        "NODE-alignment-session",
+        "PLAN-9e66b027a3d048b5"
+      ]
+    }
+  ]
+}

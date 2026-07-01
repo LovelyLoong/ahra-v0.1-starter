@@ -1,0 +1,42 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateRun",
+  "metadata": {
+    "gateRunId": "GATERUN-1c168cb5d150a08b"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLAIM-summary-artifact"
+    ],
+    "command": [
+      "deterministic-gate-runner",
+      "GATE-alignment-objective"
+    ],
+    "completedAt": "2026-07-01T14:23:15.434510Z",
+    "decisionAt": null,
+    "dependencies": [],
+    "environment": {
+      "policyDigest": "sha256:db87317fc7133716346735379dded1ccf6a41646c8c444ec4a8ee9f69d0008be",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:a538c72519f5509ff24fbd519220cae7c01696b987c9f3e88f1dd3ea1aa16ccb",
+      "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "evidenceRef": "EVD-1c168cb5d150a08b",
+    "fingerprint": "sha256:9f04f65d9bfaee733024de10a38edc0dc43169030132ca0a2583b6efb4ca514e",
+    "gateDefinitionDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "gateRef": "GATE-alignment-objective",
+    "result": "passed",
+    "startedAt": "2026-07-01T14:23:15.434510Z",
+    "subjects": [
+      {
+        "digest": "sha256:ecd186360442139601026df2f2402b86f5852674e55a1bdb15356af6d3d8f3c3",
+        "ref": "file://D:\\Work\\ahra-v0.1-starter\\artifacts\\workflow-a-formal\\20260701T222019+0800\\supervised-e2e\\workspace\\outputs\\summary.txt"
+      }
+    ],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

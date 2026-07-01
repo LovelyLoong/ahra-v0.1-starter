@@ -15,10 +15,10 @@ TASK-0052..0070 this execution workflow exists and is exercised by tests.
 The original master plan (`AHRA_dynamic_kernel_master_plan_2026-06-25.md`)
 starts from "a human submits a GoalContract". It never specified how a human's
 *vague* natural-language intent becomes that contract. Phase 1 (TASK-0062..0069)
-attempted to close this front edge with an "alignment workflow", but the
-delivered `AlignmentWorkflowEngine` is a **deterministic template transformer**,
+attempted to close this front edge with an "alignment workflow", but TASK-0063
+delivered a **non-Agent deterministic transformer**,
 not an Agent. Its `advance(message)` stores the dialogue turn and never reads
-it; `draft_request` fills a fixed two-node template from structured
+it; `draft_request` fills a fixed two-node structure from structured
 `IntentDraft` fields. The natural-language `abstractGoal` only flows into a
 `statement` string and a digest; it is never understood.
 
@@ -26,7 +26,7 @@ This happened because the Phase 1 roadmap imposed a hard rule that *every Phase 
 task must be command-gate decidable (exit 0)*. Genuine Agent-driven dialogue is
 non-deterministic, which conflicts with verifying the *dialogue process*. To
 pass that gate, TASK-0063 removed the dialogue's effect entirely, producing an
-idempotent template stub. The rule, not the goal, forced the workflow into a
+idempotent fixed converter. The rule, not the goal, forced the workflow into a
 shell.
 
 The maintainer's actual intent: build a reusable **Loop Engineering + custom**
@@ -35,7 +35,7 @@ Agents drive the work of turning that into a deliverable contract for Workflow B
 
 ## Decision
 
-### 1. The intent alignment workflow (Workflow A) is Agent-driven, not template-driven
+### 1. The intent alignment workflow (Workflow A) is Agent-driven, not fixed-transform driven
 
 Workflow A accepts **natural language** from the human and uses real
 `AgentDriver`-backed agents (the same provider-neutral Port already used by the
@@ -103,15 +103,11 @@ admission acceptance, freeze into a valid `GoalExecutionRequest`, and a
 verify *how the agents talked*; only that what they emitted is a legal,
 B-consumable contract.
 
-### 7. The deterministic template alignment engine is deprecated
+### 7. The legacy deterministic converter path is deprecated
 
-The current `alignment_engine` (and the structured `IntentDraft` entry surface
-that assumes the human already did the agent's job) is reclassified as
-`experimental`/deprecated. It is removed from the default operation surface and
-the package's default exports; the code is retained only as a deterministic test
-stub and is not used unless a caller invokes it explicitly. It must be
-registered in `component-inventory.json` with that lifecycle class and a removal
-trigger.
+The legacy structured `IntentDraft` deterministic converter is not Workflow A. It
+may remain only in historical evidence or explicit fixtures, but it must not be
+extended as the real alignment solution.
 
 ## Consequences
 
@@ -137,11 +133,11 @@ trigger.
 
 ## Rejected alternatives
 
-### Keep the deterministic template alignment engine as Workflow A
+### Keep the legacy deterministic converter path as Workflow A
 
 Rejected. It does not understand natural language and requires the human to
 pre-structure an `IntentDraft`, which means the human does the agent's job. It
-delivers the low-value "fill a template" shell while skipping the valuable
+delivers the low-value fixed-field conversion shell while skipping the valuable
 "understand vague intent and self-drive contract generation" core.
 
 ### One agent does alignment, requirement, and acceptance
@@ -154,7 +150,7 @@ power separation forbids.
 
 Rejected. That is the original mistake. Forcing the non-deterministic dialogue
 to be deterministically verifiable is exactly what reduced TASK-0063 to a
-template stub. The dialogue is non-deterministic by nature; only its emitted
+fixed converter. The dialogue is non-deterministic by nature; only its emitted
 product is gated.
 
 ### Allow the Acceptance Agent to emit freely subjective criteria

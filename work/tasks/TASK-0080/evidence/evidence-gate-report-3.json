@@ -1,0 +1,41 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0080",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-01T13:12:03.854983Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Verifier reviewed dogfood request paths, task-scoped run artifacts, and goal operation tests; criteria are covered by current task run records.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Dogfood GoalExecution requests do not write artifactDir or store paths under examples/goals/.ahra or example-local runtime state.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0080-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 1 to task evidence EVD-TASK-0080-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Artifact and SQLite store paths are derived from the owning task/run identity, with deterministic paths recorded in task evidence or runtime run records.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0080-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 2 to task evidence EVD-TASK-0080-0001 after source/evidence review and current baseline checks."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Tests or validation commands prove goal validate/plan/start consume the new task-scoped paths without breaking inspect/resume.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0080-0001"
+      ],
+      "notes": "Verifier mapped acceptance criterion 3 to task evidence EVD-TASK-0080-0001 after source/evidence review and current baseline checks."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": []
+}

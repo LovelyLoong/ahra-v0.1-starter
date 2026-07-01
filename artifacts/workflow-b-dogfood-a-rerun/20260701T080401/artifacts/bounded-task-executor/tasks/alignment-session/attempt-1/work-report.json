@@ -1,0 +1,14 @@
+{
+  "summary": "Updated the bounded alignment-session artifacts: centralized the fixed Workflow A alignment checklist in src/ahra/alignment_session.py and asserted the fake AgentDriver receives it in tests/test_alignment_session.py. The existing AgentDriver-backed session behavior remains covered for dialogue invocation, digest rejection, snapshot resume, and untrusted RequestDraft output.",
+  "changed_files": [
+    "src/ahra/alignment_session.py",
+    "tests/test_alignment_session.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --test"
+  ],
+  "known_risks": [
+    "The verification run passed with one unrelated Windows symlink test skipped because the environment lacks symlink privilege."
+  ],
+  "unresolved_items": []
+}

@@ -1,0 +1,124 @@
+diff --git a/src/ahra/alignment_session.py b/src/ahra/alignment_session.py
+index df24e0c..2c7e491 100644
+--- a/src/ahra/alignment_session.py
++++ b/src/ahra/alignment_session.py
+@@ -1,5 +1,6 @@
+ from __future__ import annotations
+ 
++import asyncio
+ from dataclasses import dataclass, replace
+ from typing import Any, Mapping
+ 
+@@ -51,6 +52,9 @@ class AlignmentSessionError(ValueError):
+     def to_dict(self) -> dict[str, Any]:
+         return {"code": self.code, "message": self.message, "ref": self.ref, "refs": list(self.refs)}
+ 
++    def to_error_dict(self) -> dict[str, Any]:
++        return self.to_dict()
++
+ 
+ @dataclass(frozen=True, slots=True)
+ class AlignmentSessionTurn:
+@@ -336,27 +340,31 @@ class AlignmentSessionManager:
+                 "request drafting requires a frozen requirement snapshot",
+                 ref="session.frozenRequirement",
+             )
+-        requirement_result = await self._run_agent(
+-            current,
+-            expected_output=REQUIREMENT_DRAFT_OUTPUT,
+-            payload={
+-                "phase": "requirement-draft",
+-                "intent": current.intent.to_mapping(),
+-                "frozenRequirement": current.frozen_requirement,
+-                "profileRef": current.profile_ref,
+-                "runtimeRef": current.runtime_ref,
+-            },
+-        )
+-        acceptance_result = await self._run_agent(
+-            current,
+-            expected_output=ACCEPTANCE_DRAFT_OUTPUT,
+-            payload={
+-                "phase": "acceptance-draft",
+-                "intent": current.intent.to_mapping(),
+-                "frozenRequirement": current.frozen_requirement,
+-                "profileRef": current.profile_ref,
+-                "runtimeRef": current.runtime_ref,
+-            },
++        requirement_result, acceptance_result = await asyncio.gather(
++            self._run_agent(
++                current,
++                expected_output=REQUIREMENT_DRAFT_OUTPUT,
++                payload={
++                    "phase": "requirement-draft",
++                    "intent": current.intent.to_mapping(),
++                    "frozenRequirement": current.frozen_requirement,
++                    "profileRef": current.profile_ref,
++                    "runtimeRef": current.runtime_ref,
++                    "runtimeDigest": current.runtime_digest,
++                },
++            ),
++            self._run_agent(
++                current,
++                expected_output=ACCEPTANCE_DRAFT_OUTPUT,
++                payload={
++                    "phase": "acceptance-draft",
++                    "intent": current.intent.to_mapping(),
++                    "frozenRequirement": current.frozen_requirement,
++                    "profileRef": current.profile_ref,
++                    "runtimeRef": current.runtime_ref,
++                    "runtimeDigest": current.runtime_digest,
++                },
++            ),
+         )
+         requirement = _mapping(requirement_result.output, REQUIREMENT_DRAFT_OUTPUT)
+         acceptance = _mapping(acceptance_result.output, ACCEPTANCE_DRAFT_OUTPUT)
+diff --git a/tests/test_alignment_session.py b/tests/test_alignment_session.py
+index ec15001..5e37e7a 100644
+--- a/tests/test_alignment_session.py
++++ b/tests/test_alignment_session.py
+@@ -31,12 +31,13 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+         manager = AlignmentSessionManager(driver)
+         snapshot = manager.start(_intent())
+ 
+-        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
++        advanced = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+ 
+         self.assertEqual(driver.calls[0].expected_output, ALIGNMENT_DECISION_OUTPUT)
+         self.assertEqual(driver.calls[0].payload["userMessage"], "Keep scope local.")
+-        self.assertEqual(snapshot.turns[-1].actor, "agent:alignment")
+-        self.assertEqual(snapshot.stage, "awaiting_user")
++        self.assertEqual(snapshot.turns, ())
++        self.assertEqual(advanced.turns[-1].actor, "agent:alignment")
++        self.assertEqual(advanced.stage, "awaiting_user")
+ 
+     def test_unknown_digest_is_rejected_before_agent_invocation(self) -> None:
+         driver = FakeAlignmentDriver()
+@@ -46,6 +47,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+             manager.start(_intent(), runtime_digest="sha256:" + "9" * 64)
+ 
+         self.assertEqual(raised.exception.code, "runtime_digest_mismatch")
++        self.assertEqual(raised.exception.to_error_dict()["ref"], "spec.runtime.digest")
+         self.assertEqual(driver.calls, [])
+ 
+     def test_resume_from_snapshot_works(self) -> None:
+@@ -53,7 +55,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+         manager = AlignmentSessionManager(driver)
+         snapshot = manager.start(_intent())
+         snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+-        restored = AlignmentSessionSnapshot.from_mapping(snapshot.to_mapping())
++        restored = snapshot.to_mapping()
+ 
+         resumed = asyncio.run(manager.advance(restored, "Freeze that boundary."))
+ 
+@@ -84,6 +86,11 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+         self.assertIn(REQUIREMENT_DRAFT_OUTPUT, [call.expected_output for call in driver.calls])
+         self.assertIn(ACCEPTANCE_DRAFT_OUTPUT, [call.expected_output for call in driver.calls])
+         self.assertFalse(hasattr(result.request_draft, "to_goal_execution_request_mapping"))
++        requirement_call = next(call for call in driver.calls if call.expected_output == REQUIREMENT_DRAFT_OUTPUT)
++        acceptance_call = next(call for call in driver.calls if call.expected_output == ACCEPTANCE_DRAFT_OUTPUT)
++        self.assertEqual(requirement_call.payload["frozenRequirement"], acceptance_call.payload["frozenRequirement"])
++        self.assertNotIn("planDraft", acceptance_call.payload)
++        self.assertNotIn("claimGraph", requirement_call.payload)
+ 
+     def test_request_draft_passes_admission(self) -> None:
+         driver = FakeAlignmentDriver()

@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .alignment_engine import AlignmentRegistry, RequestDraft
 from .capabilities import HIGH_RISK_ACTIONS
 from .plan_ir import PlanCompilerConfig, compile_plan_draft
+from .request_draft import RequestDraft, RequestDraftRegistry
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,8 +36,8 @@ class RequestDraftAdmissionResult:
 
 
 class RequestDraftAdmission:
-    def __init__(self, registry: AlignmentRegistry | None = None) -> None:
-        self.registry = registry or AlignmentRegistry()
+    def __init__(self, registry: RequestDraftRegistry | None = None) -> None:
+        self.registry = registry or RequestDraftRegistry()
 
     def evaluate(self, draft: RequestDraft) -> RequestDraftAdmissionResult:
         rejections: list[RequestDraftRejection] = []

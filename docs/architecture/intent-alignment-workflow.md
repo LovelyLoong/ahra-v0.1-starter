@@ -35,8 +35,10 @@ The foundation has two workflows joined by one immutable contract.
 
 This document is the active owner of the Workflow A concept. The decision record
 is [ADR-0009](../../architecture/decisions/ADR-0009-agent-driven-intent-alignment-front-workflow.md).
-Workflow A is **proposed and not yet implemented**; the prior deterministic
-template `alignment_engine` is a stub and is being marked experimental.
+Workflow A is **proposed and partially implemented as an experimental,
+non-default path**. The prior TASK-0063 non-Agent deterministic transformer has
+been removed from the active source surface; its records are historical trace
+only.
 
 # Core principle: requirement is the acceptance
 
@@ -172,16 +174,15 @@ frozen RequestDraft passing the three exit gates and being consumable by B.
 - **RequestDraft / RequestDraftAdmission / ApprovalService** already exist from
   Phase 1 tasks (TASK-0062..0065). The admission and freeze layer is largely
   correct and is retained. What changes is the **entry** (natural language, not a
-  structured IntentDraft) and the **middle** (real Agents, not a template).
-- **Experimental `alignment_session` checkpoint** (`src/ahra/alignment_session.py`,
-  TASK-0077) is the first AgentDriver-backed Workflow A implementation slice.
-  It can drive dialogue, preserve immutable snapshots, reject profile/runtime
-  digest mismatches before Agent invocation, and emit an untrusted
-  `RequestDraft`. It remains non-default until Requirement/Acceptance Agent
-  outputs are explicit and fail-closed, and both ADR-0009 human gates are wired.
-- **The deterministic template `alignment_engine`** is reclassified as
-  experimental and removed from default exposure. It survives only as a
-  deterministic test stub and is not invoked unless explicitly requested.
+  pre-structured IntentDraft) and the **middle** (real Agents, not a fixed
+  converter).
+- **Experimental `alignment_session` checkpoint** (`src/ahra/alignment_session.py`)
+  is the current AgentDriver-backed Workflow A implementation slice. It can
+  drive dialogue, preserve immutable snapshots, reject profile/runtime digest
+  mismatches before Agent invocation, require explicit Requirement-Agent
+  `PlanDraft` and Acceptance-Agent `ClaimGraph`, enforce Human Gate 1, and emit
+  an untrusted `RequestDraft` for Gate 2 authorization. It remains non-default
+  until a separate component-lifecycle promotion approves default visibility.
 
 # Non-goals
 

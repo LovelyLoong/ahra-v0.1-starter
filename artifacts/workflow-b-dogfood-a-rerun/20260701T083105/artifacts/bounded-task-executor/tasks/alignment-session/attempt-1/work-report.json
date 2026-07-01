@@ -1,0 +1,16 @@
+{
+  "summary": "Created the AgentDriver-backed alignment session manager and deterministic unittest coverage for dialogue invocation, unknown digest rejection, snapshot resume, and untrusted RequestDraft output. The required test command was run, but the overall suite exited nonzero because tests/test_cli.py::CliTests.test_workflow_a_cli_lifecycle_requires_human_gates reported start_code 2; the new alignment_session tests passed.",
+  "changed_files": [
+    "src/ahra/alignment_session.py",
+    "tests/test_alignment_session.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --test"
+  ],
+  "known_risks": [
+    "The required verification command exited with code 1 due to tests/test_cli.py::CliTests.test_workflow_a_cli_lifecycle_requires_human_gates asserting start_code 0 but receiving 2."
+  ],
+  "unresolved_items": [
+    "Overall repository test suite remains failing in the existing CLI lifecycle test outside the requested alignment-session artifacts."
+  ]
+}

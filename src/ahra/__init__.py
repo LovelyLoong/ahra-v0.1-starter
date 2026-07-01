@@ -26,14 +26,6 @@ from .capabilities import (
     LocalRuntimeGateway,
     RuntimeCapabilityProfile,
 )
-from .alignment_engine import (
-    AlignmentError,
-    AlignmentRegistry,
-    AlignmentSession,
-    AlignmentTurn,
-    AlignmentWorkflowEngine,
-    RequestDraft,
-)
 from .approval_service import ApprovalEvent, ApprovalRecord, ApprovalService
 from .domain import (
     Budget,
@@ -149,6 +141,7 @@ from .planning import (
     planner_read_only_runtime_profile,
 )
 from .request_admission import RequestDraftAdmission, RequestDraftAdmissionResult, RequestDraftRejection
+from .request_draft import RequestDraft, RequestDraftError, RequestDraftRegistry
 from .ports import (
     AcceptancePlanner,
     AgentDriver,
@@ -252,11 +245,6 @@ __all__ = [
     "AcceptancePlanner",
     "AcceptancePlanningRequest",
     "AcceptancePlanningResult",
-    "AlignmentError",
-    "AlignmentRegistry",
-    "AlignmentSession",
-    "AlignmentTurn",
-    "AlignmentWorkflowEngine",
     "ApprovalEvent",
     "ApprovalRecord",
     "ApprovalService",
@@ -390,6 +378,8 @@ __all__ = [
     "RequestDraftAdmission",
     "RequestDraftAdmissionResult",
     "RequestDraftRejection",
+    "RequestDraftError",
+    "RequestDraftRegistry",
     "RetryPolicy",
     "RuntimeCapabilityGrant",
     "RuntimeCapabilityProfile",

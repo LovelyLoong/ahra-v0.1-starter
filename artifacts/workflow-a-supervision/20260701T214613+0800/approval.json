@@ -1,0 +1,12 @@
+{
+  "approvalId": "APR-363af306e2089062",
+  "decidedAt": null,
+  "decisionBy": null,
+  "intentId": "INTENT-PHASE1-EXAMPLE",
+  "producerActor": "agent:workflow-a-supervision",
+  "reason": "RequestDraft is waiting for human authorization.",
+  "requestId": "REQ-363af306e2089062",
+  "requestedAt": "2026-07-01T13:47:45.048621Z",
+  "requestedBy": "agent:workflow-a-supervision",
+  "status": "waiting_auth"
+}

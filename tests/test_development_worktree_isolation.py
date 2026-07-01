@@ -72,7 +72,7 @@ class DevelopmentWorktreeIsolationTests(unittest.TestCase):
             worktree_root = root / ".ahra" / "artifacts" / "development-worktrees"
             self.assertFalse(any(worktree_root.rglob(".git")) if worktree_root.exists() else False)
 
-    def test_development_worktree_removed_after_failed_run(self) -> None:
+    def test_development_worktree_preserved_after_failed_run(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             request = _write_development_request(root, target_path="alignment_stub.py")
@@ -84,9 +84,10 @@ class DevelopmentWorktreeIsolationTests(unittest.TestCase):
             ).start(request)
 
             self.assertEqual(result["planStatus"], "failed")
+            self.assertTrue(result["executionWorkspacePreserved"])
             self.assertTrue(driver.workspace_refs)
             for workspace in driver.workspace_refs:
-                self.assertFalse(workspace.exists())
+                self.assertTrue(workspace.exists())
 
     def test_isolated_provider_materializes_only_allowlisted_files(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

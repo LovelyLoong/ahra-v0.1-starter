@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "result": {
+    "schema_version": "ahra/request-draft-admission/0.1",
+    "accepted": true,
+    "requestId": "REQ-d4ce55d6fff423d3",
+    "planDigest": "sha256:a123c82c696fb1cfab191de6b821616abd0841ae8498d1a9ba13266ad3c119be",
+    "rejections": []
+  }
+}

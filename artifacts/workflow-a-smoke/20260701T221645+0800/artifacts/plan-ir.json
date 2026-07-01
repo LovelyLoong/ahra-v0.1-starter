@@ -1,0 +1,116 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:a123c82c696fb1cfab191de6b821616abd0841ae8498d1a9ba13266ad3c119be",
+    "planId": "PLAN-7f3912e0b58a9411",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:9f6d5212c1973717466fe92468da59abbd5193157dc56fe39b5c0254ef5fc5a6",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-write-summary",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:b65b71a18457685c59f36bc92286d649c2a9db338713113adbbd2333e23d235c",
+    "goalRef": "GOAL-PHASE1-EXAMPLE-ALIGNED",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 2,
+          "maxWallSeconds": 60
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:6b1b7f8f6fb58ef981bbb4b4d1de2c8c77624745687b3006fb3630ca19230dfa",
+            "resources": [
+              "outputs/summary.txt"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLAIM-summary-artifact"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "summary-artifact",
+            "schemaRef": "ahra/artifact/text/0.1"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        ],
+        "gateRefs": [
+          "GATE-alignment-objective"
+        ],
+        "id": "NODE-write-summary",
+        "inputRefs": [],
+        "nodeType": "bounded_task",
+        "objective": "Write the governed deterministic summary artifact.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 60
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 30
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLAIM-summary-artifact"
+        ],
+        "dependsOn": [
+          "NODE-write-summary"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-alignment-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-write-summary"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the summary artifact satisfies the frozen requirement.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 30
+      }
+    ]
+  }
+}

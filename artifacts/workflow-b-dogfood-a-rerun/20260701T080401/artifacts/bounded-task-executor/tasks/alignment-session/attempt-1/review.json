@@ -1,0 +1,21 @@
+{
+  "verdict": "fail",
+  "summary": "Semantic review was skipped because the deterministic gate failed.",
+  "criteria": [
+    {
+      "criterion": "Deterministic preconditions",
+      "passed": false,
+      "evidence": "Required checks and policy must pass before semantic review.",
+      "concerns": [
+        "capability denied filesystem.write:src/ahra/alignment_session.py:stale_grant",
+        "capability denied filesystem.write:tests/test_alignment_session.py:stale_grant"
+      ]
+    }
+  ],
+  "blocking_issues": [
+    "capability denied filesystem.write:src/ahra/alignment_session.py:stale_grant",
+    "capability denied filesystem.write:tests/test_alignment_session.py:stale_grant"
+  ],
+  "non_blocking_issues": [],
+  "confidence": 1.0
+}

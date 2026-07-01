@@ -5,8 +5,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .alignment_engine import RequestDraft
 from .goal_operations import GoalExecutionRequest
+from .request_draft import RequestDraft
 
 
 @dataclass(frozen=True, slots=True)

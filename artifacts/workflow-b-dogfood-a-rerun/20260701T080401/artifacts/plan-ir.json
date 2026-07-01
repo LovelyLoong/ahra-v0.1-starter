@@ -1,0 +1,127 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+    "planId": "PLAN-9e66b027a3d048b5",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888cccc9999",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-alignment-session",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888",
+    "goalRef": "GOAL-DOGFOOD-A-001",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 8,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 40,
+          "maxWallSeconds": 900
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:abbcf57bb1e9fa5edd5da1a64fccfd4766dcb3597a3efa4134201185066d991a",
+            "resources": [
+              "src/ahra/alignment_session.py",
+              "tests/test_alignment_session.py"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "grantDigest": "sha256:29c8f71e459bf77dc8d0e7af7f760b9a58ed4dee9aeb136c1b49b197948d250d",
+            "resources": [
+              "uv run python -B scripts/check.py --test"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-ALIGNMENT-SESSION"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "alignment-session-code",
+            "schemaRef": "ahra/artifact/code-change/0.1"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        ],
+        "gateRefs": [
+          "GATE-alignment-session"
+        ],
+        "id": "NODE-alignment-session",
+        "inputRefs": [
+          "input/dogfood-a-001@sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Create src/ahra/alignment_session.py implementing a real Agent-driven\nAlignmentSessionManager per docs/architecture/intent-alignment-workflow.md\nand ADR-0009. It must:\n1. Accept an IntentDraft and drive multi-turn dialogue via the AgentDriver\n   port (src/ahra/ports.py) - do not import any model/cloud SDK directly.\n2. Keep immutable per-turn session state snapshots with turn history.\n3. Resolve profile/digest references from GoalOperationProfileRegistry and\n   reject unknown references with a structured error (never fabricate a digest).\n4. Emit an untrusted RequestDraft on convergence, never a frozen\n   GoalExecutionRequest.\n5. Be resumable from any state snapshot.\nAlso create tests/test_alignment_session.py with deterministic fake-AgentDriver\nfixtures asserting: agent-driven dialogue is actually invoked; unknown digest is\nrejected; resume-from-snapshot works; output is an untrusted RequestDraft.\nRun uv run python -B scripts/check.py --test and record it in\nWorkReport.verification_commands_run.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 900
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-ALIGNMENT-SESSION",
+          "CLM-GOAL-COMPLETE"
+        ],
+        "dependsOn": [
+          "NODE-alignment-session"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-alignment-session"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the alignment session implementation and its tests are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ]
+  }
+}

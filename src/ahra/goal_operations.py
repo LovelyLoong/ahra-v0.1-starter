@@ -4,7 +4,9 @@ import asyncio
 import hashlib
 import json
 import os
+import shutil
 import subprocess
+import sys
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -109,13 +111,9 @@ DEVELOPMENT_BOUNDED_PROCESS_COMMANDS = (
     "uv run python -B scripts/check.py --test",
     "uv run python -B scripts/lint_awkp.py",
     "uv run python -B scripts/lint_*.py",
-    "python -B scripts/check.py",
-    "python -B scripts/check.py --lint",
-    "python -B scripts/check.py --test",
-    "python -B scripts/lint_awkp.py",
-    "python -B scripts/lint_*.py",
 )
 DEFAULT_SCHEDULER_LEASE_TTL_SECONDS = 300
+DEVELOPMENT_BOUNDED_TERMINAL_WRITE_GRACE_SECONDS = 300
 DEVELOPMENT_BOUNDED_NODE_BUDGET = PlanBudget(
     max_model_calls=10,
     max_tool_calls=50,
@@ -609,6 +607,7 @@ class GoalOperationService:
             store,
             real_executor_workspace_provider=workspace_provider,
         )
+        execution_workspace_preserved = True
         try:
             if run_once:
                 ran = asyncio.run(
@@ -623,6 +622,7 @@ class GoalOperationService:
                 latest_goal = store.get_goal_execution(goal.goal_execution_id)
                 defects = _scheduler_defects(scheduler)
                 completion = _scheduler_completion(scheduler)
+                execution_workspace_preserved = latest_execution.status == PlanExecutionStatus.FAILED
             else:
                 latest_execution = asyncio.run(
                     scheduler.run_until_terminal(
@@ -642,14 +642,21 @@ class GoalOperationService:
                     open_defect_refs=tuple(defect.defect_id for defect in defects),
                 )
                 ran = True
+                execution_workspace_preserved = latest_execution.status == PlanExecutionStatus.FAILED
         finally:
-            self._finalize_execution_workspace(workspace_provider, execution_workspace_ref)
+            self._finalize_execution_workspace(
+                workspace_provider,
+                execution_workspace_ref,
+                preserve=execution_workspace_preserved,
+            )
         kernel_verification = _write_kernel_verification_records(request.artifact_dir, scheduler.verification_executor)
         result = self.inspect(goal.goal_execution_id, db_path=request.store_path)
         report = {
             "schema_version": "ahra/goal-operation-start/0.1",
             "goalExecutionId": goal.goal_execution_id,
             "planExecutionId": execution.plan_execution_id,
+            "executionWorkspaceRef": execution_workspace_ref,
+            "executionWorkspacePreserved": execution_workspace_preserved,
             "ranReadyNodes": ran,
             "runOnce": run_once,
             "goalStatus": latest_goal.status.value,
@@ -698,6 +705,7 @@ class GoalOperationService:
             store,
             real_executor_workspace_provider=workspace_provider,
         )
+        execution_workspace_preserved = True
         try:
             execution = asyncio.run(
                 scheduler.run_until_terminal(
@@ -716,12 +724,19 @@ class GoalOperationService:
                 completion=completion,
                 open_defect_refs=tuple(defect.defect_id for defect in defects),
             )
+            execution_workspace_preserved = execution.status == PlanExecutionStatus.FAILED
         finally:
-            self._finalize_execution_workspace(workspace_provider, execution_workspace_ref)
+            self._finalize_execution_workspace(
+                workspace_provider,
+                execution_workspace_ref,
+                preserve=execution_workspace_preserved,
+            )
         report = {
             "schema_version": "ahra/goal-operation-resume/0.1",
             "goalExecutionId": goal_execution_id,
             "planExecutionId": execution.plan_execution_id,
+            "executionWorkspaceRef": execution_workspace_ref,
+            "executionWorkspacePreserved": execution_workspace_preserved,
             "goalStatus": latest_goal.status.value,
             "planStatus": execution.status.value,
             "defects": [defect.to_dict() for defect in defects],
@@ -932,6 +947,7 @@ class GoalOperationService:
             max_concurrency=request.max_concurrency,
             lease_holder="scheduler:goal-operation-cli",
             lease_ttl_seconds=_scheduler_lease_ttl_seconds(profile),
+            terminal_write_grace_seconds=_terminal_write_grace_seconds(profile),
         )
 
     def _ensure_runtime_dependencies(self, request: GoalExecutionRequest) -> None:
@@ -941,6 +957,13 @@ class GoalOperationService:
                 "real bounded Executor profile requires an injected AgentDriver before execution starts",
                 refs=(request.profile_ref, request.executor_adapter_ref),
             )
+        if request.profile_ref == DEVELOPMENT_BOUNDED_PROFILE_REF and _request_requires_uv(request):
+            if not _local_uv_available(request.workspace_ref, self.real_executor_runtime_provider):
+                raise GoalOperationError(
+                    "uv_runtime_unavailable",
+                    "development-bounded process.exec commands require uv on the local runtime PATH",
+                    refs=("uv", str(request.workspace_ref)),
+                )
 
     def _real_executor_workspace_provider(
         self,
@@ -975,7 +998,9 @@ class GoalOperationService:
             )
         )
 
-    def _finalize_execution_workspace(self, workspace_provider: Any | None, workspace_ref: str) -> None:
+    def _finalize_execution_workspace(self, workspace_provider: Any | None, workspace_ref: str, *, preserve: bool = False) -> None:
+        if preserve:
+            return
         finalize_workspace = getattr(workspace_provider, "finalize_execution_workspace", None)
         if finalize_workspace is not None:
             finalize_workspace(workspace_ref)
@@ -1715,6 +1740,12 @@ def _scheduler_lease_ttl_seconds(profile: GoalOperationProfile) -> int:
     return max(DEFAULT_SCHEDULER_LEASE_TTL_SECONDS, profile_budget.max_wall_seconds)
 
 
+def _terminal_write_grace_seconds(profile: GoalOperationProfile) -> int:
+    if profile.profile_ref == DEVELOPMENT_BOUNDED_PROFILE_REF:
+        return DEVELOPMENT_BOUNDED_TERMINAL_WRITE_GRACE_SECONDS
+    return 30
+
+
 def _first_write_grant(request: NodeExecutionRequest) -> Any:
     for grant in request.capability_grants:
         if grant.action == "filesystem.write":
@@ -1748,6 +1779,49 @@ def _node_idempotency_key(request: NodeExecutionRequest) -> str:
             "grantDigests": [grant.digest() for grant in request.capability_grants],
         }
     )
+
+
+def _request_requires_uv(request: GoalExecutionRequest) -> bool:
+    for node in request.plan_draft.nodes:
+        for capability in node.capability_requests:
+            if capability.capability != "process.exec":
+                continue
+            for resource in capability.resources:
+                parts = resource.strip().split()
+                if parts and Path(parts[0]).name.casefold() in {"uv", "uv.exe"}:
+                    return True
+    return False
+
+
+def _local_uv_available(workspace_ref: Path, runtime_provider: Any | None) -> bool:
+    if runtime_provider is not None:
+        from .reference_runner.runtime import LocalRuntimeProvider
+
+        if not isinstance(runtime_provider, LocalRuntimeProvider):
+            return True
+    return shutil.which("uv", path=_uv_search_path(workspace_ref)) is not None
+
+
+def _uv_search_path(workspace_ref: Path) -> str:
+    scripts_dir = "Scripts" if os.name == "nt" else "bin"
+    candidates = [
+        workspace_ref / ".venv" / scripts_dir,
+        Path(sys.prefix) / scripts_dir,
+        Path.cwd() / ".venv" / scripts_dir,
+    ]
+    parts = [str(path) for path in candidates if path.exists()]
+    parts.extend(os.environ.get("PATH", "").split(os.pathsep))
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for part in parts:
+        if not part:
+            continue
+        key = str(Path(part)).casefold()
+        if key in seen:
+            continue
+        deduped.append(part)
+        seen.add(key)
+    return os.pathsep.join(deduped)
 
 
 def _plan_execution_ref_for_node(store: SQLiteControlStore, node_run_id: str) -> str:

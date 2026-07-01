@@ -1,0 +1,5 @@
+exitCode=2
+{
+  "ok": false,
+  "error": "requirement_approval_requires_human approval.actor: requirement freeze requires explicit human confirmation"
+}

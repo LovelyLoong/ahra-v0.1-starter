@@ -12,8 +12,13 @@
       "media_type": "text/x-python",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["docs/architecture/intent-alignment-workflow.md", "architecture/decisions/ADR-0009-agent-driven-intent-alignment-front-workflow.md"],
-      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "input_refs": [
+        "docs/architecture/intent-alignment-workflow.md",
+        "architecture/decisions/ADR-0009-agent-driven-intent-alignment-front-workflow.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0081-0001"
+      ],
       "supersedes": null
     },
     {
@@ -22,12 +27,16 @@
       "kind": "code_change",
       "name": "cli.py",
       "uri": "local://src/ahra/cli.py",
-      "sha256": "96ccda7b6e6d241e03168117bbee5116e030a6772b25ed44d287f0fd607a14a4",
+      "sha256": "cd94e02e204c50a89fc54d07da32f0361aad46d7bfafc5060bdd11bc0d73e24d",
       "media_type": "text/x-python",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["TASK-0081"],
-      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "input_refs": [
+        "TASK-0081"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0081-0001"
+      ],
       "supersedes": null
     },
     {
@@ -40,8 +49,12 @@
       "media_type": "text/x-python",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["TASK-0081"],
-      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "input_refs": [
+        "TASK-0081"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0081-0001"
+      ],
       "supersedes": null
     },
     {
@@ -50,12 +63,16 @@
       "kind": "doc_change",
       "name": "component-inventory.json",
       "uri": "local://docs/architecture/component-inventory.json",
-      "sha256": "45fe0644198eb050550e0132116e6e4c159cde3b3f1c0f8b529b4f2ce0ee92c7",
+      "sha256": "7c888b9514955d826c296db5f981c3e9dcf6de3cb66d5322a05f7b3b6431ad19",
       "media_type": "application/json",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["docs/policies/component-lifecycle.md"],
-      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "input_refs": [
+        "docs/policies/component-lifecycle.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0081-0001"
+      ],
       "supersedes": null
     },
     {
@@ -68,8 +85,12 @@
       "media_type": "text/markdown",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["docs/architecture/authority-map.md"],
-      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "input_refs": [
+        "docs/architecture/authority-map.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0081-0001"
+      ],
       "supersedes": null
     },
     {
@@ -82,8 +103,33 @@
       "media_type": "text/markdown",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["evidence/verification-summary.json"],
-      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "input_refs": [
+        "evidence/verification-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0081-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0081-0006",
+      "task_id": "TASK-0081",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "6e849b641d74768e4e37417ccd876cfaad3fdaa091bcb2c0c4902a73733a303f",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T13:12:04.628499Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0081-0002"
+      ],
       "supersedes": null
     }
   ]

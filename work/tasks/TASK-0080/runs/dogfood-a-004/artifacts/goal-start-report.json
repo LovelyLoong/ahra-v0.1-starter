@@ -1,0 +1,246 @@
+{
+  "completion": {
+    "complete": false,
+    "currentClaimCoverage": 0.0,
+    "historicalEvidenceRefs": [],
+    "missingClaimRefs": [
+      "CLM-ALIGNMENT-SESSION",
+      "CLM-GOAL-COMPLETE"
+    ],
+    "nonCurrentEvidenceRefs": [],
+    "openDefectRefs": [],
+    "resolutionFailureRefs": [],
+    "uncoveredClaimRefs": []
+  },
+  "defects": [],
+  "goalExecutionId": "GEXEC-c9e26a1e588ede10",
+  "goalStatus": "failed",
+  "inspect": {
+    "artifactFindings": [],
+    "goalExecution": {
+      "active_plan_execution_ref": null,
+      "approval_refs": [],
+      "artifact_refs": [
+        "ART-c0eccea4fe6848fd89a0cf9aa5d72cc3",
+        "ART-617dd362ab4b4caebf26b39c61c8bd4b",
+        "ART-9b7ca6e443de42dcb473f8d67191dce4",
+        "ART-1269d25b3ea0419c94115da05297b4ef"
+      ],
+      "budget_summary": {
+        "profileRef": "profile/development-bounded"
+      },
+      "checkpoint_ref": null,
+      "claim_graph_digest": "sha256:bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888cccc9999",
+      "claim_graph_ref": "claim-graph/dogfood-a-001",
+      "created_at": "2026-07-01T14:29:26.176393Z",
+      "evidence_refs": [
+        "EVD-2a65e0f5b62e4b34a62102b704db5fed",
+        "EVD-855b83f03e17414e8b2cbfee6984a8b0",
+        "EVD-5cf5949bc1fb489090f9c7e55e106ea7",
+        "EVD-2f1a858aa55845b9a146b005156a9ac5"
+      ],
+      "failure_class": "rejected",
+      "goal_digest": "sha256:aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888",
+      "goal_execution_id": "GEXEC-c9e26a1e588ede10",
+      "goal_ref": "GOAL-DOGFOOD-A-001",
+      "max_repair_cycles": 0,
+      "message": "PlanExecution PEXEC-9d219994a4b34e81 reached failed.",
+      "open_defect_refs": [],
+      "plan_execution_refs": [
+        "PEXEC-9d219994a4b34e81"
+      ],
+      "repair_cycle": 0,
+      "resolved_defect_refs": [],
+      "schema_version": "ahra/goal-execution/0.1",
+      "status": "failed",
+      "status_version": 2,
+      "updated_at": "2026-07-01T14:37:57.583252Z",
+      "usage": {},
+      "workspace_ref": "D:\\Work\\ahra-v0.1-starter"
+    },
+    "idempotencyRecords": [],
+    "metrics": {
+      "capabilityGrantRefCount": 2,
+      "evidenceRefCount": 4,
+      "goalStatus": "failed",
+      "missingArtifactCount": 0,
+      "nodeRunCount": 2,
+      "nodeStatusCounts": {
+        "failed": 1,
+        "pending": 1
+      },
+      "planExecutionCount": 1
+    },
+    "nodeRuns": [
+      {
+        "admission_decision_refs": [
+          "PDEC-02d48203-1329-4f89-b937-38eeba87be53",
+          "PDEC-a43c09ab-a080-4f03-8298-f03ac089fd1d"
+        ],
+        "artifact_refs": [
+          "ART-c0eccea4fe6848fd89a0cf9aa5d72cc3",
+          "ART-617dd362ab4b4caebf26b39c61c8bd4b",
+          "ART-9b7ca6e443de42dcb473f8d67191dce4",
+          "ART-1269d25b3ea0419c94115da05297b4ef"
+        ],
+        "attempt": 1,
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 8,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 40,
+          "maxWallSeconds": 900
+        },
+        "capability_grant_digests": [
+          "sha256:8050d047dca64689b8d9beaca6d7ecb3f912160e21d04e9435476d472d0694a9",
+          "sha256:f18182cb26929f10513969a6b10300ef5c246ce23e29a60302dbb02588838b8c"
+        ],
+        "capability_grant_refs": [
+          "CGRANT-94fd5940-03cb-4010-93e9-339b44569547",
+          "CGRANT-29ad79f6-d4bd-4ca7-b45d-fa4c9a40702f"
+        ],
+        "created_at": "2026-07-01T14:29:26.183131Z",
+        "dependency_node_refs": [],
+        "evidence_refs": [
+          "EVD-2a65e0f5b62e4b34a62102b704db5fed",
+          "EVD-855b83f03e17414e8b2cbfee6984a8b0",
+          "EVD-5cf5949bc1fb489090f9c7e55e106ea7",
+          "EVD-2f1a858aa55845b9a146b005156a9ac5"
+        ],
+        "executor_release": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "failure_class": "rejected",
+        "gate_refs": [
+          "GATE-alignment-session"
+        ],
+        "lease": null,
+        "message": "Task exhausted its bounded attempts and was rolled back.",
+        "node_id": "NODE-alignment-session",
+        "node_run_id": "NRUN-7d1abb7b417ca4bf",
+        "node_type": "bounded_task",
+        "plan_digest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+        "plan_execution_id": "PEXEC-9d219994a4b34e81",
+        "plan_id": "PLAN-9e66b027a3d048b5",
+        "schema_version": "ahra/node-run-state/0.1",
+        "status": "failed",
+        "status_version": 5,
+        "terminal_failure_refs": [
+          "tasks/alignment-session/terminal-failure.json"
+        ],
+        "updated_at": "2026-07-01T14:37:57.528788Z",
+        "usage": {
+          "costUsd": 0.0,
+          "modelCalls": 1,
+          "spawnedNodes": 0,
+          "toolCalls": 2
+        }
+      },
+      {
+        "admission_decision_refs": [],
+        "artifact_refs": [],
+        "attempt": 1,
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "capability_grant_digests": [],
+        "capability_grant_refs": [],
+        "created_at": "2026-07-01T14:29:26.183131Z",
+        "dependency_node_refs": [
+          "NODE-alignment-session"
+        ],
+        "evidence_refs": [],
+        "executor_release": null,
+        "failure_class": null,
+        "gate_refs": [
+          "GATE-goal-complete"
+        ],
+        "lease": null,
+        "message": "",
+        "node_id": "NODE-goal-verification",
+        "node_run_id": "NRUN-fc6bccffeda93ab8",
+        "node_type": "goal_verification",
+        "plan_digest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+        "plan_execution_id": "PEXEC-9d219994a4b34e81",
+        "plan_id": "PLAN-9e66b027a3d048b5",
+        "schema_version": "ahra/node-run-state/0.1",
+        "status": "pending",
+        "status_version": 0,
+        "terminal_failure_refs": [],
+        "updated_at": "2026-07-01T14:29:26.183131Z",
+        "usage": {}
+      }
+    ],
+    "planExecutions": [
+      {
+        "artifact_refs": [
+          "ART-c0eccea4fe6848fd89a0cf9aa5d72cc3",
+          "ART-617dd362ab4b4caebf26b39c61c8bd4b",
+          "ART-9b7ca6e443de42dcb473f8d67191dce4",
+          "ART-1269d25b3ea0419c94115da05297b4ef"
+        ],
+        "budget_summary": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 9,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 41,
+          "maxWallSeconds": 960,
+          "nodeCount": 2
+        },
+        "cancel_requested": false,
+        "checkpoint_ref": "checkpoint://CHK-92943452e6b2c7cb",
+        "created_at": "2026-07-01T14:29:26.183131Z",
+        "deadline_at": null,
+        "evidence_refs": [
+          "EVD-2a65e0f5b62e4b34a62102b704db5fed",
+          "EVD-855b83f03e17414e8b2cbfee6984a8b0",
+          "EVD-5cf5949bc1fb489090f9c7e55e106ea7",
+          "EVD-2f1a858aa55845b9a146b005156a9ac5"
+        ],
+        "failure_class": "rejected",
+        "goal_execution_ref": "GEXEC-c9e26a1e588ede10",
+        "goal_ref": "GOAL-DOGFOOD-A-001",
+        "handoff_refs": [],
+        "lease": null,
+        "max_concurrency": 1,
+        "message": "Task exhausted its bounded attempts and was rolled back.",
+        "node_run_refs": [
+          "NRUN-7d1abb7b417ca4bf",
+          "NRUN-fc6bccffeda93ab8"
+        ],
+        "parent_plan_digest": null,
+        "parent_plan_execution_ref": null,
+        "plan_digest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+        "plan_execution_id": "PEXEC-9d219994a4b34e81",
+        "plan_id": "PLAN-9e66b027a3d048b5",
+        "plan_version": 1,
+        "reused_evidence_refs": [],
+        "reused_node_refs": [],
+        "schema_version": "ahra/plan-execution/0.1",
+        "status": "failed",
+        "status_version": 9,
+        "task_ref": null,
+        "trace_refs": [
+          "TRACE-PEXEC-9d219994a4b34e81"
+        ],
+        "updated_at": "2026-07-01T14:37:57.557435Z",
+        "validation_report_digest": "sha256:4e12221ebe10fb90ec7dc357ab8d50a4aabe2ad0a51135489f0c4e6b3bc595a0",
+        "validation_report_ref": "PLANVAL-a0d5b24bac6d155e"
+      }
+    ],
+    "recoveryEvents": [],
+    "schema_version": "ahra/goal-operation-inspect/0.1"
+  },
+  "kernelVerification": {
+    "evidenceRecords": [],
+    "gateRuns": [],
+    "schema_version": "ahra/kernel-verification-materialization/0.1"
+  },
+  "planExecutionId": "PEXEC-9d219994a4b34e81",
+  "planStatus": "failed",
+  "ranReadyNodes": true,
+  "runOnce": false,
+  "schema_version": "ahra/goal-operation-start/0.1"
+}

@@ -7,7 +7,6 @@ from typing import Any, Mapping
 import yaml
 
 from .acceptance_contracts import ClaimGraph
-from .alignment_engine import RequestDraft
 from .alignment_session import (
     ACCEPTANCE_DRAFT_OUTPUT,
     ALIGNMENT_DECISION_OUTPUT,
@@ -19,6 +18,7 @@ from .approval_service import ApprovalService
 from .intent_draft import IntentDraft
 from .plan_ir import PlanDraft
 from .ports import AgentDriver, AgentRunRequest, AgentRunResult
+from .request_draft import RequestDraft
 from .request_admission import RequestDraftAdmission
 from .validation import load_document
 
@@ -67,9 +67,9 @@ def start_session(
         profile_ref=profile_ref,
         runtime_ref=runtime_ref,
         runtime_digest=runtime_digest,
-        workspace_ref=workspace_ref,
-        artifact_dir=artifact_dir,
-        store_path=store_path,
+        workspace_ref=_normalize_cli_path(workspace_ref),
+        artifact_dir=_normalize_cli_path(artifact_dir),
+        store_path=_normalize_cli_path(store_path),
         producer_actor=producer_actor,
     )
     _write_json(session_path, snapshot.to_mapping())
@@ -150,9 +150,11 @@ def authorize_request(
     record = service.request_authorization(draft, actor=str(approval.get("requestedBy") or "agent:workflow-a-cli"))
     approved = service.approve(record.approval_id, actor=actor, reason=reason)
     frozen = service.freeze(draft, approval_id=record.approval_id)
+    approved_mapping = approved.to_dict()
+    _write_json(approval_path, approved_mapping)
     _write_yaml(output_path, frozen.to_dict())
     return {
-        "approval": approved.to_dict(),
+        "approval": approved_mapping,
         "goalExecutionRequestPath": str(output_path),
         "goalExecutionRequest": frozen.to_dict(),
     }
@@ -222,6 +224,13 @@ def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
 def _write_yaml(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(dict(payload), sort_keys=False), encoding="utf-8")
+
+
+def _normalize_cli_path(value: str) -> str:
+    path = Path(value)
+    if path.is_absolute():
+        return str(path)
+    return str(path.resolve())
 
 
 def _mapping(value: Any, ref: str) -> Mapping[str, Any]:

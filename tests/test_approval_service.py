@@ -4,13 +4,13 @@ import unittest
 from datetime import UTC, datetime
 from pathlib import Path
 
-from ahra.alignment_engine import AlignmentWorkflowEngine
 from ahra.approval_service import ApprovalService
 from ahra.goal_operations import GoalExecutionRequest
 from ahra.intent_draft import IntentDraft
 from ahra.ports import ApprovalService as ApprovalServicePort
 from ahra.request_admission import RequestDraftAdmission
 from ahra.validation import load_document
+from tests.phase1_helpers import request_draft_from_intent
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,11 +62,7 @@ class ApprovalServiceTests(unittest.TestCase):
 
 def _accepted_draft():
     intent = IntentDraft.from_mapping(load_document(EXAMPLE))
-    engine = AlignmentWorkflowEngine()
-    session = engine.start(intent)
-    for message in ("scope", "claims", "plan"):
-        session = engine.advance(session, actor="agent:alignment", message=message)
-    draft = engine.draft_request(session, producer_actor="agent:producer")
+    draft = request_draft_from_intent(ROOT / ".tmp-phase1-approval", intent)
     RequestDraftAdmission().require_accepted(draft)
     return draft
 

@@ -1,0 +1,221 @@
+{
+  "ok": true,
+  "result": {
+    "schema_version": "ahra/goal-operation-inspect/0.1",
+    "goalExecution": {
+      "schema_version": "ahra/goal-execution/0.1",
+      "goal_execution_id": "GEXEC-c9e26a1e588ede10",
+      "goal_ref": "GOAL-DOGFOOD-A-001",
+      "goal_digest": "sha256:aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888",
+      "claim_graph_ref": "claim-graph/dogfood-a-001",
+      "claim_graph_digest": "sha256:bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888cccc9999",
+      "status": "failed",
+      "status_version": 2,
+      "active_plan_execution_ref": null,
+      "plan_execution_refs": [
+        "PEXEC-9d219994a4b34e81"
+      ],
+      "open_defect_refs": [],
+      "resolved_defect_refs": [],
+      "repair_cycle": 0,
+      "max_repair_cycles": 0,
+      "budget_summary": {
+        "profileRef": "profile/development-bounded"
+      },
+      "usage": {},
+      "workspace_ref": "D:\\Work\\ahra-v0.1-starter",
+      "checkpoint_ref": null,
+      "artifact_refs": [
+        "ART-c0eccea4fe6848fd89a0cf9aa5d72cc3",
+        "ART-617dd362ab4b4caebf26b39c61c8bd4b",
+        "ART-9b7ca6e443de42dcb473f8d67191dce4",
+        "ART-1269d25b3ea0419c94115da05297b4ef"
+      ],
+      "evidence_refs": [
+        "EVD-2a65e0f5b62e4b34a62102b704db5fed",
+        "EVD-855b83f03e17414e8b2cbfee6984a8b0",
+        "EVD-5cf5949bc1fb489090f9c7e55e106ea7",
+        "EVD-2f1a858aa55845b9a146b005156a9ac5"
+      ],
+      "approval_refs": [],
+      "failure_class": "rejected",
+      "message": "PlanExecution PEXEC-9d219994a4b34e81 reached failed.",
+      "created_at": "2026-07-01T14:29:26.176393Z",
+      "updated_at": "2026-07-01T14:37:57.583252Z"
+    },
+    "planExecutions": [
+      {
+        "schema_version": "ahra/plan-execution/0.1",
+        "plan_execution_id": "PEXEC-9d219994a4b34e81",
+        "plan_id": "PLAN-9e66b027a3d048b5",
+        "plan_version": 1,
+        "plan_digest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+        "goal_ref": "GOAL-DOGFOOD-A-001",
+        "goal_execution_ref": "GEXEC-c9e26a1e588ede10",
+        "parent_plan_execution_ref": null,
+        "parent_plan_digest": null,
+        "reused_node_refs": [],
+        "reused_evidence_refs": [],
+        "task_ref": null,
+        "validation_report_ref": "PLANVAL-a0d5b24bac6d155e",
+        "validation_report_digest": "sha256:4e12221ebe10fb90ec7dc357ab8d50a4aabe2ad0a51135489f0c4e6b3bc595a0",
+        "status": "failed",
+        "status_version": 9,
+        "max_concurrency": 1,
+        "budget_summary": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 9,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 41,
+          "maxWallSeconds": 960,
+          "nodeCount": 2
+        },
+        "node_run_refs": [
+          "NRUN-7d1abb7b417ca4bf",
+          "NRUN-fc6bccffeda93ab8"
+        ],
+        "lease": null,
+        "checkpoint_ref": "checkpoint://CHK-92943452e6b2c7cb",
+        "artifact_refs": [
+          "ART-c0eccea4fe6848fd89a0cf9aa5d72cc3",
+          "ART-617dd362ab4b4caebf26b39c61c8bd4b",
+          "ART-9b7ca6e443de42dcb473f8d67191dce4",
+          "ART-1269d25b3ea0419c94115da05297b4ef"
+        ],
+        "evidence_refs": [
+          "EVD-2a65e0f5b62e4b34a62102b704db5fed",
+          "EVD-855b83f03e17414e8b2cbfee6984a8b0",
+          "EVD-5cf5949bc1fb489090f9c7e55e106ea7",
+          "EVD-2f1a858aa55845b9a146b005156a9ac5"
+        ],
+        "trace_refs": [
+          "TRACE-PEXEC-9d219994a4b34e81"
+        ],
+        "handoff_refs": [],
+        "cancel_requested": false,
+        "deadline_at": null,
+        "failure_class": "rejected",
+        "message": "Task exhausted its bounded attempts and was rolled back.",
+        "created_at": "2026-07-01T14:29:26.183131Z",
+        "updated_at": "2026-07-01T14:37:57.557435Z"
+      }
+    ],
+    "nodeRuns": [
+      {
+        "schema_version": "ahra/node-run-state/0.1",
+        "node_run_id": "NRUN-7d1abb7b417ca4bf",
+        "plan_execution_id": "PEXEC-9d219994a4b34e81",
+        "plan_id": "PLAN-9e66b027a3d048b5",
+        "plan_digest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+        "node_id": "NODE-alignment-session",
+        "node_type": "bounded_task",
+        "attempt": 1,
+        "status": "failed",
+        "status_version": 5,
+        "dependency_node_refs": [],
+        "gate_refs": [
+          "GATE-alignment-session"
+        ],
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 8,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 40,
+          "maxWallSeconds": 900
+        },
+        "usage": {
+          "costUsd": 0.0,
+          "modelCalls": 1,
+          "spawnedNodes": 0,
+          "toolCalls": 2
+        },
+        "artifact_refs": [
+          "ART-c0eccea4fe6848fd89a0cf9aa5d72cc3",
+          "ART-617dd362ab4b4caebf26b39c61c8bd4b",
+          "ART-9b7ca6e443de42dcb473f8d67191dce4",
+          "ART-1269d25b3ea0419c94115da05297b4ef"
+        ],
+        "evidence_refs": [
+          "EVD-2a65e0f5b62e4b34a62102b704db5fed",
+          "EVD-855b83f03e17414e8b2cbfee6984a8b0",
+          "EVD-5cf5949bc1fb489090f9c7e55e106ea7",
+          "EVD-2f1a858aa55845b9a146b005156a9ac5"
+        ],
+        "terminal_failure_refs": [
+          "tasks/alignment-session/terminal-failure.json"
+        ],
+        "admission_decision_refs": [
+          "PDEC-02d48203-1329-4f89-b937-38eeba87be53",
+          "PDEC-a43c09ab-a080-4f03-8298-f03ac089fd1d"
+        ],
+        "capability_grant_refs": [
+          "CGRANT-94fd5940-03cb-4010-93e9-339b44569547",
+          "CGRANT-29ad79f6-d4bd-4ca7-b45d-fa4c9a40702f"
+        ],
+        "capability_grant_digests": [
+          "sha256:8050d047dca64689b8d9beaca6d7ecb3f912160e21d04e9435476d472d0694a9",
+          "sha256:f18182cb26929f10513969a6b10300ef5c246ce23e29a60302dbb02588838b8c"
+        ],
+        "executor_release": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "lease": null,
+        "failure_class": "rejected",
+        "message": "Task exhausted its bounded attempts and was rolled back.",
+        "created_at": "2026-07-01T14:29:26.183131Z",
+        "updated_at": "2026-07-01T14:37:57.528788Z"
+      },
+      {
+        "schema_version": "ahra/node-run-state/0.1",
+        "node_run_id": "NRUN-fc6bccffeda93ab8",
+        "plan_execution_id": "PEXEC-9d219994a4b34e81",
+        "plan_id": "PLAN-9e66b027a3d048b5",
+        "plan_digest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+        "node_id": "NODE-goal-verification",
+        "node_type": "goal_verification",
+        "attempt": 1,
+        "status": "pending",
+        "status_version": 0,
+        "dependency_node_refs": [
+          "NODE-alignment-session"
+        ],
+        "gate_refs": [
+          "GATE-goal-complete"
+        ],
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "usage": {},
+        "artifact_refs": [],
+        "evidence_refs": [],
+        "terminal_failure_refs": [],
+        "admission_decision_refs": [],
+        "capability_grant_refs": [],
+        "capability_grant_digests": [],
+        "executor_release": null,
+        "lease": null,
+        "failure_class": null,
+        "message": "",
+        "created_at": "2026-07-01T14:29:26.183131Z",
+        "updated_at": "2026-07-01T14:29:26.183131Z"
+      }
+    ],
+    "idempotencyRecords": [],
+    "recoveryEvents": [],
+    "artifactFindings": [],
+    "metrics": {
+      "goalStatus": "failed",
+      "planExecutionCount": 1,
+      "nodeRunCount": 2,
+      "nodeStatusCounts": {
+        "failed": 1,
+        "pending": 1
+      },
+      "evidenceRefCount": 4,
+      "capabilityGrantRefCount": 2,
+      "missingArtifactCount": 0
+    }
+  }
+}

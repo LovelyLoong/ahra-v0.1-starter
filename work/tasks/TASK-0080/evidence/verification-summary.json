@@ -45,31 +45,32 @@
     {
       "command": "uv run python -B -m ahra.cli goal validate examples/goals/dogfood-a-alignment-session.yaml",
       "status": "passed",
-      "observed": "valid true; profileRef profile/development-bounded"
+      "observed": "valid true; profileRef profile/development-bounded; PlanValidationReport passed"
     },
     {
       "command": "uv run python -B -m ahra.cli goal plan examples/goals/dogfood-a-alignment-session.yaml",
       "status": "passed",
-      "observed": "artifactDir E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0080\\runs\\dogfood-a-004\\artifacts"
+      "observed": "artifactDir D:\\Work\\ahra-v0.1-starter\\work\\tasks\\TASK-0080\\runs\\dogfood-a-004\\artifacts; planDigest sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f"
     },
     {
       "command": "uv run python -B scripts/check.py --test",
       "status": "passed",
-      "observed": "316 OK, skipped=1"
+      "observed": "318 tests OK, skipped=2"
     },
     {
       "command": "uv run python -B scripts/check.py --lint",
       "status": "passed",
-      "observed": "AWKP lint 0 error(s), 0 warning(s)"
+      "observed": "AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s)"
     },
     {
       "command": "git diff --check",
       "status": "passed",
-      "observed": "exit 0; Git emitted CRLF normalization warnings only"
+      "observed": "exit 0; no output"
     }
   ],
   "residual_risks": [
     "Existing ignored examples/goals/.ahra may still exist from older runs, but the dogfood request no longer resolves artifactDir or store.path there.",
     "This is producer evidence only. Independent EvidenceGate review must decide completion."
-  ]
+  ],
+  "refreshed_at": "2026-07-01T12:55:26.4725579Z"
 }

@@ -860,6 +860,113 @@ class EvidenceGateTests(unittest.TestCase):
             ]
             self.assertEqual(events[-1]["event_type"], "evidence_gate_approved")
 
+    def test_local_uri_resolves_repo_root_and_task_local_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_task(root)
+            repo_file = root / "src" / "ahra" / "example.py"
+            repo_file.parent.mkdir(parents=True)
+            repo_file.write_text("VALUE = 1\n", encoding="utf-8")
+            task_run_file = task_dir / "runs" / "repo-root-referenced.json"
+            task_run_file.parent.mkdir(parents=True)
+            task_run_file.write_text('{"ok": true}\n', encoding="utf-8")
+            task_local_file = task_dir / "runs" / "task-local.json"
+            task_local_file.write_text('{"taskLocal": true}\n', encoding="utf-8")
+            manifest_path = task_dir / "artifact-manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["artifacts"].extend(
+                [
+                    {
+                        "artifact_id": "ART-TASK-9001-REPO-SRC",
+                        "task_id": "TASK-9001",
+                        "kind": "code_change",
+                        "name": "example.py",
+                        "uri": "local://src/ahra/example.py",
+                        "sha256": hashlib.sha256(repo_file.read_bytes()).hexdigest(),
+                        "media_type": "text/x-python",
+                        "created_by": "agent:codex",
+                        "created_at": "2026-06-22T00:03:10Z",
+                        "input_refs": ["task.md"],
+                        "evidence_refs": ["EVD-TASK-9001-0001"],
+                        "supersedes": None,
+                    },
+                    {
+                        "artifact_id": "ART-TASK-9001-REPO-WORK",
+                        "task_id": "TASK-9001",
+                        "kind": "goal_operation_artifact",
+                        "name": "repo-root-referenced.json",
+                        "uri": "local://work/tasks/TASK-9001/runs/repo-root-referenced.json",
+                        "sha256": hashlib.sha256(task_run_file.read_bytes()).hexdigest(),
+                        "media_type": "application/json",
+                        "created_by": "agent:codex",
+                        "created_at": "2026-06-22T00:03:20Z",
+                        "input_refs": ["task.md"],
+                        "evidence_refs": ["EVD-TASK-9001-0001"],
+                        "supersedes": None,
+                    },
+                    {
+                        "artifact_id": "ART-TASK-9001-TASK-RUN",
+                        "task_id": "TASK-9001",
+                        "kind": "goal_operation_artifact",
+                        "name": "task-local.json",
+                        "uri": "local://runs/task-local.json",
+                        "sha256": hashlib.sha256(task_local_file.read_bytes()).hexdigest(),
+                        "media_type": "application/json",
+                        "created_by": "agent:codex",
+                        "created_at": "2026-06-22T00:03:30Z",
+                        "input_refs": ["task.md"],
+                        "evidence_refs": ["EVD-TASK-9001-0001"],
+                        "supersedes": None,
+                    },
+                ]
+            )
+            _write_json(manifest_path, manifest)
+            report = _write_gate_input(root)
+
+            result = evaluate_task_gate(
+                "TASK-9001",
+                work_root=root / "work",
+                expected_version=4,
+                report_path=report,
+                actor="agent:verifier",
+            )
+
+            self.assertEqual(result.state, "completed")
+
+    def test_local_uri_rejects_path_traversal(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_task(root)
+            manifest_path = task_dir / "artifact-manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["artifacts"].append(
+                {
+                    "artifact_id": "ART-TASK-9001-ESCAPE",
+                    "task_id": "TASK-9001",
+                    "kind": "code_change",
+                    "name": "escape.py",
+                    "uri": "local://../escape.py",
+                    "sha256": "0" * 64,
+                    "media_type": "text/x-python",
+                    "created_by": "agent:codex",
+                    "created_at": "2026-06-22T00:03:10Z",
+                    "input_refs": ["task.md"],
+                    "evidence_refs": ["EVD-TASK-9001-0001"],
+                    "supersedes": None,
+                }
+            )
+            _write_json(manifest_path, manifest)
+            report = _write_gate_input(root)
+
+            with self.assertRaisesRegex(EvidenceGateError, "clean relative path"):
+                evaluate_task_gate(
+                    "TASK-9001",
+                    work_root=root / "work",
+                    expected_version=4,
+                    report_path=report,
+                    actor="agent:verifier",
+                )
+
     def test_task_review_orchestrator_approves_with_independent_gate(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

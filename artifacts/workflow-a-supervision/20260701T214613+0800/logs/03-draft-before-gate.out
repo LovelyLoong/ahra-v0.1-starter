@@ -1,0 +1,4 @@
+{
+  "ok": false,
+  "error": "requirement_not_approved session.requirementApprovedBy: request drafting requires Human Gate 1 requirement approval"
+}

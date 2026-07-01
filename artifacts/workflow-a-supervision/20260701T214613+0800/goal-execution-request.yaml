@@ -1,0 +1,114 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: phase1-phase1-example
+  requestId: REQ-363af306e2089062
+  idempotencyKey: phase1-phase1-example-001
+spec:
+  profileRef: profile/m1-deterministic@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  workspaceRef: artifacts\workflow-a-supervision\20260701T214613+0800\workspace
+  artifactDir: artifacts\workflow-a-supervision\20260701T214613+0800\artifacts
+  store:
+    kind: sqlite
+    path: artifacts\workflow-a-supervision\20260701T214613+0800\goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/deterministic-file-effect@sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-PHASE1-EXAMPLE-ALIGNED
+    goalDigest: sha256:b65b71a18457685c59f36bc92286d649c2a9db338713113adbbd2333e23d235c
+    claimGraphRef: null
+    claimGraphDigest: sha256:9f6d5212c1973717466fe92468da59abbd5193157dc56fe39b5c0254ef5fc5a6
+    requiredClaimRefs:
+    - CLAIM-summary-artifact
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-alignment-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
+      GATE-alignment-objective: sha256:3333333333333333333333333333333333333333333333333333333333333333
+    gateDefinitions: []
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+    - filesystem.write
+  execution:
+    maxRepairCycles: 0
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-PHASE1-EXAMPLE-ALIGNED
+      proposedBy: planner/workflow-a-cli-fixture
+    spec:
+      rationale: Single bounded node writes the requested summary artifact.
+      nodes:
+      - id: NODE-write-summary
+        nodeType: bounded_task
+        objective: Write the governed deterministic summary artifact.
+        claimRefs:
+        - CLAIM-summary-artifact
+        dependsOn: []
+        inputRefs: []
+        expectedOutputs:
+        - name: summary-artifact
+          schemaRef: ahra/artifact/text/0.1
+          consumerNodeRefs:
+          - NODE-goal-verification
+          artifactRequired: true
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - outputs/summary.txt
+        gateRefs:
+        - GATE-alignment-objective
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 2
+          maxSpawnedNodes: 0
+          maxWallSeconds: 60
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        sideEffect: idempotent
+        terminalGoalVerification: false
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        timeoutSeconds: 60
+      - id: NODE-goal-verification
+        nodeType: goal_verification
+        objective: Verify the summary artifact satisfies the frozen requirement.
+        claimRefs:
+        - CLAIM-summary-artifact
+        dependsOn:
+        - NODE-write-summary
+        inputRefs:
+        - NODE-write-summary
+        expectedOutputs: []
+        capabilityRequests: []
+        gateRefs:
+        - GATE-alignment-complete
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 1
+          maxSpawnedNodes: 0
+          maxWallSeconds: 30
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        sideEffect: idempotent
+        terminalGoalVerification: true
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        timeoutSeconds: 30

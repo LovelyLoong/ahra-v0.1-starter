@@ -1,0 +1,12 @@
+{
+  "approvalId": "APR-fb0bcb7ad3fa1079",
+  "decidedAt": "2026-07-01T14:23:12.954378Z",
+  "decisionBy": "human:maintainer",
+  "intentId": "INTENT-PHASE1-EXAMPLE",
+  "producerActor": "agent:workflow-a-formal-supervisor",
+  "reason": "Formal supervised Gate 2 approval.",
+  "requestId": "REQ-fb0bcb7ad3fa1079",
+  "requestedAt": "2026-07-01T14:23:12.954378Z",
+  "requestedBy": "agent:workflow-a-formal-supervisor",
+  "status": "approved"
+}

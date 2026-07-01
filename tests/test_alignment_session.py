@@ -4,7 +4,6 @@ import asyncio
 import unittest
 from pathlib import Path
 
-from ahra.alignment_engine import RequestDraft
 from ahra.alignment_session import (
     ACCEPTANCE_DRAFT_OUTPUT,
     ALIGNMENT_DECISION_OUTPUT,
@@ -18,6 +17,7 @@ from ahra.goal_operations import GoalExecutionRequest
 from ahra.intent_draft import IntentDraft
 from ahra.ports import AgentRunRequest, AgentRunResult
 from ahra.request_admission import RequestDraftAdmission
+from ahra.request_draft import RequestDraft
 from ahra.validation import load_document
 
 

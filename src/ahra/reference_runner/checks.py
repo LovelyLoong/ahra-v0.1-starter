@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
 import tempfile
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
 
 from .models import CheckEvidence, CheckSpec
 from .runtime import LocalRuntimeProvider
@@ -36,6 +38,8 @@ def run_check(workspace: Path, check: CheckSpec, runtime=None) -> CheckEvidence:
             exit_code=None,
             duration_seconds=0.0,
             stderr=f"check cwd does not exist: {cwd}",
+            status="not_started",
+            failure_class="missing_check_cwd",
         )
     if check.argv[0] == INTERNAL_ARTIFACT_EXISTS_COMMAND:
         return _run_internal_artifact_exists(workspace, cwd, check)
@@ -52,6 +56,7 @@ def run_check(workspace: Path, check: CheckSpec, runtime=None) -> CheckEvidence:
         env.setdefault("MYPY_CACHE_DIR", str(scratch_path / "mypy-cache"))
         env.setdefault("PIP_CACHE_DIR", str(scratch_path / "pip-cache"))
         env.setdefault("npm_config_cache", str(scratch_path / "npm-cache"))
+        env["PATH"] = _with_project_tool_path(workspace, env.get("PATH", ""))
         argv = _effective_check_argv(workspace, check.argv)
         if any(part == "pytest" or part.endswith("/pytest") for part in argv):
             existing = env.get("PYTEST_ADDOPTS", "").strip()
@@ -78,6 +83,8 @@ def run_check(workspace: Path, check: CheckSpec, runtime=None) -> CheckEvidence:
                 duration_seconds=round(time.monotonic() - started, 3),
                 stdout=_truncate(str(result.get("stdout") or "")),
                 stderr=_truncate(str(result.get("stderr") or "")),
+                status=_check_status(result),
+                failure_class=_check_failure_class(result),
             )
         finally:
             runtime.destroy(handle)
@@ -96,9 +103,57 @@ def _effective_check_argv(workspace: Path, argv: tuple[str, ...]) -> tuple[str, 
         return argv
     command = Path(argv[0]).name.lower()
     has_project_env = (workspace / "pyproject.toml").exists()
-    if command in {"python", "python.exe"} and has_project_env and shutil.which("uv"):
+    if command in {"python", "python.exe"} and has_project_env and _uv_available(workspace):
         return ("uv", "run", "python", "-B", *argv[1:])
     return argv
+
+
+def _with_project_tool_path(workspace: Path, current_path: str) -> str:
+    candidates = [
+        workspace / ".venv" / ("Scripts" if os.name == "nt" else "bin"),
+        Path(sys.prefix) / ("Scripts" if os.name == "nt" else "bin"),
+        Path.cwd() / ".venv" / ("Scripts" if os.name == "nt" else "bin"),
+    ]
+    existing = [str(path) for path in candidates if path.exists()]
+    parts = [*existing, *(current_path.split(os.pathsep) if current_path else [])]
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for part in parts:
+        normalized = str(Path(part)) if part else ""
+        key = normalized.casefold()
+        if normalized and key not in seen:
+            deduped.append(normalized)
+            seen.add(key)
+    return os.pathsep.join(deduped)
+
+
+def _uv_available(workspace: Path) -> bool:
+    path = _with_project_tool_path(workspace, os.environ.get("PATH", ""))
+    return shutil.which("uv", path=path) is not None
+
+
+def _check_status(result: dict[str, Any]) -> str:
+    if result.get("timed_out"):
+        return "timed_out"
+    if result.get("exit_code") is None:
+        return "not_started"
+    if result.get("exit_code") == 0:
+        return "passed"
+    return "failed"
+
+
+def _check_failure_class(result: dict[str, Any]) -> str | None:
+    status = _check_status(result)
+    if status == "passed":
+        return None
+    if status == "timed_out":
+        return "timeout"
+    if status == "not_started":
+        stderr = str(result.get("stderr") or "")
+        if "WinError 2" in stderr or "No such file or directory" in stderr:
+            return "executable_not_found"
+        return "command_not_started"
+    return "unexpected_exit_code"
 
 
 def _run_internal_artifact_exists(workspace: Path, cwd: Path, check: CheckSpec) -> CheckEvidence:
@@ -111,6 +166,8 @@ def _run_internal_artifact_exists(workspace: Path, cwd: Path, check: CheckSpec) 
             exit_code=2,
             duration_seconds=round(time.monotonic() - started, 3),
             stderr="internal artifact check requires exactly one relative path argument",
+            status="failed",
+            failure_class="invalid_internal_check",
         )
     target = (cwd / check.argv[1]).resolve()
     try:
@@ -123,6 +180,8 @@ def _run_internal_artifact_exists(workspace: Path, cwd: Path, check: CheckSpec) 
             exit_code=2,
             duration_seconds=round(time.monotonic() - started, 3),
             stderr=f"internal artifact check path escapes workspace: {check.argv[1]}",
+            status="failed",
+            failure_class="artifact_path_escapes_workspace",
         )
     if not target.is_file():
         return CheckEvidence(
@@ -132,6 +191,8 @@ def _run_internal_artifact_exists(workspace: Path, cwd: Path, check: CheckSpec) 
             exit_code=1,
             duration_seconds=round(time.monotonic() - started, 3),
             stderr=f"missing artifact file: {target}",
+            status="failed",
+            failure_class="artifact_missing",
         )
     if target.stat().st_size <= 0:
         return CheckEvidence(
@@ -141,6 +202,8 @@ def _run_internal_artifact_exists(workspace: Path, cwd: Path, check: CheckSpec) 
             exit_code=1,
             duration_seconds=round(time.monotonic() - started, 3),
             stderr=f"empty artifact file: {target}",
+            status="failed",
+            failure_class="artifact_empty",
         )
     return CheckEvidence(
         name=check.name,
@@ -148,4 +211,5 @@ def _run_internal_artifact_exists(workspace: Path, cwd: Path, check: CheckSpec) 
         required=check.required,
         exit_code=0,
         duration_seconds=round(time.monotonic() - started, 3),
+        status="passed",
     )

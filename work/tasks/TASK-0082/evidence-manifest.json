@@ -8,7 +8,7 @@
       "kind": "verification_summary",
       "name": "verification-summary.json",
       "uri": "local://evidence/verification-summary.json",
-      "sha256": "59ab246788d94f5f36cd22141df20fb4d97e4f7eb9b8209d126ec699a1579c82",
+      "sha256": "e2802ac3c15a5fe8e66d834656c0ae1a94a8a1092ac729ca00fd791859bacfa8",
       "media_type": "application/json",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
@@ -16,6 +16,21 @@
         "ART-TASK-0082-0001",
         "ART-TASK-0082-0002",
         "ART-TASK-0082-HANDOFF-0001"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0082-0002",
+      "task_id": "TASK-0082",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "d4cf74410f7c214dd33d05b0a03efddb676e216c3fc13b0eda2dcedaef0bf136",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T13:12:05.377985Z",
+      "refs": [
+        "ART-TASK-0082-0003",
+        "EVD-TASK-0082-0001"
       ]
     }
   ]

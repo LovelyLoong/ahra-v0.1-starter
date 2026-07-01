@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "result": {
+    "schema_version": "ahra/goal-operation-validation/0.1",
+    "valid": true,
+    "goalExecutionId": "GEXEC-e52bed96d9d177b7",
+    "profileRef": "profile/development-bounded",
+    "plannerAdapterRef": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "executorAdapterRef": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+    "gateRunnerAdapterRef": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "planValidationReport": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanValidationReport",
+      "metadata": {
+        "reportId": "PLANVAL-a0d5b24bac6d155e",
+        "createdBy": "ahra-plan-compiler"
+      },
+      "spec": {
+        "subjectRef": "PLAN-9e66b027a3d048b5@v1",
+        "subjectDigest": "sha256:69a8aeb1ddd8cb7b88d9a79be7298487c86edcfa072c880e65117bad26a8e74f",
+        "result": "passed",
+        "errors": [],
+        "refs": [
+          "PLAN-9e66b027a3d048b5"
+        ]
+      }
+    },
+    "metrics": {
+      "planNodeCount": 2,
+      "gateRefCount": 2,
+      "executableNodeCount": 1,
+      "declaredCapabilityCount": 2
+    }
+  }
+}

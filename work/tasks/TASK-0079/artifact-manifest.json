@@ -8,12 +8,17 @@
       "kind": "code_change",
       "name": "evidence_gate.py",
       "uri": "local://src/ahra/evidence_gate.py",
-      "sha256": "a26ebf94da36ff73dfbd1bc40571805b67f188df89c2b7004959e5911af0114b",
+      "sha256": "5959ef8363f0ff10fc94c7bad7529c0e034b829d4225cf173bcfe82fac3808e8",
       "media_type": "text/x-python",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["docs/architecture/evidence-gate.md", "docs/architecture/gate-execution-pipeline.md"],
-      "evidence_refs": ["EVD-TASK-0079-0001"],
+      "input_refs": [
+        "docs/architecture/evidence-gate.md",
+        "docs/architecture/gate-execution-pipeline.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0079-0001"
+      ],
       "supersedes": null
     },
     {
@@ -26,8 +31,12 @@
       "media_type": "text/x-python",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["TASK-0079"],
-      "evidence_refs": ["EVD-TASK-0079-0001"],
+      "input_refs": [
+        "TASK-0079"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0079-0001"
+      ],
       "supersedes": null
     },
     {
@@ -36,12 +45,16 @@
       "kind": "test_change",
       "name": "test_evidence_gate.py",
       "uri": "local://tests/test_evidence_gate.py",
-      "sha256": "e6471b25f002668406b381bea7509eb4fb7daa9f337f9b50d823db41971e35ae",
+      "sha256": "d8c2ac0e9b673058f1d353b8b45aa4607f8fe4177ae2e29d9a780d32bbf5da04",
       "media_type": "text/x-python",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["TASK-0079"],
-      "evidence_refs": ["EVD-TASK-0079-0001"],
+      "input_refs": [
+        "TASK-0079"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0079-0001"
+      ],
       "supersedes": null
     },
     {
@@ -54,8 +67,12 @@
       "media_type": "text/x-python",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["TASK-0079"],
-      "evidence_refs": ["EVD-TASK-0079-0001"],
+      "input_refs": [
+        "TASK-0079"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0079-0001"
+      ],
       "supersedes": null
     },
     {
@@ -68,8 +85,33 @@
       "media_type": "text/markdown",
       "created_by": "agent:codex",
       "created_at": "2026-07-01T12:08:30.623896Z",
-      "input_refs": ["evidence/verification-summary.json"],
-      "evidence_refs": ["EVD-TASK-0079-0001"],
+      "input_refs": [
+        "evidence/verification-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0079-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0079-0005",
+      "task_id": "TASK-0079",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "b0573274bdd3884c52fbddb9ed2b024a30e6d2f9b093b232abe11b943ea98c40",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T13:12:03.070681Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0079-0002"
+      ],
       "supersedes": null
     }
   ]

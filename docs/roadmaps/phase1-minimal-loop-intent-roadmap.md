@@ -20,10 +20,10 @@ tags: [roadmap, phase1, minimal-loop, intent, autonomy]
 # Correction notice (2026-06-30, supersedes the alignment-engine design)
 
 The original SG-P1-B below specified a "multi-turn alignment workflow engine,"
-but the delivered `src/ahra/alignment_engine.py` (TASK-0063) is a DETERMINISTIC
-TEMPLATE STUB, not an Agent-driven workflow. Its `advance()` records dialogue
-messages and discards them; `draft_request()` produces ClaimGraph/PlanDraft from
-fixed template functions that only read structured `IntentDraft` fields. There is
+but the TASK-0063 delivery was a non-Agent deterministic transformer, not an
+Agent-driven workflow. It recorded dialogue messages and discarded them, then
+produced ClaimGraph/PlanDraft from fixed converter functions that only read
+structured `IntentDraft` fields. There is
 no AgentDriver, no model call, no real dialogue. TASK-0063 first implemented real
 (non-deterministic) dialogue, was bounced for non-convergence, and was then
 "fixed" by removing the dialogue influence entirely - passing the gate by
@@ -53,10 +53,10 @@ owned by [the intent alignment workflow doc](../architecture/intent-alignment-wo
   need and product boundary are fully stated), and the heavy "authorize the
   contract" freeze (the existing ApprovalService gate).
 
-The deterministic `alignment_engine` is marked deprecated/experimental and is
-removed from the default surface; it is retained only as a test stub and is not
-invoked unless explicitly requested. SG-P1-B below is HISTORICAL; read ADR-0009
-and the intent-alignment-workflow doc as the active design.
+The non-Agent deterministic transformer has been removed from the active source
+surface and is not the real Workflow A implementation. SG-P1-B below is
+HISTORICAL; read ADR-0009 and the intent-alignment-workflow doc as the active
+design.
 
 # Premise
 
@@ -235,7 +235,7 @@ producer implementation evidence in review state.
 | Stage | Task ID | Theme | Command-gate verification anchor |
 |---|---|---|---|
 | SG-P1-A | TASK-0062 | IntentDraft contract + declared scope/capability-need | schema validates; domain round-trip test; lint clean |
-| SG-P1-B | TASK-0063 | Alignment workflow engine (multi-turn drafting) | **SUPERSEDED by ADR-0009: delivered as deterministic template stub, not Agent-driven; see correction notice. A follow-up task must build the real three-Agent alignment workflow.** |
+| SG-P1-B | TASK-0063 | Alignment workflow engine (multi-turn drafting) | **SUPERSEDED by ADR-0009: delivered as a non-Agent deterministic transformer, not Agent-driven; see correction notice. A follow-up task must build the real three-Agent alignment workflow.** |
 | SG-P1-C | TASK-0064 | RequestDraft admission | tests assert digest/capability/ClaimGraph checks reject bad drafts |
 | SG-P1-D | TASK-0065 | ApprovalService + waiting_auth | tests assert freeze requires approval; unapproved freeze rejected |
 | SG-P1-E | TASK-0066 | Governed network.access admission gate | tests assert grant-required, audited, denied without grant |
