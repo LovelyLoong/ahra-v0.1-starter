@@ -1,0 +1,75 @@
+{
+  "schema_version": "ahra/task-verification-summary/0.1",
+  "task_id": "TASK-0080",
+  "created_by": "agent:codex",
+  "created_at": "2026-07-01T12:08:30.623896Z",
+  "summary": "Moved Workflow A dogfood GoalExecution artifact/store paths from examples/goals/.ahra-shaped runtime state to task-scoped run storage.",
+  "changed_artifacts": [
+    "examples/goals/dogfood-a-alignment-session.yaml",
+    "tests/test_goal_operations.py",
+    "work/tasks/TASK-0080/runs/dogfood-a-004/artifacts/goal-execution-request.json",
+    "work/tasks/TASK-0080/runs/dogfood-a-004/artifacts/plan-draft.json",
+    "work/tasks/TASK-0080/runs/dogfood-a-004/artifacts/plan-ir.json",
+    "work/tasks/TASK-0080/runs/dogfood-a-004/artifacts/plan-validation-report.json"
+  ],
+  "acceptance_coverage": [
+    {
+      "criterion": "Dogfood GoalExecution requests do not write artifactDir store paths under examples/goals/.ahra or example-local runtime state.",
+      "evidence": [
+        "examples/goals/dogfood-a-alignment-session.yaml artifactDir and store.path point to ../../work/tasks/TASK-0080/runs/dogfood-a-004",
+        "tests.test_goal_operations.GoalOperationCliTests.test_dogfood_alignment_request_resolves_task_scoped_runtime_paths"
+      ]
+    },
+    {
+      "criterion": "Artifact and SQLite store paths derive owning task/run identity, with deterministic paths recorded in task evidence or runtime run records.",
+      "evidence": [
+        "work/tasks/TASK-0080/runs/dogfood-a-004/artifacts/goal-execution-request.json",
+        "work/tasks/TASK-0080/runs/dogfood-a-004/artifacts/plan-ir.json"
+      ]
+    },
+    {
+      "criterion": "Tests or validation commands prove goal validate/plan/start consume new task-scoped paths without breaking inspect/resume.",
+      "evidence": [
+        "tests.test_goal_operations.GoalOperationCliTests.test_validate_plan_start_resume_inspect_and_terminal_cancel",
+        "uv run python -B -m ahra.cli goal validate examples/goals/dogfood-a-alignment-session.yaml",
+        "uv run python -B -m ahra.cli goal plan examples/goals/dogfood-a-alignment-session.yaml"
+      ]
+    }
+  ],
+  "verification_commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_goal_operations.GoalOperationCliTests.test_dogfood_alignment_request_resolves_task_scoped_runtime_paths tests.test_goal_operations.GoalOperationCliTests.test_validate_plan_start_resume_inspect_and_terminal_cancel -v",
+      "status": "passed",
+      "observed": "2 tests OK"
+    },
+    {
+      "command": "uv run python -B -m ahra.cli goal validate examples/goals/dogfood-a-alignment-session.yaml",
+      "status": "passed",
+      "observed": "valid true; profileRef profile/development-bounded"
+    },
+    {
+      "command": "uv run python -B -m ahra.cli goal plan examples/goals/dogfood-a-alignment-session.yaml",
+      "status": "passed",
+      "observed": "artifactDir E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0080\\runs\\dogfood-a-004\\artifacts"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed",
+      "observed": "316 OK, skipped=1"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --lint",
+      "status": "passed",
+      "observed": "AWKP lint 0 error(s), 0 warning(s)"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "observed": "exit 0; Git emitted CRLF normalization warnings only"
+    }
+  ],
+  "residual_risks": [
+    "Existing ignored examples/goals/.ahra may still exist from older runs, but the dogfood request no longer resolves artifactDir or store.path there.",
+    "This is producer evidence only. Independent EvidenceGate review must decide completion."
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "evidence": [
+    {
+      "artifact_refs": [
+        "ART-TASK-0078-0001",
+        "ART-TASK-0078-0002",
+        "ART-TASK-0078-0003",
+        "ART-TASK-0078-HANDOFF-0001"
+      ],
+      "created_at": "2026-07-01T11:07:53.970026Z",
+      "created_by": "agent:codex",
+      "evidence_id": "EVD-TASK-0078-0001",
+      "kind": "verification_summary",
+      "media_type": "application/json",
+      "name": "verification-summary.json",
+      "refs": [
+        "src/ahra/alignment_session.py",
+        "tests/test_alignment_session.py",
+        "docs/architecture/component-inventory.json",
+        "uv run python -B scripts/check.py --test",
+        "uv run python -B scripts/check.py --lint",
+        "git diff --check"
+      ],
+      "sha256": "3bef7c7edfa66fc7366140122bc551a14ed573c2c4f7d320774423fbb3b35ea1",
+      "task_id": "TASK-0078",
+      "uri": "local://evidence/verification-summary.json"
+    }
+  ],
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0078"
+}

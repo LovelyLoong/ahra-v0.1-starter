@@ -1,0 +1,76 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0079",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0079-0001",
+      "task_id": "TASK-0079",
+      "kind": "code_change",
+      "name": "evidence_gate.py",
+      "uri": "local://src/ahra/evidence_gate.py",
+      "sha256": "a26ebf94da36ff73dfbd1bc40571805b67f188df89c2b7004959e5911af0114b",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["docs/architecture/evidence-gate.md", "docs/architecture/gate-execution-pipeline.md"],
+      "evidence_refs": ["EVD-TASK-0079-0001"],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0079-0002",
+      "task_id": "TASK-0079",
+      "kind": "code_change",
+      "name": "goal_operations.py",
+      "uri": "local://src/ahra/goal_operations.py",
+      "sha256": "d55bce4607a9ef13cc2d6b820725c9d5f97b070c776084fdd844bafb604c6f4b",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["TASK-0079"],
+      "evidence_refs": ["EVD-TASK-0079-0001"],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0079-0003",
+      "task_id": "TASK-0079",
+      "kind": "test_change",
+      "name": "test_evidence_gate.py",
+      "uri": "local://tests/test_evidence_gate.py",
+      "sha256": "e6471b25f002668406b381bea7509eb4fb7daa9f337f9b50d823db41971e35ae",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["TASK-0079"],
+      "evidence_refs": ["EVD-TASK-0079-0001"],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0079-0004",
+      "task_id": "TASK-0079",
+      "kind": "test_change",
+      "name": "test_goal_operations.py",
+      "uri": "local://tests/test_goal_operations.py",
+      "sha256": "4d877fb193ca15796871eaae7856c1939003bbbdffd372a56c4660ce66b277fc",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["TASK-0079"],
+      "evidence_refs": ["EVD-TASK-0079-0001"],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0079-HANDOFF-0001",
+      "task_id": "TASK-0079",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "facf2b01603cda352e212fc3e9acabf03d62d061a0dcd6e3898581b6bd927167",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["evidence/verification-summary.json"],
+      "evidence_refs": ["EVD-TASK-0079-0001"],
+      "supersedes": null
+    }
+  ]
+}

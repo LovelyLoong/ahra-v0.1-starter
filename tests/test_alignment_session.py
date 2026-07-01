@@ -13,6 +13,7 @@ from ahra.alignment_session import (
     AlignmentSessionManager,
     AlignmentSessionSnapshot,
 )
+from ahra.approval_service import ApprovalService
 from ahra.goal_operations import GoalExecutionRequest
 from ahra.intent_draft import IntentDraft
 from ahra.ports import AgentRunRequest, AgentRunResult
@@ -56,10 +57,16 @@ class AlignmentSessionManagerTests(unittest.TestCase):
 
         resumed = asyncio.run(manager.advance(restored, "Freeze that boundary."))
 
-        self.assertEqual(resumed.stage, "frozen")
+        self.assertEqual(resumed.stage, "awaiting_requirement_approval")
         self.assertEqual(len(resumed.turns), 4)
         self.assertEqual(resumed.turns[0].message, "Keep scope local.")
-        self.assertEqual(resumed.frozen_requirement, "Write one governed deterministic summary artifact in the local workspace.")
+        self.assertEqual(
+            resumed.frozen_requirement,
+            "Write one governed deterministic summary artifact in the local workspace.",
+        )
+        approved = manager.approve_requirement(resumed, actor="human:maintainer")
+        self.assertEqual(approved.stage, "frozen")
+        self.assertEqual(approved.requirement_approved_by, "human:maintainer")
 
     def test_convergence_outputs_untrusted_request_draft(self) -> None:
         driver = FakeAlignmentDriver()
@@ -67,6 +74,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         snapshot = manager.start(_intent())
         snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
         snapshot = asyncio.run(manager.advance(snapshot, "Freeze that boundary."))
+        snapshot = manager.approve_requirement(snapshot, actor="human:maintainer")
 
         result = asyncio.run(manager.draft_request(snapshot))
 
@@ -83,6 +91,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         snapshot = manager.start(_intent())
         snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
         snapshot = asyncio.run(manager.advance(snapshot, "Requirement boundary complete."))
+        snapshot = manager.approve_requirement(snapshot, actor="human:maintainer")
 
         result = asyncio.run(manager.draft_request(snapshot))
         admission = RequestDraftAdmission().evaluate(result.request_draft)
@@ -90,11 +99,85 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         self.assertTrue(admission.accepted, [rejection.to_dict() for rejection in admission.rejections])
         self.assertTrue(admission.plan_digest)
 
+    def test_draft_request_requires_human_requirement_approval(self) -> None:
+        driver = FakeAlignmentDriver()
+        manager = AlignmentSessionManager(driver)
+        snapshot = manager.start(_intent())
+        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+        snapshot = asyncio.run(manager.advance(snapshot, "Requirement boundary complete."))
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            asyncio.run(manager.draft_request(snapshot))
+
+        self.assertEqual(raised.exception.code, "requirement_not_approved")
+
+    def test_requirement_approval_requires_human_actor(self) -> None:
+        driver = FakeAlignmentDriver()
+        manager = AlignmentSessionManager(driver)
+        snapshot = manager.start(_intent())
+        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+        snapshot = asyncio.run(manager.advance(snapshot, "Requirement boundary complete."))
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            manager.approve_requirement(snapshot, actor="agent:alignment")
+
+        self.assertEqual(raised.exception.code, "requirement_approval_requires_human")
+
+    def test_draft_request_requests_contract_authorization(self) -> None:
+        driver = FakeAlignmentDriver()
+        manager = AlignmentSessionManager(driver)
+        approval_service = ApprovalService()
+        snapshot = _frozen_snapshot(manager)
+
+        result = asyncio.run(manager.draft_request(snapshot, approval_service=approval_service))
+
+        self.assertIsNotNone(result.approval_record)
+        assert result.approval_record is not None
+        self.assertEqual(result.approval_record.status, "waiting_auth")
+        with self.assertRaisesRegex(ValueError, "before approval"):
+            approval_service.freeze(result.request_draft, approval_id=result.approval_record.approval_id)
+        with self.assertRaisesRegex(ValueError, "self-authorize"):
+            approval_service.approve(result.approval_record.approval_id, actor=result.request_draft.producer_actor)
+        approval_service.approve(result.approval_record.approval_id, actor="human:maintainer")
+        self.assertIsInstance(
+            approval_service.freeze(result.request_draft, approval_id=result.approval_record.approval_id),
+            GoalExecutionRequest,
+        )
+
+    def test_requirement_agent_without_plan_draft_fails_closed(self) -> None:
+        driver = FakeAlignmentDriver(requirement_output={"summary": "No explicit plan."})
+        manager = AlignmentSessionManager(driver)
+        snapshot = _frozen_snapshot(manager)
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            asyncio.run(manager.draft_request(snapshot))
+
+        self.assertEqual(raised.exception.code, "missing_plan_draft")
+        self.assertEqual(raised.exception.ref, "agentOutput.planDraft")
+
+    def test_acceptance_agent_without_claim_graph_fails_closed(self) -> None:
+        driver = FakeAlignmentDriver(acceptance_output={"summary": "No explicit claims."})
+        manager = AlignmentSessionManager(driver)
+        snapshot = _frozen_snapshot(manager)
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            asyncio.run(manager.draft_request(snapshot))
+
+        self.assertEqual(raised.exception.code, "missing_claim_graph")
+        self.assertEqual(raised.exception.ref, "agentOutput.claimGraph")
+
 
 class FakeAlignmentDriver:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        requirement_output: dict[str, object] | None = None,
+        acceptance_output: dict[str, object] | None = None,
+    ) -> None:
         self.calls: list[AgentRunRequest] = []
         self.alignment_turns = 0
+        self.requirement_output = requirement_output
+        self.acceptance_output = acceptance_output
 
     async def run(self, request: AgentRunRequest) -> AgentRunResult:
         self.calls.append(request)
@@ -117,18 +200,133 @@ class FakeAlignmentDriver:
                 }
             )
         if request.expected_output == REQUIREMENT_DRAFT_OUTPUT:
-            return AgentRunResult(
-                output={
-                    "summary": "Write one governed deterministic summary artifact in the local workspace.",
-                }
-            )
+            return AgentRunResult(output=self.requirement_output or _requirement_output())
         if request.expected_output == ACCEPTANCE_DRAFT_OUTPUT:
-            return AgentRunResult(
-                output={
-                    "summary": "Acceptance requires governed evidence for the deterministic summary artifact.",
-                }
-            )
+            return AgentRunResult(output=self.acceptance_output or _acceptance_output())
         raise AssertionError(f"unexpected expected_output {request.expected_output}")
+
+
+def _frozen_snapshot(manager: AlignmentSessionManager) -> AlignmentSessionSnapshot:
+    snapshot = manager.start(_intent())
+    snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+    snapshot = asyncio.run(manager.advance(snapshot, "Done means summary artifact exists."))
+    return manager.approve_requirement(snapshot, actor="human:maintainer")
+
+
+def _requirement_output() -> dict[str, object]:
+    return {
+        "summary": "Write one governed deterministic summary artifact in the local workspace.",
+        "planDraft": {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "PlanDraft",
+            "metadata": {
+                "goalId": "GOAL-PHASE1-EXAMPLE-ALIGNED",
+                "proposedBy": "planner/alignment-session-test",
+            },
+            "spec": {
+                "rationale": "Single bounded node writes the requested summary artifact.",
+                "nodes": [
+                    {
+                        "id": "NODE-write-summary",
+                        "nodeType": "bounded_task",
+                        "objective": "Write the governed deterministic summary artifact.",
+                        "claimRefs": ["CLAIM-summary-artifact"],
+                        "dependsOn": [],
+                        "inputRefs": [],
+                        "expectedOutputs": [
+                            {
+                                "name": "summary-artifact",
+                                "schemaRef": "ahra/artifact/text/0.1",
+                                "consumerNodeRefs": ["NODE-goal-verification"],
+                                "artifactRequired": True,
+                            }
+                        ],
+                        "capabilityRequests": [
+                            {
+                                "capability": "filesystem.write",
+                                "resources": ["outputs/summary.txt"],
+                                "riskLevel": "R1",
+                            }
+                        ],
+                        "gateRefs": ["GATE-alignment-objective"],
+                        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                        "budgetRequest": {
+                            "maxModelCalls": 1,
+                            "maxToolCalls": 2,
+                            "maxSpawnedNodes": 0,
+                            "maxWallSeconds": 60,
+                            "maxCostUsd": 0.0,
+                        },
+                        "retryPolicy": {
+                            "maxAttempts": 1,
+                            "retryableFailureClasses": [],
+                            "idempotencyKeyRequired": False,
+                        },
+                        "timeoutSeconds": 60,
+                        "sideEffect": "idempotent",
+                    },
+                    {
+                        "id": "NODE-goal-verification",
+                        "nodeType": "goal_verification",
+                        "objective": "Verify the summary artifact satisfies the frozen requirement.",
+                        "claimRefs": ["CLAIM-summary-artifact"],
+                        "dependsOn": ["NODE-write-summary"],
+                        "inputRefs": ["NODE-write-summary"],
+                        "expectedOutputs": [],
+                        "capabilityRequests": [],
+                        "gateRefs": ["GATE-alignment-complete"],
+                        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                        "budgetRequest": {
+                            "maxModelCalls": 1,
+                            "maxToolCalls": 1,
+                            "maxSpawnedNodes": 0,
+                            "maxWallSeconds": 30,
+                            "maxCostUsd": 0.0,
+                        },
+                        "retryPolicy": {
+                            "maxAttempts": 1,
+                            "retryableFailureClasses": [],
+                            "idempotencyKeyRequired": False,
+                        },
+                        "timeoutSeconds": 30,
+                        "sideEffect": "idempotent",
+                        "terminalGoalVerification": True,
+                    }
+                ],
+            },
+        },
+    }
+
+
+def _acceptance_output() -> dict[str, object]:
+    return {
+        "summary": "Acceptance requires governed evidence for the deterministic summary artifact.",
+        "claimGraph": {
+            "apiVersion": "ahra.dev/v1alpha1",
+            "kind": "ClaimGraph",
+            "metadata": {
+                "name": "alignment-session-test-claims",
+                "goalId": "GOAL-PHASE1-EXAMPLE-ALIGNED",
+                "version": 1,
+            },
+            "spec": {
+                "goalRef": "GOAL-PHASE1-EXAMPLE-ALIGNED",
+                "claims": [
+                    {
+                        "id": "CLAIM-summary-artifact",
+                        "type": "functional",
+                        "statement": "A deterministic summary artifact is produced in the local workspace.",
+                        "criterionRefs": ["CRIT-summary-artifact"],
+                        "dependsOn": [],
+                        "riskLevel": "R1",
+                        "required": True,
+                        "requiredEvidenceKinds": ["artifact"],
+                        "gateRefs": ["GATE-alignment-objective"],
+                    }
+                ],
+            },
+        },
+    }
 
 
 def _intent() -> IntentDraft:

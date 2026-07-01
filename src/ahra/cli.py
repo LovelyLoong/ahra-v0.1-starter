@@ -110,6 +110,8 @@ def main(argv: list[str] | None = None) -> int:
 def _dispatch(args: argparse.Namespace) -> Any:
     if args.group == "workflow":
         return _workflow_command(args)
+    if args.group == "workflow-a":
+        return _workflow_a_command(args)
     if args.group == "workflow-sequence":
         return _workflow_sequence_command(args)
     if args.group == "task":
@@ -148,6 +150,64 @@ def _workflow_command(args: argparse.Namespace) -> Any:
     if args.workflow_command == "inspect":
         return _inspect_workflow(Path(args.artifact_dir))
     raise ValueError(f"unknown workflow command: {args.workflow_command}")
+
+
+def _workflow_a_command(args: argparse.Namespace) -> Any:
+    from ahra.workflow_a_cli import (
+        admit_request,
+        advance_session,
+        approve_requirement,
+        authorize_request,
+        draft_request,
+        read_snapshot,
+        start_session,
+    )
+
+    if args.workflow_a_command == "start":
+        return start_session(
+            intent_path=Path(args.intent),
+            session_path=Path(args.session),
+            profile_ref=args.profile_ref,
+            runtime_ref=args.runtime_ref,
+            runtime_digest=args.runtime_digest,
+            workspace_ref=args.workspace_ref,
+            artifact_dir=args.artifact_dir,
+            store_path=args.store_path,
+            producer_actor=args.producer_actor,
+        )
+    if args.workflow_a_command == "advance":
+        return asyncio.run(
+            advance_session(
+                session_path=Path(args.session),
+                message=args.message,
+                actor=args.actor,
+                driver=_workflow_a_driver(args),
+            )
+        )
+    if args.workflow_a_command == "snapshot":
+        return read_snapshot(session_path=Path(args.session))
+    if args.workflow_a_command == "approve-requirement":
+        return approve_requirement(session_path=Path(args.session), actor=args.actor)
+    if args.workflow_a_command == "draft":
+        return asyncio.run(
+            draft_request(
+                session_path=Path(args.session),
+                request_draft_path=Path(args.request_draft),
+                approval_path=Path(args.approval) if args.approval else None,
+                driver=_workflow_a_driver(args),
+            )
+        )
+    if args.workflow_a_command == "admit":
+        return admit_request(request_draft_path=Path(args.request_draft))
+    if args.workflow_a_command == "authorize":
+        return authorize_request(
+            request_draft_path=Path(args.request_draft),
+            approval_path=Path(args.approval),
+            output_path=Path(args.output),
+            actor=args.actor,
+            reason=args.reason,
+        )
+    raise ValueError(f"unknown workflow-a command: {args.workflow_a_command}")
 
 
 def _workflow_sequence_command(args: argparse.Namespace) -> Any:
@@ -283,6 +343,15 @@ def _goal_service(args: argparse.Namespace) -> GoalOperationService:
 
         return GoalOperationService(real_executor_driver=CodexSDKDriver())
     return GoalOperationService()
+
+
+def _workflow_a_driver(args: argparse.Namespace) -> Any:
+    registry = _driver_registry(enable_fixture_driver=False)
+    if getattr(args, "enable_fixture_driver", False):
+        from ahra.workflow_a_cli import WorkflowAFixtureDriver
+
+        registry.register("workflow-a-fixture", WorkflowAFixtureDriver())
+    return registry.get(args.driver_ref)
 
 
 def _evidence_gate_command(args: argparse.Namespace) -> Any:
@@ -515,9 +584,9 @@ def _build_parser(
     include_workflow_sequence: bool = True,
 ) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="ahra", description="Operate the AHRA dynamic-kernel local framework.")
-    visible_groups = "{workflow-sequence,task,fixture,goal,evidence-gate,doctor}"
+    visible_groups = "{workflow-a,workflow-sequence,task,fixture,goal,evidence-gate,doctor}"
     if include_legacy_workflow:
-        visible_groups = "{workflow,workflow-sequence,task,fixture,goal,evidence-gate,doctor}"
+        visible_groups = "{workflow,workflow-a,workflow-sequence,task,fixture,goal,evidence-gate,doctor}"
     groups = parser.add_subparsers(dest="group", required=True, metavar=visible_groups)
 
     if include_legacy_workflow:
@@ -545,14 +614,51 @@ def _build_parser(
             help="Register fake-reference for local fixture smoke tests only.",
         )
 
-    if include_workflow_sequence:
-        sequence = groups.add_parser("workflow-sequence", help="Run a governed multi-task sequence.")
-        sequence_commands = sequence.add_subparsers(dest="workflow_sequence_command", required=True)
-        sequence_run = sequence_commands.add_parser("run", help="Run a WorkflowSequence YAML definition.")
-        sequence_run.add_argument("sequence", help="WorkflowSequence YAML path.")
-        sequence_run.add_argument("--work-root", help="Override the sequence workRoot.")
-        sequence_run.add_argument("--run-root", help="Directory for materialized task-scoped request templates.")
-        sequence_run.add_argument("--dry-run", action="store_true", help="Validate ordering and CLI wiring without side effects.")
+    workflow_a = groups.add_parser("workflow-a", help="Experimental Workflow A intent alignment lifecycle.")
+    workflow_a_commands = workflow_a.add_subparsers(dest="workflow_a_command", required=True)
+    workflow_a_start = workflow_a_commands.add_parser("start", help="Start an experimental Workflow A session.")
+    workflow_a_start.add_argument("intent", help="IntentDraft YAML path.")
+    workflow_a_start.add_argument("--session", required=True, help="Session JSON path to write.")
+    workflow_a_start.add_argument("--profile-ref", help="Optional Goal operation profile ref.")
+    workflow_a_start.add_argument("--runtime-ref", help="Optional runtime ref.")
+    workflow_a_start.add_argument("--runtime-digest", help="Optional runtime digest.")
+    workflow_a_start.add_argument("--workspace-ref", default="workspace", help="Workspace ref recorded in RequestDraft.")
+    workflow_a_start.add_argument("--artifact-dir", default=".ahra/artifacts", help="Artifact dir recorded in RequestDraft.")
+    workflow_a_start.add_argument("--store-path", default=".ahra/goal-control.sqlite3", help="SQLite store path recorded in RequestDraft.")
+    workflow_a_start.add_argument("--producer-actor", default="agent:alignment-session", help="Producer actor for RequestDraft.")
+    workflow_a_advance = workflow_a_commands.add_parser("advance", help="Advance an experimental Workflow A session.")
+    workflow_a_advance.add_argument("--session", required=True, help="Session JSON path.")
+    workflow_a_advance.add_argument("--message", required=True, help="Human message for the alignment turn.")
+    workflow_a_advance.add_argument("--actor", default="human:maintainer", help="Actor for the alignment turn.")
+    workflow_a_advance.add_argument("--driver-ref", default="codex-python-sdk", help="AgentDriver ref.")
+    workflow_a_advance.add_argument("--enable-fixture-driver", action="store_true", help="Enable workflow-a-fixture driver for smoke tests only.")
+    workflow_a_snapshot = workflow_a_commands.add_parser("snapshot", help="Read an experimental Workflow A session snapshot.")
+    workflow_a_snapshot.add_argument("--session", required=True, help="Session JSON path.")
+    workflow_a_approve = workflow_a_commands.add_parser("approve-requirement", help="Apply Human Gate 1 requirement approval.")
+    workflow_a_approve.add_argument("--session", required=True, help="Session JSON path.")
+    workflow_a_approve.add_argument("--actor", required=True, help="Human actor approving the frozen requirement.")
+    workflow_a_draft = workflow_a_commands.add_parser("draft", help="Draft RequestDraft and optional ApprovalService authorization.")
+    workflow_a_draft.add_argument("--session", required=True, help="Session JSON path.")
+    workflow_a_draft.add_argument("--request-draft", required=True, help="RequestDraft JSON path to write.")
+    workflow_a_draft.add_argument("--approval", help="Approval JSON path to write waiting_auth Gate 2 record.")
+    workflow_a_draft.add_argument("--driver-ref", default="codex-python-sdk", help="AgentDriver ref.")
+    workflow_a_draft.add_argument("--enable-fixture-driver", action="store_true", help="Enable workflow-a-fixture driver for smoke tests only.")
+    workflow_a_admit = workflow_a_commands.add_parser("admit", help="Run RequestDraftAdmission on a RequestDraft JSON file.")
+    workflow_a_admit.add_argument("--request-draft", required=True, help="RequestDraft JSON path.")
+    workflow_a_authorize = workflow_a_commands.add_parser("authorize", help="Apply Human Gate 2 and freeze GoalExecutionRequest.")
+    workflow_a_authorize.add_argument("--request-draft", required=True, help="RequestDraft JSON path.")
+    workflow_a_authorize.add_argument("--approval", required=True, help="Approval JSON path from draft.")
+    workflow_a_authorize.add_argument("--output", required=True, help="GoalExecutionRequest YAML path to write.")
+    workflow_a_authorize.add_argument("--actor", required=True, help="Human actor authorizing the contract.")
+    workflow_a_authorize.add_argument("--reason", default="", help="Authorization reason.")
+
+    sequence = groups.add_parser("workflow-sequence", help="Run a governed multi-task sequence.")
+    sequence_commands = sequence.add_subparsers(dest="workflow_sequence_command", required=True)
+    sequence_run = sequence_commands.add_parser("run", help="Run a WorkflowSequence YAML definition.")
+    sequence_run.add_argument("sequence", help="WorkflowSequence YAML path.")
+    sequence_run.add_argument("--work-root", help="Override the sequence workRoot.")
+    sequence_run.add_argument("--run-root", help="Directory for materialized task-scoped request templates.")
+    sequence_run.add_argument("--dry-run", action="store_true", help="Validate ordering and CLI wiring without side effects.")
 
     task = groups.add_parser("task", help="create, claim, orchestrate-review, and inspect AWKP tasks.")
     task_commands = task.add_subparsers(dest="task_command", required=True)

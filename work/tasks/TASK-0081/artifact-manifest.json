@@ -1,0 +1,90 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0081",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0081-0001",
+      "task_id": "TASK-0081",
+      "kind": "code_change",
+      "name": "workflow_a_cli.py",
+      "uri": "local://src/ahra/workflow_a_cli.py",
+      "sha256": "79b4e5c22625e3c420d86089b82db85431244fd272f76bccdbbaf2923cbb779e",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["docs/architecture/intent-alignment-workflow.md", "architecture/decisions/ADR-0009-agent-driven-intent-alignment-front-workflow.md"],
+      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0081-0002",
+      "task_id": "TASK-0081",
+      "kind": "code_change",
+      "name": "cli.py",
+      "uri": "local://src/ahra/cli.py",
+      "sha256": "96ccda7b6e6d241e03168117bbee5116e030a6772b25ed44d287f0fd607a14a4",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["TASK-0081"],
+      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0081-0003",
+      "task_id": "TASK-0081",
+      "kind": "test_change",
+      "name": "test_cli.py",
+      "uri": "local://tests/test_cli.py",
+      "sha256": "392f59161ff08bb6e023ac61b9e281df63c0c7d362da30e014360b84526a0d38",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["TASK-0081"],
+      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0081-0004",
+      "task_id": "TASK-0081",
+      "kind": "doc_change",
+      "name": "component-inventory.json",
+      "uri": "local://docs/architecture/component-inventory.json",
+      "sha256": "45fe0644198eb050550e0132116e6e4c159cde3b3f1c0f8b529b4f2ce0ee92c7",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["docs/policies/component-lifecycle.md"],
+      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0081-0005",
+      "task_id": "TASK-0081",
+      "kind": "doc_change",
+      "name": "framework-entrypoints.md",
+      "uri": "local://docs/architecture/framework-entrypoints.md",
+      "sha256": "02736c902039dc5ebbb98b7adbcb18d33d6b5d3cd98c48383e9675add84e9fd1",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["docs/architecture/authority-map.md"],
+      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0081-HANDOFF-0001",
+      "task_id": "TASK-0081",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "4d002d55494c53ec6dbdc1842248cfbb54c935f6f2381c7490c219fba1b03e72",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "input_refs": ["evidence/verification-summary.json"],
+      "evidence_refs": ["EVD-TASK-0081-0001"],
+      "supersedes": null
+    }
+  ]
+}

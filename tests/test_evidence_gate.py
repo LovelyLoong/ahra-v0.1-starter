@@ -144,6 +144,95 @@ def _kernel_evidence_docs(task_id: str) -> tuple[str, str, dict, dict]:
     return evidence_id, gate_run_id, evidence, gate_run
 
 
+def _semantic_evidence_docs(
+    task_id: str,
+    *,
+    reviewer: str = "agent:semantic-reviewer",
+    result: str = "passed",
+    validity: str = "current",
+) -> tuple[str, str, dict, dict]:
+    evidence_id = f"EVD-{task_id}-SEMANTIC"
+    gate_run_id = f"GATERUN-{task_id}-SEMANTIC"
+    gate_ref = "GATE-semantic-code-review"
+    gate_definition_digest = D6
+    claim_refs = ["CLAIM-semantic-review"]
+    subjects = [{"ref": "src/ahra/example.py", "digest": D7}]
+    dependencies: list[dict] = []
+    environment = _environment()
+    command = ["semantic_review", gate_ref]
+    gate_run = {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "GateRun",
+        "metadata": {"gateRunId": gate_run_id},
+        "spec": {
+            "gateRef": gate_ref,
+            "gateDefinitionDigest": gate_definition_digest,
+            "claimRefs": claim_refs,
+            "result": result,
+            "subjects": subjects,
+            "dependencies": dependencies,
+            "environment": environment,
+            "validity": {"state": validity, "validUntil": None},
+            "command": command,
+            "evidenceRef": evidence_id,
+        },
+    }
+    gate_run["spec"]["fingerprint"] = _fingerprint(
+        {
+            "claimRefs": sorted(claim_refs),
+            "command": command,
+            "dependencies": dependencies,
+            "environment": {
+                "policyDigest": environment["policyDigest"],
+                "relevantEnvironmentDigest": environment["relevantEnvironmentDigest"],
+                "runtimeProfileDigest": environment["runtimeProfileDigest"],
+                "testDefinitionDigest": environment["testDefinitionDigest"],
+                "verifierReleaseDigest": environment["verifierReleaseDigest"],
+            },
+            "gateDefinitionDigest": gate_definition_digest,
+            "gateRef": gate_ref,
+            "subjects": subjects,
+        }
+    )
+    evidence = {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "Evidence",
+        "metadata": {"evidenceId": evidence_id},
+        "spec": {
+            "claimRefs": claim_refs,
+            "gateRef": gate_ref,
+            "gateDefinitionDigest": gate_definition_digest,
+            "gateRunId": gate_run_id,
+            "result": result,
+            "confidence": "verified",
+            "subjects": subjects,
+            "dependencies": dependencies,
+            "environment": environment,
+            "validity": {"state": validity, "validUntil": None},
+            "dependencyScope": "complete",
+            "refs": [gate_run_id, f"verifier:{reviewer}"],
+            "supersedes": [],
+        },
+    }
+    evidence["spec"]["fingerprint"] = _fingerprint(
+        {
+            "claimRefs": sorted(claim_refs),
+            "dependencies": dependencies,
+            "environment": {
+                "policyDigest": environment["policyDigest"],
+                "relevantEnvironmentDigest": environment["relevantEnvironmentDigest"],
+                "runtimeProfileDigest": environment["runtimeProfileDigest"],
+                "testDefinitionDigest": environment["testDefinitionDigest"],
+                "verifierReleaseDigest": environment["verifierReleaseDigest"],
+            },
+            "gateDefinitionDigest": gate_definition_digest,
+            "gateRef": gate_ref,
+            "subjects": subjects,
+        }
+    )
+    return evidence_id, gate_run_id, evidence, gate_run
+
+
 def _make_task(root: Path, *, task_id: str = "TASK-9001") -> Path:
     task_dir = root / "work" / "tasks" / task_id
     evidence_dir = task_dir / "evidence"
@@ -319,6 +408,143 @@ Test EvidenceGate.
         },
     )
     return task_dir
+
+
+def _make_development_code_review_task(
+    root: Path,
+    *,
+    task_id: str = "TASK-9300",
+    reviewer: str = "agent:semantic-reviewer",
+    profile_ref: str = "profile/development-bounded",
+    semantic_validity: str = "current",
+) -> Path:
+    task_dir = _make_task(root, task_id=task_id)
+    task_md = (task_dir / "task.md").read_text(encoding="utf-8")
+    task_md = task_md.replace(
+        "output_contract: []",
+        'output_contract:\n  - kind: "ahra/artifact/code-change/0.1"',
+    )
+    (task_dir / "task.md").write_text(task_md, encoding="utf-8")
+
+    evidence_dir = task_dir / "evidence"
+    semantic_evidence_id, semantic_gate_run_id, semantic_evidence, semantic_gate_run = (
+        _semantic_evidence_docs(task_id, reviewer=reviewer, validity=semantic_validity)
+    )
+    semantic_evidence_path = evidence_dir / "semantic-evidence-v2.json"
+    semantic_gate_run_path = evidence_dir / "semantic-gate-run-v2.json"
+    _write_json(semantic_evidence_path, semantic_evidence)
+    _write_json(semantic_gate_run_path, semantic_gate_run)
+
+    association = {
+        "schema_version": "ahra/goal-awkp-association/0.1",
+        "goalExecutionId": f"GEXEC-{task_id}",
+        "goalStatus": "succeeded",
+        "profileRef": profile_ref,
+        "taskId": task_id,
+        "dbPath": "goal-control.sqlite3",
+        "artifactDir": "artifacts",
+        "kernelEvidenceRefs": [f"EVD-{task_id}-KERNEL", semantic_evidence_id],
+        "kernelGateRunRefs": [f"GATERUN-{task_id}-KERNEL", semantic_gate_run_id],
+        "idempotencyKeyPrefix": f"{task_id}:goal-awkp-bridge:test",
+    }
+    association_path = evidence_dir / "goal-awkp-association.json"
+    _write_json(association_path, association)
+
+    artifact_manifest_path = task_dir / "artifact-manifest.json"
+    artifact_manifest = json.loads(artifact_manifest_path.read_text(encoding="utf-8"))
+    artifact_manifest["artifacts"].extend(
+        [
+            {
+                "artifact_id": f"ART-{task_id}-SEMANTIC-GATERUN",
+                "task_id": task_id,
+                "kind": "kernel_gate_run_v2",
+                "name": "semantic-gate-run-v2.json",
+                "uri": "local://evidence/semantic-gate-run-v2.json",
+            "sha256": hashlib.sha256(semantic_gate_run_path.read_bytes()).hexdigest(),
+            "media_type": "application/json",
+                "created_by": "agent:semantic-review-materializer",
+                "created_at": "2026-06-22T00:03:30Z",
+                "input_refs": ["task.md"],
+                "evidence_refs": [semantic_evidence_id],
+                "supersedes": None,
+            },
+            {
+                "artifact_id": f"ART-{task_id}-ASSOCIATION",
+                "task_id": task_id,
+                "kind": "goal_awkp_association",
+                "name": "goal-awkp-association.json",
+                "uri": "local://evidence/goal-awkp-association.json",
+                "sha256": hashlib.sha256(association_path.read_bytes()).hexdigest(),
+                "media_type": "application/json",
+                "created_by": "agent:codex",
+                "created_at": "2026-06-22T00:03:30Z",
+                "input_refs": ["state.json"],
+                "evidence_refs": [],
+                "supersedes": None,
+            },
+        ]
+    )
+    _write_json(artifact_manifest_path, artifact_manifest)
+
+    evidence_manifest_path = task_dir / "evidence-manifest.json"
+    evidence_manifest = json.loads(evidence_manifest_path.read_text(encoding="utf-8"))
+    evidence_manifest["evidence"].append(
+        {
+            "evidence_id": semantic_evidence_id,
+            "task_id": task_id,
+            "kind": "kernel_evidence_v2",
+            "name": "semantic-evidence-v2.json",
+            "uri": "local://evidence/semantic-evidence-v2.json",
+            "sha256": hashlib.sha256(semantic_evidence_path.read_bytes()).hexdigest(),
+            "media_type": "application/json",
+            "created_by": "agent:semantic-review-materializer",
+            "created_at": "2026-06-22T00:03:30Z",
+            "refs": [f"ART-{task_id}-SEMANTIC-GATERUN", semantic_gate_run_id],
+        }
+    )
+    _write_json(evidence_manifest_path, evidence_manifest)
+    return task_dir
+
+
+def _changed_files_digest(changed_files: list[str]) -> str:
+    return "sha256:" + hashlib.sha256(
+        _canonical(sorted(changed_files)).encode("utf-8")
+    ).hexdigest()
+
+
+def _write_semantic_gate_input(
+    root: Path,
+    *,
+    task_id: str = "TASK-9300",
+    reviewer: str = "agent:semantic-reviewer",
+    semantic_evidence_ref: str | None = None,
+) -> Path:
+    command_ref = f"EVD-{task_id}-KERNEL"
+    semantic_ref = semantic_evidence_ref or f"EVD-{task_id}-SEMANTIC"
+    report = json.loads(
+        _write_gate_input(root, task_id=task_id, name="semantic-gate-input.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    for criterion in report["criteria"]:
+        criterion["evidence_refs"] = [command_ref, semantic_ref]
+    changed_files = ["src/ahra/example.py"]
+    changed_digest = _changed_files_digest(changed_files)
+    report["semantic_reviews"] = [
+        {
+            "review_id": "REV-semantic-code-review",
+            "status": "passed",
+            "reviewer": reviewer,
+            "criterion_indices": [1, 2],
+            "changed_files": changed_files,
+            "changed_files_sha256": changed_digest,
+            "verified_changed_files_sha256": changed_digest,
+            "evidence_refs": [semantic_ref],
+        }
+    ]
+    path = root / "semantic-gate-input.json"
+    _write_json(path, report)
+    return path
 
 
 def _make_state_writer_task(root: Path, *, task_id: str = "TASK-9100") -> Path:
@@ -819,6 +1045,90 @@ class EvidenceGateTests(unittest.TestCase):
             with self.assertRaisesRegex(EvidenceGateError, "without kernel EvidenceV2"):
                 evaluate_task_gate(
                     "TASK-9001",
+                    work_root=root / "work",
+                    expected_version=4,
+                report_path=report,
+                actor="agent:verifier",
+            )
+
+    def test_development_code_change_rejects_commands_only_without_semantic_review(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            _make_development_code_review_task(root)
+            report = _write_gate_input(root, task_id="TASK-9300")
+
+            with self.assertRaisesRegex(EvidenceGateError, "semantic_reviews"):
+                evaluate_task_gate(
+                    "TASK-9300",
+                    work_root=root / "work",
+                    expected_version=4,
+                    report_path=report,
+                    actor="agent:verifier",
+                )
+
+    def test_development_code_change_accepts_independent_semantic_review(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_development_code_review_task(root)
+            report = _write_semantic_gate_input(root)
+
+            result = evaluate_task_gate(
+                "TASK-9300",
+                work_root=root / "work",
+                expected_version=4,
+                report_path=report,
+                actor="agent:verifier",
+            )
+
+            self.assertEqual(result.state, "completed")
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "completed")
+
+    def test_development_code_change_rejects_stale_semantic_review(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            _make_development_code_review_task(root)
+            report = _write_semantic_gate_input(root)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            data["semantic_reviews"][0]["verified_changed_files_sha256"] = D1
+            _write_json(report, data)
+
+            with self.assertRaisesRegex(EvidenceGateError, "stale changed files"):
+                evaluate_task_gate(
+                    "TASK-9300",
+                    work_root=root / "work",
+                    expected_version=4,
+                    report_path=report,
+                    actor="agent:verifier",
+                )
+
+    def test_development_code_change_rejects_producer_authored_semantic_review(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            _make_development_code_review_task(root, reviewer="agent:codex")
+            report = _write_semantic_gate_input(root, reviewer="agent:codex")
+
+            with self.assertRaisesRegex(EvidenceGateError, "producer identity"):
+                evaluate_task_gate(
+                    "TASK-9300",
+                    work_root=root / "work",
+                    expected_version=4,
+                    report_path=report,
+                    actor="agent:verifier",
+                )
+
+    def test_development_code_change_rejects_unmanifested_semantic_review(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            _make_development_code_review_task(root)
+            report = _write_semantic_gate_input(
+                root,
+                semantic_evidence_ref="EVD-TASK-9300-UNKNOWN",
+            )
+
+            with self.assertRaisesRegex(EvidenceGateError, "unknown evidence"):
+                evaluate_task_gate(
+                    "TASK-9300",
                     work_root=root / "work",
                     expected_version=4,
                     report_path=report,

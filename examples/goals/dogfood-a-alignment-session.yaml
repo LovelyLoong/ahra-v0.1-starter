@@ -7,10 +7,10 @@ metadata:
 spec:
   profileRef: profile/development-bounded
   workspaceRef: ../..
-  artifactDir: .ahra/artifacts/dogfood-a-004
+  artifactDir: ../../work/tasks/TASK-0080/runs/dogfood-a-004/artifacts
   store:
     kind: sqlite
-    path: .ahra/goal-control-dogfood-004.sqlite3
+    path: ../../work/tasks/TASK-0080/runs/dogfood-a-004/goal-control.sqlite3
   planner:
     adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
   executor:

@@ -1,0 +1,70 @@
+{
+  "schema_version": "ahra/task-verification-summary/0.1",
+  "task_id": "TASK-0081",
+  "created_by": "agent:codex",
+  "created_at": "2026-07-01T12:08:30.623896Z",
+  "summary": "Added an explicit experimental Workflow A CLI/session lifecycle for start, advance, snapshot, approve-requirement, draft, admit, and authorize.",
+  "changed_artifacts": [
+    "src/ahra/workflow_a_cli.py",
+    "src/ahra/cli.py",
+    "tests/test_cli.py",
+    "docs/architecture/component-inventory.json",
+    "docs/architecture/framework-entrypoints.md"
+  ],
+  "acceptance_coverage": [
+    {
+      "criterion": "CLI exposes Workflow A start, advance, snapshot, draft, admit, authorize operations durable session snapshots.",
+      "evidence": [
+        "src/ahra/workflow_a_cli.py",
+        "src/ahra/cli.py workflow-a command group",
+        "tests.test_cli.CliTests.test_workflow_a_cli_lifecycle_requires_human_gates"
+      ]
+    },
+    {
+      "criterion": "draft requires Human Gate 1 approval, admit runs RequestDraftAdmission, authorize uses ApprovalService so agents cannot freeze GoalExecutionRequest themselves.",
+      "evidence": [
+        "tests.test_cli.CliTests.test_workflow_a_cli_lifecycle_requires_human_gates",
+        "tests.test_alignment_session.AlignmentSessionManagerTests.test_draft_request_requires_human_requirement_approval",
+        "tests.test_alignment_session.AlignmentSessionManagerTests.test_draft_request_requests_contract_authorization"
+      ]
+    },
+    {
+      "criterion": "CLI remains explicitly experimental/non-default in component inventory and framework entrypoints until EvidenceGate promotion tasks approve it.",
+      "evidence": [
+        "docs/architecture/component-inventory.json component:alignment-session-manager lifecycle_class experimental default_visible false",
+        "docs/architecture/framework-entrypoints.md Experimental Workflow A Lifecycle section"
+      ]
+    }
+  ],
+  "verification_commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_cli.CliTests.test_workflow_a_cli_lifecycle_requires_human_gates -v",
+      "status": "passed",
+      "observed": "1 test OK"
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_cli tests.test_alignment_session tests.test_evidence_gate tests.test_goal_operations tests.test_verification -v",
+      "status": "passed",
+      "observed": "94 tests OK"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed",
+      "observed": "316 OK, skipped=1"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --lint",
+      "status": "passed",
+      "observed": "AWKP lint 0 error(s), 0 warning(s)"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "observed": "exit 0; Git emitted CRLF normalization warnings only"
+    }
+  ],
+  "residual_risks": [
+    "The CLI is intentionally explicit experimental surface and not a default route.",
+    "This is producer evidence only. Independent EvidenceGate review must decide completion."
+  ]
+}

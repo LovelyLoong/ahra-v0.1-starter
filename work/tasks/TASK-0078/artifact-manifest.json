@@ -1,0 +1,80 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0078-0001",
+      "created_at": "2026-07-01T11:07:53.970026Z",
+      "created_by": "agent:codex",
+      "evidence_refs": [
+        "EVD-TASK-0078-0001"
+      ],
+      "input_refs": [
+        "architecture/decisions/ADR-0009-agent-driven-intent-alignment-front-workflow.md",
+        "docs/architecture/intent-alignment-workflow.md"
+      ],
+      "kind": "code_change",
+      "media_type": "text/x-python",
+      "name": "alignment_session.py",
+      "sha256": "0d5d2138eba10b19f3c875e0d4398015014fdf422466a137693683cc39ff38c4",
+      "supersedes": null,
+      "task_id": "TASK-0078",
+      "uri": "local://src/ahra/alignment_session.py"
+    },
+    {
+      "artifact_id": "ART-TASK-0078-0002",
+      "created_at": "2026-07-01T11:07:53.970026Z",
+      "created_by": "agent:codex",
+      "evidence_refs": [
+        "EVD-TASK-0078-0001"
+      ],
+      "input_refs": [
+        "TASK-0078"
+      ],
+      "kind": "test_change",
+      "media_type": "text/x-python",
+      "name": "test_alignment_session.py",
+      "sha256": "6c77be494e0e195d5b025d455d26f3ce6f4c935a7d63d0f4ac7dc9408553ba9f",
+      "supersedes": null,
+      "task_id": "TASK-0078",
+      "uri": "local://tests/test_alignment_session.py"
+    },
+    {
+      "artifact_id": "ART-TASK-0078-0003",
+      "created_at": "2026-07-01T11:07:53.970026Z",
+      "created_by": "agent:codex",
+      "evidence_refs": [
+        "EVD-TASK-0078-0001"
+      ],
+      "input_refs": [
+        "docs/policies/component-lifecycle.md"
+      ],
+      "kind": "inventory_update",
+      "media_type": "application/json",
+      "name": "component-inventory.json",
+      "sha256": "f5e666492f19a5a636a99b89d5aedea1ff39fa5c80ecd7d0d3c801f6ea172459",
+      "supersedes": null,
+      "task_id": "TASK-0078",
+      "uri": "local://docs/architecture/component-inventory.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0078-HANDOFF-0001",
+      "created_at": "2026-07-01T11:07:53.970026Z",
+      "created_by": "agent:codex",
+      "evidence_refs": [
+        "EVD-TASK-0078-0001"
+      ],
+      "input_refs": [
+        "TASK-0078",
+        "evidence/verification-summary.json"
+      ],
+      "kind": "handoff",
+      "media_type": "text/markdown",
+      "name": "HANDOFF-0001.md",
+      "sha256": "e2128d8bd8486873968b5ba03dc8bf423015bb286a9c655e5f00c41b666bebbc",
+      "supersedes": null,
+      "task_id": "TASK-0078",
+      "uri": "local://handoffs/HANDOFF-0001.md"
+    }
+  ],
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0078"
+}

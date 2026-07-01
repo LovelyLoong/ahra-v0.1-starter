@@ -115,6 +115,12 @@ compatibility remains reachable only when explicitly requested by a caller that
 already knows that compatibility route. The local MCP server implementation has
 been removed.
 
+# Experimental Workflow A Lifecycle
+
+`ahra workflow-a ...` is an explicit experimental lifecycle for ADR-0009 intent alignment sessions only. It exposes `start`, `advance`, `snapshot`, `approve-requirement`, `draft`, `admit`, and `authorize` so local operators can exercise Workflow A products without placing `component:alignment-session-manager` on the default execution path.
+
+Default routing must not call `workflow-a` implicitly. `workflow-a draft` requires Human Gate 1 before RequestDraft creation, and `workflow-a authorize` uses ApprovalService Gate 2 to freeze a GoalExecutionRequest only for a human approval actor. Promotion to default-visible requires EvidenceGate-completed prerequisite tasks for the independent semantic/code-review gate, task-scoped dogfood paths, and Workflow A CLI lifecycle, plus an explicit component-lifecycle inventory update.
+
 # Regression Dynamic Fixture
 
 The dynamic repair fixture is now a regression-only profile. It must continue to

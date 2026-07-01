@@ -1465,6 +1465,7 @@ def _materialize_goal_awkp_bridge(
         "schema_version": "ahra/goal-awkp-association/0.1",
         "goalExecutionId": goal.goal_execution_id,
         "goalStatus": goal.status.value,
+        "profileRef": str(goal.budget_summary.get("profileRef") or ""),
         "taskId": task_id,
         "dbPath": str(db_path),
         "artifactDir": str(artifact_dir),

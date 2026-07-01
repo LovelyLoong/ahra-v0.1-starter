@@ -204,8 +204,146 @@ class CliTests(unittest.TestCase):
         self.assertIn("goal", help_text)
         self.assertIn("fixture", help_text)
         self.assertIn("evidence-gate", help_text)
+        self.assertIn("workflow-a", help_text)
         self.assertIn("workflow-sequence", help_text)
         self.assertNotIn("Legacy workflow compatibility commands", help_text)
+
+    def test_workflow_a_cli_lifecycle_requires_human_gates(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            intent = ROOT / "examples" / "intents" / "phase1-example-intent.yaml"
+            session = root / "workflow-a" / "session.json"
+            request_draft = root / "workflow-a" / "request-draft.json"
+            approval = root / "workflow-a" / "approval.json"
+            authorized = root / "workflow-a" / "goal-execution-request.yaml"
+
+            start_code, start_payload, _ = _run_cli(
+                [
+                    "workflow-a",
+                    "start",
+                    str(intent),
+                    "--session",
+                    str(session),
+                    "--artifact-dir",
+                    "work/tasks/TASK-0081/runs/workflow-a-cli/artifacts",
+                    "--store-path",
+                    "work/tasks/TASK-0081/runs/workflow-a-cli/goal-control.sqlite3",
+                ]
+            )
+            self.assertEqual(start_code, 0)
+            self.assertEqual(start_payload["result"]["snapshot"]["stage"], "dialogue")
+
+            advance_code, advance_payload, _ = _run_cli(
+                [
+                    "workflow-a",
+                    "advance",
+                    "--session",
+                    str(session),
+                    "--message",
+                    "That boundary is complete.",
+                    "--driver-ref",
+                    "workflow-a-fixture",
+                    "--enable-fixture-driver",
+                ]
+            )
+            self.assertEqual(advance_code, 0)
+            self.assertEqual(
+                advance_payload["result"]["snapshot"]["stage"],
+                "awaiting_requirement_approval",
+            )
+
+            draft_code, draft_payload, _ = _run_cli(
+                [
+                    "workflow-a",
+                    "draft",
+                    "--session",
+                    str(session),
+                    "--request-draft",
+                    str(request_draft),
+                    "--approval",
+                    str(approval),
+                    "--driver-ref",
+                    "workflow-a-fixture",
+                    "--enable-fixture-driver",
+                ]
+            )
+            self.assertEqual(draft_code, 2)
+            self.assertIn("requirement approval", draft_payload["error"])
+
+            bad_gate_code, bad_gate_payload, _ = _run_cli(
+                [
+                    "workflow-a",
+                    "approve-requirement",
+                    "--session",
+                    str(session),
+                    "--actor",
+                    "agent:alignment-session",
+                ]
+            )
+            self.assertEqual(bad_gate_code, 2)
+            self.assertIn("human actor", bad_gate_payload["error"])
+
+            approve_code, approve_payload, _ = _run_cli(
+                [
+                    "workflow-a",
+                    "approve-requirement",
+                    "--session",
+                    str(session),
+                    "--actor",
+                    "human:maintainer",
+                ]
+            )
+            self.assertEqual(approve_code, 0)
+            self.assertEqual(approve_payload["result"]["snapshot"]["stage"], "frozen")
+
+            draft_code, draft_payload, _ = _run_cli(
+                [
+                    "workflow-a",
+                    "draft",
+                    "--session",
+                    str(session),
+                    "--request-draft",
+                    str(request_draft),
+                    "--approval",
+                    str(approval),
+                    "--driver-ref",
+                    "workflow-a-fixture",
+                    "--enable-fixture-driver",
+                ]
+            )
+            self.assertEqual(draft_code, 0)
+            self.assertEqual(draft_payload["result"]["approval"]["status"], "waiting_auth")
+            self.assertTrue(request_draft.exists())
+            self.assertTrue(approval.exists())
+
+            admit_code, admit_payload, _ = _run_cli(
+                ["workflow-a", "admit", "--request-draft", str(request_draft)]
+            )
+            self.assertEqual(admit_code, 0)
+            self.assertTrue(admit_payload["result"]["accepted"])
+
+            authorize_code, authorize_payload, _ = _run_cli(
+                [
+                    "workflow-a",
+                    "authorize",
+                    "--request-draft",
+                    str(request_draft),
+                    "--approval",
+                    str(approval),
+                    "--output",
+                    str(authorized),
+                    "--actor",
+                    "human:maintainer",
+                    "--reason",
+                    "Gate 2 approved in CLI lifecycle test.",
+                ]
+            )
+            self.assertEqual(authorize_code, 0)
+            self.assertTrue(authorized.exists())
+            self.assertEqual(
+                authorize_payload["result"]["goalExecutionRequest"]["kind"],
+                "GoalExecutionRequest",
+            )
 
     def test_goal_start_allow_development_agent_injects_codex_driver(self) -> None:
         with mock.patch("ahra.cli.GoalOperationService") as service_cls, mock.patch(

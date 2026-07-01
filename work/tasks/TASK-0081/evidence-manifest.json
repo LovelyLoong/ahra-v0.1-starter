@@ -1,0 +1,25 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0081",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0081-0001",
+      "task_id": "TASK-0081",
+      "kind": "verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "47b77f91303d08c7cce92bcad0cef913f034dd71c7b27beb2ca1c4f653f0eea8",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T12:08:30.623896Z",
+      "refs": [
+        "ART-TASK-0081-0001",
+        "ART-TASK-0081-0002",
+        "ART-TASK-0081-0003",
+        "ART-TASK-0081-0004",
+        "ART-TASK-0081-0005",
+        "ART-TASK-0081-HANDOFF-0001"
+      ]
+    }
+  ]
+}

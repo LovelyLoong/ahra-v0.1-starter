@@ -43,6 +43,7 @@ from ahra.sqlite_control_store import SQLiteControlStore
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / "examples" / "m1" / "goal-run-request.yaml"
 COMMAND_GATE_EXAMPLE = ROOT / "examples" / "m1" / "goal-run-request-command-gate.yaml"
+DOGFOOD_A_ALIGNMENT_EXAMPLE = ROOT / "examples" / "goals" / "dogfood-a-alignment-session.yaml"
 D1 = "sha256:" + "1" * 64
 D2 = "sha256:" + "2" * 64
 D3 = "sha256:" + "3" * 64
@@ -544,10 +545,35 @@ class GoalOperationCliTests(unittest.TestCase):
             )
             self.assertEqual(failed_node["failure_class"], "path_blacklisted")
 
+    def test_dogfood_alignment_request_resolves_task_scoped_runtime_paths(self) -> None:
+        bundle = GoalOperationService().plan_bundle(DOGFOOD_A_ALIGNMENT_EXAMPLE)
+        request = bundle.request
+        run_root = ROOT / "work" / "tasks" / "TASK-0080" / "runs" / "dogfood-a-004"
+        example_runtime = ROOT / "examples" / "goals" / ".ahra"
+
+        self.assertEqual(request.artifact_dir, run_root / "artifacts")
+        self.assertEqual(request.store_path, run_root / "goal-control.sqlite3")
+        self.assertNotIn(str(example_runtime), str(request.artifact_dir))
+        self.assertNotIn(str(example_runtime), str(request.store_path))
+
     def test_validate_plan_start_resume_inspect_and_terminal_cancel(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             request = _copy_request(root)
+            run_root = root / "work" / "tasks" / "TASK-0080" / "runs" / "goal-cli"
+            _mutate_request(
+                request,
+                lambda data: (
+                    data["spec"].__setitem__(
+                        "artifactDir",
+                        "work/tasks/TASK-0080/runs/goal-cli/artifacts",
+                    ),
+                    data["spec"]["store"].__setitem__(
+                        "path",
+                        "work/tasks/TASK-0080/runs/goal-cli/goal-control.sqlite3",
+                    ),
+                ),
+            )
 
             validate_code, validate_payload = _run_cli(["goal", "validate", str(request)])
             self.assertEqual(validate_code, 0)
@@ -557,13 +583,15 @@ class GoalOperationCliTests(unittest.TestCase):
             plan_code, plan_payload = _run_cli(["goal", "plan", str(request)])
             self.assertEqual(plan_code, 0)
             self.assertEqual(plan_payload["result"]["executedNodeCount"], 0)
-            self.assertTrue((root / ".ahra" / "artifacts" / "plan-ir.json").exists())
+            self.assertTrue((run_root / "artifacts" / "plan-ir.json").exists())
+            self.assertFalse((root / ".ahra").exists())
 
             start_code, start_payload = _run_cli(["goal", "start", str(request), "--run-once"])
             self.assertEqual(start_code, 0)
             self.assertEqual(start_payload["result"]["goalStatus"], "running")
             self.assertEqual(start_payload["result"]["planStatus"], "running")
             self.assertTrue((root / "workspace" / "outputs" / "summary.txt").exists())
+            self.assertTrue((run_root / "goal-control.sqlite3").exists())
 
             resume_code, resume_payload = _run_cli_subprocess(
                 ["goal", "resume", goal_execution_id, "--request", str(request)]
@@ -578,7 +606,7 @@ class GoalOperationCliTests(unittest.TestCase):
             self.assertGreaterEqual(resume_payload["result"]["inspect"]["metrics"]["evidenceRefCount"], 2)
             self.assertEqual(resume_payload["result"]["inspect"]["metrics"]["capabilityGrantRefCount"], 1)
 
-            db = root / ".ahra" / "goal-control.sqlite3"
+            db = run_root / "goal-control.sqlite3"
             inspect_code, inspect_payload = _run_cli(["goal", "inspect", goal_execution_id, "--db", str(db)])
             self.assertEqual(inspect_code, 0)
             self.assertEqual(inspect_payload["result"]["metrics"]["goalStatus"], "succeeded")
@@ -803,6 +831,13 @@ class GoalOperationCliTests(unittest.TestCase):
             self.assertEqual(result.goal_status, "succeeded")
             self.assertEqual(result.orchestration.terminal_state, "completed")
             self.assertIn(evidence_ref, result.materialization.kernel_evidence_refs)
+            association = json.loads(
+                (task_dir / result.materialization.association_ref.removeprefix("local://")).read_text(
+                    encoding="utf-8"
+                )
+            )
+            request_doc = yaml.safe_load(request_path.read_text(encoding="utf-8"))
+            self.assertEqual(association["profileRef"], request_doc["spec"]["profileRef"])
             state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["state"], "completed")
             self.assertIn(evidence_ref, state["evidence_refs"])

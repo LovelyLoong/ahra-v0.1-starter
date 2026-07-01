@@ -14,6 +14,7 @@ from typing import Any, Iterable
 ALLOWED_DECISIONS = {"approve", "request_changes"}
 PASSED_STATUSES = {"passed", "pass"}
 FAILED_STATUSES = {"failed", "fail", "missing", "blocked"}
+DEVELOPMENT_BOUNDED_PROFILE_REF = "profile/development-bounded"
 
 
 class EvidenceGateError(ValueError):
@@ -115,10 +116,24 @@ def evaluate_task_gate(
     assessments = _map_criteria(criteria, report, evidence_by_id)
     command_backed_criteria = _command_backed_criteria(report)
     _validate_command_results(report, report_decision, kernel_evidence)
+    requires_semantic_review = _requires_semantic_code_review(
+        task_dir=task_dir,
+        task_path=task_path,
+        artifact_manifest=artifact_manifest,
+    )
 
     if report_decision == "approve":
         if state.get("blockers"):
             raise EvidenceGateError("cannot approve a task that still records blockers")
+        if requires_semantic_review:
+            _validate_semantic_code_reviews(
+                report=report,
+                criteria=criteria,
+                assessments=assessments,
+                evidence_by_id=evidence_by_id,
+                kernel_evidence=kernel_evidence,
+                producer_identities=producer_identities,
+            )
         for criterion in criteria:
             item = assessments.get(criterion.index)
             if item is None:
@@ -461,6 +476,198 @@ def _validate_command_results(
                 raise EvidenceGateError(f"command[{index}] is stale for changed files")
 
 
+def _requires_semantic_code_review(
+    *,
+    task_dir: Path,
+    task_path: Path,
+    artifact_manifest: dict[str, Any],
+) -> bool:
+    if not _task_declares_code_change(task_path):
+        return False
+    profile_refs = _associated_goal_profile_refs(task_dir, artifact_manifest)
+    if "" in profile_refs:
+        raise EvidenceGateError("code-change Goal/AWKP association missing profileRef")
+    return DEVELOPMENT_BOUNDED_PROFILE_REF in profile_refs
+
+
+def _task_declares_code_change(task_path: Path) -> bool:
+    return "ahra/artifact/code-change/0.1" in task_path.read_text(encoding="utf-8")
+
+
+def _associated_goal_profile_refs(
+    task_dir: Path,
+    artifact_manifest: dict[str, Any],
+) -> set[str]:
+    profile_refs: set[str] = set()
+    for record in artifact_manifest.get("artifacts", []):
+        if not isinstance(record, dict):
+            continue
+        uri = str(record.get("uri") or "")
+        if not uri.startswith("local://"):
+            continue
+        try:
+            path = _local_uri_path(task_dir, uri)
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (EvidenceGateError, OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        if data.get("schema_version") != "ahra/goal-awkp-association/0.1":
+            continue
+        profile_refs.add(str(data.get("profileRef") or ""))
+    return profile_refs
+
+
+def _validate_semantic_code_reviews(
+    *,
+    report: dict[str, Any],
+    criteria: list[AcceptanceCriterion],
+    assessments: dict[int, dict[str, Any]],
+    evidence_by_id: dict[str, dict[str, Any]],
+    kernel_evidence: KernelEvidenceIndex,
+    producer_identities: set[str],
+) -> None:
+    reviews = report.get("semantic_reviews")
+    if not isinstance(reviews, list) or not reviews:
+        raise EvidenceGateError("development-bounded code-change requires semantic_reviews")
+    required_indices = {criterion.index for criterion in criteria}
+    covered_indices: set[int] = set()
+    for index, review in enumerate(reviews):
+        if not isinstance(review, dict):
+            raise EvidenceGateError(f"semantic_review[{index}] must be an object")
+        status = str(review.get("status") or "").strip().lower()
+        if status not in PASSED_STATUSES:
+            raise EvidenceGateError(f"semantic_review[{index}] is not passed")
+        changed_files = _changed_files(review.get("changed_files"), f"semantic_review[{index}]")
+        declared_digest = str(review.get("changed_files_sha256") or "")
+        verified_digest = str(review.get("verified_changed_files_sha256") or "")
+        expected_digest = _changed_files_digest(changed_files)
+        if (
+            not declared_digest
+            or not verified_digest
+            or declared_digest != verified_digest
+            or declared_digest != expected_digest
+        ):
+            raise EvidenceGateError(f"semantic_review[{index}] stale changed files")
+        criterion_indices = _semantic_review_criterion_indices(
+            review,
+            required_indices,
+            f"semantic_review[{index}]",
+        )
+        refs = _evidence_refs(review)
+        if not refs:
+            raise EvidenceGateError(f"semantic_review[{index}] has no evidence_refs")
+        declared_reviewer = _declared_semantic_reviewer(review)
+        if declared_reviewer and declared_reviewer in producer_identities:
+            raise EvidenceGateError(f"semantic_review[{index}] produced by producer identity")
+        for evidence_ref in refs:
+            if evidence_ref not in evidence_by_id:
+                raise EvidenceGateError(
+                    f"semantic_review[{index}] references unknown evidence {evidence_ref}"
+                )
+            evidence, gate_run = _validate_kernel_command_evidence(
+                evidence_ref,
+                kernel_evidence,
+                f"semantic_review[{index}]",
+            )
+            _validate_semantic_review_lineage(
+                evidence_ref,
+                evidence,
+                gate_run,
+                producer_identities,
+                declared_reviewer,
+                f"semantic_review[{index}]",
+            )
+            for criterion_index in criterion_indices:
+                assessment = assessments.get(criterion_index)
+                if assessment is None or evidence_ref not in _refs(assessment):
+                    raise EvidenceGateError(
+                        f"semantic_review[{index}] evidence {evidence_ref} not mapped "
+                        f"to criterion {criterion_index}"
+                    )
+        covered_indices.update(criterion_indices)
+    missing = sorted(required_indices - covered_indices)
+    if missing:
+        raise EvidenceGateError(f"semantic_reviews missing criteria {missing}")
+
+
+def _semantic_review_criterion_indices(
+    review: dict[str, Any],
+    allowed_indices: set[int],
+    ref: str,
+) -> set[int]:
+    raw = review.get("criterion_indices")
+    if not isinstance(raw, list) or not raw:
+        raise EvidenceGateError(f"{ref} criterion_indices must be non-empty array")
+    result: set[int] = set()
+    for item in raw:
+        if not isinstance(item, int):
+            raise EvidenceGateError(f"{ref} criterion_indices must contain integers")
+        if item not in allowed_indices:
+            raise EvidenceGateError(f"{ref} references unknown criterion {item}")
+        result.add(item)
+    return result
+
+
+def _changed_files(value: Any, ref: str) -> list[str]:
+    if not isinstance(value, list) or not value:
+        raise EvidenceGateError(f"{ref} changed_files must be non-empty array")
+    result: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            raise EvidenceGateError(f"{ref} changed_files must contain strings")
+        normalized = item.replace("\\", "/").strip()
+        parts = [part for part in normalized.split("/") if part]
+        if (
+            not normalized
+            or normalized.startswith("/")
+            or re.match(r"^[A-Za-z]:", normalized)
+            or "." in parts
+            or ".." in parts
+        ):
+            raise EvidenceGateError(f"{ref} changed_files must be relative clean paths")
+        result.append("/".join(parts))
+    return result
+
+
+def _changed_files_digest(changed_files: list[str]) -> str:
+    return "sha256:" + hashlib.sha256(
+        _canonical_json(sorted(changed_files)).encode("utf-8")
+    ).hexdigest()
+
+
+def _declared_semantic_reviewer(review: dict[str, Any]) -> str | None:
+    for key in ("reviewer", "reviewer_identity", "verifier", "verifier_identity"):
+        value = review.get(key)
+        if value:
+            return str(value)
+    return None
+
+
+def _validate_semantic_review_lineage(
+    evidence_ref: str,
+    evidence: dict[str, Any],
+    gate_run: dict[str, Any],
+    producer_identities: set[str],
+    declared_reviewer: str | None,
+    referrer: str,
+) -> None:
+    gate_run_id = _metadata_ref(gate_run, "gateRunId")
+    gate_spec = _object(gate_run.get("spec"), f"{gate_run_id or 'GateRun'}.spec")
+    command = _strings(gate_spec.get("command"), f"{gate_run_id}.spec.command")
+    if len(command) < 2 or command[0] != "semantic_review":
+        raise EvidenceGateError(f"{referrer} GateRun is not semantic_review")
+    evidence_spec = _object(evidence.get("spec"), f"{evidence_ref}.spec")
+    refs = _strings(evidence_spec.get("refs"), f"{evidence_ref}.spec.refs")
+    reviewer_refs = sorted(ref.removeprefix("verifier:") for ref in refs if ref.startswith("verifier:"))
+    if not reviewer_refs:
+        raise EvidenceGateError(f"{referrer} semantic review missing verifier identity")
+    if declared_reviewer and declared_reviewer not in reviewer_refs:
+        raise EvidenceGateError(f"{referrer} verifier identity mismatch")
+    if any(reviewer in producer_identities for reviewer in reviewer_refs):
+        raise EvidenceGateError(f"{referrer} produced by producer identity")
+
+
 def _command_backed_criteria(report: dict[str, Any]) -> set[int]:
     result: set[int] = set()
     criteria = report.get("criteria", [])
@@ -572,7 +779,7 @@ def _validate_kernel_command_evidence(
     evidence_ref: str,
     kernel_evidence: KernelEvidenceIndex,
     referrer: str,
-) -> None:
+) -> tuple[dict[str, Any], dict[str, Any]]:
     evidence = kernel_evidence.evidence.get(evidence_ref)
     if evidence is None:
         raise EvidenceGateError(f"{referrer} references {evidence_ref} without kernel EvidenceV2")
@@ -592,6 +799,7 @@ def _validate_kernel_command_evidence(
     if gate_run is None:
         raise EvidenceGateError(f"{referrer} references kernel EvidenceV2 {evidence_ref} without valid gate-run lineage")
     _validate_gate_run_lineage(evidence_ref, evidence, gate_run, referrer)
+    return evidence, gate_run
 
 
 def _validate_gate_run_lineage(
@@ -738,6 +946,7 @@ def _build_gate_report(
             for criterion in criteria
         ],
         "commands": input_report.get("commands", []),
+        "semantic_reviews": input_report.get("semantic_reviews", []),
     }
 
 

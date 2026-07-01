@@ -4,14 +4,13 @@ from dataclasses import dataclass, replace
 from typing import Any, Mapping
 
 from .acceptance_contracts import ClaimGraph
+from .approval_service import ApprovalRecord
 from .alignment_engine import (
     AlignmentError,
     AlignmentRegistry,
     RequestDraft,
     _claim_graph_to_mapping,
-    _claims_from_intent,
     _goal_ref_from_intent,
-    _plan_from_intent,
     _request_id,
     _request_name,
 )
@@ -24,7 +23,14 @@ from .goal_operations import (
 )
 from .intent_draft import IntentDraft
 from .plan_ir import PlanDraft
-from .ports import AgentDriver, AgentOutputContract, AgentRole, AgentRunRequest, AgentRuntimeProfile
+from .ports import (
+    AgentDriver,
+    AgentOutputContract,
+    AgentRole,
+    AgentRunRequest,
+    AgentRuntimeProfile,
+    ApprovalService as ApprovalServicePort,
+)
 
 
 ALIGNMENT_DECISION_OUTPUT = "AlignmentTurnDecision"
@@ -91,6 +97,7 @@ class AlignmentSessionSnapshot:
     stage: str = "dialogue"
     turns: tuple[AlignmentSessionTurn, ...] = ()
     frozen_requirement: str | None = None
+    requirement_approved_by: str | None = None
     missing_dimensions: tuple[str, ...] = ()
 
     @classmethod
@@ -108,6 +115,7 @@ class AlignmentSessionSnapshot:
             stage=str(data.get("stage") or "dialogue"),
             turns=tuple(AlignmentSessionTurn.from_mapping(_mapping(item, "turn")) for item in data.get("turns", ())),
             frozen_requirement=str(data["frozenRequirement"]) if data.get("frozenRequirement") else None,
+            requirement_approved_by=str(data["requirementApprovedBy"]) if data.get("requirementApprovedBy") else None,
             missing_dimensions=tuple(str(item) for item in data.get("missingDimensions", ())),
         )
 
@@ -147,6 +155,8 @@ class AlignmentSessionSnapshot:
         }
         if self.frozen_requirement:
             data["frozenRequirement"] = self.frozen_requirement
+        if self.requirement_approved_by:
+            data["requirementApprovedBy"] = self.requirement_approved_by
         return data
 
 
@@ -154,6 +164,7 @@ class AlignmentSessionSnapshot:
 class AlignmentSessionResult:
     snapshot: AlignmentSessionSnapshot
     request_draft: RequestDraft
+    approval_record: ApprovalRecord | None = None
 
 
 class AlignmentSessionManager:
@@ -272,13 +283,53 @@ class AlignmentSessionManager:
         )
         return replace(
             after_agent,
-            stage="frozen" if converged else "awaiting_user",
+            stage="awaiting_requirement_approval" if converged else "awaiting_user",
             frozen_requirement=frozen_requirement or after_agent.frozen_requirement,
             missing_dimensions=_string_tuple(decision.get("missingDimensions") or decision.get("missing_dimensions")),
         )
 
-    async def draft_request(self, snapshot: AlignmentSessionSnapshot | Mapping[str, Any]) -> AlignmentSessionResult:
+    def approve_requirement(
+        self,
+        snapshot: AlignmentSessionSnapshot | Mapping[str, Any],
+        *,
+        actor: str,
+    ) -> AlignmentSessionSnapshot:
         current = self.resume_from_snapshot(snapshot)
+        if current.stage != "awaiting_requirement_approval" or not current.frozen_requirement:
+            raise AlignmentSessionError(
+                "requirement_approval_not_waiting",
+                "requirement approval requires an agent-proposed frozen requirement",
+                ref="session.stage",
+            )
+        if actor == current.producer_actor:
+            raise AlignmentSessionError(
+                "producer_cannot_approve_requirement",
+                "requirement freeze requires a human actor distinct from producer",
+                ref="approval.actor",
+                refs=(actor,),
+            )
+        if not actor.startswith("human:"):
+            raise AlignmentSessionError(
+                "requirement_approval_requires_human",
+                "requirement freeze requires explicit human confirmation",
+                ref="approval.actor",
+                refs=(actor,),
+            )
+        return replace(current, stage="frozen", requirement_approved_by=actor)
+
+    async def draft_request(
+        self,
+        snapshot: AlignmentSessionSnapshot | Mapping[str, Any],
+        *,
+        approval_service: ApprovalServicePort | None = None,
+    ) -> AlignmentSessionResult:
+        current = self.resume_from_snapshot(snapshot)
+        if current.stage == "awaiting_requirement_approval":
+            raise AlignmentSessionError(
+                "requirement_not_approved",
+                "request drafting requires Human Gate 1 requirement approval",
+                ref="session.requirementApprovedBy",
+            )
         if current.stage != "frozen" or not current.frozen_requirement:
             raise AlignmentSessionError(
                 "alignment_not_frozen",
@@ -324,7 +375,14 @@ class AlignmentSessionManager:
             ),
             stage="request_drafted",
         )
-        return AlignmentSessionResult(snapshot=final_snapshot, request_draft=request_draft)
+        approval_record = None
+        if approval_service is not None:
+            approval_record = approval_service.request_authorization(request_draft, actor=current.producer_actor)
+        return AlignmentSessionResult(
+            snapshot=final_snapshot,
+            request_draft=request_draft,
+            approval_record=approval_record,
+        )
 
     async def run(
         self,
@@ -397,9 +455,9 @@ class AlignmentSessionManager:
         profile = self._resolve_profile(snapshot.profile_ref, runtime_ref=snapshot.runtime_ref, runtime_digest=snapshot.runtime_digest)
         aligned_intent = replace(snapshot.intent, abstract_goal=_summary(requirement, snapshot.frozen_requirement or snapshot.intent.abstract_goal))
         goal_ref = _goal_ref_from_intent(aligned_intent.intent_id)
-        claim_graph = _claim_graph_from_output(acceptance, goal_ref, aligned_intent)
+        claim_graph = _claim_graph_from_output(acceptance)
         required_claim_refs = tuple(claim.claim_id for claim in claim_graph.claims if claim.required)
-        plan = _plan_from_output(requirement, goal_ref, aligned_intent, required_claim_refs, profile.runtime_ref)
+        plan = _plan_from_output(requirement)
         allowed_capabilities = tuple(sorted({need.action for need in aligned_intent.capability_needs} | {"filesystem.write"}))
         capability_policies = {need.action: need.policy_refs for need in aligned_intent.capability_needs if need.policy_refs}
         goal_digest = canonical_fingerprint({"goalRef": goal_ref, "abstractGoal": aligned_intent.abstract_goal})
@@ -485,28 +543,30 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
     return AgentOutputContract(name=expected_output, schema=schema, example=None)
 
 
-def _claim_graph_from_output(output: Mapping[str, Any], goal_ref: str, intent: IntentDraft) -> ClaimGraph:
+def _claim_graph_from_output(output: Mapping[str, Any]) -> ClaimGraph:
     claim_graph_data = output.get("claimGraph") or output.get("claim_graph")
     if claim_graph_data is not None:
         return ClaimGraph.from_mapping(_mapping(claim_graph_data, "claimGraph"))
     if output.get("kind") == "ClaimGraph":
         return ClaimGraph.from_mapping(output)
-    return ClaimGraph(goal_ref=goal_ref, version=1, claims=_claims_from_intent(goal_ref, intent))
+    raise AlignmentSessionError(
+        "missing_claim_graph",
+        "Acceptance Agent output must include an explicit ClaimGraph",
+        ref="agentOutput.claimGraph",
+    )
 
 
-def _plan_from_output(
-    output: Mapping[str, Any],
-    goal_ref: str,
-    intent: IntentDraft,
-    required_claim_refs: tuple[str, ...],
-    runtime_ref: str,
-) -> PlanDraft:
+def _plan_from_output(output: Mapping[str, Any]) -> PlanDraft:
     plan_data = output.get("planDraft") or output.get("plan_draft")
     if plan_data is not None:
         return PlanDraft.from_mapping(_mapping(plan_data, "planDraft"))
     if output.get("kind") == "PlanDraft":
         return PlanDraft.from_mapping(output)
-    return _plan_from_intent(goal_ref, intent, required_claim_refs, runtime_ref)
+    raise AlignmentSessionError(
+        "missing_plan_draft",
+        "Requirement Agent output must include an explicit PlanDraft",
+        ref="agentOutput.planDraft",
+    )
 
 
 def _mapping(value: Any, ref: str) -> Mapping[str, Any]:

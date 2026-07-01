@@ -1,0 +1,105 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanDraft",
+  "metadata": {
+    "goalId": "GOAL-DOGFOOD-A-001",
+    "proposedBy": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "spec": {
+    "nodes": [
+      {
+        "budgetRequest": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 8,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 40,
+          "maxWallSeconds": 900
+        },
+        "capabilityRequests": [
+          {
+            "capability": "filesystem.write",
+            "resources": [
+              "src/ahra/alignment_session.py",
+              "tests/test_alignment_session.py"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "resources": [
+              "uv run python -B scripts/check.py --test"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-ALIGNMENT-SESSION"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "alignment-session-code",
+            "schemaRef": "ahra/artifact/code-change/0.1"
+          }
+        ],
+        "gateRefs": [
+          "GATE-alignment-session"
+        ],
+        "id": "NODE-alignment-session",
+        "inputRefs": [
+          "input/dogfood-a-001@sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Create src/ahra/alignment_session.py implementing a real Agent-driven\nAlignmentSessionManager per docs/architecture/intent-alignment-workflow.md\nand ADR-0009. It must:\n1. Accept an IntentDraft and drive multi-turn dialogue via the AgentDriver\n   port (src/ahra/ports.py) - do not import any model/cloud SDK directly.\n2. Keep immutable per-turn session state snapshots with turn history.\n3. Resolve profile/digest references from GoalOperationProfileRegistry and\n   reject unknown references with a structured error (never fabricate a digest).\n4. Emit an untrusted RequestDraft on convergence, never a frozen\n   GoalExecutionRequest.\n5. Be resumable from any state snapshot.\nAlso create tests/test_alignment_session.py with deterministic fake-AgentDriver\nfixtures asserting: agent-driven dialogue is actually invoked; unknown digest is\nrejected; resume-from-snapshot works; output is an untrusted RequestDraft.\nRun uv run python -B scripts/check.py --test and record it in\nWorkReport.verification_commands_run.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 900
+      },
+      {
+        "budgetRequest": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "capabilityRequests": [],
+        "claimRefs": [
+          "CLM-ALIGNMENT-SESSION",
+          "CLM-GOAL-COMPLETE"
+        ],
+        "dependsOn": [
+          "NODE-alignment-session"
+        ],
+        "expectedOutputs": [],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-alignment-session"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the alignment session implementation and its tests are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ],
+    "rationale": "Dogfood: use Workflow B (development-bounded profile, real Agent) to build\na real Agent-driven alignment session manager for Workflow A, per ADR-0009,\nreplacing the deterministic template stub. Writes are confined to the\nA-workflow path allowlist; the B kernel is on the write blacklist.\n"
+  }
+}
