@@ -20,7 +20,7 @@ from .node_executor import (
 )
 from .plan_ir import PlanIR, PlanNodeIR, PlanNodeType, PlanValidationReport
 from .ports import CapabilityAdmissionPort, SchedulerPort, VerificationExecutorPort, VerificationServicePort
-from .verification import GateLevel, VerificationExecutionContext, VerificationSelection, VerificationTrigger
+from .verification import DefectRecord, GateLevel, VerificationExecutionContext, VerificationSelection, VerificationTrigger
 
 
 class PlanExecutionError(RuntimeError):
@@ -127,6 +127,8 @@ GOAL_TRANSITIONS: dict[GoalExecutionStatus, frozenset[GoalExecutionStatus]] = {
     GoalExecutionStatus.FAILED: frozenset(),
     GoalExecutionStatus.CANCELED: frozenset(),
 }
+
+TERMINAL_GOAL_DEFECT_FAILURE_CLASSES = frozenset({"agent_timeout", "node_lease_expired"})
 
 NODE_TRANSITIONS: dict[NodeRunStatus, frozenset[NodeRunStatus]] = {
     NodeRunStatus.PENDING: frozenset({NodeRunStatus.READY, NodeRunStatus.CANCELED}),
@@ -648,7 +650,7 @@ class PlanExecutionService:
             raise PlanInvalidTransitionError("active PlanExecution is not terminal")
         if execution.status == PlanExecutionStatus.SUCCEEDED:
             to_status = GoalExecutionStatus.VERIFYING
-        elif open_defect_refs:
+        elif open_defect_refs and execution.failure_class not in TERMINAL_GOAL_DEFECT_FAILURE_CLASSES:
             to_status = GoalExecutionStatus.REPAIRING
         else:
             to_status = GoalExecutionStatus.FAILED
@@ -1143,9 +1145,14 @@ class StaticPlanScheduler(SchedulerPort):
         max_concurrency: int = 1,
         lease_holder: str = "scheduler:static-planir",
         lease_ttl_seconds: int = 300,
+        terminal_write_grace_seconds: int = 30,
     ) -> None:
         if max_concurrency < 1:
             raise ValueError("max_concurrency must be at least 1")
+        if lease_ttl_seconds < 1:
+            raise ValueError("lease_ttl_seconds must be positive")
+        if terminal_write_grace_seconds < 0:
+            raise ValueError("terminal_write_grace_seconds cannot be negative")
         self.service = service
         self.executor_registry = executor_registry
         self.executor_release_refs = dict(executor_release_refs)
@@ -1157,7 +1164,12 @@ class StaticPlanScheduler(SchedulerPort):
         self.max_concurrency = max_concurrency
         self.lease_holder = lease_holder
         self.lease_ttl_seconds = lease_ttl_seconds
+        self.terminal_write_grace_seconds = terminal_write_grace_seconds
         self.capability_admission_attempts: list[CapabilityAdmissionAttempt] = []
+        self._defects: list[DefectRecord] = []
+
+    def defects(self) -> tuple[DefectRecord, ...]:
+        return tuple(self._defects)
 
     def submit_plan(
         self,
@@ -1307,7 +1319,11 @@ class StaticPlanScheduler(SchedulerPort):
         current = self.service.acquire_node_lease(
             current.node_run_id,
             holder=self.lease_holder,
-            ttl_seconds=self.lease_ttl_seconds,
+            ttl_seconds=_node_lease_ttl_seconds(
+                node,
+                self.lease_ttl_seconds,
+                self.terminal_write_grace_seconds,
+            ),
             expected_version=current.status_version,
         )
         admission = self._prepare_capability_admission(plan, node, current)
@@ -1371,22 +1387,19 @@ class StaticPlanScheduler(SchedulerPort):
             run_id=current.node_run_id,
         )
         try:
-            timeout_seconds = _node_wall_timeout_seconds(node)
+            timeout_seconds = _node_agent_timeout_seconds(node, self.lease_ttl_seconds)
             if timeout_seconds:
                 result = await asyncio.wait_for(executor.execute(request), timeout=timeout_seconds)
             else:
                 result = await executor.execute(request)
         except TimeoutError:
-            self.service.transition_node(
-                current.node_run_id,
-                NodeRunStatus.TIMED_OUT,
-                expected_version=self.service.store.get_node_run(current.node_run_id).status_version,
-                holder=self.lease_holder,
-                fencing_token=current.lease.fencing_token if current.lease else None,
-                failure_class="timeout",
-                message="Node executor timed out.",
+            timed_out = self._transition_agent_timeout(
+                node,
+                current,
+                timeout_seconds=timeout_seconds,
             )
-            self._maybe_retry(plan, self.service.store.get_node_run(current.node_run_id), "timeout")
+            self._record_node_defect(plan, node, timed_out)
+            self._maybe_retry(plan, timed_out, "agent_timeout")
             return
         except Exception as exc:  # pragma: no cover - defensive boundary
             self._fail_node(current, "executor_exception", str(exc))
@@ -1752,6 +1765,13 @@ class StaticPlanScheduler(SchedulerPort):
         now = utc_now()
         decisions: list[AdmissionDecision] = []
         grants: list[RuntimeCapabilityGrant] = []
+        expires_at = now + timedelta(
+            seconds=_node_lease_ttl_seconds(
+                node,
+                self.lease_ttl_seconds,
+                self.terminal_write_grace_seconds,
+            )
+        )
         for capability in node.capability_grants:
             request = RuntimeCapabilityRequest(
                 request_id=_capability_request_id(plan, node, node_run, capability.capability, capability.resources),
@@ -1764,7 +1784,7 @@ class StaticPlanScheduler(SchedulerPort):
                 resources=capability.resources,
                 scope=capability.resources,
                 risk_level=capability.risk_level,
-                expires_at=now + timedelta(seconds=max(_node_wall_timeout_seconds(node) or 0, self.lease_ttl_seconds)),
+                expires_at=expires_at,
                 spawn_limit=node.budget.max_spawned_nodes,
                 approval_refs=capability.approval_refs,
             )
@@ -1869,6 +1889,8 @@ class StaticPlanScheduler(SchedulerPort):
                 handoff_refs=(f"HANDOFF-{execution.plan_execution_id}-canceled",),
             )
         if failed:
+            for failed_node in failed:
+                self._record_node_defect(plan, _node_by_id(plan, failed_node.node_id), failed_node)
             return self.service.transition_execution(
                 execution.plan_execution_id,
                 PlanExecutionStatus.FAILED,
@@ -1923,6 +1945,94 @@ class StaticPlanScheduler(SchedulerPort):
             message=message,
         )
         return failed
+
+    def _transition_agent_timeout(
+        self,
+        node: PlanNodeIR,
+        current: NodeRunRecord,
+        *,
+        timeout_seconds: int | None,
+    ) -> NodeRunRecord:
+        failure_ref = f"TIMEOUT-{node.node_id.removeprefix('NODE-')}"
+        message = (
+            f"Node executor exceeded effective agent timeout ({timeout_seconds}s)."
+            if timeout_seconds is not None
+            else "Node executor exceeded effective agent timeout."
+        )
+
+        latest = self.service.store.get_node_run(current.node_run_id)
+        try:
+            return self.service.transition_node(
+                latest.node_run_id,
+                NodeRunStatus.TIMED_OUT,
+                expected_version=latest.status_version,
+                holder=self.lease_holder,
+                fencing_token=latest.lease.fencing_token if latest.lease else None,
+                terminal_failure_refs=(failure_ref,),
+                failure_class="agent_timeout",
+                message=message,
+            )
+        except PlanLeaseConflictError as exc:
+            if "lease expired" not in str(exc):
+                raise
+            latest = self.service.store.get_node_run(current.node_run_id)
+            refreshed = self.service.acquire_node_lease(
+                latest.node_run_id,
+                holder=self.lease_holder,
+                ttl_seconds=max(1, self.terminal_write_grace_seconds),
+                expected_version=latest.status_version,
+            )
+            return self.service.transition_node(
+                refreshed.node_run_id,
+                NodeRunStatus.TIMED_OUT,
+                expected_version=refreshed.status_version,
+                holder=self.lease_holder,
+                fencing_token=refreshed.lease.fencing_token if refreshed.lease else None,
+                terminal_failure_refs=(failure_ref,),
+                failure_class="agent_timeout",
+                message=message,
+            )
+
+    def _record_node_defect(
+        self,
+        plan: PlanIR,
+        node: PlanNodeIR,
+        node_run: NodeRunRecord,
+    ) -> None:
+        if node_run.failure_class not in TERMINAL_GOAL_DEFECT_FAILURE_CLASSES:
+            return
+        direct_claim_refs = tuple(node.claim_refs) or (node.node_id,)
+        gate_ref = node.gate_refs[0] if node.gate_refs else f"GATE-{node.node_id.removeprefix('NODE-')}"
+        defect_id = "DEF-" + canonical_fingerprint(
+            {
+                "plan": plan.plan_id,
+                "nodeRun": node_run.node_run_id,
+                "failureClass": node_run.failure_class,
+            }
+        ).removeprefix("sha256:")[:16]
+        if any(defect.defect_id == defect_id for defect in self._defects):
+            return
+        self._defects.append(
+            DefectRecord(
+                defect_id=defect_id,
+                claim_ref=direct_claim_refs[0],
+                gate_ref=gate_ref,
+                expected="NodeRun completes within its authoritative node budget and records a durable terminal state.",
+                actual=f"{node_run.failure_class}: {node_run.message}",
+                refs=(
+                    plan.plan_id,
+                    node_run.plan_execution_id,
+                    node_run.node_run_id,
+                    *node_run.terminal_failure_refs,
+                ),
+                repair_boundary=(
+                    "Repair the node executor, node budget, or lease convergence path without changing Goal, "
+                    "Claim, Gate, Policy, or Capability boundaries."
+                ),
+                direct_claim_refs=direct_claim_refs,
+                affected_claim_refs=direct_claim_refs,
+            )
+        )
 
     def _maybe_retry(self, plan: PlanIR, failed: NodeRunRecord, failure_class: str) -> None:
         node = _node_by_id(plan, failed.node_id)
@@ -1983,8 +2093,12 @@ def reconcile_plan_execution(
             findings.append(
                 ReconcilerFinding(
                     code="expired-node-lease",
-                    severity="warning",
-                    message=f"NodeRun lease expired for {node.node_run_id}.",
+                    severity="error" if node.status == NodeRunStatus.RUNNING else "warning",
+                    message=(
+                        f"Running NodeRun lease expired and must converge to terminal failed: {node.node_run_id}."
+                        if node.status == NodeRunStatus.RUNNING
+                        else f"NodeRun lease expired for {node.node_run_id}."
+                    ),
                     refs=(execution.plan_execution_id, node.node_run_id),
                 )
             )
@@ -2118,6 +2232,21 @@ def _node_wall_timeout_seconds(node: PlanNodeIR) -> int | None:
     if not candidates:
         return None
     return min(candidates)
+
+
+def _node_agent_timeout_seconds(node: PlanNodeIR, default_lease_ttl_seconds: int) -> int:
+    wall_timeout = _node_wall_timeout_seconds(node)
+    if wall_timeout is None:
+        return default_lease_ttl_seconds
+    return min(wall_timeout, default_lease_ttl_seconds)
+
+
+def _node_lease_ttl_seconds(
+    node: PlanNodeIR,
+    default_lease_ttl_seconds: int,
+    terminal_write_grace_seconds: int,
+) -> int:
+    return _node_agent_timeout_seconds(node, default_lease_ttl_seconds) + terminal_write_grace_seconds
 
 
 def _verification_usage() -> NodeExecutionUsage:

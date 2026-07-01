@@ -34,7 +34,7 @@ from ahra.goal_operations import (
     LOCAL_GOAL_RUNTIME_REF,
     REAL_BOUNDED_EXECUTOR_REF,
 )
-from ahra.plan_execution import PlanExecutionService, PlanExecutionStatus
+from ahra.plan_execution import PlanExecutionService, PlanExecutionStatus, _node_agent_timeout_seconds
 from ahra.ports import AgentRunResult, GoalAwkpBridgePort
 from ahra.reference_runner.models import WorkReport
 from ahra.sqlite_control_store import SQLiteControlStore
@@ -267,7 +267,7 @@ def _write_development_request(root: Path, *, target_path: str) -> Path:
                                 "retryableFailureClasses": [],
                                 "idempotencyKeyRequired": True,
                             },
-                            "timeoutSeconds": 300,
+                            "timeoutSeconds": DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds,
                             "sideEffect": "idempotent",
                         },
                         {
@@ -466,9 +466,45 @@ class GoalOperationCliTests(unittest.TestCase):
 
         self.assertEqual(profile.executor_adapter_ref, REAL_BOUNDED_EXECUTOR_REF)
         self.assertEqual(profile.default_node_budget, DEVELOPMENT_BOUNDED_NODE_BUDGET)
+        self.assertIsNotNone(profile.default_node_budget.max_wall_seconds)
+        self.assertGreater(profile.default_node_budget.max_wall_seconds, 300)
         self.assertIn("alignment_*.py", DEVELOPMENT_BOUNDED_WRITE_ALLOWLIST)
         self.assertIn("src/ahra/evidence_gate.py", DEVELOPMENT_BOUNDED_WRITE_BLACKLIST)
         self.assertIn("uv run python -B scripts/check.py", DEVELOPMENT_BOUNDED_PROCESS_COMMANDS)
+
+    def test_development_scheduler_uses_profile_node_budget_for_lease_ttl(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            request_path = _write_development_request(root, target_path="alignment_stub.py")
+            service = GoalOperationService(real_executor_driver=DevelopmentWriterDriver())
+            bundle = service.plan_bundle(request_path)
+            request = bundle.request
+            request.store_path.parent.mkdir(parents=True, exist_ok=True)
+
+            scheduler = service._scheduler(request, SQLiteControlStore(request.store_path))
+            assert bundle.plan is not None
+            node = next(node for node in bundle.plan.nodes if node.node_id == "NODE-development-edit")
+
+            self.assertEqual(scheduler.lease_ttl_seconds, DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds)
+            self.assertEqual(node.timeout_seconds, DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds)
+            self.assertEqual(node.budget.max_wall_seconds, DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds)
+            self.assertEqual(
+                _node_agent_timeout_seconds(node, scheduler.lease_ttl_seconds),
+                DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds,
+            )
+            self.assertLessEqual(_node_agent_timeout_seconds(node, scheduler.lease_ttl_seconds), scheduler.lease_ttl_seconds)
+
+    def test_m1_scheduler_keeps_default_lease_ttl(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            request_path = _copy_request(Path(temp))
+            service = GoalOperationService()
+            bundle = service.plan_bundle(request_path)
+            request = bundle.request
+            request.store_path.parent.mkdir(parents=True, exist_ok=True)
+
+            scheduler = service._scheduler(request, SQLiteControlStore(request.store_path))
+
+            self.assertEqual(scheduler.lease_ttl_seconds, 300)
 
     def test_development_profile_runs_whitelisted_write_and_process_check(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

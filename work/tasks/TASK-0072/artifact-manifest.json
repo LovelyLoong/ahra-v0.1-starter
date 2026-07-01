@@ -1,0 +1,69 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0072",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0072-RESTORE-0001",
+      "task_id": "TASK-0072",
+      "kind": "restoration_summary",
+      "name": "restoration-summary.md",
+      "uri": "local://evidence/restoration-summary.md",
+      "sha256": "754816a76eb7a8650f5ba51258886c82b458b1309d50dd53a0eef66cbe7c3989",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-restoration",
+      "created_at": "2026-07-01T12:30:00Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/plan_execution.py",
+        "../../../src/ahra/reference_runner/bounded_task.py",
+        "../../../src/ahra/sqlite_control_store.py",
+        "../../../src/ahra/goal_operations.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0072-RESTORE-0002",
+      "task_id": "TASK-0072",
+      "kind": "verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "ab0cbaae789c77cfacfd6dc3799c2034553c7e60a926d868e2c337b883651819",
+      "media_type": "application/json",
+      "created_by": "agent:codex-restoration",
+      "created_at": "2026-07-01T12:30:00Z",
+      "input_refs": [
+        "task.md",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0072-HANDOFF-RESTORE-0001",
+      "task_id": "TASK-0072",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "b2c85a55363419ce4661cbfc1e166ab0f7559b915a70b56274356a5b8fdb70e2",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-restoration",
+      "created_at": "2026-07-01T12:30:00Z",
+      "input_refs": [
+        "task.md",
+        "evidence/restoration-summary.md",
+        "evidence/verification-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0001",
+        "EVD-TASK-0072-RESTORE-0002"
+      ],
+      "supersedes": null
+    }
+  ]
+}

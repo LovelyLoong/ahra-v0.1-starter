@@ -215,12 +215,13 @@ class BoundedTaskExecutor:
                 message=node_result.message,
             ), node_result
 
+        execution_policy = _execution_policy_for_node(self.execution_policy, request.node)
         task_result = await TaskHarness(
             self.driver,
             workspace_provider=self.workspace_provider,
             runtime_provider=runtime,
             runtime_profile_ref=self.runtime_profile_ref,
-            execution_policy=self.execution_policy,
+            execution_policy=execution_policy,
             runtime_gateway=gateway,
             capability_grants=request.capability_grants,
             plan_id=request.plan.plan_id,
@@ -280,6 +281,7 @@ class BoundedTaskExecutor:
                 "taskStatus": task_result.status.value,
                 "commit": task_result.commit,
                 "semanticReviewEnabled": semantic_review_enabled,
+                "executionPolicy": _execution_policy_dict(execution_policy),
             },
         )
         node_artifact = self.store.write_artifact(
@@ -308,6 +310,46 @@ class BoundedTaskExecutor:
             task_completed_state_update_attempted=False,
         )
         return task_result, node_result
+
+
+def _execution_policy_for_node(base: ExecutionPolicy, node: PlanNodeIR) -> ExecutionPolicy:
+    budget_seconds = _node_wall_timeout_seconds(node)
+    if budget_seconds is None:
+        return base
+    budget_seconds = max(1, int(budget_seconds))
+    attempt_wall_timeout_seconds = min(base.attempt_wall_timeout_seconds, budget_seconds)
+    run_deadline_seconds = min(base.run_deadline_seconds, budget_seconds)
+    idle_timeout_seconds = min(base.idle_timeout_seconds, attempt_wall_timeout_seconds)
+    heartbeat_interval_seconds = min(base.heartbeat_interval_seconds, idle_timeout_seconds)
+    startup_timeout_seconds = min(base.startup_timeout_seconds, attempt_wall_timeout_seconds)
+    return replace(
+        base,
+        startup_timeout_seconds=startup_timeout_seconds,
+        idle_timeout_seconds=idle_timeout_seconds,
+        heartbeat_interval_seconds=heartbeat_interval_seconds,
+        attempt_wall_timeout_seconds=attempt_wall_timeout_seconds,
+        run_deadline_seconds=run_deadline_seconds,
+    )
+
+
+def _node_wall_timeout_seconds(node: PlanNodeIR) -> int | None:
+    candidates = [
+        value for value in (node.timeout_seconds, node.budget.max_wall_seconds) if value is not None
+    ]
+    if not candidates:
+        return None
+    return min(candidates)
+
+
+def _execution_policy_dict(policy: ExecutionPolicy) -> dict[str, int]:
+    return {
+        "maxAttempts": policy.max_attempts,
+        "startupTimeoutSeconds": policy.startup_timeout_seconds,
+        "idleTimeoutSeconds": policy.idle_timeout_seconds,
+        "heartbeatIntervalSeconds": policy.heartbeat_interval_seconds,
+        "attemptWallTimeoutSeconds": policy.attempt_wall_timeout_seconds,
+        "runDeadlineSeconds": policy.run_deadline_seconds,
+    }
 
 
 def build_standard_harness_compatibility_request(

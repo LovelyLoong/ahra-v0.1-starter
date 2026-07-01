@@ -22,6 +22,7 @@ from ahra.ports import AgentDriver, AgentRole, AgentRunRequest, AgentRunResult
 from ahra.reference_runner.bounded_task import (
     BOUNDED_TASK_EXECUTOR_RELEASE,
     BoundedTaskExecutor,
+    _execution_policy_for_node,
     _task_from_request,
     build_standard_harness_compatibility_request,
     compatibility_plan_for_task,
@@ -31,6 +32,7 @@ from ahra.reference_runner.models import (
     ChangePolicy,
     CheckSpec,
     CriterionAssessment,
+    ExecutionPolicy,
     ReviewResult,
     ReviewVerdict,
     TaskSpec,
@@ -122,6 +124,31 @@ class NodeExecutorTests(unittest.TestCase):
             registry.register(executor)
         with self.assertRaisesRegex(ValueError, "immutable"):
             registry.get("bounded_task", "bounded-task-executor@latest")
+
+    def test_bounded_task_agent_policy_is_capped_by_node_budget(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task = _task()
+            _plan, node = compatibility_plan_for_task(task=task, workspace=repo, run_id="RUN-budget")
+            node = replace(
+                node,
+                timeout_seconds=300,
+                budget=replace(node.budget, max_wall_seconds=300),
+            )
+            base = ExecutionPolicy(
+                startup_timeout_seconds=120,
+                idle_timeout_seconds=900,
+                heartbeat_interval_seconds=60,
+                attempt_wall_timeout_seconds=3600,
+                run_deadline_seconds=7200,
+            )
+
+            effective = _execution_policy_for_node(base, node)
+
+            self.assertEqual(effective.attempt_wall_timeout_seconds, 300)
+            self.assertEqual(effective.run_deadline_seconds, 300)
+            self.assertEqual(effective.idle_timeout_seconds, 300)
+            self.assertLessEqual(effective.heartbeat_interval_seconds, effective.idle_timeout_seconds)
 
     def test_bounded_task_executes_native_plan_node_with_capability_grants(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

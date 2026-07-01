@@ -1,0 +1,39 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0073",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0073-RESTORE-0001",
+      "task_id": "TASK-0073",
+      "kind": "restoration_summary",
+      "name": "restoration-summary.md",
+      "uri": "local://evidence/restoration-summary.md",
+      "sha256": "2cd966824821267208961b0dbfa5230c89b0d5f78e568611a7e925f509318fc4",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-restoration",
+      "created_at": "2026-07-01T12:30:00Z",
+      "refs": [
+        "ART-TASK-0073-RESTORE-0001",
+        "src/ahra/goal_operations.py",
+        "src/ahra/plan_execution.py",
+        "examples/goals/dogfood-a-alignment-session.yaml"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0073-RESTORE-0002",
+      "task_id": "TASK-0073",
+      "kind": "verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "8b6ce08f68d38bab1e0f1cb26b74d5ef50a2f48eb2922ccfd13582d4237ded48",
+      "media_type": "application/json",
+      "created_by": "agent:codex-restoration",
+      "created_at": "2026-07-01T12:30:00Z",
+      "refs": [
+        "ART-TASK-0073-RESTORE-0002",
+        "ART-TASK-0073-HANDOFF-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0001"
+      ]
+    }
+  ]
+}

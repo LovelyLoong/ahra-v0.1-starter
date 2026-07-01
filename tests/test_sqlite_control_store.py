@@ -134,6 +134,53 @@ class SQLiteControlStoreTests(unittest.TestCase):
             self.assertIn(leased.node_run_id, report.requeued_node_run_refs)
             self.assertIn("expired-node-lease", {finding.code for finding in report.findings})
 
+    def test_expired_running_lease_fails_node_without_idempotency(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            store = SQLiteControlStore(Path(temp) / "control.sqlite")
+            plan, plan_execution_id = create_recovery_execution(store, Path(temp) / "workspace")
+            service = PlanExecutionService(store)
+            node = [item for item in store.list_node_runs(plan_execution_id) if item.node_id == "NODE-effect"][0]
+            old_now = utc_now()
+            node = service.transition_node(
+                node.node_run_id,
+                NodeRunStatus.READY,
+                expected_version=node.status_version,
+                now=old_now,
+            )
+            node = service.transition_node(
+                node.node_run_id,
+                NodeRunStatus.ADMITTED,
+                expected_version=node.status_version,
+                now=old_now,
+            )
+            leased = service.acquire_node_lease(
+                node.node_run_id,
+                holder="worker:one",
+                ttl_seconds=1,
+                expected_version=node.status_version,
+                now=old_now,
+            )
+            running = service.transition_node(
+                leased.node_run_id,
+                NodeRunStatus.RUNNING,
+                expected_version=leased.status_version,
+                holder="worker:one",
+                fencing_token=leased.lease.fencing_token if leased.lease else None,
+                now=old_now,
+            )
+
+            report = recover_sqlite_control_plane(store, now=old_now + timedelta(seconds=2))
+            recovered = store.get_node_run(running.node_run_id)
+            expired = next(finding for finding in report.findings if finding.code == "expired-node-lease")
+
+            self.assertEqual(plan.goal_ref, "GOAL-sqlite-recovery")
+            self.assertEqual(recovered.status, NodeRunStatus.FAILED)
+            self.assertIsNone(recovered.lease)
+            self.assertEqual(recovered.failure_class, "node_lease_expired")
+            self.assertIn(f"LEASE-{running.node_run_id}", recovered.terminal_failure_refs)
+            self.assertIn(running.node_run_id, report.failed_node_run_refs)
+            self.assertEqual(expired.severity, "error")
+
     def test_missing_artifact_file_referenced_by_idempotency_is_reported(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             store = SQLiteControlStore(Path(temp) / "control.sqlite")

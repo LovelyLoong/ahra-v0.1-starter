@@ -1,0 +1,19 @@
+{
+  "schema_version": "awkp/verification-summary/0.1",
+  "task_id": "TASK-0072",
+  "created_by": "agent:codex-restoration",
+  "created_at": "2026-07-01T12:30:00Z",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_goal_operations tests.test_plan_execution tests.test_sqlite_control_store tests.test_node_executor -v",
+      "status": "passed",
+      "summary": "Ran 53 tests; OK."
+    }
+  ],
+  "acceptance_coverage": {
+    "single_budget_chain": "tests.test_plan_execution asserts effective agent timeout is <= node lease TTL; tests.test_node_executor asserts TaskHarness policy is capped by node budget.",
+    "terminal_failure": "tests.test_plan_execution and tests.test_sqlite_control_store cover agent_timeout and node_lease_expired terminal behavior.",
+    "reconciler": "tests.test_plan_execution asserts expired RUNNING lease findings are error severity.",
+    "import_boundary": "Implementation remains in plan_execution, bounded_task, sqlite_control_store, and goal_operations without model/cloud SDK imports."
+  }
+}

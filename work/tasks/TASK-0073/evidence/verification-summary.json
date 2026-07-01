@@ -1,0 +1,19 @@
+{
+  "schema_version": "awkp/verification-summary/0.1",
+  "task_id": "TASK-0073",
+  "created_by": "agent:codex-restoration",
+  "created_at": "2026-07-01T12:30:00Z",
+  "commands": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -B -m unittest tests.test_goal_operations tests.test_plan_execution tests.test_sqlite_control_store tests.test_node_executor -v",
+      "status": "passed",
+      "summary": "Ran 53 tests; OK."
+    }
+  ],
+  "acceptance_coverage": {
+    "development_profile_ttl": "tests.test_goal_operations asserts development scheduler lease_ttl_seconds equals DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds and is greater than 300.",
+    "m1_default_ttl": "tests.test_goal_operations asserts M1 scheduler lease_ttl_seconds remains 300.",
+    "dogfood_900": "examples/goals/dogfood-a-alignment-session.yaml sets NODE-alignment-session maxWallSeconds and timeoutSeconds to 900.",
+    "task_0072_regression": "tests.test_plan_execution and tests.test_sqlite_control_store still pass with agent_timeout and node_lease_expired behavior."
+  }
+}

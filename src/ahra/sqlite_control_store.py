@@ -562,8 +562,12 @@ def recover_sqlite_control_plane(
             findings.append(
                 ReconcilerFinding(
                     code="expired-node-lease",
-                    severity="warning",
-                    message=f"NodeRun lease expired for {node.node_run_id}.",
+                    severity="error" if node.status == NodeRunStatus.RUNNING else "warning",
+                    message=(
+                        f"Running NodeRun lease expired and must converge to terminal failed: {node.node_run_id}."
+                        if node.status == NodeRunStatus.RUNNING
+                        else f"NodeRun lease expired for {node.node_run_id}."
+                    ),
                     refs=(node.plan_execution_id, node.node_run_id),
                 )
             )
@@ -628,17 +632,17 @@ def recover_sqlite_control_plane(
                 status=NodeRunStatus.FAILED,
                 status_version=node.status_version + 1,
                 lease=None,
-                terminal_failure_refs=_merge_refs(node.terminal_failure_refs, (f"RECOVERY-{node.node_run_id}",)),
-                failure_class="interrupted_without_idempotency",
-                message="Running NodeRun had an expired lease and no durable idempotency result.",
+                terminal_failure_refs=_merge_refs(node.terminal_failure_refs, (f"LEASE-{node.node_run_id}",)),
+                failure_class="node_lease_expired",
+                message="Running NodeRun lease expired before the executor produced a durable idempotency result.",
                 updated_at=now,
             )
             store.compare_and_swap_node(failed_node, node.status_version)
             store.append_recovery_event(
-                event_type="node_failed_missing_idempotency",
+                event_type="node_failed_expired_lease",
                 idempotency_key=f"fail:{node.node_run_id}:{node.status_version}",
                 refs=(node.plan_execution_id, node.node_run_id),
-                reason="Failed interrupted running NodeRun without a durable idempotency record.",
+                reason="Failed running NodeRun after expired lease without a durable idempotency record.",
                 now=now,
             )
             failed.append(node.node_run_id)

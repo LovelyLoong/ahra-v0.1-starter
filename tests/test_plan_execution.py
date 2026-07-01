@@ -26,6 +26,8 @@ from ahra.plan_execution import (
     PlanLeaseConflictError,
     PlanVersionConflictError,
     StaticPlanScheduler,
+    _node_agent_timeout_seconds,
+    _node_lease_ttl_seconds,
     project_awkp_task,
     reconcile_plan_execution,
 )
@@ -250,6 +252,40 @@ class PlanExecutionTests(unittest.TestCase):
         self.assertEqual(exhausted.status, GoalExecutionStatus.FAILED)
         self.assertEqual(exhausted.failure_class, "repair_cycle_exhausted")
 
+    def test_failed_plan_with_defects_obeys_zero_repair_budget(self) -> None:
+        plan, report = _compiled_plan()
+        service = PlanExecutionService(InMemoryPlanExecutionStore())
+        goal = service.create_goal_execution(
+            goal_ref=plan.goal_ref,
+            goal_digest=plan.goal_digest,
+            claim_graph_digest=plan.claim_graph_digest,
+            max_repair_cycles=0,
+        )
+        execution = service.start_execution(plan, report, goal_execution_ref=goal.goal_execution_id)
+        goal = service.attach_plan_execution(
+            goal.goal_execution_id,
+            execution.plan_execution_id,
+            expected_version=goal.status_version,
+        )
+        failed_execution = service.transition_execution(
+            execution.plan_execution_id,
+            PlanExecutionStatus.FAILED,
+            expected_version=service.store.get_execution(execution.plan_execution_id).status_version,
+            failure_class="agent_timeout",
+            message="Node executor exceeded effective agent timeout.",
+        )
+
+        finished = service.finish_active_plan_execution(
+            goal.goal_execution_id,
+            failed_execution.plan_execution_id,
+            expected_version=goal.status_version,
+            open_defect_refs=("DEF-agent-timeout",),
+        )
+
+        self.assertEqual(finished.status, GoalExecutionStatus.FAILED)
+        self.assertEqual(finished.open_defect_refs, ("DEF-agent-timeout",))
+        self.assertEqual(finished.failure_class, "agent_timeout")
+
     def test_static_scheduler_enforces_dag_concurrency_and_goal_gate(self) -> None:
         plan, report = _compiled_plan()
         service = PlanExecutionService(InMemoryPlanExecutionStore())
@@ -329,8 +365,19 @@ class PlanExecutionTests(unittest.TestCase):
         checkpoint = service.store.get_checkpoint(checkpoint_id)
 
         self.assertEqual(result.status, PlanExecutionStatus.FAILED)
-        self.assertEqual(result.failure_class, "timeout")
+        self.assertEqual(result.failure_class, "agent_timeout")
         self.assertEqual(latest["NODE-a"].status, NodeRunStatus.TIMED_OUT)
+        self.assertEqual(latest["NODE-a"].failure_class, "agent_timeout")
+        self.assertIn("TIMEOUT-a", latest["NODE-a"].terminal_failure_refs)
+        self.assertEqual(len(scheduler.defects()), 2)
+        node = next(node for node in plan.nodes if node.node_id == "NODE-a")
+        agent_timeout = _node_agent_timeout_seconds(node, scheduler.lease_ttl_seconds)
+        lease_ttl = _node_lease_ttl_seconds(
+            node,
+            scheduler.lease_ttl_seconds,
+            scheduler.terminal_write_grace_seconds,
+        )
+        self.assertLessEqual(agent_timeout, lease_ttl)
         self.assertEqual(checkpoint.node_budgets[latest["NODE-a"].node_run_id]["maxWallSeconds"], 1)
 
     def test_usage_budget_overrun_fails_node_and_plan(self) -> None:
@@ -650,6 +697,18 @@ class PlanExecutionTests(unittest.TestCase):
 
         node = service.store.list_node_runs(execution.plan_execution_id)[0]
         old_now = execution.created_at
+        node = service.transition_node(
+            node.node_run_id,
+            NodeRunStatus.READY,
+            expected_version=node.status_version,
+            now=old_now,
+        )
+        node = service.transition_node(
+            node.node_run_id,
+            NodeRunStatus.ADMITTED,
+            expected_version=node.status_version,
+            now=old_now,
+        )
         leased = service.acquire_node_lease(
             node.node_run_id,
             holder="worker:one",
@@ -657,9 +716,17 @@ class PlanExecutionTests(unittest.TestCase):
             expected_version=node.status_version,
             now=old_now,
         )
+        running = service.transition_node(
+            leased.node_run_id,
+            NodeRunStatus.RUNNING,
+            expected_version=leased.status_version,
+            holder="worker:one",
+            fencing_token=leased.lease.fencing_token if leased.lease else None,
+            now=old_now,
+        )
         findings = reconcile_plan_execution(
             execution,
-            (leased,),
+            (running,),
             task_projection={"task_id": "TASK-0029", "state": "completed"},
             now=old_now + timedelta(seconds=2),
         )
@@ -667,6 +734,9 @@ class PlanExecutionTests(unittest.TestCase):
         codes = {finding.code for finding in findings}
         self.assertIn("expired-node-lease", codes)
         self.assertIn("inconsistent-task-projection", codes)
+        expired = next(finding for finding in findings if finding.code == "expired-node-lease")
+        self.assertEqual(expired.severity, "error")
+        self.assertIn("terminal failed", expired.message)
 
 
 def _scheduler(

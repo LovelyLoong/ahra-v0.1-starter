@@ -115,11 +115,12 @@ DEVELOPMENT_BOUNDED_PROCESS_COMMANDS = (
     "python -B scripts/lint_awkp.py",
     "python -B scripts/lint_*.py",
 )
+DEFAULT_SCHEDULER_LEASE_TTL_SECONDS = 300
 DEVELOPMENT_BOUNDED_NODE_BUDGET = PlanBudget(
     max_model_calls=10,
     max_tool_calls=50,
     max_spawned_nodes=0,
-    max_wall_seconds=300,
+    max_wall_seconds=900,
     max_cost_usd=1.0,
 )
 
@@ -897,7 +898,7 @@ class GoalOperationService:
             capability_admission=_capability_admission_service(request, profile),
             max_concurrency=request.max_concurrency,
             lease_holder="scheduler:goal-operation-cli",
-            lease_ttl_seconds=300,
+            lease_ttl_seconds=_scheduler_lease_ttl_seconds(profile),
         )
 
     def _ensure_runtime_dependencies(self, request: GoalExecutionRequest) -> None:
@@ -1628,6 +1629,13 @@ def _capability_admission_service(request: GoalExecutionRequest, profile: GoalOp
     )
 
 
+def _scheduler_lease_ttl_seconds(profile: GoalOperationProfile) -> int:
+    profile_budget = profile.default_node_budget
+    if profile_budget is None or profile_budget.max_wall_seconds is None:
+        return DEFAULT_SCHEDULER_LEASE_TTL_SECONDS
+    return max(DEFAULT_SCHEDULER_LEASE_TTL_SECONDS, profile_budget.max_wall_seconds)
+
+
 def _first_write_grant(request: NodeExecutionRequest) -> Any:
     for grant in request.capability_grants:
         if grant.action == "filesystem.write":
@@ -1725,9 +1733,16 @@ def _completion_dict(completion: CompletionGateResult) -> dict[str, Any]:
 
 
 def _scheduler_defects(scheduler: StaticPlanScheduler) -> tuple[DefectRecord, ...]:
+    defects = list(scheduler.defects())
     if scheduler.verification_service is None:
-        return ()
-    return tuple(scheduler.verification_service.defects())
+        return tuple(defects)
+    existing = {defect.defect_id for defect in defects}
+    for defect in scheduler.verification_service.defects():
+        if defect.defect_id in existing:
+            continue
+        defects.append(defect)
+        existing.add(defect.defect_id)
+    return tuple(defects)
 
 
 def _looks_like_legacy_profile(profile_ref: str) -> bool:
