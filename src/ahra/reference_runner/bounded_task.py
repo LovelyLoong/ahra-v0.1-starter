@@ -49,6 +49,9 @@ BOUNDED_TASK_EXECUTOR_RELEASE = (
     "bounded-task-executor@sha256:"
     "8e6fdc5c2d4d41f7aeb965d2bd9b57f91f6f4272fe910f48fcb21ff5b03bcf40"
 )
+CODE_CHANGE_SCHEMA_REF = "ahra/artifact/code-change/0.1"
+DEVELOPMENT_BOUNDED_PROFILE_REF = "profile/development-bounded"
+SEMANTIC_REVIEW_REQUIRED_FAILURE = "semantic_review_required"
 
 
 class CapabilityRuntimeProvider:
@@ -172,6 +175,61 @@ class BoundedTaskExecutor:
             gate_refs=list(request.node.gate_refs),
             semantic_review_enabled=semantic_review_enabled,
         )
+        if _requires_semantic_code_review(request.node, self.runtime_profile_ref) and not semantic_review_enabled:
+            message = (
+                "development-bounded code-change output requires an independent semantic review gate"
+            )
+            terminal_ref, evidence_ref = _write_executor_terminal_failure(
+                store=self.store,
+                task=task,
+                request=request,
+                node_run_id=node_run_id,
+                failure_class=SEMANTIC_REVIEW_REQUIRED_FAILURE,
+                message=message,
+                workspace=workspace,
+            )
+            node_result = NodeExecutionResult(
+                node_run_id=node_run_id,
+                plan_id=request.plan.plan_id,
+                node_id=request.node.node_id,
+                node_type=request.node.node_type,
+                executor_release=self.release_ref,
+                status=NodeExecutionStatus.REJECTED,
+                evidence_refs=(evidence_ref,),
+                terminal_failure_refs=(terminal_ref,),
+                usage=NodeExecutionUsage(model_calls=0, tool_calls=0, cost_usd=0.0),
+                message=message,
+                details={
+                    "failureClass": SEMANTIC_REVIEW_REQUIRED_FAILURE,
+                    "semanticReviewEnabled": semantic_review_enabled,
+                    "runtimeProfileRef": self.runtime_profile_ref,
+                },
+            )
+            self.store.event(
+                "node_run_finished",
+                run_id=request.run_id,
+                node_run_id=node_run_id,
+                plan_id=request.plan.plan_id,
+                node_id=request.node.node_id,
+                status=node_result.status.value,
+                artifact_refs=list(node_result.artifact_refs),
+                evidence_refs=list(node_result.evidence_refs),
+                terminal_failure_refs=list(node_result.terminal_failure_refs),
+                task_completed_state_update_attempted=False,
+            )
+            return TaskRunResult(
+                run_id=request.run_id,
+                task_id=task.id,
+                status=WorkflowOutcome.REJECTED,
+                checkpoint="",
+                workspace=str(workspace),
+                branch=request.branch,
+                artifact_dir=str(self.store.run_dir),
+                attempts=(),
+                commit=None,
+                message=message,
+            ), node_result
+
         preflight_denial = _preflight_literal_write_resources(
             request=request,
             gateway=gateway,
@@ -726,6 +784,58 @@ def _validate_runtime_grants(request: NodeExecutionRequest) -> None:
 
 def _semantic_review_declared(node: PlanNodeIR) -> bool:
     return any("review" in gate_ref.lower() or "semantic" in gate_ref.lower() for gate_ref in node.gate_refs)
+
+
+def _requires_semantic_code_review(node: PlanNodeIR, runtime_profile_ref: str | None) -> bool:
+    return (
+        runtime_profile_ref == DEVELOPMENT_BOUNDED_PROFILE_REF
+        and any(output.schema_ref == CODE_CHANGE_SCHEMA_REF for output in node.expected_outputs)
+    )
+
+
+def _write_executor_terminal_failure(
+    *,
+    store: ReferenceRunStore,
+    task: TaskSpec,
+    request: NodeExecutionRequest,
+    node_run_id: str,
+    failure_class: str,
+    message: str,
+    workspace: Path,
+) -> tuple[str, str]:
+    path = f"tasks/{task.id}/terminal-failure.json"
+    record = store.write_evidence(
+        path,
+        {
+            "schema_version": "ahra/workflow-terminal-failure/0.1",
+            "task_id": task.id,
+            "run_id": request.run_id,
+            "plan_id": request.plan.plan_id,
+            "node_id": request.node.node_id,
+            "node_run_id": node_run_id,
+            "status": WorkflowOutcome.REJECTED.value,
+            "failure_class": failure_class,
+            "summary": message,
+            "attempt_count": 0,
+            "last_error": message,
+            "workspace": str(workspace),
+            "branch": request.branch,
+            "checkpoint": "",
+            "artifact_dir": str(store.run_dir),
+            "refs": [request.plan.plan_id, request.node.node_id, node_run_id],
+        },
+        task_id=task.id,
+        kind="terminal_failure",
+        refs=[request.plan.plan_id, request.node.node_id, node_run_id],
+    )
+    store.event(
+        "terminal_failure_recorded",
+        task_id=task.id,
+        status=WorkflowOutcome.REJECTED.value,
+        attempt_count=0,
+        evidence_id=record["evidence_id"],
+    )
+    return path, str(record["evidence_id"])
 
 
 def _node_status(status: WorkflowOutcome) -> NodeExecutionStatus:

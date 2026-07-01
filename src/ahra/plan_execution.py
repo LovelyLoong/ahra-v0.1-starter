@@ -136,6 +136,7 @@ TERMINAL_GOAL_DEFECT_FAILURE_CLASSES = frozenset(
         "path_outside_workspace",
         "process_exec_not_granted",
         "rejected",
+        "semantic_review_required",
     }
 )
 NODE_EXECUTION_DEFECT_FAILURE_CLASSES = frozenset(
@@ -146,6 +147,7 @@ NODE_EXECUTION_DEFECT_FAILURE_CLASSES = frozenset(
         "path_outside_workspace",
         "process_exec_not_granted",
         "rejected",
+        "semantic_review_required",
     }
 )
 

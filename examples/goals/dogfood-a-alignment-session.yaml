@@ -34,6 +34,7 @@ spec:
       goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
     gateRefs:
       GATE-alignment-session: sha256:3333333333333333333333333333333333333333333333333333333333333333
+      GATE-alignment-session-semantic-review: sha256:5555555555555555555555555555555555555555555555555555555555555555
       GATE-goal-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
     runtimeRefs:
       runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
@@ -97,18 +98,19 @@ spec:
                 - uv run python -B scripts/check.py --test
           gateRefs:
             - GATE-alignment-session
+            - GATE-alignment-session-semantic-review
           runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
           budgetRequest:
             maxModelCalls: 8
             maxToolCalls: 40
             maxSpawnedNodes: 0
-            maxWallSeconds: 900
+            maxWallSeconds: 2100
             maxCostUsd: 1.0
           retryPolicy:
             maxAttempts: 1
             retryableFailureClasses: []
             idempotencyKeyRequired: true
-          timeoutSeconds: 900
+          timeoutSeconds: 2100
           sideEffect: mutating
         - id: NODE-goal-verification
           nodeType: goal_verification

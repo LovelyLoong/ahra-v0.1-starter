@@ -388,12 +388,16 @@ class AlignmentSessionManager:
         self,
         intent: IntentDraft,
         user_messages: tuple[str, ...] | list[str],
+        *,
+        requirement_approval_actor: str | None = None,
         **start_kwargs: Any,
     ) -> AlignmentSessionResult:
         snapshot = self.start(intent, **start_kwargs)
         for message in user_messages:
             snapshot = await self.advance(snapshot, str(message))
-            if snapshot.stage == "frozen":
+            if snapshot.stage == "awaiting_requirement_approval":
+                if requirement_approval_actor is not None:
+                    snapshot = self.approve_requirement(snapshot, actor=requirement_approval_actor)
                 break
         return await self.draft_request(snapshot)
 

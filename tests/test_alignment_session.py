@@ -85,6 +85,23 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         self.assertIn(ACCEPTANCE_DRAFT_OUTPUT, [call.expected_output for call in driver.calls])
         self.assertFalse(hasattr(result.request_draft, "to_goal_execution_request_mapping"))
 
+    def test_run_emits_request_draft_after_explicit_requirement_approval(self) -> None:
+        driver = FakeAlignmentDriver()
+        manager = AlignmentSessionManager(driver)
+
+        result = asyncio.run(
+            manager.run(
+                _intent(),
+                ["Keep scope local.", "Freeze that boundary."],
+                requirement_approval_actor="human:maintainer",
+            )
+        )
+
+        self.assertIsInstance(result.request_draft, RequestDraft)
+        self.assertNotIsInstance(result.request_draft, GoalExecutionRequest)
+        self.assertEqual(result.snapshot.stage, "request_drafted")
+        self.assertEqual(result.snapshot.requirement_approved_by, "human:maintainer")
+
     def test_request_draft_passes_admission(self) -> None:
         driver = FakeAlignmentDriver()
         manager = AlignmentSessionManager(driver)

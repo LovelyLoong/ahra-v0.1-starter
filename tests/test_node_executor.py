@@ -22,6 +22,7 @@ from ahra.ports import AgentDriver, AgentRole, AgentRunRequest, AgentRunResult
 from ahra.reference_runner.bounded_task import (
     BOUNDED_TASK_EXECUTOR_RELEASE,
     BoundedTaskExecutor,
+    SEMANTIC_REVIEW_REQUIRED_FAILURE,
     _execution_policy_for_node,
     _task_from_request,
     build_standard_harness_compatibility_request,
@@ -540,6 +541,56 @@ class NodeExecutorTests(unittest.TestCase):
             evidence_manifest = json.loads((Path(task_result.artifact_dir) / "evidence-manifest.json").read_text(encoding="utf-8"))
             kinds = {record["kind"] for record in evidence_manifest["evidence"]}
             self.assertIn("semantic_review_skipped", kinds)
+
+    def test_development_code_change_requires_semantic_review_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            repo = _init_repo(root)
+            task = _task()
+            plan, node = compatibility_plan_for_task(task=task, workspace=repo, run_id="RUN-code-change-l0-only")
+            l0_node = replace(
+                node,
+                expected_outputs=(
+                    PlanOutputContract(
+                        name="code-change",
+                        schema_ref="ahra/artifact/code-change/0.1",
+                        consumer_node_refs=(),
+                        artifact_required=True,
+                    ),
+                ),
+                gate_refs=("GATE-bounded-task-l0",),
+                gate_digests=(canonical_fingerprint({"gateRef": "GATE-bounded-task-l0"}),),
+            )
+            l0_plan = replace(plan, nodes=(l0_node,))
+            driver = NodeWritingDriver()
+            request = NodeExecutionRequest(
+                plan=l0_plan,
+                node=l0_node,
+                capability_grants=runtime_grants_for_node(l0_plan, l0_node),
+                workspace_ref=str(repo),
+                branch="test-branch",
+                run_id="RUN-code-change-l0-only",
+                payload={"task": task},
+            )
+            artifact_dir = root / "artifacts"
+
+            task_result, node_result = asyncio.run(
+                BoundedTaskExecutor(
+                    driver,
+                    store=FileRunStore(artifact_dir),
+                    runtime_profile_ref="profile/development-bounded",
+                ).execute_task(request)
+            )
+
+            self.assertEqual(task_result.status, WorkflowOutcome.REJECTED)
+            self.assertEqual(node_result.status, NodeExecutionStatus.REJECTED)
+            self.assertEqual(node_result.details["failureClass"], SEMANTIC_REVIEW_REQUIRED_FAILURE)
+            self.assertEqual(driver.executor_calls, 0)
+            self.assertEqual(driver.reviewer_calls, 0)
+            self.assertTrue((artifact_dir / "tasks" / task.id / "terminal-failure.json").exists())
+            evidence_manifest = json.loads((artifact_dir / "evidence-manifest.json").read_text(encoding="utf-8"))
+            kinds = {record["kind"] for record in evidence_manifest["evidence"]}
+            self.assertIn("terminal_failure", kinds)
 
     def test_standard_harness_compatibility_matches_native_node_observable_semantics(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
