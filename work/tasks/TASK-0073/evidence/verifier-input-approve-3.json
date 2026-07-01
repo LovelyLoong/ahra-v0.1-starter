@@ -1,0 +1,63 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0073",
+  "verifier": "agent:independent-verifier",
+  "decision": "approve",
+  "summary": "Independent verifier re-validated restored TASK-0073 artifacts and mapped every current acceptance criterion to manifest-backed evidence.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "Verified goal_operations uses the selected profile node budget for scheduler lease TTL rather than a hardcoded 300. Focused 53-test suite and full 282-test check passed."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "tests.test_goal_operations asserts profile/development-bounded scheduler lease_ttl_seconds equals DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds and is greater than 300."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "tests.test_goal_operations asserts M1 scheduler lease_ttl_seconds remains the 300 second default."
+    },
+    {
+      "criterion_index": 4,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "TASK-0072 invariants were rechecked in the focused suite: agent timeout remains capped by lease TTL, and expired lease handling reaches terminal structured failure."
+    },
+    {
+      "criterion_index": 5,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "examples/goals/dogfood-a-alignment-session.yaml uses 900 seconds for the real development node maxWallSeconds and timeoutSeconds; goal validate returned valid true for profile/development-bounded."
+    },
+    {
+      "criterion_index": 6,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "Current state before this gate is review at state_version 2, with restoration producer evidence only. Completion is being decided by EvidenceGate with verifier actor agent:independent-verifier."
+    }
+  ]
+}

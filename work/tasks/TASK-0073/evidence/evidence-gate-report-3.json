@@ -1,0 +1,73 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0073",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-01T12:30:00.000002Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier re-validated restored TASK-0073 artifacts and mapped every current acceptance criterion to manifest-backed evidence.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Scheduler lease TTL is derived from the selected profile node budget, not a hardcoded 300.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "Verified goal_operations uses the selected profile node budget for scheduler lease TTL rather than a hardcoded 300. Focused 53-test suite and full 282-test check passed."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "`profile/development-bounded` yields a scheduler lease TTL equal to its `default_node_budget.max_wall_seconds`, greater than 300.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "tests.test_goal_operations asserts profile/development-bounded scheduler lease_ttl_seconds equals DEVELOPMENT_BOUNDED_NODE_BUDGET.max_wall_seconds and is greater than 300."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "M1 deterministic profiles still resolve to the default 300 second TTL.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "tests.test_goal_operations asserts M1 scheduler lease_ttl_seconds remains the 300 second default."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "TASK-0072 invariants still hold: Agent timeout does not exceed lease TTL and expired lease handling still reaches terminal failure with defects.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "TASK-0072 invariants were rechecked in the focused suite: agent timeout remains capped by lease TTL, and expired lease handling reaches terminal structured failure."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "The dogfood alignment-session request uses 900 seconds for the real development node budget and timeout.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "examples/goals/dogfood-a-alignment-session.yaml uses 900 seconds for the real development node maxWallSeconds and timeoutSeconds; goal validate returned valid true for profile/development-bounded."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Producer moves the task only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ],
+      "notes": "Current state before this gate is review at state_version 2, with restoration producer evidence only. Completion is being decided by EvidenceGate with verifier actor agent:independent-verifier."
+    }
+  ],
+  "commands": []
+}

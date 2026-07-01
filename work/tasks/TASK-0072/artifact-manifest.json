@@ -64,6 +64,27 @@
         "EVD-TASK-0072-RESTORE-0002"
       ],
       "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0072-0001",
+      "task_id": "TASK-0072",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "5db44046eac28597e0dd8a175654bebceda9c65d431b81f4c6090010e8106aaa",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T12:30:00.000001Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0072-0001"
+      ],
+      "supersedes": null
     }
   ]
 }

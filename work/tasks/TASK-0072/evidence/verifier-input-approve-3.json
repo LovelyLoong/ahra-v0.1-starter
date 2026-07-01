@@ -1,0 +1,80 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0072",
+  "verifier": "agent:independent-verifier",
+  "decision": "approve",
+  "summary": "Independent verifier re-validated restored TASK-0072 artifacts and mapped every current acceptance criterion to manifest-backed evidence.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0001",
+        "EVD-TASK-0072-RESTORE-0002"
+      ],
+      "notes": "Verified the single node-budget chain in restored code evidence and focused tests. .venv\\Scripts\\python.exe -B -m unittest tests.test_goal_operations tests.test_plan_execution tests.test_sqlite_control_store tests.test_node_executor -v passed 53 tests; scripts/check.py passed 282 tests with one Windows symlink skip."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0001",
+        "EVD-TASK-0072-RESTORE-0002"
+      ],
+      "notes": "Restored evidence and regression tests cover expired running NodeRun terminal failure with structured classes including node_lease_expired and agent_timeout."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0001",
+        "EVD-TASK-0072-RESTORE-0002"
+      ],
+      "notes": "Focused plan-execution and goal-operation tests passed and include terminal convergence for timeout/failure paths rather than leaving executions running."
+    },
+    {
+      "criterion_index": 4,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0001",
+        "EVD-TASK-0072-RESTORE-0002"
+      ],
+      "notes": "The restored verification summary maps agent_timeout preservation, and the focused tests passed with agent_timeout assertions intact."
+    },
+    {
+      "criterion_index": 5,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0001",
+        "EVD-TASK-0072-RESTORE-0002"
+      ],
+      "notes": "Reconciler coverage remains present in tests.test_plan_execution and passed; expired RUNNING lease findings are error severity terminal-failure risks."
+    },
+    {
+      "criterion_index": 6,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0002"
+      ],
+      "notes": "Existing lease, fencing, recovery, node-executor, and SQLite control-store regression tests passed in the 53-test focused suite and the full 282-test check."
+    },
+    {
+      "criterion_index": 7,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0001",
+        "EVD-TASK-0072-RESTORE-0002"
+      ],
+      "notes": "Static inspection found no adapter, model, cloud, OpenAI, or vendor import in src/ahra/plan_execution.py; implementation remains behind domain and port boundaries."
+    },
+    {
+      "criterion_index": 8,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0072-RESTORE-0001",
+        "EVD-TASK-0072-RESTORE-0002"
+      ],
+      "notes": "Current state before this gate is review at state_version 2, with restoration producer evidence only. Completion is being decided by EvidenceGate with verifier actor agent:independent-verifier."
+    }
+  ]
+}

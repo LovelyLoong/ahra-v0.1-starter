@@ -34,6 +34,22 @@
         "ART-TASK-0073-HANDOFF-RESTORE-0001",
         "EVD-TASK-0073-RESTORE-0001"
       ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0073-0001",
+      "task_id": "TASK-0073",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "0dcd723780f21c0a07b21437405565beb57c5073aa364829bcc2d119b6401bc4",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T12:30:00.000002Z",
+      "refs": [
+        "ART-TASK-0073-0001",
+        "EVD-TASK-0073-RESTORE-0001",
+        "EVD-TASK-0073-RESTORE-0002"
+      ]
     }
   ]
 }
