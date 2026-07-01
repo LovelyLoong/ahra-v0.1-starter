@@ -1,0 +1,74 @@
+{
+  "schema_version": "ahra/task-verification-summary/0.1",
+  "task_id": "TASK-0083",
+  "created_by": "agent:codex-supervisor",
+  "created_at": "2026-07-01T18:04:37.2070936Z",
+  "summary": "Audited component:alignment-session-manager promotion readiness after the dogfood semantic-review repairs. The component remains experimental/default_visible false because default-visible promotion still lacks EvidenceGate-approved non-fixture Workflow A to Workflow B consumer evidence.",
+  "changed_artifacts": [
+    "docs/architecture/component-inventory.json",
+    "docs/architecture/framework-entrypoints.md",
+    "work/tasks/TASK-0083/evidence/promotion-readiness-report.md"
+  ],
+  "acceptance_coverage": [
+    {
+      "criterion": "Promotion readiness is mapped to the component-lifecycle default path requirements and the completed prerequisite tasks TASK-0079, TASK-0080, TASK-0081, and TASK-0082.",
+      "evidence": [
+        "work/tasks/TASK-0083/evidence/promotion-readiness-report.md Component Lifecycle Mapping",
+        "docs/architecture/component-inventory.json promotion_criteria"
+      ]
+    },
+    {
+      "criterion": "component:alignment-session-manager is promoted only if the evidence supports every default-visible requirement; otherwise it remains experimental/default_visible false with explicit blockers.",
+      "evidence": [
+        "docs/architecture/component-inventory.json lifecycle_class experimental default_visible false",
+        "docs/architecture/component-inventory.json promotion_blockers",
+        "docs/architecture/framework-entrypoints.md Experimental Workflow A Lifecycle"
+      ]
+    },
+    {
+      "criterion": "Validation proves the inventory, framework entrypoint docs, Workflow A goal request, lint, tests, and diff are consistent after the readiness decision.",
+      "evidence": [
+        "verification_commands"
+      ]
+    }
+  ],
+  "verification_commands": [
+    {
+      "command": "uv run python -B -c \"import json, pathlib; data=json.loads(pathlib.Path('docs/architecture/component-inventory.json').read_text(encoding='utf-8')); comp=next(c for c in data['components'] if c['id']=='component:alignment-session-manager'); print(comp['lifecycle_class'], comp['default_visible'], len(comp.get('promotion_blockers', [])), comp.get('promotion_status', ''))\"",
+      "status": "passed",
+      "observed": "experimental False 2 TASK-0083 readiness audit keeps this component experimental because default-visible promotion still lacks non-fixture Workflow A to Workflow B consumer evidence."
+    },
+    {
+      "command": "uv run python -B -m ahra.cli goal validate examples/goals/dogfood-a-alignment-session.yaml",
+      "status": "passed",
+      "observed": "valid true; gateRefCount 3"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --lint",
+      "status": "passed",
+      "observed": "AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s)"
+    },
+    {
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed",
+      "observed": "318 tests OK, skipped=1"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "observed": "exit 0; no output"
+    }
+  ],
+  "readiness_decision": {
+    "lifecycle_class": "experimental",
+    "default_visible": false,
+    "blockers": [
+      "No EvidenceGate-approved non-fixture Workflow A lifecycle run yet proves that an authorized workflow-a GoalExecutionRequest is consumed by Workflow B through goal validate, goal plan, and goal start.",
+      "No component-lifecycle promotion task has approved replacing the explicit experimental workflow-a surface with a default-visible route."
+    ]
+  },
+  "residual_risks": [
+    "Producer evidence only. Independent EvidenceGate review must decide TASK-0083 completion.",
+    "Promotion remains blocked until the non-fixture Workflow A to Workflow B consumer proof is implemented and reviewed."
+  ]
+}

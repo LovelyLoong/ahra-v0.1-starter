@@ -1,0 +1,67 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0083",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0083-0001",
+      "task_id": "TASK-0083",
+      "kind": "doc_change",
+      "name": "component-inventory.json",
+      "uri": "local://docs/architecture/component-inventory.json",
+      "sha256": "1794aef3c3435bfc4f6f78573e8d474a84923dc5d8aff48eff374e542a75a71e",
+      "media_type": "application/json",
+      "created_by": "agent:codex-supervisor",
+      "created_at": "2026-07-01T18:04:37.2070936Z",
+      "input_refs": [
+        "docs/policies/component-lifecycle.md",
+        "docs/architecture/framework-entrypoints.md",
+        "work/tasks/TASK-0082/handoffs/HANDOFF-0001.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0083-0001",
+        "EVD-TASK-0083-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0083-0002",
+      "task_id": "TASK-0083",
+      "kind": "doc_change",
+      "name": "framework-entrypoints.md",
+      "uri": "local://docs/architecture/framework-entrypoints.md",
+      "sha256": "cd50ab83fc5da86c571ce0f2dfe081ad48b424b89b7e6490f41c091073c3b918",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-supervisor",
+      "created_at": "2026-07-01T18:04:37.2070936Z",
+      "input_refs": [
+        "docs/architecture/component-inventory.json",
+        "docs/architecture/intent-alignment-workflow.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0083-0001",
+        "EVD-TASK-0083-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0083-HANDOFF-0001",
+      "task_id": "TASK-0083",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "721a5f5107193afdd25964d874ef41eeca8645a444195f54d38d685b59cdf4a3",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-supervisor",
+      "created_at": "2026-07-01T18:04:37.2070936Z",
+      "input_refs": [
+        "evidence/promotion-readiness-report.md",
+        "evidence/verification-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0083-0001",
+        "EVD-TASK-0083-0002"
+      ],
+      "supersedes": null
+    }
+  ]
+}

@@ -119,7 +119,7 @@ been removed.
 
 `ahra workflow-a ...` is an explicit experimental lifecycle for ADR-0009 intent alignment sessions only. It exposes `start`, `advance`, `snapshot`, `approve-requirement`, `draft`, `admit`, and `authorize` so local operators can exercise Workflow A products without placing `component:alignment-session-manager` on the default execution path.
 
-Default routing must not call `workflow-a` implicitly. `workflow-a draft` requires Human Gate 1 before RequestDraft creation, and `workflow-a authorize` uses ApprovalService Gate 2 to freeze a GoalExecutionRequest only for a human approval actor. Promotion to default-visible requires EvidenceGate-completed prerequisite tasks for the independent semantic/code-review gate, task-scoped dogfood paths, and Workflow A CLI lifecycle, plus an explicit component-lifecycle inventory update.
+Default routing must not call `workflow-a` implicitly. `workflow-a draft` requires Human Gate 1 before RequestDraft creation, and `workflow-a authorize` uses ApprovalService Gate 2 to freeze a GoalExecutionRequest only for a human approval actor. Promotion to default-visible requires EvidenceGate-completed prerequisite tasks for the independent semantic/code-review gate, task-scoped dogfood paths, and Workflow A CLI lifecycle, plus EvidenceGate-approved non-fixture proof that an authorized Workflow A request is consumed by Workflow B through `goal validate`, `goal plan`, and `goal start`. Until that evidence exists, `workflow-a` remains explicit experimental surface only.
 
 # Regression Dynamic Fixture
 

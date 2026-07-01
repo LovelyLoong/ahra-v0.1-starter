@@ -1,0 +1,38 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0083",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0083-0001",
+      "task_id": "TASK-0083",
+      "kind": "promotion_readiness_report",
+      "name": "promotion-readiness-report.md",
+      "uri": "local://evidence/promotion-readiness-report.md",
+      "sha256": "547924a8b712b80413b06ff8e1ef4746d9da3a8e19ced079b5b68fd588c3be0f",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-supervisor",
+      "created_at": "2026-07-01T18:01:46.3094319Z",
+      "refs": [
+        "ART-TASK-0083-0001",
+        "ART-TASK-0083-0002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0083-0002",
+      "task_id": "TASK-0083",
+      "kind": "verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "f8bfe982c6b3c922f7dec21ed0c5dec1bd831383e0752319906bfd304721c673",
+      "media_type": "application/json",
+      "created_by": "agent:codex-supervisor",
+      "created_at": "2026-07-01T18:04:37.2070936Z",
+      "refs": [
+        "ART-TASK-0083-0001",
+        "ART-TASK-0083-0002",
+        "ART-TASK-0083-HANDOFF-0001",
+        "EVD-TASK-0083-0001"
+      ]
+    }
+  ]
+}
