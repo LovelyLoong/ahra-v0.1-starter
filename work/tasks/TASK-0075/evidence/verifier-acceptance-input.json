@@ -1,0 +1,52 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0075",
+  "verifier": "agent:independent-verifier",
+  "decision": "approve",
+  "summary": "Independent verification found TASK-0075 acceptance criteria satisfied by manifest-backed producer evidence, code inspection, focused regression tests, full check.py, and git diff whitespace validation.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0075-0001", "EVD-TASK-0075-0002"],
+      "notes": "Verified VerificationSelection normalizes None selected_gate_refs to an empty tuple and report pass/integrity paths no longer crash."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0075-0001", "EVD-TASK-0075-0002"],
+      "notes": "Verified the true retry source was bounded-task TaskHarness policy and that node retryPolicy.maxAttempts=1 runs exactly one attempt."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0075-0001", "EVD-TASK-0075-0002"],
+      "notes": "Verified git_ops.py and runtime.py subprocess paths use UTF-8 decoding with replacement and regression tests cover invalid output bytes."
+    },
+    {
+      "criterion_index": 4,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0075-0001", "EVD-TASK-0075-0002"],
+      "notes": "Verified SQLite control store parent creation and structured SQLiteControlStoreError behavior for invalid store parents."
+    },
+    {
+      "criterion_index": 5,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0075-0001", "EVD-TASK-0075-0002"],
+      "notes": "Verified lease/timeout, reference-runner, goal-operation, and TASK-0074 isolation regression suites still pass."
+    },
+    {
+      "criterion_index": 6,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0075-0002"],
+      "notes": "Verifier reran scripts/check.py successfully and git diff --check had exit code 0."
+    },
+    {
+      "criterion_index": 7,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0075-0002"],
+      "notes": "Verified task state was review@2 with no owner or lease before EvidenceGate approval; producer did not mark completed."
+    }
+  ],
+  "commands": []
+}

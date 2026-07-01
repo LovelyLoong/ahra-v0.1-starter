@@ -1,0 +1,52 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0074",
+  "verifier": "agent:independent-verifier",
+  "decision": "approve",
+  "summary": "Independent verification found TASK-0074 acceptance criteria satisfied by manifest-backed producer evidence, code inspection, focused regression tests, full check.py, and git diff whitespace validation.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0074-0001", "EVD-TASK-0074-0002"],
+      "notes": "Verified development-bounded selects IsolatedGitWorkspaceProvider and the real Agent workspace path differs from the main repository root."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0074-0001", "EVD-TASK-0074-0002"],
+      "notes": "Verified hostile driver coverage for git reset --hard and git clean -fd in the isolated worktree while preserving a seeded dirty file in the governed workspace."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0074-0001", "EVD-TASK-0074-0002"],
+      "notes": "Verified allowlisted materialization and blacklist/out-of-allowlist rejection through IsolatedGitWorkspaceProvider tests and manifest-backed evidence."
+    },
+    {
+      "criterion_index": 4,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0074-0001", "EVD-TASK-0074-0002"],
+      "notes": "Verified throwaway worktree cleanup on success and failure paths."
+    },
+    {
+      "criterion_index": 5,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0074-0001", "EVD-TASK-0074-0002"],
+      "notes": "Verified default M1 deterministic behavior remains covered by goal and node operation regressions."
+    },
+    {
+      "criterion_index": 6,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0074-0002"],
+      "notes": "Verifier reran scripts/check.py successfully and git diff --check had exit code 0."
+    },
+    {
+      "criterion_index": 7,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0074-0002"],
+      "notes": "Verified task state was review@2 with no owner or lease before EvidenceGate approval; producer did not mark completed."
+    }
+  ],
+  "commands": []
+}

@@ -183,8 +183,9 @@ class VerificationExecutionReport:
 
     @property
     def passed(self) -> bool:
-        expected_count = len(self.selection.selected_gate_refs)
-        if not self.selection.selected_gate_refs:
+        selected_gate_refs = tuple(self.selection.selected_gate_refs or ())
+        expected_count = len(selected_gate_refs)
+        if not selected_gate_refs:
             return True
         if self.duplicate_idempotency_keys:
             return False
@@ -194,7 +195,7 @@ class VerificationExecutionReport:
 
     @property
     def gate_execution_integrity(self) -> float:
-        selected = len(self.selection.selected_gate_refs)
+        selected = len(tuple(self.selection.selected_gate_refs or ()))
         if selected == 0:
             return 1.0
         return len(self.gate_runs) / selected
@@ -917,6 +918,19 @@ class VerificationSelection:
     rationale: tuple[str, ...]
     historical_evidence_refs: tuple[str, ...] = ()
     resolution_failure_refs: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        for name in (
+            "selected_gate_refs",
+            "full_gate_refs",
+            "affected_claim_refs",
+            "reused_evidence_refs",
+            "stale_evidence_refs",
+            "rationale",
+            "historical_evidence_refs",
+            "resolution_failure_refs",
+        ):
+            object.__setattr__(self, name, tuple(getattr(self, name) or ()))
 
     def to_dict(self) -> dict[str, object]:
         return {

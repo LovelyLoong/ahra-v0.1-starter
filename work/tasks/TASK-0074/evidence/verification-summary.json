@@ -1,0 +1,38 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0074",
+  "status": "ready_for_review",
+  "producer": "agent:codex",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_development_worktree_isolation -v",
+      "status": "passed",
+      "summary": "3 tests passed."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_node_executor tests.test_goal_operations -v",
+      "status": "passed",
+      "summary": "27 tests passed."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "summary": "291 tests passed; 1 Windows symlink skip."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "Exit code 0."
+    }
+  ],
+  "evidence": [
+    "src/ahra/reference_runner/git_ops.py",
+    "src/ahra/goal_operations.py",
+    "tests/test_development_worktree_isolation.py"
+  ],
+  "notes": [
+    "Development-bounded path uses throwaway git worktree isolation only.",
+    "M1 deterministic path behavior is preserved by existing node and goal operation tests.",
+    "Producer did not mark TASK-0074 completed."
+  ]
+}

@@ -28,6 +28,8 @@ class LocalRuntimeProvider:
                 env=env,
                 text=True,
                 capture_output=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=timeout,
                 check=False,
             )
@@ -38,8 +40,8 @@ class LocalRuntimeProvider:
                 "stderr": result.stderr,
             }
         except subprocess.TimeoutExpired as exc:
-            stdout = exc.stdout.decode() if isinstance(exc.stdout, bytes) else (exc.stdout or "")
-            stderr = exc.stderr.decode() if isinstance(exc.stderr, bytes) else (exc.stderr or "")
+            stdout = exc.stdout.decode("utf-8", errors="replace") if isinstance(exc.stdout, bytes) else (exc.stdout or "")
+            stderr = exc.stderr.decode("utf-8", errors="replace") if isinstance(exc.stderr, bytes) else (exc.stderr or "")
             return {
                 "exit_code": None,
                 "timed_out": True,

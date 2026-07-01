@@ -1,0 +1,81 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0074",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-01T08:02:21.158704Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verification found TASK-0074 acceptance criteria satisfied by manifest-backed producer evidence, code inspection, focused regression tests, full check.py, and git diff whitespace validation.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "The development-bounded execution path provisions an isolated git worktree whose resolved path is not the main repository working tree, and the real Agent's working directory is that isolated worktree. A unit test asserts the Agent workspace path differs from the main repo root.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0074-0001",
+        "EVD-TASK-0074-0002"
+      ],
+      "notes": "Verified development-bounded selects IsolatedGitWorkspaceProvider and the real Agent workspace path differs from the main repository root."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "A fixture test simulates a hostile/careless Agent that runs `git reset --hard` and `git clean -fd` (or deletes/overwrites files) inside the isolated worktree, and asserts the main repository working tree and a seeded uncommitted file are left unchanged. This is the core safety guarantee.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0074-0001",
+        "EVD-TASK-0074-0002"
+      ],
+      "notes": "Verified hostile driver coverage for git reset --hard and git clean -fd in the isolated worktree while preserving a seeded dirty file in the governed workspace."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "After a successful run, only allowlisted produced files are materialized back into the governed workspace; a test asserts a blacklisted or out-of-allowlist path produced in the worktree is not propagated.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0074-0001",
+        "EVD-TASK-0074-0002"
+      ],
+      "notes": "Verified allowlisted materialization and blacklist/out-of-allowlist rejection through IsolatedGitWorkspaceProvider tests and manifest-backed evidence."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The throwaway worktree is removed after the run on both success and failure paths; a test asserts no leftover worktree remains.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0074-0001",
+        "EVD-TASK-0074-0002"
+      ],
+      "notes": "Verified throwaway worktree cleanup on success and failure paths."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "The M1 deterministic profile path is unaffected (regression test passes).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0074-0001",
+        "EVD-TASK-0074-0002"
+      ],
+      "notes": "Verified default M1 deterministic behavior remains covered by goal and node operation regressions."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "`python scripts/check.py` (lint + full tests) passes, or blockers are recorded with exact command output.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0074-0002"
+      ],
+      "notes": "Verifier reran scripts/check.py successfully and git diff --check had exit code 0."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Producer moves TASK-0074 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0074-0002"
+      ],
+      "notes": "Verified task state was review@2 with no owner or lease before EvidenceGate approval; producer did not mark completed."
+    }
+  ],
+  "commands": []
+}

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -10,6 +11,8 @@ import tempfile
 import threading
 import time
 import unittest
+from datetime import datetime, timedelta, timezone
+from unittest import mock
 from pathlib import Path
 
 from jsonschema import Draft202012Validator, FormatChecker
@@ -57,6 +60,8 @@ from ahra.reference_runner.models import (
 from ahra.reference_runner.policy import ChangeSummary, evaluate_policy
 from ahra.reference_runner.review_contracts import enforce_task_review_contract
 from ahra.reference_runner.task_harness import TaskHarness
+from ahra.reference_runner.git_ops import run_git, run_git_with_input
+from ahra.reference_runner.runtime import LocalRuntimeProvider
 from ahra.reference_runner.store import FileRunStore
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -675,6 +680,33 @@ def _minimal_task_mapping() -> dict[str, object]:
         "objective": "Exercise schema-valid defaults",
         "acceptance_criteria": ["The task can be loaded"],
     }
+
+
+class ReferenceRunnerSubprocessTests(unittest.TestCase):
+    def test_git_helpers_request_utf8_replace_decoding(self) -> None:
+        with mock.patch("ahra.reference_runner.git_ops.subprocess.run") as run:
+            run.return_value = subprocess.CompletedProcess(["git"], 0, stdout="ok", stderr="")
+
+            run_git(Path("."), "status")
+            run_git_with_input(Path("."), "apply", input_text="")
+
+        for call in run.call_args_list:
+            self.assertTrue(call.kwargs["text"])
+            self.assertTrue(call.kwargs["capture_output"])
+            self.assertEqual(call.kwargs["encoding"], "utf-8")
+            self.assertEqual(call.kwargs["errors"], "replace")
+
+    def test_local_runtime_replaces_invalid_utf8_output(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            result = LocalRuntimeProvider().exec(
+                str(Path(temp)),
+                [sys.executable, "-c", "import sys; sys.stdout.buffer.write(b'\\xff')"],
+                os.environ.copy(),
+                datetime.now(timezone.utc) + timedelta(seconds=10),
+            )
+
+        self.assertEqual(result["exit_code"], 0)
+        self.assertEqual(result["stdout"], "\ufffd")
 
 
 class ReferencePolicyAndReviewTests(unittest.TestCase):

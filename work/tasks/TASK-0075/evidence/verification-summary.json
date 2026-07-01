@@ -1,0 +1,50 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0075",
+  "status": "ready_for_review",
+  "producer": "agent:codex",
+  "commands": [
+    {
+      "command": "uv run python -B -m unittest tests.test_verification tests.test_plan_execution -v",
+      "status": "passed",
+      "summary": "47 tests passed."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_node_executor tests.test_reference_runner -v",
+      "status": "passed",
+      "summary": "42 tests passed."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_sqlite_control_store tests.test_goal_operations -v",
+      "status": "passed",
+      "summary": "27 tests passed."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "summary": "291 tests passed; 1 Windows symlink skip."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "Exit code 0."
+    }
+  ],
+  "evidence": [
+    "src/ahra/verification.py",
+    "src/ahra/reference_runner/bounded_task.py",
+    "src/ahra/reference_runner/git_ops.py",
+    "src/ahra/reference_runner/runtime.py",
+    "src/ahra/sqlite_control_store.py",
+    "src/ahra/goal_operations.py",
+    "tests/test_verification.py",
+    "tests/test_node_executor.py",
+    "tests/test_reference_runner.py",
+    "tests/test_sqlite_control_store.py"
+  ],
+  "notes": [
+    "P3 root cause was the bounded-task TaskHarness internal retry loop, not scheduler _maybe_retry.",
+    "Producer did not rerun paid real-Agent dogfood.",
+    "Producer did not mark TASK-0075 completed."
+  ]
+}

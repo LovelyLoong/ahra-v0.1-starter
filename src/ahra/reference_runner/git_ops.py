@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import fnmatch
 import os
 import re
 import hashlib
+import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,6 +28,8 @@ def run_git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedP
         ["git", "-C", str(repo), *args],
         text=True,
         capture_output=True,
+        encoding="utf-8",
+        errors="replace",
         env=_git_env(),
         check=False,
     )
@@ -46,6 +50,8 @@ def run_git_with_input(
         input=input_text,
         text=True,
         capture_output=True,
+        encoding="utf-8",
+        errors="replace",
         env=_git_env(),
         check=False,
     )
@@ -240,3 +246,116 @@ class LocalGitWorkspaceProvider:
 
     def fast_forward(self, workspace_ref: str, ref: str) -> str:
         return fast_forward(Path(workspace_ref), ref)
+
+
+class IsolatedGitWorkspaceProvider:
+    """WorkspaceProvider that runs an agent in a throwaway git worktree."""
+
+    def __init__(
+        self,
+        *,
+        source_provider: LocalGitWorkspaceProvider | None = None,
+        worktree_root: Path,
+        allowed_globs: tuple[str, ...],
+        denied_globs: tuple[str, ...] = (),
+    ) -> None:
+        self.source_provider = source_provider or LocalGitWorkspaceProvider()
+        self.worktree_root = Path(worktree_root)
+        self.allowed_globs = tuple(allowed_globs)
+        self.denied_globs = tuple(denied_globs)
+        self._sessions: dict[str, tuple[str, Workspace]] = {}
+
+    def prepare_execution_workspace(
+        self,
+        workspace_ref: str,
+        *,
+        run_id: str,
+        node_id: str,
+    ) -> str:
+        source = Path(self.source_provider.resolve_path(workspace_ref)).resolve()
+        ensure_git_repo(source)
+        destination = (
+            self.worktree_root
+            / slug(run_id)
+            / f"{slug(node_id)}-{hashlib.sha1(node_id.encode('utf-8')).hexdigest()[:8]}"
+        )
+        workspace = WorktreeManager(source).create(
+            run_id=run_id,
+            label=node_id,
+            base_ref="HEAD",
+            destination=destination,
+        )
+        execution_ref = str(workspace.path)
+        self._sessions[execution_ref] = (str(source), workspace)
+        return execution_ref
+
+    def finalize_execution_workspace(self, workspace_ref: str) -> None:
+        execution_ref = str(Path(workspace_ref).resolve())
+        session = self._sessions.pop(execution_ref, None)
+        if session is None:
+            return
+        source_ref, workspace = session
+        source = Path(source_ref)
+        manager = WorktreeManager(source)
+        try:
+            manager.remove(workspace, force=True)
+        finally:
+            run_git(source, "branch", "-D", workspace.branch, check=False)
+            run_git(source, "worktree", "prune", check=False)
+
+    def resolve_path(self, workspace_ref: str) -> str:
+        return str(Path(workspace_ref).resolve())
+
+    def current_head(self, workspace_ref: str) -> str:
+        return current_head(Path(workspace_ref))
+
+    def changed_files(self, workspace_ref: str, checkpoint: str) -> list[str]:
+        return list(changed_files(Path(workspace_ref), checkpoint))
+
+    def numstat(self, workspace_ref: str, checkpoint: str) -> tuple[int, int]:
+        return numstat(Path(workspace_ref), checkpoint)
+
+    def patch(self, workspace_ref: str, checkpoint: str) -> str:
+        return patch(Path(workspace_ref), checkpoint)
+
+    def restore_patch(self, workspace_ref: str, checkpoint: str, patch_text: str) -> None:
+        restore_patch(Path(workspace_ref), checkpoint, patch_text)
+
+    def rollback(self, workspace_ref: str, checkpoint: str) -> None:
+        rollback(Path(workspace_ref), checkpoint)
+
+    def commit_all(self, workspace_ref: str, message: str) -> str:
+        execution_path = Path(workspace_ref).resolve()
+        session = self._sessions.get(str(execution_path))
+        if session is None:
+            return commit_all(execution_path, message)
+
+        source_ref, workspace = session
+        source = Path(source_ref).resolve()
+        for relative_path in changed_files(execution_path, workspace.base_commit):
+            if not self._is_materializable(relative_path):
+                continue
+            source_file = (execution_path / relative_path).resolve()
+            target_file = (source / relative_path).resolve()
+            if not self._is_inside(target_file, source) or not source_file.is_file():
+                continue
+            target_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_file, target_file)
+        return current_head(source)
+
+    def fast_forward(self, workspace_ref: str, ref: str) -> str:
+        return fast_forward(Path(workspace_ref), ref)
+
+    def _is_materializable(self, relative_path: str) -> bool:
+        normalized = relative_path.replace("\\", "/")
+        if any(fnmatch.fnmatch(normalized, pattern.replace("\\", "/")) for pattern in self.denied_globs):
+            return False
+        return any(fnmatch.fnmatch(normalized, pattern.replace("\\", "/")) for pattern in self.allowed_globs)
+
+    @staticmethod
+    def _is_inside(path: Path, root: Path) -> bool:
+        try:
+            path.relative_to(root)
+            return True
+        except ValueError:
+            return False

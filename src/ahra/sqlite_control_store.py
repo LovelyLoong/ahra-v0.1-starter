@@ -447,7 +447,12 @@ class SQLiteControlStore:
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
-        connection = sqlite3.connect(self.path)
+        try:
+            connection = sqlite3.connect(self.path)
+        except (OSError, sqlite3.Error) as exc:
+            raise SQLiteControlStoreError(
+                f"unable to open SQLite control store: {self.path} (parent: {self.path.parent})"
+            ) from exc
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
         try:
@@ -466,8 +471,13 @@ class SQLiteControlStore:
 
 def migrate_sqlite_control_store(path: Path | str) -> None:
     db_path = Path(path)
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(db_path)
+    try:
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(db_path)
+    except (OSError, sqlite3.Error) as exc:
+        raise SQLiteControlStoreError(
+            f"unable to open SQLite control store: {db_path} (parent: {db_path.parent})"
+        ) from exc
     try:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")

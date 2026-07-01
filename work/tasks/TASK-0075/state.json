@@ -1,0 +1,25 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0075",
+  "context_id": "CTX-workflow-b-reliability",
+  "state": "completed",
+  "state_version": 3,
+  "attempt": 1,
+  "owner": null,
+  "lease": null,
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0075-0001",
+    "ART-TASK-0075-0002",
+    "ART-TASK-0075-HANDOFF-0001",
+    "ART-TASK-0075-0003"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0075-0001",
+    "EVD-TASK-0075-0002",
+    "EVD-TASK-0075-0003"
+  ],
+  "updated_at": "2026-07-01T08:02:21.210322Z"
+}

@@ -35,6 +35,23 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SQLiteControlStoreTests(unittest.TestCase):
+    def test_nested_store_path_creates_parent_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            db_path = Path(temp) / "nested" / "control" / "goal.sqlite3"
+
+            SQLiteControlStore(db_path)
+
+            self.assertTrue(db_path.parent.exists())
+            self.assertTrue(db_path.exists())
+
+    def test_invalid_store_parent_fails_with_structured_error(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            parent = Path(temp) / "not-a-directory"
+            parent.write_text("file blocks directory creation\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(SQLiteControlStoreError, "unable to open SQLite control store"):
+                SQLiteControlStore(parent / "goal.sqlite3")
+
     def test_migration_round_trip_and_cas_conflict(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             db_path = Path(temp) / "control.sqlite"

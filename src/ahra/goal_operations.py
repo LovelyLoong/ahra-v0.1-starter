@@ -36,7 +36,7 @@ from .plan_execution import (
     StaticPlanScheduler,
 )
 from .plan_ir import PlanBudget, PlanCompilerConfig, PlanDraft, PlanIR, PlanValidationReport, compile_plan_draft
-from .sqlite_control_store import SQLiteControlStore, recover_sqlite_control_plane
+from .sqlite_control_store import SQLiteControlStore, SQLiteControlStoreError, recover_sqlite_control_plane
 from .verification import (
     CommandGateRunner,
     CompletionGateResult,
@@ -565,7 +565,14 @@ class GoalOperationService:
         request.artifact_dir.mkdir(parents=True, exist_ok=True)
         request.workspace_ref.mkdir(parents=True, exist_ok=True)
         self.plan(request_path)
-        store = SQLiteControlStore(request.store_path)
+        try:
+            store = SQLiteControlStore(request.store_path)
+        except SQLiteControlStoreError as exc:
+            raise GoalOperationError(
+                "sqlite_control_store_unavailable",
+                str(exc),
+                refs=(str(request.store_path),),
+            ) from exc
         service = PlanExecutionService(store)  # type: ignore[arg-type]
         if _goal_exists(store, request.goal_execution_id):
             raise GoalOperationError(
@@ -595,39 +602,48 @@ class GoalOperationService:
             execution.plan_execution_id,
             expected_version=goal.status_version,
         )
-        scheduler = self._scheduler(request, store)
-        if run_once:
-            ran = asyncio.run(
-                scheduler.run_ready_nodes_once(
-                    bundle.plan,
-                    execution.plan_execution_id,
-                    workspace_ref=str(request.workspace_ref),
-                    branch=request.branch,
+        workspace_provider = self._real_executor_workspace_provider(request, self.profiles.get(request.profile_ref))
+        execution_workspace_ref = self._prepare_execution_workspace(request, workspace_provider)
+        scheduler = self._scheduler(
+            request,
+            store,
+            real_executor_workspace_provider=workspace_provider,
+        )
+        try:
+            if run_once:
+                ran = asyncio.run(
+                    scheduler.run_ready_nodes_once(
+                        bundle.plan,
+                        execution.plan_execution_id,
+                        workspace_ref=execution_workspace_ref,
+                        branch=request.branch,
+                    )
                 )
-            )
-            latest_execution = store.get_execution(execution.plan_execution_id)
-            latest_goal = store.get_goal_execution(goal.goal_execution_id)
-            defects = _scheduler_defects(scheduler)
-            completion = _scheduler_completion(scheduler)
-        else:
-            latest_execution = asyncio.run(
-                scheduler.run_until_terminal(
-                    bundle.plan,
-                    execution.plan_execution_id,
-                    workspace_ref=str(request.workspace_ref),
-                    branch=request.branch,
+                latest_execution = store.get_execution(execution.plan_execution_id)
+                latest_goal = store.get_goal_execution(goal.goal_execution_id)
+                defects = _scheduler_defects(scheduler)
+                completion = _scheduler_completion(scheduler)
+            else:
+                latest_execution = asyncio.run(
+                    scheduler.run_until_terminal(
+                        bundle.plan,
+                        execution.plan_execution_id,
+                        workspace_ref=execution_workspace_ref,
+                        branch=request.branch,
+                    )
                 )
-            )
-            defects = _scheduler_defects(scheduler)
-            completion = _scheduler_completion(scheduler)
-            latest_goal = self._finish_goal_if_ready(
-                service,
-                goal.goal_execution_id,
-                latest_execution.plan_execution_id,
-                completion=completion,
-                open_defect_refs=tuple(defect.defect_id for defect in defects),
-            )
-            ran = True
+                defects = _scheduler_defects(scheduler)
+                completion = _scheduler_completion(scheduler)
+                latest_goal = self._finish_goal_if_ready(
+                    service,
+                    goal.goal_execution_id,
+                    latest_execution.plan_execution_id,
+                    completion=completion,
+                    open_defect_refs=tuple(defect.defect_id for defect in defects),
+                )
+                ran = True
+        finally:
+            self._finalize_execution_workspace(workspace_provider, execution_workspace_ref)
         kernel_verification = _write_kernel_verification_records(request.artifact_dir, scheduler.verification_executor)
         result = self.inspect(goal.goal_execution_id, db_path=request.store_path)
         report = {
@@ -675,24 +691,33 @@ class GoalOperationService:
             )
         recover_sqlite_control_plane(store)
         assert bundle.plan is not None
-        scheduler = self._scheduler(request, store)
-        execution = asyncio.run(
-            scheduler.run_until_terminal(
-                bundle.plan,
-                goal.active_plan_execution_ref,
-                workspace_ref=str(request.workspace_ref),
-                branch=request.branch,
+        workspace_provider = self._real_executor_workspace_provider(request, self.profiles.get(request.profile_ref))
+        execution_workspace_ref = self._prepare_execution_workspace(request, workspace_provider)
+        scheduler = self._scheduler(
+            request,
+            store,
+            real_executor_workspace_provider=workspace_provider,
+        )
+        try:
+            execution = asyncio.run(
+                scheduler.run_until_terminal(
+                    bundle.plan,
+                    goal.active_plan_execution_ref,
+                    workspace_ref=execution_workspace_ref,
+                    branch=request.branch,
+                )
             )
-        )
-        defects = _scheduler_defects(scheduler)
-        completion = _scheduler_completion(scheduler)
-        latest_goal = self._finish_goal_if_ready(
-            service,
-            goal_execution_id,
-            execution.plan_execution_id,
-            completion=completion,
-            open_defect_refs=tuple(defect.defect_id for defect in defects),
-        )
+            defects = _scheduler_defects(scheduler)
+            completion = _scheduler_completion(scheduler)
+            latest_goal = self._finish_goal_if_ready(
+                service,
+                goal_execution_id,
+                execution.plan_execution_id,
+                completion=completion,
+                open_defect_refs=tuple(defect.defect_id for defect in defects),
+            )
+        finally:
+            self._finalize_execution_workspace(workspace_provider, execution_workspace_ref)
         report = {
             "schema_version": "ahra/goal-operation-resume/0.1",
             "goalExecutionId": goal_execution_id,
@@ -824,7 +849,13 @@ class GoalOperationService:
             )
         return bundle
 
-    def _scheduler(self, request: GoalExecutionRequest, store: SQLiteControlStore) -> StaticPlanScheduler:
+    def _scheduler(
+        self,
+        request: GoalExecutionRequest,
+        store: SQLiteControlStore,
+        *,
+        real_executor_workspace_provider: Any | None = None,
+    ) -> StaticPlanScheduler:
         profile = self.profiles.get(request.profile_ref)
         registry = NodeExecutorRegistry()
         executor_release_refs = {
@@ -842,7 +873,9 @@ class GoalOperationService:
                 BoundedTaskExecutor(
                     self.real_executor_driver,
                     store=FileRunStore(run_dir),
-                    workspace_provider=self.real_executor_workspace_provider,
+                    workspace_provider=real_executor_workspace_provider
+                    if real_executor_workspace_provider is not None
+                    else self.real_executor_workspace_provider,
                     runtime_provider=self.real_executor_runtime_provider,
                     runtime_profile_ref=self.real_executor_runtime_profile_ref,
                     execution_policy=self.real_executor_execution_policy,
@@ -908,6 +941,44 @@ class GoalOperationService:
                 "real bounded Executor profile requires an injected AgentDriver before execution starts",
                 refs=(request.profile_ref, request.executor_adapter_ref),
             )
+
+    def _real_executor_workspace_provider(
+        self,
+        request: GoalExecutionRequest,
+        profile: GoalOperationProfile,
+    ) -> Any | None:
+        if request.profile_ref != DEVELOPMENT_BOUNDED_PROFILE_REF:
+            return self.real_executor_workspace_provider
+
+        from .reference_runner.git_ops import IsolatedGitWorkspaceProvider
+
+        return IsolatedGitWorkspaceProvider(
+            source_provider=self.real_executor_workspace_provider,
+            worktree_root=request.artifact_dir / "development-worktrees",
+            allowed_globs=profile.filesystem_write_allowlist,
+            denied_globs=profile.filesystem_write_blacklist,
+        )
+
+    def _prepare_execution_workspace(
+        self,
+        request: GoalExecutionRequest,
+        workspace_provider: Any | None,
+    ) -> str:
+        prepare_workspace = getattr(workspace_provider, "prepare_execution_workspace", None)
+        if prepare_workspace is None:
+            return str(request.workspace_ref)
+        return str(
+            prepare_workspace(
+                str(request.workspace_ref),
+                run_id=request.goal_execution_id,
+                node_id="development-bounded",
+            )
+        )
+
+    def _finalize_execution_workspace(self, workspace_provider: Any | None, workspace_ref: str) -> None:
+        finalize_workspace = getattr(workspace_provider, "finalize_execution_workspace", None)
+        if finalize_workspace is not None:
+            finalize_workspace(workspace_ref)
 
     def _finish_goal_if_ready(
         self,
@@ -980,7 +1051,14 @@ class GoalOperationService:
         path = Path(db_path)
         if not path.exists():
             raise GoalOperationError("missing_sqlite_database", f"SQLite control store does not exist: {path}", refs=(str(path),))
-        return SQLiteControlStore(path)
+        try:
+            return SQLiteControlStore(path)
+        except SQLiteControlStoreError as exc:
+            raise GoalOperationError(
+                "sqlite_control_store_unavailable",
+                str(exc),
+                refs=(str(path),),
+            ) from exc
 
 
 class DeterministicGoalVerificationService:

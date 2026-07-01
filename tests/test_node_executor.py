@@ -76,6 +76,17 @@ class NodeWritingDriver(AgentDriver):
         raise AssertionError(f"unexpected role: {request.role}")
 
 
+class FailingExecutorDriver(AgentDriver):
+    def __init__(self) -> None:
+        self.executor_calls = 0
+
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role == AgentRole.EXECUTOR:
+            self.executor_calls += 1
+            raise RuntimeError("simulated executor failure")
+        raise AssertionError(f"unexpected role: {request.role}")
+
+
 class ContractCapturingDriver(AgentDriver):
     def __init__(self, outputs: tuple[tuple[str, str], ...] = (("outputs/summary.txt", "bounded artifact\n"),)) -> None:
         self.executor_task: TaskSpec | None = None
@@ -149,6 +160,34 @@ class NodeExecutorTests(unittest.TestCase):
             self.assertEqual(effective.run_deadline_seconds, 300)
             self.assertEqual(effective.idle_timeout_seconds, 300)
             self.assertLessEqual(effective.heartbeat_interval_seconds, effective.idle_timeout_seconds)
+
+    def test_bounded_task_honors_node_retry_policy_max_attempts_one(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task = _task()
+            plan, node = compatibility_plan_for_task(task=task, workspace=repo, run_id="RUN-retry")
+            node = replace(node, retry_policy=replace(node.retry_policy, max_attempts=1))
+            request = NodeExecutionRequest(
+                plan=plan,
+                node=node,
+                capability_grants=runtime_grants_for_node(plan, node),
+                workspace_ref=str(repo),
+                branch="test-branch",
+                run_id="RUN-retry",
+                payload={"task": task},
+            )
+            driver = FailingExecutorDriver()
+
+            task_result, node_result = asyncio.run(
+                BoundedTaskExecutor(
+                    driver,
+                    store=FileRunStore(Path(temp) / "run"),
+                ).execute_task(request)
+            )
+
+            self.assertEqual(driver.executor_calls, 1)
+            self.assertEqual(tuple(attempt.attempt for attempt in task_result.attempts), (1,))
+            self.assertEqual(node_result.status, NodeExecutionStatus.ERROR)
 
     def test_bounded_task_executes_native_plan_node_with_capability_grants(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

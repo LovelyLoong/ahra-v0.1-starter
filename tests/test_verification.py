@@ -35,6 +35,7 @@ from ahra.verification import (
     SubjectiveGateDecision,
     VerificationExecutionContext,
     VerificationExecutor,
+    VerificationExecutionReport,
     VerificationResult,
     VerificationSelection,
     VerificationTrigger,
@@ -57,6 +58,25 @@ D9 = "sha256:" + "9" * 64
 
 
 class VerificationSelectionTests(unittest.TestCase):
+    def test_execution_report_treats_none_selected_gate_refs_as_empty(self) -> None:
+        selection = VerificationSelection(
+            selected_gate_refs=None,  # type: ignore[arg-type]
+            full_gate_refs=None,  # type: ignore[arg-type]
+            affected_claim_refs=None,  # type: ignore[arg-type]
+            reused_evidence_refs=None,  # type: ignore[arg-type]
+            stale_evidence_refs=None,  # type: ignore[arg-type]
+            rationale=None,  # type: ignore[arg-type]
+        )
+        report = VerificationExecutionReport(
+            selection=selection,
+            attempts=(),
+            reused_evidence_refs=(),
+        )
+
+        self.assertTrue(report.passed)
+        self.assertEqual(report.gate_execution_integrity, 1.0)
+        self.assertEqual(report.to_dict()["selection"]["selectedGateRefs"], [])
+
     def test_selection_is_deterministic_for_same_inputs(self) -> None:
         graph, gates, plan = _fixture_contracts()
         evidence = (_evidence("EVD-cli-stale", "CLAIM-cli-detects-stale-docs", "ART-doc-cli", D2),)

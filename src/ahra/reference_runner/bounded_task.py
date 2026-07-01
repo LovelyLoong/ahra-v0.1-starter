@@ -313,6 +313,8 @@ class BoundedTaskExecutor:
 
 
 def _execution_policy_for_node(base: ExecutionPolicy, node: PlanNodeIR) -> ExecutionPolicy:
+    max_attempts = min(base.max_attempts, max(1, node.retry_policy.max_attempts))
+    base = replace(base, max_attempts=max_attempts)
     budget_seconds = _node_wall_timeout_seconds(node)
     if budget_seconds is None:
         return base

@@ -1,0 +1,81 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0075",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-01T08:02:21.210322Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verification found TASK-0075 acceptance criteria satisfied by manifest-backed producer evidence, code inspection, focused regression tests, full check.py, and git diff whitespace validation.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "P2 fixed: a verification/gate path that previously received a `None` selection now treats it as an empty selection and does not raise; a unit test reproduces the old `NoneType` len() condition and asserts it no longer crashes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0075-0001",
+        "EVD-TASK-0075-0002"
+      ],
+      "notes": "Verified VerificationSelection normalizes None selected_gate_refs to an empty tuple and report pass/integrity paths no longer crash."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "P3 root cause identified and fixed at the true layer (documented in the report); a regression test proves a node with `retryPolicy.maxAttempts: 1` executes exactly one attempt on failure and does not start a second.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0075-0001",
+        "EVD-TASK-0075-0002"
+      ],
+      "notes": "Verified the true retry source was bounded-task TaskHarness policy and that node retryPolicy.maxAttempts=1 runs exactly one attempt."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "P4a fixed: the `subprocess.run` calls in `git_ops.py` and `runtime.py` pass explicit `encoding=\"utf-8\"` with `errors=\"replace\"`; a test asserts non-GBK/UTF-8 bytes in git/command output no longer raise `UnicodeDecodeError`.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0075-0001",
+        "EVD-TASK-0075-0002"
+      ],
+      "notes": "Verified git_ops.py and runtime.py subprocess paths use UTF-8 decoding with replacement and regression tests cover invalid output bytes."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "P4b fixed: opening the SQLite control store with a relative path whose parent does not yet exist either creates the parent or fails with a clear, structured error (not a bare `OperationalError`); covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0075-0001",
+        "EVD-TASK-0075-0002"
+      ],
+      "notes": "Verified SQLite control store parent creation and structured SQLiteControlStoreError behavior for invalid store parents."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "TASK-0072/0073 lease/timeout invariants and TASK-0074 isolation still hold (no regression in their tests).",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0075-0001",
+        "EVD-TASK-0075-0002"
+      ],
+      "notes": "Verified lease/timeout, reference-runner, goal-operation, and TASK-0074 isolation regression suites still pass."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "`python scripts/check.py` (full lint + tests) passes; new regression tests are non-skipped.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0075-0002"
+      ],
+      "notes": "Verifier reran scripts/check.py successfully and git diff --check had exit code 0."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Producer moves TASK-0075 only to review; EvidenceGate decides completion.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0075-0002"
+      ],
+      "notes": "Verified task state was review@2 with no owner or lease before EvidenceGate approval; producer did not mark completed."
+    }
+  ],
+  "commands": []
+}

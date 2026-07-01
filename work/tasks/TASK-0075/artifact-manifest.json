@@ -1,0 +1,91 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0075",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0075-0001",
+      "task_id": "TASK-0075",
+      "kind": "reliability_three_pack_fix",
+      "name": "reliability-three-pack-fix-report.md",
+      "uri": "local://evidence/reliability-three-pack-fix-report.md",
+      "sha256": "5a6385fa4b99a757364fde6a6553e1208cdc28182a9ad7c9ffa0b640fd52e247",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T07:35:00Z",
+      "input_refs": [
+        "task.md",
+        "../../../src/ahra/verification.py",
+        "../../../src/ahra/reference_runner/bounded_task.py",
+        "../../../src/ahra/reference_runner/git_ops.py",
+        "../../../src/ahra/reference_runner/runtime.py",
+        "../../../src/ahra/sqlite_control_store.py",
+        "../../../src/ahra/goal_operations.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0075-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0075-0002",
+      "task_id": "TASK-0075",
+      "kind": "verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "013025736de02782641c21b76d07f58466b35898c8562198169a5ce2578ed036",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T07:35:00Z",
+      "input_refs": [
+        "task.md",
+        "evidence/reliability-three-pack-fix-report.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0075-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0075-HANDOFF-0001",
+      "task_id": "TASK-0075",
+      "kind": "handoff",
+      "name": "HANDOFF-0001.md",
+      "uri": "local://handoffs/HANDOFF-0001.md",
+      "sha256": "6f105dc72a35dc84a960e02a5a35c85e4e3024a7bd473c3ee0e42b20ed79beb3",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T07:35:00Z",
+      "input_refs": [
+        "task.md",
+        "evidence/reliability-three-pack-fix-report.md",
+        "evidence/verification-summary.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0075-0001",
+        "EVD-TASK-0075-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0075-0003",
+      "task_id": "TASK-0075",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "779a72dcb50338f7a191ba0406c3d26f04b5f50c1a5f0c037a7732c1075fbc30",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T08:02:21.210322Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0075-0003"
+      ],
+      "supersedes": null
+    }
+  ]
+}
