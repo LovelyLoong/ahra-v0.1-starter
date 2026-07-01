@@ -775,6 +775,13 @@ def _node_gate_summary(
                 "attempt": attempt.attempt,
                 "deterministicPassed": attempt.deterministic.passed if attempt.deterministic else False,
                 "requiredChecksPassed": attempt.deterministic.required_checks_passed if attempt.deterministic else False,
+                "checkExecutionStatus": attempt.deterministic.check_execution_status if attempt.deterministic else None,
+                "checkSkipReason": attempt.deterministic.check_skip_reason if attempt.deterministic else None,
+                "agentReportedVerificationCommands": (
+                    list(attempt.deterministic.agent_reported_verification_commands)
+                    if attempt.deterministic
+                    else []
+                ),
                 "reviewVerdict": attempt.review.verdict.value if attempt.review else None,
                 "error": attempt.error,
             }

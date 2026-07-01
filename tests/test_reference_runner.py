@@ -107,6 +107,22 @@ class FakeDriver(AgentDriver):
         raise AssertionError(f"unexpected role: {request.role}")
 
 
+class PolicyFailingSelfReportedVerificationDriver(AgentDriver):
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role == AgentRole.EXECUTOR:
+            workspace = Path(str(request.workspace_ref))
+            (workspace / "outside_scope.py").write_text("VALUE = 99\n", encoding="utf-8")
+            return AgentRunResult(
+                output=WorkReport(
+                    summary="Changed an out-of-scope file and self-reported verification.",
+                    changed_files=("outside_scope.py",),
+                    verification_commands_run=("python -m unittest",),
+                    known_risks=("python -m unittest failed",),
+                )
+            )
+        raise AssertionError(f"unexpected role after deterministic policy failure: {request.role}")
+
+
 class PrepublishingAwkpDriver(FakeDriver):
     async def run(self, request: AgentRunRequest) -> AgentRunResult:
         result = await super().run(request)
@@ -777,6 +793,105 @@ class StandardHarnessTests(unittest.TestCase):
             for record in (*manifest["artifacts"], *evidence_manifest["evidence"]):
                 self.assertRegex(record["sha256"], r"^[a-f0-9]{64}$")
                 self.assertTrue(record["uri"].startswith("local://"))
+
+    def test_policy_failure_marks_agent_reported_verification_as_unverified(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            result = asyncio.run(
+                TaskHarness(PolicyFailingSelfReportedVerificationDriver()).run_task(
+                    task=TaskSpec(
+                        id="policy-skip",
+                        title="Reject out of scope change",
+                        objective="Only value.py may be changed.",
+                        acceptance_criteria=("Only value.py changed.",),
+                        checks=(
+                            CheckSpec(
+                                name="must not run after policy failure",
+                                argv=(sys.executable, "-c", "raise SystemExit(7)"),
+                            ),
+                        ),
+                        policy=ChangePolicy(
+                            allowed_globs=("value.py",),
+                            protected_globs=(),
+                            sensitive_globs=(),
+                            max_changed_files=1,
+                            max_added_lines=5,
+                            max_deleted_lines=5,
+                        ),
+                        max_attempts=1,
+                    ),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-policy-skip",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+
+            self.assertEqual(result.status, WorkflowOutcome.REJECTED)
+            attempt = result.attempts[0]
+            self.assertIsNotNone(attempt.deterministic)
+            assert attempt.deterministic is not None
+            self.assertEqual(attempt.deterministic.check_execution_status, "skipped_policy_failed")
+            self.assertEqual(
+                attempt.deterministic.check_skip_reason,
+                "Policy gate failed before verification checks; no deterministic check records were produced.",
+            )
+            self.assertEqual(attempt.deterministic.checks, ())
+            self.assertFalse(attempt.deterministic.required_checks_passed)
+            self.assertEqual(
+                attempt.deterministic.agent_reported_verification_commands,
+                ("python -m unittest",),
+            )
+            self.assertIsNotNone(attempt.review)
+            assert attempt.review is not None
+            self.assertIn("deterministic checks were not executed", attempt.review.summary)
+            self.assertTrue(
+                any("not executed or recorded" in issue for issue in attempt.review.non_blocking_issues)
+            )
+
+            artifact_dir = Path(result.artifact_dir)
+            evidence = json.loads(
+                (artifact_dir / "tasks/policy-skip/attempt-1/deterministic-evidence.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(evidence["check_execution_status"], "skipped_policy_failed")
+            self.assertEqual(evidence["checks"], [])
+            self.assertEqual(evidence["agent_reported_verification_commands"], ["python -m unittest"])
+
+            review = json.loads(
+                (artifact_dir / "tasks/policy-skip/attempt-1/review.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertTrue(
+                any("not executed or recorded" in issue for issue in review["non_blocking_issues"])
+            )
+
+            terminal_failure = json.loads(
+                (artifact_dir / "tasks/policy-skip/terminal-failure.json").read_text(encoding="utf-8")
+            )
+            terminal_evidence = terminal_failure["attempts"][0]["deterministic"]
+            self.assertEqual(terminal_evidence["check_execution_status"], "skipped_policy_failed")
+            self.assertEqual(
+                terminal_evidence["agent_reported_verification_commands"],
+                ["python -m unittest"],
+            )
+
+            events = [
+                json.loads(line)
+                for line in (artifact_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            event_types = {event["type"] for event in events}
+            self.assertNotIn("dev.ahra.workflow.checks_started.v1", event_types)
+            gate_finished = next(
+                event
+                for event in events
+                if event["type"] == "dev.ahra.workflow.deterministic_gate_finished.v1"
+            )
+            self.assertEqual(gate_finished["data"]["check_execution_status"], "skipped_policy_failed")
+            self.assertEqual(gate_finished["data"]["agent_reported_verification_command_count"], 1)
 
     def test_retryable_executor_failure_uses_bounded_next_attempt(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

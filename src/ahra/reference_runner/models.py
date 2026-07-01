@@ -228,12 +228,17 @@ class PolicyEvidence:
 class DeterministicEvidence:
     policy: PolicyEvidence
     checks: tuple[CheckEvidence, ...] = ()
+    check_execution_status: str = "completed"
+    check_skip_reason: str | None = None
+    agent_reported_verification_commands: tuple[str, ...] = ()
     verification_mutated_workspace: bool = False
     verification_mutation_files: tuple[str, ...] = ()
     patch_excerpt: str = ""
 
     @property
     def required_checks_passed(self) -> bool:
+        if self.check_execution_status != "completed":
+            return False
         return all(check.passed for check in self.checks if check.required)
 
     @property

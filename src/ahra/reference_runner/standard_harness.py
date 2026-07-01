@@ -28,6 +28,7 @@ from .models import (
     TaskAttemptRecord,
     TaskRunResult,
     TaskSpec,
+    WorkReport,
     WorkflowOutcome,
     to_jsonable,
 )
@@ -39,6 +40,7 @@ from .store import ReferenceRunStore
 PATCH_EXCERPT_CHARS = 60_000
 CONTRACT_ERROR_EXCERPT_CHARS = 20_000
 AGENT_PHASE_CANCEL_GRACE_SECONDS = 1.0
+CHECKS_SKIPPED_POLICY_FAILED = "skipped_policy_failed"
 T = TypeVar("T")
 
 
@@ -122,6 +124,19 @@ def _excerpt(text: str, limit: int = PATCH_EXCERPT_CHARS, *, label: str = "patch
     return f"{text[:half]}\n\n... {label} truncated ...\n\n{text[-half:]}"
 
 
+def _verification_claim_note(evidence: DeterministicEvidence) -> str | None:
+    if not evidence.agent_reported_verification_commands:
+        return None
+    if evidence.check_execution_status == "completed":
+        return None
+    commands = ", ".join(evidence.agent_reported_verification_commands)
+    reason = evidence.check_skip_reason or evidence.check_execution_status
+    return (
+        "Agent-reported verification commands were not executed or recorded by "
+        f"the deterministic gate ({reason}): {commands}"
+    )
+
+
 def _deterministic_failure_review(evidence: DeterministicEvidence) -> ReviewResult:
     blockers = list(evidence.policy.violations)
     if evidence.verification_mutated_workspace:
@@ -133,18 +148,32 @@ def _deterministic_failure_review(evidence: DeterministicEvidence) -> ReviewResu
         for check in evidence.checks
         if check.required and not check.passed
     )
+    if evidence.check_execution_status != "completed":
+        blockers.append(
+            evidence.check_skip_reason
+            or f"Deterministic checks were not completed: {evidence.check_execution_status}"
+        )
+    claim_note = _verification_claim_note(evidence)
+    non_blocking_issues = (claim_note,) if claim_note else ()
+    summary = "Semantic review was skipped because the deterministic gate failed."
+    if evidence.check_execution_status != "completed":
+        summary = (
+            "Semantic review was skipped because the deterministic gate failed; "
+            "deterministic checks were not executed."
+        )
     return ReviewResult(
         verdict=ReviewVerdict.FAIL,
-        summary="Semantic review was skipped because the deterministic gate failed.",
+        summary=summary,
         criteria=(
             CriterionAssessment(
                 criterion="Deterministic preconditions",
                 passed=False,
                 evidence="Required checks and policy must pass before semantic review.",
-                concerns=tuple(blockers),
+                concerns=tuple((*blockers, *non_blocking_issues)),
             ),
         ),
         blocking_issues=tuple(blockers),
+        non_blocking_issues=non_blocking_issues,
         confidence=1.0,
     )
 
@@ -227,6 +256,16 @@ def _record_terminal_failure(
         status=result.status.value,
         attempt_count=len(result.attempts),
         evidence_id=record["evidence_id"],
+    )
+
+
+def _with_agent_reported_verification(
+    evidence: DeterministicEvidence,
+    report: WorkReport,
+) -> DeterministicEvidence:
+    return replace(
+        evidence,
+        agent_reported_verification_commands=tuple(report.verification_commands_run),
     )
 
 
@@ -360,7 +399,15 @@ class TaskHarness:
                         patch_before_checks=patch_before_checks,
                     )
                 else:
-                    evidence = pre_evidence
+                    evidence = replace(
+                        pre_evidence,
+                        check_execution_status=CHECKS_SKIPPED_POLICY_FAILED,
+                        check_skip_reason=(
+                            "Policy gate failed before verification checks; no deterministic "
+                            "check records were produced."
+                        ),
+                    )
+                evidence = _with_agent_reported_verification(evidence, report)
                 store.event(
                     "deterministic_gate_finished",
                     task_id=task.id,
@@ -368,6 +415,11 @@ class TaskHarness:
                     passed=evidence.passed,
                     policy_passed=evidence.policy.passed,
                     required_checks_passed=evidence.required_checks_passed,
+                    check_execution_status=evidence.check_execution_status,
+                    check_skip_reason=evidence.check_skip_reason,
+                    agent_reported_verification_command_count=len(
+                        evidence.agent_reported_verification_commands
+                    ),
                 )
 
                 patch_record = store.write_artifact(
