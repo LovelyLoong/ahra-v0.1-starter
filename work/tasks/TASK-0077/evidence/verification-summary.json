@@ -1,0 +1,52 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0077",
+  "status": "ready_for_review",
+  "producer": "agent:codex",
+  "goal_execution": {
+    "goalExecutionId": "GEXEC-b4a41e0e3a22e6fb",
+    "goalStatus": "succeeded",
+    "complete": true,
+    "currentClaimCoverage": 1.0,
+    "defects": 0,
+    "kernelEvidenceRefs": [
+      "EVD-808a23cf72ea2ddc",
+      "EVD-e17537aeed441163"
+    ]
+  },
+  "commands": [
+    {
+      "command": "uv run python -B -m ahra.cli goal validate examples/goals/dogfood-a-alignment-session.yaml",
+      "status": "passed",
+      "summary": "dogfood-a-004 validates; declaredCapabilityCount=2 including process.exec."
+    },
+    {
+      "command": "uv run python -B -m unittest tests.test_alignment_session -v",
+      "status": "passed",
+      "summary": "5 AlignmentSessionManager tests passed, including RequestDraftAdmission smoke."
+    },
+    {
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "summary": "Full lint and 303 tests passed; 1 Windows symlink skip."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "No whitespace errors."
+    }
+  ],
+  "evidence": [
+    "examples/goals/.ahra/artifacts/dogfood-a-003/goal-start-report.json",
+    "examples/goals/.ahra/artifacts/dogfood-a-003/kernel-evidence/EVD-808a23cf72ea2ddc.json",
+    "examples/goals/.ahra/artifacts/dogfood-a-003/kernel-evidence/EVD-e17537aeed441163.json",
+    "src/ahra/alignment_session.py",
+    "tests/test_alignment_session.py",
+    "examples/goals/dogfood-a-alignment-session.yaml"
+  ],
+  "notes": [
+    "GoalExecution succeeded through Workflow B development-bounded path before dogfood request hardening.",
+    "dogfood-a-004 avoids idempotency/store collision and requires process.exec validation on future runs.",
+    "The produced code is usable as first Workflow A checkpoint, not final ADR-0009 completion."
+  ]
+}

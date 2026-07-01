@@ -12,9 +12,9 @@ source_refs:
   - ./dynamic-agent-kernel.md
   - ../policies/agent-authority-boundaries.md
   - ../roadmaps/phase1-minimal-loop-intent-roadmap.md
-evidence_refs: []
+evidence_refs: [TASK-0077]
 confidence: draft
-last_verified_at: 2026-06-30T00:00:00Z
+last_verified_at: 2026-07-01T10:30:10Z
 review_after: 2026-09-30T00:00:00Z
 tags: [architecture, intent, alignment, workflow, phase1, agent-driven]
 ---
@@ -173,6 +173,12 @@ frozen RequestDraft passing the three exit gates and being consumable by B.
   Phase 1 tasks (TASK-0062..0065). The admission and freeze layer is largely
   correct and is retained. What changes is the **entry** (natural language, not a
   structured IntentDraft) and the **middle** (real Agents, not a template).
+- **Experimental `alignment_session` checkpoint** (`src/ahra/alignment_session.py`,
+  TASK-0077) is the first AgentDriver-backed Workflow A implementation slice.
+  It can drive dialogue, preserve immutable snapshots, reject profile/runtime
+  digest mismatches before Agent invocation, and emit an untrusted
+  `RequestDraft`. It remains non-default until Requirement/Acceptance Agent
+  outputs are explicit and fail-closed, and both ADR-0009 human gates are wired.
 - **The deterministic template `alignment_engine`** is reclassified as
   experimental and removed from default exposure. It survives only as a
   deterministic test stub and is not invoked unless explicitly requested.

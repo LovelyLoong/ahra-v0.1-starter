@@ -1,0 +1,25 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0077",
+  "context_id": "CTX-workflow-a-agent-driven-alignment",
+  "state": "completed",
+  "state_version": 4,
+  "attempt": 1,
+  "owner": null,
+  "lease": null,
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0077-0003",
+    "ART-TASK-0077-0004",
+    "ART-TASK-0077-0005",
+    "ART-TASK-0077-0006"
+  ],
+  "evidence_refs": [
+    "EVD-808a23cf72ea2ddc",
+    "EVD-e17537aeed441163",
+    "EVD-TASK-0077-0003"
+  ],
+  "updated_at": "2026-07-01T10:30:10.656714Z"
+}

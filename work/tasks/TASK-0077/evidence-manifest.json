@@ -1,0 +1,85 @@
+{
+  "evidence": [
+    {
+      "created_at": "2026-07-01T10:29:46.460060Z",
+      "created_by": "agent:codex",
+      "evidence_id": "EVD-TASK-0077-0001",
+      "kind": "workflow_a_dogfood_checkpoint",
+      "media_type": "text/markdown",
+      "name": "workflow-a-dogfood-checkpoint.md",
+      "refs": [
+        "ART-TASK-0077-0001"
+      ],
+      "sha256": "0e5bafcc01ea76fa59499990bcb4134f5fe0ff2c5a37d0a3385db507281addd6",
+      "task_id": "TASK-0077",
+      "uri": "local://evidence/workflow-a-dogfood-checkpoint.md"
+    },
+    {
+      "created_at": "2026-07-01T10:29:46.460060Z",
+      "created_by": "agent:codex",
+      "evidence_id": "EVD-TASK-0077-0002",
+      "kind": "local_verification_summary",
+      "media_type": "application/json",
+      "name": "verification-summary.json",
+      "refs": [
+        "ART-TASK-0077-0002",
+        "EVD-TASK-0077-0001"
+      ],
+      "sha256": "6ceac895c50e46b05e9468add8b9a29ed8c006fa58111c26125c2dbe663c7773",
+      "task_id": "TASK-0077",
+      "uri": "local://evidence/verification-summary.json"
+    },
+    {
+      "created_at": "2026-07-01T10:30:10.616202Z",
+      "created_by": "agent:codex",
+      "evidence_id": "EVD-808a23cf72ea2ddc",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-808a23cf72ea2ddc.json",
+      "refs": [
+        "ART-TASK-0077-0003",
+        "GATERUN-808a23cf72ea2ddc",
+        "GEXEC-b4a41e0e3a22e6fb"
+      ],
+      "sha256": "81a59145e54ddeeebce8de417a19de3df12001716ebd6a23e4c8109a51f0969b",
+      "task_id": "TASK-0077",
+      "uri": "local://evidence/kernel-evidence/EVD-808a23cf72ea2ddc.json"
+    },
+    {
+      "created_at": "2026-07-01T10:30:10.624470Z",
+      "created_by": "agent:codex",
+      "evidence_id": "EVD-e17537aeed441163",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-e17537aeed441163.json",
+      "refs": [
+        "ART-TASK-0077-0004",
+        "GATERUN-e17537aeed441163",
+        "GEXEC-b4a41e0e3a22e6fb"
+      ],
+      "sha256": "5361d0508a0ef961ec08e265620e8acc5a8fd87e4dfb3f34847c5e8242fd2bad",
+      "task_id": "TASK-0077",
+      "uri": "local://evidence/kernel-evidence/EVD-e17537aeed441163.json"
+    },
+    {
+      "evidence_id": "EVD-TASK-0077-0003",
+      "task_id": "TASK-0077",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-4.json",
+      "uri": "local://evidence/evidence-gate-report-4.json",
+      "sha256": "502013e2bee2f7e02ba50550d4543b44a8cad0e365a842eefeb98ae7b371f543",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T10:30:10.656714Z",
+      "refs": [
+        "ART-TASK-0077-0006",
+        "EVD-808a23cf72ea2ddc",
+        "EVD-TASK-0077-0001",
+        "EVD-TASK-0077-0002",
+        "EVD-e17537aeed441163"
+      ]
+    }
+  ],
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0077"
+}

@@ -1,0 +1,145 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0077-0001",
+      "created_at": "2026-07-01T10:29:46.460060Z",
+      "created_by": "agent:codex",
+      "evidence_refs": [
+        "EVD-TASK-0077-0001"
+      ],
+      "input_refs": [
+        "examples/goals/.ahra/artifacts/dogfood-a-003/goal-start-report.json",
+        "src/ahra/alignment_session.py",
+        "tests/test_alignment_session.py"
+      ],
+      "kind": "workflow_a_dogfood_checkpoint",
+      "media_type": "text/markdown",
+      "name": "workflow-a-dogfood-checkpoint.md",
+      "sha256": "0e5bafcc01ea76fa59499990bcb4134f5fe0ff2c5a37d0a3385db507281addd6",
+      "supersedes": null,
+      "task_id": "TASK-0077",
+      "uri": "local://evidence/workflow-a-dogfood-checkpoint.md"
+    },
+    {
+      "artifact_id": "ART-TASK-0077-0002",
+      "created_at": "2026-07-01T10:29:46.460060Z",
+      "created_by": "agent:codex",
+      "evidence_refs": [
+        "EVD-TASK-0077-0002"
+      ],
+      "input_refs": [
+        "TASK-0077",
+        "GEXEC-b4a41e0e3a22e6fb"
+      ],
+      "kind": "verification_summary",
+      "media_type": "application/json",
+      "name": "verification-summary.json",
+      "sha256": "6ceac895c50e46b05e9468add8b9a29ed8c006fa58111c26125c2dbe663c7773",
+      "supersedes": null,
+      "task_id": "TASK-0077",
+      "uri": "local://evidence/verification-summary.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0077-HANDOFF-0001",
+      "created_at": "2026-07-01T10:29:46.460060Z",
+      "created_by": "agent:codex",
+      "evidence_refs": [
+        "EVD-TASK-0077-0001",
+        "EVD-TASK-0077-0002"
+      ],
+      "input_refs": [
+        "TASK-0077",
+        "evidence/workflow-a-dogfood-checkpoint.md",
+        "evidence/verification-summary.json"
+      ],
+      "kind": "handoff",
+      "media_type": "text/markdown",
+      "name": "HANDOFF-0001.md",
+      "sha256": "8f262b841eb34f42d4db475ad43fd8432368689b8e664c3cdeb934ea9942f7f5",
+      "supersedes": null,
+      "task_id": "TASK-0077",
+      "uri": "local://handoffs/HANDOFF-0001.md"
+    },
+    {
+      "artifact_id": "ART-TASK-0077-0003",
+      "created_at": "2026-07-01T10:30:10.616202Z",
+      "created_by": "agent:codex",
+      "evidence_refs": [
+        "EVD-808a23cf72ea2ddc"
+      ],
+      "input_refs": [
+        "examples\\goals\\.ahra\\goal-control-dogfood-003.sqlite3",
+        "examples\\goals\\.ahra\\artifacts\\dogfood-a-003",
+        "GEXEC-b4a41e0e3a22e6fb"
+      ],
+      "kind": "kernel_gate_run_v2",
+      "media_type": "application/json",
+      "name": "GATERUN-808a23cf72ea2ddc.json",
+      "sha256": "db0870edf4541281d95c56958bb13aceb2204a3e542f53da6f4464a564e62952",
+      "supersedes": null,
+      "task_id": "TASK-0077",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-808a23cf72ea2ddc.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0077-0004",
+      "created_at": "2026-07-01T10:30:10.624470Z",
+      "created_by": "agent:codex",
+      "evidence_refs": [
+        "EVD-e17537aeed441163"
+      ],
+      "input_refs": [
+        "examples\\goals\\.ahra\\goal-control-dogfood-003.sqlite3",
+        "examples\\goals\\.ahra\\artifacts\\dogfood-a-003",
+        "GEXEC-b4a41e0e3a22e6fb"
+      ],
+      "kind": "kernel_gate_run_v2",
+      "media_type": "application/json",
+      "name": "GATERUN-e17537aeed441163.json",
+      "sha256": "3791add60358507e0901bf647d5b3f353cff3400ca866df1effc075f6e67b15e",
+      "supersedes": null,
+      "task_id": "TASK-0077",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-e17537aeed441163.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0077-0005",
+      "created_at": "2026-07-01T10:30:10.624470Z",
+      "created_by": "agent:codex",
+      "evidence_refs": [],
+      "input_refs": [
+        "examples\\goals\\.ahra\\goal-control-dogfood-003.sqlite3",
+        "examples\\goals\\.ahra\\artifacts\\dogfood-a-003",
+        "GEXEC-b4a41e0e3a22e6fb"
+      ],
+      "kind": "goal_awkp_association",
+      "media_type": "application/json",
+      "name": "goal-awkp-association-GEXEC-b4a41e0e3a22e6fb.json",
+      "sha256": "bfb84ee853a39f68b6213e9155db664337db51b9bdd9e54b27fb9cbb33b608ff",
+      "supersedes": null,
+      "task_id": "TASK-0077",
+      "uri": "local://evidence/goal-awkp-association-GEXEC-b4a41e0e3a22e6fb.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0077-0006",
+      "task_id": "TASK-0077",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-4.json",
+      "uri": "local://evidence/evidence-gate-report-4.json",
+      "sha256": "502013e2bee2f7e02ba50550d4543b44a8cad0e365a842eefeb98ae7b371f543",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T10:30:10.656714Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0077-0003"
+      ],
+      "supersedes": null
+    }
+  ],
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0077"
+}

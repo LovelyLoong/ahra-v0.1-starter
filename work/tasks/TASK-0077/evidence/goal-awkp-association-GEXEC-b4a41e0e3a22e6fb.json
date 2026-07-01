@@ -1,0 +1,17 @@
+{
+  "artifactDir": "examples\\goals\\.ahra\\artifacts\\dogfood-a-003",
+  "dbPath": "examples\\goals\\.ahra\\goal-control-dogfood-003.sqlite3",
+  "goalExecutionId": "GEXEC-b4a41e0e3a22e6fb",
+  "goalStatus": "succeeded",
+  "idempotencyKeyPrefix": "TASK-0077:goal-awkp-bridge",
+  "kernelEvidenceRefs": [
+    "EVD-808a23cf72ea2ddc",
+    "EVD-e17537aeed441163"
+  ],
+  "kernelGateRunRefs": [
+    "GATERUN-808a23cf72ea2ddc",
+    "GATERUN-e17537aeed441163"
+  ],
+  "schema_version": "ahra/goal-awkp-association/0.1",
+  "taskId": "TASK-0077"
+}

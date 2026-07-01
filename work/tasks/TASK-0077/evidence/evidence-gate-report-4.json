@@ -1,0 +1,62 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0077",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-01T10:30:10.656714Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verification input for TASK-0077: GoalExecution succeeded, producer evidence is manifest-backed, local verification passed, and dogfood request was hardened for command validation.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "GoalExecution GEXEC-b4a41e0e3a22e6fb is associated with this task through GoalAwkpBridge and manifest-backed kernel EvidenceV2/GateRun records.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-808a23cf72ea2ddc",
+        "EVD-e17537aeed441163",
+        "EVD-TASK-0077-0001"
+      ],
+      "notes": "GoalExecution succeeded and bridge materializes kernel EvidenceV2/GateRun records."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "src/ahra/alignment_session.py and tests/test_alignment_session.py are present, importable, and verified by tests.test_alignment_session.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0077-0001",
+        "EVD-TASK-0077-0002"
+      ],
+      "notes": "Generated source and test files are present, importable, and covered by tests.test_alignment_session."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The generated AlignmentSessionManager emits an untrusted RequestDraft that passes RequestDraftAdmission in deterministic tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0077-0002"
+      ],
+      "notes": "RequestDraftAdmission smoke is included in tests.test_alignment_session and passed."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "examples/goals/dogfood-a-alignment-session.yaml is advanced to a fresh dogfood-a-004 idempotency/artifact/store target and requires process.exec validation for future runs.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0077-0001",
+        "EVD-TASK-0077-0002"
+      ],
+      "notes": "dogfood-a-004 has fresh idempotency/artifact/store targets and declares process.exec validation."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "uv run python -B scripts/check.py passes after the checkpoint and workflow hardening changes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0077-0002"
+      ],
+      "notes": "uv run python -B scripts/check.py passed with 303 tests OK and 1 Windows symlink skip."
+    }
+  ],
+  "commands": []
+}

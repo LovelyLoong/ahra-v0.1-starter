@@ -3,14 +3,14 @@ kind: GoalExecutionRequest
 metadata:
   name: real-alignment-session-manager
   requestId: GREQ-DOGFOOD-A-001
-  idempotencyKey: dogfood:workflow-a:alignment-session-manager:3
+  idempotencyKey: dogfood:workflow-a:alignment-session-manager:4
 spec:
   profileRef: profile/development-bounded
   workspaceRef: ../..
-  artifactDir: .ahra/artifacts/dogfood-a-003
+  artifactDir: .ahra/artifacts/dogfood-a-004
   store:
     kind: sqlite
-    path: .ahra/goal-control-dogfood-003.sqlite3
+    path: .ahra/goal-control-dogfood-004.sqlite3
   planner:
     adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
   executor:
@@ -74,6 +74,8 @@ spec:
             Also create tests/test_alignment_session.py with deterministic fake-AgentDriver
             fixtures asserting: agent-driven dialogue is actually invoked; unknown digest is
             rejected; resume-from-snapshot works; output is an untrusted RequestDraft.
+            Run uv run python -B scripts/check.py --test and record it in
+            WorkReport.verification_commands_run.
           claimRefs:
             - CLM-ALIGNMENT-SESSION
           dependsOn: []
@@ -90,6 +92,9 @@ spec:
               resources:
                 - src/ahra/alignment_session.py
                 - tests/test_alignment_session.py
+            - capability: process.exec
+              resources:
+                - uv run python -B scripts/check.py --test
           gateRefs:
             - GATE-alignment-session
           runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee

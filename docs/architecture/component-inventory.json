@@ -1115,6 +1115,9 @@
       "side_effects": "none; produces an in-memory RequestDraft from a structured IntentDraft",
       "artifact_evidence": "none at runtime",
       "x-status-note": "Deprecated by ADR-0009. This is a deterministic template stub, NOT the agent-driven alignment workflow. It does not read dialogue content and fabricates a fixed two-node plan. Superseded design owner: docs/architecture/intent-alignment-workflow.md. Retain as a deterministic test fixture only; do not extend or place on the default path. The real three-Agent alignment workflow is a future task."
-    }
+ },
+
+{"id":"component:alignment-session-manager","kind":"experimental_module","lifecycle_class":"experimental","default_visible":false,"owner":"human:maintainer","review_after":"2026-09-30T00:00:00Z","paths":["src/ahra/alignment_session.py","tests/test_alignment_session.py"],"serves":["Workflow A alignment session","RequestDraft"],"entrypoints":["direct Python import only; not on any default CLI or workflow-sequence path"],"consumers":["tests/test_alignment_session.py","examples/goals/dogfood-a-alignment-session.yaml"],"tests":["tests/test_alignment_session.py","uv run python -B scripts/check.py"],"security_class":"agent-driven request drafting through AgentDriver port; no direct provider SDK import","side_effects":"calls injected AgentDriver; produces in-memory session snapshots and an untrusted RequestDraft; no freeze authority","artifact_evidence":"TASK-0077, EVD-808a23cf72ea2ddc, EVD-e17537aeed441163, EVD-TASK-0077-0003","compatibility_scope":"First Workflow A checkpoint only; non-default until ADR-0009 human gates and independent Requirement/Acceptance outputs are fail-closed.","x-status-note":"Produced by Workflow B development-bounded dogfood run GEXEC-b4a41e0e3a22e6fb. Retains deterministic alignment_engine fallback helpers for missing PlanDraft or ClaimGraph; do not treat as final Workflow A."}
+
   ]
 }
