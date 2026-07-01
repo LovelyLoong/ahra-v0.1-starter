@@ -1,0 +1,70 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0076",
+  "verifier": "agent:independent-verifier",
+  "decision": "approve",
+  "summary": "Independent verification found TASK-0076 acceptance criteria satisfied after producer repaired the manifest-backed evidence package and cleared stale blockers. Verifier checked manifests and SHA256s, inspected implementation/test coverage, reran the focused invariant suite, reran full scripts/check.py, and verified git diff whitespace.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0076-0002", "EVD-TASK-0076-0003"],
+      "notes": "Verified HostileAgentDriver implements the existing AgentDriver port, exports immutable refs, can be registered in AgentDriverRegistry, and remains off the default development-bounded path."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0076-0002", "EVD-TASK-0076-0003"],
+      "notes": "Verified D1 destructive git replay test preserves the main workspace dirty sentinel and materializes only the allowed artifact from the isolated worktree."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0076-0002", "EVD-TASK-0076-0003"],
+      "notes": "Verified D2 out-of-allowlist write replay test fails closed and does not propagate the blacklisted path into the governed workspace."
+    },
+    {
+      "criterion_index": 4,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0076-0002", "EVD-TASK-0076-0003"],
+      "notes": "Verified D3 non-GBK subprocess regression through LocalRuntimeProvider; no UnicodeDecodeError is raised."
+    },
+    {
+      "criterion_index": 5,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0076-0002", "EVD-TASK-0076-0003"],
+      "notes": "Verified D4 maxAttempts=1 regression executes exactly one failing HostileAgentDriver invocation."
+    },
+    {
+      "criterion_index": 6,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0076-0002", "EVD-TASK-0076-0003"],
+      "notes": "Verified D5 None gate-selection regression treats None selections as empty and does not raise TypeError."
+    },
+    {
+      "criterion_index": 7,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0076-0002", "EVD-TASK-0076-0003"],
+      "notes": "Verified deterministic HostileAgentDriver end-to-end paths run without model cost in the focused suite and are included in scripts/check.py."
+    },
+    {
+      "criterion_index": 8,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0076-0002", "EVD-TASK-0076-0003"],
+      "notes": "Verified HostileAgentDriver is opt-in only and existing M1/development-bounded regressions still pass."
+    },
+    {
+      "criterion_index": 9,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0076-0003"],
+      "notes": "Verifier reran uv run python -B scripts/check.py successfully: 299 tests OK, 1 Windows symlink skip. git diff --check also passed."
+    },
+    {
+      "criterion_index": 10,
+      "status": "passed",
+      "evidence_refs": ["EVD-TASK-0076-0003"],
+      "notes": "Verified task is review@8, owner and lease are null, blockers are cleared, and producer did not mark completed."
+    }
+  ],
+  "commands": []
+}

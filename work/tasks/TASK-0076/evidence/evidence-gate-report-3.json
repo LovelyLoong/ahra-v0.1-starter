@@ -1,0 +1,83 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0076",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-01T08:54:39.137378Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Independent EvidenceGate review cannot approve TASK-0076 because artifact-manifest.json and evidence-manifest.json are empty. Producer evidence files exist on disk, but no manifest-backed evidence IDs are available to map the 10 acceptance criteria.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "HostileAgentDriver implements the AgentDriver protocol (async run(AgentRunRequest)->AgentRunResult) and is registered in AgentDriverRegistry under an immutable-version ref; not on the default path.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No manifest-backed evidence ID is available. artifact-manifest.json has zero artifacts and evidence-manifest.json has zero evidence records."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Scenario D1 (destructive git: git reset --hard + git clean -fd) replayable; regression asserts main repo tree and a seeded uncommitted file unchanged - re-proves TASK-0074 isolation for free.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No manifest-backed evidence ID is available for D1 destructive git isolation coverage."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Scenario D2 (out-of-allowlist write) replayable; regression asserts blacklisted path not propagated back into governed workspace.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No manifest-backed evidence ID is available for D2 out-of-allowlist write coverage."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Scenario D3 (non-GBK stderr) replayable through subprocess path; regression asserts no UnicodeDecodeError.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No manifest-backed evidence ID is available for D3 non-GBK subprocess coverage."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Scenario D4 (retry past maxAttempts=1) replayable; regression asserts node executes exactly one attempt on failure, no second attempt.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No manifest-backed evidence ID is available for D4 maxAttempts coverage."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Scenario D5 (None gate-selection at wall) replayable; regression asserts verification/gate path treats it as empty selection and does not raise NoneType has no len().",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No manifest-backed evidence ID is available for D5 None gate-selection coverage."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Deterministic end-to-end run using HostileAgentDriver (no model cost) completes within free-invariant envelope and runs under scripts/check.py.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No manifest-backed evidence ID is available for HostileAgentDriver end-to-end free-invariant coverage."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "M1 deterministic path and real development-bounded path unaffected; HostileAgentDriver is opt-in only.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No manifest-backed evidence ID is available for opt-in-only and no-regression coverage."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "python scripts/check.py (lint + full tests) passes, or blockers recorded with exact command output.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No manifest-backed evidence ID is available for scripts/check.py and git diff verification output."
+    },
+    {
+      "criterion_index": 10,
+      "criterion": "Producer moves TASK-0076 only to review; EvidenceGate decides completion.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "Task is in review@2 with lease released, but completion cannot be approved until the evidence package is manifest-backed."
+    }
+  ],
+  "commands": []
+}

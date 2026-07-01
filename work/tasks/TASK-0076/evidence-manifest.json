@@ -1,0 +1,81 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0076",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0076-0001",
+      "task_id": "TASK-0076",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "b5e4df941cc0a788c1d9245d0ddd3d033d6d4847e20c67f309bce29dfac91b62",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T08:54:39.137378Z",
+      "refs": [
+        "ART-TASK-0076-0001"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0076-0002",
+      "task_id": "TASK-0076",
+      "kind": "hostile_agent_driver_report",
+      "name": "hostile-agent-driver-report.md",
+      "uri": "local://evidence/hostile-agent-driver-report.md",
+      "sha256": "1229fbee273a0b59797766d5dfa3e2bca54e0d16c6aff89545db850c1fedb398",
+      "media_type": "text/markdown",
+      "created_by": "agent:claude-code",
+      "created_at": "2026-07-01T09:05:00Z",
+      "refs": [
+        "ART-TASK-0076-0002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0076-0003",
+      "task_id": "TASK-0076",
+      "kind": "local_verification_summary",
+      "name": "verification-summary.json",
+      "uri": "local://evidence/verification-summary.json",
+      "sha256": "9c22a33fd370464807cce4bf5760c6c38068ee54cedb7290cb38224906974f86",
+      "media_type": "application/json",
+      "created_by": "agent:claude-code",
+      "created_at": "2026-07-01T09:05:00Z",
+      "refs": [
+        "ART-TASK-0076-0003",
+        "EVD-TASK-0076-0002"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0076-0004",
+      "task_id": "TASK-0076",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-6.json",
+      "uri": "local://evidence/evidence-gate-report-6.json",
+      "sha256": "39d7aa6d521dc10638b6449aa95ed6984798fd4d280545d58fe60abc1980dacf",
+      "media_type": "application/json",
+      "created_by": "agent:codex",
+      "created_at": "2026-07-01T09:27:03.659402Z",
+      "refs": [
+        "ART-TASK-0076-0004",
+        "EVD-TASK-0076-0002",
+        "EVD-TASK-0076-0003"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0076-0005",
+      "task_id": "TASK-0076",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-9.json",
+      "uri": "local://evidence/evidence-gate-report-9.json",
+      "sha256": "50d1025b1b1f03d588228c51dab67f4da6da83cc01caa14bdc38d2a1741f8efa",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-01T09:37:12.188364Z",
+      "refs": [
+        "ART-TASK-0076-0005",
+        "EVD-TASK-0076-0002",
+        "EVD-TASK-0076-0003"
+      ]
+    }
+  ]
+}

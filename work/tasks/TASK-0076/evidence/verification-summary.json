@@ -1,0 +1,39 @@
+{
+  "schema_version": "ahra/verification-summary/0.1",
+  "task_id": "TASK-0076",
+  "status": "ready_for_review",
+  "producer": "agent:claude-code",
+  "commands": [
+    {
+      "command": ".venv/Scripts/python.exe -B -m unittest tests.test_hostile_agent_driver tests.test_development_worktree_isolation tests.test_verification tests.test_plan_execution tests.test_node_executor",
+      "status": "passed",
+      "summary": "69 tests passed."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -B -m unittest tests.test_hostile_agent_driver -v",
+      "status": "passed",
+      "summary": "8 HostileAgentDriver suite tests passed (D1, D2, D3, D4, D5, contract, registration, opt-in)."
+    },
+    {
+      "command": ".venv/Scripts/python.exe -B scripts/check.py",
+      "status": "passed",
+      "summary": "Full lint + 299 tests passed; 1 skipped."
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "summary": "Exit code 0."
+    }
+  ],
+  "evidence": [
+    "src/ahra/adapters/hostile_driver.py",
+    "src/ahra/adapters/__init__.py",
+    "tests/test_hostile_agent_driver.py"
+  ],
+  "notes": [
+    "HostileAgentDriver is a reference/test AgentDriver adapter; it reuses the existing AgentDriver port and is opt-in only (not the default development executor).",
+    "D1/D2 re-prove TASK-0074 isolation and TASK-0071 write allowlist via the real GoalOperationService path; D3/D5 re-prove TASK-0075 P4/P2 at the framework layer; D4 re-proves TASK-0075 P3 maxAttempts at the TaskHarness layer.",
+    "M1 deterministic path and real development-bounded path are unaffected by the existing suite and scripts/check.py.",
+    "Producer did not mark TASK-0076 completed."
+  ]
+}

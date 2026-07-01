@@ -1,0 +1,18 @@
+{
+  "task_id": "TASK-0076",
+  "verifier": "agent:independent-verifier",
+  "decision": "approve",
+  "summary": "All acceptance criteria are manifest-backed and passed.",
+  "criteria": [
+    {"index": 1, "status": "pass", "evidence_refs": ["EVD-TASK-0076-0002"], "notes": "HostileAgentDriver implements AgentDriver and registers under immutable ref."},
+    {"index": 2, "status": "pass", "evidence_refs": ["EVD-TASK-0076-0002"], "notes": "D1 destructive git isolation regression present."},
+    {"index": 3, "status": "pass", "evidence_refs": ["EVD-TASK-0076-0002"], "notes": "D2 out-of-allowlist write regression present."},
+    {"index": 4, "status": "pass", "evidence_refs": ["EVD-TASK-0076-0002"], "notes": "D3 non-GBK subprocess regression present."},
+    {"index": 5, "status": "pass", "evidence_refs": ["EVD-TASK-0076-0002"], "notes": "D4 maxAttempts regression present."},
+    {"index": 6, "status": "pass", "evidence_refs": ["EVD-TASK-0076-0002"], "notes": "D5 None gate-selection regression present."},
+    {"index": 7, "status": "pass", "evidence_refs": ["EVD-TASK-0076-0002", "EVD-TASK-0076-0003"], "notes": "Free end-to-end invariant envelope under scripts/check.py."},
+    {"index": 8, "status": "pass", "evidence_refs": ["EVD-TASK-0076-0002"], "notes": "Opt-in only; no regression to default/M1/development paths."},
+    {"index": 9, "status": "pass", "evidence_refs": ["EVD-TASK-0076-0003"], "notes": "scripts/check.py and git diff --check pass."},
+    {"index": 10, "status": "pass", "evidence_refs": ["EVD-TASK-0076-0002", "EVD-TASK-0076-0003"], "notes": "Evidence package is manifest-backed."}
+  ]
+}

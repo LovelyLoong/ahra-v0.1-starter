@@ -1,0 +1,105 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0076",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:codex",
+  "generated_at": "2026-07-01T09:27:03.659402Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "TASK-0076 review package still records stale blockers in state.json; producer must re-request review through AwkpTaskStateWriter clear_blockers after manifest-backed evidence registration.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "HostileAgentDriver implements the AgentDriver protocol (async run(AgentRunRequest)->AgentRunResult) and is registered in AgentDriverRegistry under an immutable-version ref; not on the default path.",
+      "status": "pass",
+      "evidence_refs": [
+        "EVD-TASK-0076-0002"
+      ],
+      "notes": "HostileAgentDriver adapter evidence is manifest-backed."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Scenario D1 (destructive git: git reset --hard + git clean -fd) replayable; regression asserts main repo tree and a seeded uncommitted file unchanged - re-proves TASK-0074 isolation for free.",
+      "status": "pass",
+      "evidence_refs": [
+        "EVD-TASK-0076-0002"
+      ],
+      "notes": "D1 destructive git coverage is manifest-backed."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Scenario D2 (out-of-allowlist write) replayable; regression asserts blacklisted path not propagated back into governed workspace.",
+      "status": "pass",
+      "evidence_refs": [
+        "EVD-TASK-0076-0002"
+      ],
+      "notes": "D2 out-of-allowlist write coverage is manifest-backed."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "Scenario D3 (non-GBK stderr) replayable through subprocess path; regression asserts no UnicodeDecodeError.",
+      "status": "pass",
+      "evidence_refs": [
+        "EVD-TASK-0076-0002"
+      ],
+      "notes": "D3 non-GBK subprocess coverage is manifest-backed."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "Scenario D4 (retry past maxAttempts=1) replayable; regression asserts node executes exactly one attempt on failure, no second attempt.",
+      "status": "pass",
+      "evidence_refs": [
+        "EVD-TASK-0076-0002"
+      ],
+      "notes": "D4 maxAttempts coverage is manifest-backed."
+    },
+    {
+      "criterion_index": 6,
+      "criterion": "Scenario D5 (None gate-selection at wall) replayable; regression asserts verification/gate path treats it as empty selection and does not raise NoneType has no len().",
+      "status": "pass",
+      "evidence_refs": [
+        "EVD-TASK-0076-0002"
+      ],
+      "notes": "D5 None gate-selection coverage is manifest-backed."
+    },
+    {
+      "criterion_index": 7,
+      "criterion": "Deterministic end-to-end run using HostileAgentDriver (no model cost) completes within free-invariant envelope and runs under scripts/check.py.",
+      "status": "pass",
+      "evidence_refs": [
+        "EVD-TASK-0076-0002",
+        "EVD-TASK-0076-0003"
+      ],
+      "notes": "Free invariant envelope verification is manifest-backed."
+    },
+    {
+      "criterion_index": 8,
+      "criterion": "M1 deterministic path and real development-bounded path unaffected; HostileAgentDriver is opt-in only.",
+      "status": "pass",
+      "evidence_refs": [
+        "EVD-TASK-0076-0002"
+      ],
+      "notes": "Opt-in-only evidence is manifest-backed."
+    },
+    {
+      "criterion_index": 9,
+      "criterion": "python scripts/check.py (lint + full tests) passes, or blockers recorded with exact command output.",
+      "status": "pass",
+      "evidence_refs": [
+        "EVD-TASK-0076-0003"
+      ],
+      "notes": "Verification command evidence is manifest-backed."
+    },
+    {
+      "criterion_index": 10,
+      "criterion": "Producer moves TASK-0076 only to review; EvidenceGate decides completion.",
+      "status": "fail",
+      "evidence_refs": [
+        "EVD-TASK-0076-0002",
+        "EVD-TASK-0076-0003"
+      ],
+      "notes": "state.json still records stale changes_requested blockers, so EvidenceGate approval fails until producer re-requests review with blockers cleared."
+    }
+  ],
+  "commands": []
+}

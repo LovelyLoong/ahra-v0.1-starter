@@ -1,0 +1,31 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0076",
+  "context_id": "CTX-workflow-b-reliability",
+  "state": "completed",
+  "state_version": 9,
+  "attempt": 3,
+  "owner": null,
+  "lease": null,
+  "next_action": "Completed by EvidenceGate verifier approval.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0076-0001",
+    "ART-TASK-0076-0002",
+    "ART-TASK-0076-0003",
+    "ART-TASK-0076-HANDOFF-0001",
+    "ART-TASK-0076-0004",
+    "ART-TASK-0076-0005"
+  ],
+  "evidence_refs": [
+    "evidence/hostile-agent-driver-report.md",
+    "evidence/verification-summary.json",
+    "EVD-TASK-0076-0001",
+    "EVD-TASK-0076-0002",
+    "EVD-TASK-0076-0003",
+    "EVD-TASK-0076-0004",
+    "EVD-TASK-0076-0005"
+  ],
+  "updated_at": "2026-07-01T09:37:12.188364Z"
+}
