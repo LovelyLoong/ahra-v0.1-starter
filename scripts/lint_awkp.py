@@ -35,6 +35,15 @@ def is_proposed_task_draft(path: Path) -> bool:
     return rel.suffix == ".md"
 
 
+def is_task_run_artifact(path: Path) -> bool:
+    try:
+        rel = path.relative_to(ROOT)
+    except ValueError:
+        return False
+    parts = rel.parts
+    return len(parts) >= 4 and parts[0] == "work" and parts[1] == "tasks" and parts[3] == "runs"
+
+
 def err(path: Path, message: str) -> None:
     ERRORS.append(f"{path.relative_to(ROOT)}: {message}")
 
@@ -111,6 +120,8 @@ def lint_docs() -> None:
     now = datetime.now(timezone.utc)
     for base in [ROOT / "docs", ROOT / "work"]:
         for path in base.rglob("*.md"):
+            if is_task_run_artifact(path):
+                continue
             if path.name == "README.md":
                 continue
             if is_proposed_task_draft(path):
@@ -248,6 +259,8 @@ def lint_tasks() -> None:
 def lint_relative_links() -> None:
     pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
     for path in ROOT.rglob("*.md"):
+        if is_task_run_artifact(path):
+            continue
         text = path.read_text(encoding="utf-8")
         for target in pattern.findall(text):
             if target.startswith(("http://", "https://", "mailto:", "#")):

@@ -17,14 +17,11 @@ def enforce_task_review_contract(task: TaskSpec, review: ReviewResult) -> Review
 
     violations: list[str] = []
     missing = sorted(expected - set(assessed))
-    unknown = sorted(set(assessed) - expected)
     duplicates = sorted(item for item, count in counts.items() if count > 1)
     failed = sorted(expected - passed)
 
     if missing:
         violations.append(f"Reviewer omitted acceptance criteria: {missing}")
-    if unknown:
-        violations.append(f"Reviewer assessed unknown criteria: {unknown}")
     if duplicates:
         violations.append(f"Reviewer duplicated criteria: {duplicates}")
     if failed:

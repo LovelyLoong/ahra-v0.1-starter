@@ -489,6 +489,42 @@ class CliTests(unittest.TestCase):
             self.assertEqual(errors, [])
             self.assertEqual(warnings, [])
 
+    def test_awkp_lint_ignores_task_run_artifact_worktrees(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            AwkpTaskCreator().create(
+                AwkpTaskCreateRequest(
+                    task_id="TASK-CLI",
+                    title="Generated task",
+                    description="Create governed task skeleton.",
+                    context_id="CTX-cli-test",
+                    acceptance_criteria=("Skeleton required task files.",),
+                    work_root=root / "work",
+                    output_contract_kinds=("verification_summary",),
+                    actor="agent:cli-test",
+                )
+            )
+            run_doc = (
+                root
+                / "work"
+                / "tasks"
+                / "TASK-CLI"
+                / "runs"
+                / "loop-001"
+                / "artifacts"
+                / "development-worktrees"
+                / "GEXEC-test"
+                / "development-bounded-test"
+                / "docs"
+                / "missing-frontmatter.md"
+            )
+            run_doc.parent.mkdir(parents=True)
+            run_doc.write_text("# Generated worktree copy\n", encoding="utf-8")
+
+            errors, warnings = _lint_generated_awkp_root(root)
+            self.assertEqual(errors, [])
+            self.assertEqual(warnings, [])
+
     def test_task_claim_uses_governed_writer(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

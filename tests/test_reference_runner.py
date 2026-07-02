@@ -758,6 +758,35 @@ class ReferencePolicyAndReviewTests(unittest.TestCase):
         self.assertEqual(enforced.verdict, ReviewVerdict.FAIL)
         self.assertTrue(any("omitted" in item for item in enforced.blocking_issues))
 
+    def test_reviewer_pass_may_include_supplemental_passed_criteria(self) -> None:
+        task = TaskSpec(
+            id="review-contract",
+            title="Review contract",
+            objective="Check criterion coverage",
+            acceptance_criteria=("criterion A",),
+        )
+        review = ReviewResult(
+            verdict=ReviewVerdict.PASS,
+            summary="Looks good.",
+            criteria=(
+                CriterionAssessment(
+                    criterion="criterion A",
+                    passed=True,
+                    evidence="Evidence A",
+                ),
+                CriterionAssessment(
+                    criterion="supplemental deterministic check",
+                    passed=True,
+                    evidence="Extra evidence.",
+                ),
+            ),
+            confidence=0.9,
+        )
+
+        enforced = enforce_task_review_contract(task, review)
+        self.assertEqual(enforced.verdict, ReviewVerdict.PASS)
+        self.assertEqual(enforced.blocking_issues, ())
+
 
 class StandardHarnessTests(unittest.TestCase):
     def test_task_harness_accepts_and_commits(self) -> None:
