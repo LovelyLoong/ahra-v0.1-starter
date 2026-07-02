@@ -1,0 +1,220 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0085",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0085-0001",
+      "task_id": "TASK-0085",
+      "kind": "code_change",
+      "name": "goal_operations.py",
+      "uri": "local://src/ahra/goal_operations.py",
+      "sha256": "5bfb38ad39c169934b1329827ffbcb6d991d70d41176c4314f182ff234bbf935",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "input_refs": [
+        "src/ahra/goal_operations.py",
+        "src/ahra/capabilities.py",
+        "work/tasks/TASK-0085/task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0002",
+        "EVD-TASK-0085-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0085-0002",
+      "task_id": "TASK-0085",
+      "kind": "code_change",
+      "name": "git_ops.py",
+      "uri": "local://src/ahra/reference_runner/git_ops.py",
+      "sha256": "2c71e4dc7454e06fc5266d0a3b6ed18933f9a929fc5bf62b788b16daadf3e4b2",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "input_refs": [
+        "src/ahra/reference_runner/git_ops.py",
+        "work/tasks/TASK-0085/task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0002",
+        "EVD-TASK-0085-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0085-0003",
+      "task_id": "TASK-0085",
+      "kind": "test_change",
+      "name": "test_task_0085_request_scoped_write.py",
+      "uri": "local://tests/test_task_0085_request_scoped_write.py",
+      "sha256": "c24f45d412888de7a023affee3c03c88806f4fe28b7b27088b7b8d7ae74e5ddf",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "input_refs": [
+        "src/ahra/goal_operations.py",
+        "src/ahra/reference_runner/git_ops.py",
+        "work/tasks/TASK-0085/task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0002",
+        "EVD-TASK-0085-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0085-0004",
+      "task_id": "TASK-0085",
+      "kind": "documentation",
+      "name": "development-program-overview.md",
+      "uri": "local://docs/roadmaps/development-program-overview.md",
+      "sha256": "ad36f763d48b3e19626e0044dc6a817c43a2cf3bf5a6f4dabb1ca2760e88ff34",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "input_refs": [
+        "docs/roadmaps/development-program-overview.md",
+        "work/tasks/TASK-0085/task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0001"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0085-0005",
+      "task_id": "TASK-0085",
+      "kind": "work_index",
+      "name": "work/index.md",
+      "uri": "local://work/index.md",
+      "sha256": "a300a8ad9da09732d691aabfbcd7d9bc77ffc19cb72a2c8864a478e757c3e515",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "input_refs": [
+        "work/tasks/TASK-0085/state.json",
+        "work/tasks/TASK-0085/task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0003"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0085-0006",
+      "task_id": "TASK-0085",
+      "kind": "goal_request",
+      "name": "task-0086-workflow-a-start-workspace.yaml",
+      "uri": "local://examples/goals/task-0086-workflow-a-start-workspace.yaml",
+      "sha256": "80239ed00e567e90f05a6d57fd718c7e17d4c0f1107107e562e1b67906569dad",
+      "media_type": "application/yaml",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "input_refs": [
+        "work/tasks/TASK-0085/task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0085-0007",
+      "task_id": "TASK-0085",
+      "kind": "goal_request",
+      "name": "task-0087-codex-alignment-outputs.yaml",
+      "uri": "local://examples/goals/task-0087-codex-alignment-outputs.yaml",
+      "sha256": "07f46bd720a74ff40eabe2f600d54c6ac9f2f97116f5be57ae892c4534b8ad77",
+      "media_type": "application/yaml",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "input_refs": [
+        "work/tasks/TASK-0085/task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0085-0008",
+      "task_id": "TASK-0085",
+      "kind": "goal_request",
+      "name": "task-0088-workflow-a-turn-timeout.yaml",
+      "uri": "local://examples/goals/task-0088-workflow-a-turn-timeout.yaml",
+      "sha256": "c2b76e82b3a9c7f564469ab1173b140343df8f7c2e694bc910e8dde32f20fa51",
+      "media_type": "application/yaml",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "input_refs": [
+        "work/tasks/TASK-0085/task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0085-0009",
+      "task_id": "TASK-0085",
+      "kind": "goal_request",
+      "name": "task-0089-entropy-archive.yaml",
+      "uri": "local://examples/goals/task-0089-entropy-archive.yaml",
+      "sha256": "28c55b78c652cd45291e1563d07d7d69a198ca43b4a376f330aa1762a11b7b35",
+      "media_type": "application/yaml",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "input_refs": [
+        "work/tasks/TASK-0085/task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0085-0010",
+      "task_id": "TASK-0085",
+      "kind": "implementation_summary",
+      "name": "IMPLEMENTATION-SUMMARY.md",
+      "uri": "local://work/tasks/TASK-0085/IMPLEMENTATION-SUMMARY.md",
+      "sha256": "e843499f94e61fccf44c55f2e308fbba3160c4294464edf4b7597ae3ea9bd7cb",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "input_refs": [
+        "work/tasks/TASK-0085/task.md"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0001",
+        "EVD-TASK-0085-0002",
+        "EVD-TASK-0085-0003",
+        "EVD-TASK-0085-0004"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0085-0011",
+      "task_id": "TASK-0085",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "f33d00dacb9db22714fb34b97bbd791a2011af21e92d8c44b23936d33cab11fa",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-02T06:48:46.143093Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0085-0005"
+      ],
+      "supersedes": null
+    }
+  ]
+}

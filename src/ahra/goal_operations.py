@@ -104,6 +104,11 @@ DEVELOPMENT_BOUNDED_WRITE_BLACKLIST = (
     "src/ahra/sqlite_control_store.py",
     "src/ahra/ports.py",
     "src/ahra/awkp_state_writer.py",
+    "scripts/**",
+    "pyproject.toml",
+    "uv.lock",
+    "Makefile",
+    ".github/**",
 )
 DEVELOPMENT_BOUNDED_PROCESS_COMMANDS = (
     "uv run python -B scripts/check.py",
@@ -975,10 +980,18 @@ class GoalOperationService:
 
         from .reference_runner.git_ops import IsolatedGitWorkspaceProvider
 
+        # For development-bounded profile, derive the effective filesystem.write allowlist from planDraft
+        # instead of using the fixed profile allowlist (TASK-0085 bootstrap)
+        request_scoped_write_allowlist: list[str] = []
+        for node in request.plan_draft.nodes:
+            for capability in node.capability_requests:
+                if capability.capability == "filesystem.write":
+                    request_scoped_write_allowlist.extend(capability.resources)
+
         return IsolatedGitWorkspaceProvider(
             source_provider=self.real_executor_workspace_provider,
             worktree_root=request.artifact_dir / "development-worktrees",
-            allowed_globs=profile.filesystem_write_allowlist,
+            allowed_globs=tuple(request_scoped_write_allowlist),
             denied_globs=profile.filesystem_write_blacklist,
         )
 
@@ -1715,6 +1728,15 @@ def _capability_admission_service(request: GoalExecutionRequest, profile: GoalOp
             allowed_actions[capability.capability] = _unique_refs((*allowed_actions[capability.capability], *capability.resources))
             if capability.capability == "spawn.agent":
                 max_spawn_limit = max(max_spawn_limit, node.budget.max_spawned_nodes)
+
+    # For development-bounded profile, derive the effective filesystem.write allowlist from planDraft
+    # instead of using the fixed profile allowlist (TASK-0085 bootstrap)
+    if request.profile_ref == DEVELOPMENT_BOUNDED_PROFILE_REF:
+        request_scoped_write_allowlist = allowed_actions.get("filesystem.write", ())
+        effective_write_allowlist = request_scoped_write_allowlist
+    else:
+        effective_write_allowlist = profile.filesystem_write_allowlist
+
     return CapabilityAdmissionService(
         goal_scope=CapabilityScope(
             allowed_actions=allowed_actions,
@@ -1724,7 +1746,7 @@ def _capability_admission_service(request: GoalExecutionRequest, profile: GoalOp
         runtime_profile=RuntimeCapabilityProfile(
             runtime_ref=request.runtime_ref,
             supported_actions=frozenset(request.allowed_capabilities),
-            allowed_write_paths=profile.filesystem_write_allowlist,
+            allowed_write_paths=effective_write_allowlist,
             denied_write_paths=profile.filesystem_write_blacklist,
             allowed_commands=profile.process_exec_allowlist or allowed_actions.get("process.exec", ()),
             allowed_network_egress=profile.runtime_network_egress,

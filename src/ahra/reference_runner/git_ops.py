@@ -151,6 +151,33 @@ def changed_files(repo: Path, checkpoint: str) -> tuple[str, ...]:
     return tuple(sorted({line.strip() for line in output.splitlines() if line.strip()}))
 
 
+def deleted_files(repo: Path, checkpoint: str) -> tuple[str, ...]:
+    """Get list of files that were deleted (present in checkpoint but not in current state)."""
+    # List files in the checkpoint tree
+    try:
+        checkout_files_output = run_git(repo, "ls-tree", "-r", "--name-only", checkpoint, check=False)
+        if checkout_files_output.returncode != 0:
+            return ()
+        checkout_files = set(line.strip() for line in checkout_files_output.stdout.splitlines() if line.strip())
+    except Exception:
+        return ()
+
+    # List files in the current working tree (including untracked with intent-to-add)
+    add_intent_to_add(repo)
+    try:
+        current_files_output = run_git(repo, "ls-files", check=False)
+        if current_files_output.returncode != 0:
+            return ()
+        current_files = set(line.strip() for line in current_files_output.stdout.splitlines() if line.strip())
+    except Exception:
+        return ()
+
+    # Files that exist in checkpoint but not in current = deleted files
+    deleted = checkout_files - current_files
+    return tuple(sorted(deleted))
+
+
+
 def patch(repo: Path, checkpoint: str) -> str:
     add_intent_to_add(repo)
     return run_git(
@@ -332,15 +359,35 @@ class IsolatedGitWorkspaceProvider:
 
         source_ref, workspace = session
         source = Path(source_ref).resolve()
-        for relative_path in changed_files(execution_path, workspace.base_commit):
+
+        # Get all changed files (modifications and additions) from the worktree
+        changes = changed_files(execution_path, workspace.base_commit)
+
+        # Propagate additions and modifications
+        for relative_path in changes:
             if not self._is_materializable(relative_path):
                 continue
             source_file = (execution_path / relative_path).resolve()
             target_file = (source / relative_path).resolve()
-            if not self._is_inside(target_file, source) or not source_file.is_file():
+            if not self._is_inside(target_file, source):
                 continue
-            target_file.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source_file, target_file)
+            if source_file.is_file():
+                # File exists in worktree: copy it (addition or modification)
+                target_file.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source_file, target_file)
+
+        # Propagate deletions
+        deletions = deleted_files(execution_path, workspace.base_commit)
+        for relative_path in deletions:
+            if not self._is_materializable(relative_path):
+                continue
+            target_file = (source / relative_path).resolve()
+            if not self._is_inside(target_file, source):
+                continue
+            if target_file.exists():
+                # File was deleted in worktree and exists in source: delete it
+                target_file.unlink()
+
         return current_head(source)
 
     def fast_forward(self, workspace_ref: str, ref: str) -> str:

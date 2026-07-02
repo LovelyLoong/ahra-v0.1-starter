@@ -111,13 +111,45 @@ promotable strategy context. This is the project-roadmap's long-deferred
 non-goal. It is scheduled last and only on top of A-D, because autonomous
 strategy generation must sit above a real authorization gate.
 
+# Increment F - Self-hosting loop closure (TASK-0085..0090)
+
+Close the gap between "the loop exists" and "the loop develops this project".
+Structure: one bootstrap exception, then everything runs through Workflow B.
+
+- 0085 Bootstrap: request-scoped write admission for
+  `profile/development-bounded` (effective write scope = the planDraft
+  filesystem.write resources, admitted against a hardened kernel blacklist)
+  plus isolated-worktree deletion/rename propagation. This is the single
+  manual-path exception - Workflow B is structurally forbidden from editing
+  its own kernel boundary - and it must be recorded as a loop defect.
+- 0086 Phase A-prime, WF-A-FORMAL-001: `workflow-a start` materializes the
+  session workspace paths.
+- 0087 Phase A-prime, WF-A-FORMAL-002: CodexSDKDriver parses
+  AlignmentTurnDecision / RequirementDraft / AcceptanceDraft outputs.
+- 0088 Phase A-prime, WF-A-FORMAL-003: real-driver alignment turns are bounded
+  by a timeout at the alignment session layer.
+- 0089 Phase R: physically archive TASK-0001..0080 and superseded docs to
+  `archive/`; `work/index.md` keeps a digest; Git history stays the audit
+  authority.
+- 0090 Phase S milestone: the first improvement driven end-to-end through a
+  real-driver Workflow A session into Workflow B execution.
+
+Execution rule: 0086..0089 are executed by Workflow B alone through the
+pre-authored requests `examples/goals/task-0086..0089-*.yaml`; each request's
+declared filesystem.write resources are its write scope under the 0085
+admission. Binding rule from 0090 onward: new work defaults to the A plus B
+loop, and any manual path must be recorded as a loop defect.
+
 # Status pointer
 
 Live task states are authoritative in `work/tasks/*/state.json` and summarized
 in [the work index](../../work/index.md). As of 2026-06-30: Increments A and B
 are complete (0052-0061 all completed by EvidenceGate), Increment C task
 implementations are in review (0062-0069), workflow infrastructure is in review
-(0070), and Increments D-E are conceptual only.
+(0070), and Increments D-E are conceptual only. As of 2026-07-02: Workflow A
+formal supervision recorded defects WF-A-FORMAL-001..003, component-lifecycle
+follow-ups TASK-0083/0084 are in review, and Increment F (TASK-0085..0090) is
+ready.
 
 # Sequencing rule
 

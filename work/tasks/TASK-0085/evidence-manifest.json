@@ -1,0 +1,90 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0085",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0085-0001",
+      "task_id": "TASK-0085",
+      "kind": "loop_defect_record",
+      "name": "evidence-bootstrap-defect.md",
+      "uri": "local://work/tasks/TASK-0085/evidence-bootstrap-defect.md",
+      "sha256": "ce19190769257ec9b04577e37667cd8ac104699e6b9267d7c4e8a57e4d73f91e",
+      "media_type": "text/markdown",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "refs": [
+        "ART-TASK-0085-0004",
+        "ART-TASK-0085-0010"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0085-0002",
+      "task_id": "TASK-0085",
+      "kind": "test_report",
+      "name": "focused-test-report.json",
+      "uri": "local://evidence/focused-test-report.json",
+      "sha256": "be05d984ba315cf67bce6732241443f2ef43402ca22a8de3a6b9cdf16dc70337",
+      "media_type": "application/json",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "refs": [
+        "ART-TASK-0085-0001",
+        "ART-TASK-0085-0002",
+        "ART-TASK-0085-0003"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0085-0003",
+      "task_id": "TASK-0085",
+      "kind": "test_report",
+      "name": "project-check-report.json",
+      "uri": "local://evidence/project-check-report.json",
+      "sha256": "42a24dc6af9bcb01205134d4b9f131308dceac8166c90d0357be795df7599e95",
+      "media_type": "application/json",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "refs": [
+        "ART-TASK-0085-0001",
+        "ART-TASK-0085-0002",
+        "ART-TASK-0085-0003",
+        "ART-TASK-0085-0005",
+        "ART-TASK-0085-0010"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0085-0004",
+      "task_id": "TASK-0085",
+      "kind": "validation_report",
+      "name": "followup-goal-validate-report.json",
+      "uri": "local://evidence/followup-goal-validate-report.json",
+      "sha256": "46f9b2b71ccb8f1af3d75119dd7793ae1e14ba87a733512b0bb296a74fcbe224",
+      "media_type": "application/json",
+      "created_by": "agent:codex-implementation",
+      "created_at": "2026-07-02T06:29:32Z",
+      "refs": [
+        "ART-TASK-0085-0006",
+        "ART-TASK-0085-0007",
+        "ART-TASK-0085-0008",
+        "ART-TASK-0085-0009"
+      ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0085-0005",
+      "task_id": "TASK-0085",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "f33d00dacb9db22714fb34b97bbd791a2011af21e92d8c44b23936d33cab11fa",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-02T06:48:46.143093Z",
+      "refs": [
+        "ART-TASK-0085-0011",
+        "EVD-TASK-0085-0001",
+        "EVD-TASK-0085-0002",
+        "EVD-TASK-0085-0003",
+        "EVD-TASK-0085-0004"
+      ]
+    }
+  ]
+}

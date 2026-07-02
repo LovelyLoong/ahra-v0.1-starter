@@ -1,0 +1,16 @@
+{
+  "schema_version": "ahra/evidence/test-report/0.1",
+  "task_id": "TASK-0085",
+  "created_at": "2026-07-02T06:29:32Z",
+  "created_by": "agent:codex-implementation",
+  "command": "uv run python -B scripts/check.py",
+  "exit_code": 0,
+  "status": "passed",
+  "summary": "Project check passed after TASK-0085 fixes.",
+  "result": {
+    "awkp_lint_errors": 0,
+    "awkp_lint_warnings": 0,
+    "tests_ok": 324,
+    "skipped": 1
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0085",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-02T06:48:46.143093Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent verifier reran TASK-0085 acceptance checks, reviewed request-scoped write admission, blacklist enforcement, isolated worktree deletion/rename propagation, follow-up goal validation, full project check, and bootstrap defect evidence.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "For profile/development-bounded, the effective filesystem.write allowlist used by capability admission and by IsolatedGitWorkspaceProvider is derived from the union of planDraft filesystem.write capability resources instead of the fixed profile allowlist, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0085-0002",
+        "EVD-TASK-0085-0003"
+      ],
+      "notes": "Verified CapabilityAdmissionService and IsolatedGitWorkspaceProvider both derive effective filesystem.write scope from planDraft resources. Re-ran empty-scope probe: admission runtime allowlist and workspace allowed_globs are both empty."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Any requested write resource matching the hardened kernel blacklist (existing kernel modules plus scripts/**, pyproject.toml, uv.lock, Makefile, .github/**) is rejected at capability admission before any side effect, covered by a hostile test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0085-0002",
+        "EVD-TASK-0085-0003"
+      ],
+      "notes": "Verified hardened blacklist includes existing kernel modules plus scripts/**, pyproject.toml, uv.lock, Makefile, and .github/**; focused hostile tests reject kernel and infrastructure writes."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "IsolatedGitWorkspaceProvider propagates file deletions and renames from the worktree back to the source repository only for paths inside the request-scoped allowlist and never for blacklisted paths, covered by a test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0085-0002",
+        "EVD-TASK-0085-0003"
+      ],
+      "notes": "Verified IsolatedGitWorkspaceProvider propagates allowed deletions and renames while filtering through the request-scoped allowlist and blacklist."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "examples/goals/task-0086 through task-0089 GoalExecutionRequests pass ahra goal validate.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0085-0004"
+      ],
+      "notes": "Verifier reran goal validate for examples/goals/task-0086 through task-0089; all commands exited 0."
+    },
+    {
+      "criterion_index": 5,
+      "criterion": "uv run python -B scripts/check.py passes, and the manual-path bootstrap is recorded as a loop defect in this task evidence.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0085-0001",
+        "EVD-TASK-0085-0003"
+      ],
+      "notes": "Verifier reran uv run python -B scripts/check.py successfully: AWKP lint 0 errors/0 warnings and 324 tests OK, 1 skipped. Manual-path bootstrap defect is manifest-backed as EVD-TASK-0085-0001."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": [
+    {
+      "review_id": "REV-TASK-0085-independent-semantic-review",
+      "status": "passed",
+      "reviewer": "agent:independent-verifier",
+      "criterion_indices": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "changed_files": [
+        "docs/roadmaps/development-program-overview.md",
+        "src/ahra/goal_operations.py",
+        "src/ahra/reference_runner/git_ops.py",
+        "tests/test_task_0085_request_scoped_write.py",
+        "work/index.md",
+        "examples/goals/task-0086-workflow-a-start-workspace.yaml",
+        "examples/goals/task-0087-codex-alignment-outputs.yaml",
+        "examples/goals/task-0088-workflow-a-turn-timeout.yaml",
+        "examples/goals/task-0089-entropy-archive.yaml",
+        "work/tasks/TASK-0085/IMPLEMENTATION-SUMMARY.md",
+        "work/tasks/TASK-0085/artifact-manifest.json",
+        "work/tasks/TASK-0085/evidence-manifest.json",
+        "work/tasks/TASK-0085/evidence-bootstrap-defect.md",
+        "work/tasks/TASK-0085/evidence/focused-test-report.json",
+        "work/tasks/TASK-0085/evidence/project-check-report.json",
+        "work/tasks/TASK-0085/evidence/followup-goal-validate-report.json"
+      ],
+      "changed_files_sha256": "sha256:bb4aa7a52468fec0f67d3d26fc460a9a62ced724a2434b76c89b3333cae3fecf",
+      "verified_changed_files_sha256": "sha256:bb4aa7a52468fec0f67d3d26fc460a9a62ced724a2434b76c89b3333cae3fecf",
+      "evidence_refs": [
+        "EVD-TASK-0085-0001",
+        "EVD-TASK-0085-0002",
+        "EVD-TASK-0085-0003",
+        "EVD-TASK-0085-0004"
+      ],
+      "notes": "Reviewed implementation and evidence for request-scoped write admission, fail-closed blacklist behavior, deletion/rename propagation, follow-up request validation, and full project checks. Reviewer identity is distinct from producer agent:codex-implementation."
+    }
+  ]
+}

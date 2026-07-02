@@ -1,0 +1,16 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0086",
+  "context_id": "CTX-self-hosting-loop",
+  "state": "ready",
+  "state_version": 0,
+  "attempt": 0,
+  "owner": null,
+  "lease": null,
+  "next_action": "Task skeleton created; claim the task before producing evidence.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [],
+  "evidence_refs": [],
+  "updated_at": "2026-07-02T04:06:50.210378Z"
+}
