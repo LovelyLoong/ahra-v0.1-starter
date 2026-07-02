@@ -1,0 +1,20 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0084",
+  "context_id": "CTX-component-lifecycle",
+  "state": "review",
+  "state_version": 2,
+  "attempt": 1,
+  "owner": null,
+  "lease": null,
+  "next_action": "Await independent EvidenceGate review.",
+  "pause_reason": null,
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0084-0001"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0084-0001"
+  ],
+  "updated_at": "2026-07-02T01:16:36.238797Z"
+}

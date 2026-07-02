@@ -16,6 +16,7 @@ import yaml
 
 from ahra import cli
 from ahra.awkp_task_creator import AwkpTaskCreateRequest, AwkpTaskCreator
+from ahra.goal_operations import M1_PROFILE_REF
 from ahra.ports import AwkpTaskCreatorPort
 
 
@@ -235,6 +236,8 @@ class CliTests(unittest.TestCase):
                     str(intent),
                     "--session",
                     str(session),
+                    "--profile-ref",
+                    M1_PROFILE_REF,
                     "--workspace-ref",
                     str(Path("workflow-a") / "workspace"),
                     "--artifact-dir",
@@ -249,6 +252,7 @@ class CliTests(unittest.TestCase):
             self.assertEqual(Path(start_payload["result"]["snapshot"]["workspaceRef"]), expected_workspace)
             self.assertEqual(Path(start_payload["result"]["snapshot"]["artifactDir"]), expected_artifacts)
             self.assertEqual(Path(start_payload["result"]["snapshot"]["storePath"]), expected_store)
+            self.assertEqual(start_payload["result"]["snapshot"]["profileRef"], M1_PROFILE_REF)
 
             advance_code, advance_payload, _ = _run_cli(
                 [
@@ -376,11 +380,29 @@ class CliTests(unittest.TestCase):
                 Path(authorize_payload["result"]["goalExecutionRequest"]["spec"]["artifactDir"]),
                 expected_artifacts,
             )
+            self.assertEqual(
+                authorize_payload["result"]["goalExecutionRequest"]["spec"]["profileRef"],
+                M1_PROFILE_REF,
+            )
+
+            validate_code, validate_payload, _ = _run_cli(["goal", "validate", str(authorized)], cwd=root)
+            self.assertEqual(validate_code, 0)
+            self.assertTrue(validate_payload["result"]["valid"])
+            self.assertEqual(validate_payload["result"]["profileRef"], M1_PROFILE_REF)
 
             plan_code, plan_payload, _ = _run_cli(["goal", "plan", str(authorized)], cwd=root)
             self.assertEqual(plan_code, 0)
             self.assertEqual(Path(plan_payload["result"]["artifactDir"]), expected_artifacts)
             self.assertTrue((expected_artifacts / "plan-ir.json").exists())
+
+            start_goal_code, start_goal_payload, _ = _run_cli(["goal", "start", str(authorized)], cwd=root)
+            self.assertEqual(start_goal_code, 0)
+            self.assertEqual(start_goal_payload["result"]["goalStatus"], "succeeded")
+            self.assertEqual(start_goal_payload["result"]["planStatus"], "succeeded")
+            self.assertEqual(start_goal_payload["result"]["defects"], [])
+            self.assertFalse(start_goal_payload["result"]["executionWorkspacePreserved"])
+            self.assertTrue((expected_artifacts / "goal-start-report.json").exists())
+            self.assertTrue((expected_workspace / "outputs" / "summary.txt").exists())
 
     def test_goal_start_allow_development_agent_injects_codex_driver(self) -> None:
         with mock.patch("ahra.cli.GoalOperationService") as service_cls, mock.patch(

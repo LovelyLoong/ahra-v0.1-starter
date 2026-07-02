@@ -1,0 +1,56 @@
+{
+  "schema_version": "ahra/evidence/test-report/0.1",
+  "task_id": "TASK-0084",
+  "produced_at": "2026-07-02T01:14:39.7807738Z",
+  "base_commit": "c1c22789b1bc3d6b32bd1397d522830c9ab15a39",
+  "scope": {
+    "workflow_a_mode": "workflow-a-fixture with explicit human:maintainer gate actors in test",
+    "workflow_b_profile": "profile/m1-deterministic@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "boundary": "Conformance smoke only; live model dialogue and live human review are bypassed by test fixture actors.",
+    "promotion_claim": "Does not claim default-visible promotion or full human-gated production readiness."
+  },
+  "regression": {
+    "file": "tests/test_cli.py",
+    "test": "tests.test_cli.CliTests.test_workflow_a_cli_lifecycle_requires_human_gates",
+    "added_assertions": [
+      "Workflow A start records the deterministic M1 profile in the session snapshot.",
+      "Workflow A authorize emits a GoalExecutionRequest with the deterministic M1 profile.",
+      "Workflow B goal validate accepts the authorized request and reports valid=true.",
+      "Workflow B goal plan writes plan-ir.json under the authorized artifact directory.",
+      "Workflow B goal start succeeds with goalStatus=succeeded and planStatus=succeeded.",
+      "The start report has no structured defects, does not preserve a failed execution worktree, and writes outputs/summary.txt."
+    ]
+  },
+  "verification": [
+    {
+      "command": ".venv\\Scripts\\uv.exe run python -B -m unittest tests.test_cli.CliTests.test_workflow_a_cli_lifecycle_requires_human_gates -v",
+      "exit_code": 0,
+      "summary": "1 targeted test passed."
+    },
+    {
+      "command": ".venv\\Scripts\\uv.exe run python -B scripts/check.py --lint",
+      "exit_code": 0,
+      "summary": "AWKP lint reported 0 errors and 0 warnings; AHRA lint reported 0 failures."
+    },
+    {
+      "command": ".venv\\Scripts\\uv.exe run python -B scripts/check.py --test",
+      "exit_code": 0,
+      "summary": "318 tests passed; 1 environment-permission skip."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "summary": "No whitespace errors."
+    }
+  ],
+  "observed_result": {
+    "authorized_request_consumed_by_goal_validate": true,
+    "authorized_request_consumed_by_goal_plan": true,
+    "authorized_request_consumed_by_goal_start": true,
+    "goal_status": "succeeded",
+    "plan_status": "succeeded",
+    "structured_defects": [],
+    "execution_workspace_preserved": false,
+    "main_pollution_observed": false
+  }
+}

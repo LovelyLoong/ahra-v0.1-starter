@@ -1,0 +1,20 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0084",
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0084-0001",
+      "task_id": "TASK-0084",
+      "kind": "test_report",
+      "name": "workflow-a-b-handoff-smoke.json",
+      "uri": "local://evidence/workflow-a-b-handoff-smoke.json",
+      "sha256": "7806c593eb8231e2dac4d1feb19ee89d53a6bfea73d1e48eb71b905ae717630d",
+      "media_type": "application/json",
+      "created_by": "agent:codex-supervisor",
+      "created_at": "2026-07-02T01:14:39.7807738Z",
+      "refs": [
+        "ART-TASK-0084-0001"
+      ]
+    }
+  ]
+}

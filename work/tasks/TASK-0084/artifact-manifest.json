@@ -1,0 +1,26 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0084",
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0084-0001",
+      "task_id": "TASK-0084",
+      "kind": "code_change",
+      "name": "test_cli.py",
+      "uri": "local://tests/test_cli.py",
+      "sha256": "19d305f6994451dc5005327487d25116827a1d028043c4cd0ec8af06bab2bdba",
+      "media_type": "text/x-python",
+      "created_by": "agent:codex-supervisor",
+      "created_at": "2026-07-02T01:14:39.7807738Z",
+      "input_refs": [
+        "src/ahra/workflow_a_cli.py",
+        "src/ahra/cli.py",
+        "tests/test_cli.py"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0084-0001"
+      ],
+      "supersedes": null
+    }
+  ]
+}
