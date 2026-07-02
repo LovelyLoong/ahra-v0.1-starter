@@ -1,0 +1,35 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0086",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-02T08:46:11.655851Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Reject loop-002 review evidence: the GoalExecution and bridge materialization resolved workspace-relative paths under work/tasks/TASK-0086 instead of the repository root, so the produced source changes and DB/artifact refs do not prove the main workspace implementation.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "ahra workflow-a start creates the session workspace, artifact, and store parent directories when missing, or fails closed with a structured error naming the offending path, covered by a test reproducing WF-A-FORMAL-001.",
+      "status": "failed",
+      "evidence_refs": [],
+      "notes": "loop-002 wrote src/ahra/workflow_a_cli.py under work/tasks/TASK-0086/src instead of the repository src/ tree; this does not satisfy the task implementation criterion."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "The full test suite passes and uv run python -B scripts/check.py --test is recorded in the run evidence.",
+      "status": "failed",
+      "evidence_refs": [],
+      "notes": "The test evidence was produced from the mis-resolved nested workspace and cannot be used as main-workspace verification evidence."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The change is produced by a Workflow B development-bounded GoalExecution with kernel-derived completion, then approved through the AWKP EvidenceGate by an independent verifier.",
+      "status": "failed",
+      "evidence_refs": [],
+      "notes": "The bridge input refs point at work/tasks/TASK-0086/work/tasks/TASK-0086/runs/loop-002; the AWKP review must be rerun from a request whose workspaceRef resolves to the repository root."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": []
+}

@@ -1004,6 +1004,38 @@ class EvidenceGateTests(unittest.TestCase):
             self.assertEqual(events[-2]["event_type"], "review_requested")
             self.assertEqual(events[-1]["event_type"], "evidence_gate_approved")
 
+    def test_task_review_orchestrator_clears_stale_blockers_on_new_review(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_working_gate_task(root)
+            state_path = task_dir / "state.json"
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            state["blockers"] = ["Previous review evidence used a stale workspace."]
+            _write_json(state_path, state)
+            report = _write_gate_input(root, task_id="TASK-9200", name="approve.json")
+
+            result = AwkpTaskReviewOrchestrator(work_root=root / "work").run(
+                AwkpTaskOrchestrationRequest(
+                    task="TASK-9200",
+                    work_root=root / "work",
+                    expected_version=4,
+                    producer_actor="agent:producer",
+                    verifier_actor="agent:verifier",
+                    fencing_token="FENCE-1",
+                    report_paths=(report,),
+                    max_cycles=1,
+                    artifact_refs=("ART-TASK-9200-0001",),
+                    evidence_refs=("EVD-TASK-9200-0001",),
+                )
+            )
+
+            self.assertEqual(result.terminal_state, "completed")
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(state["blockers"], [])
+            events = [json.loads(line) for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()]
+            self.assertEqual(events[-2]["event_type"], "review_requested")
+            self.assertEqual(events[-2]["resolved_blockers"], ["Previous review evidence used a stale workspace."])
+
     def test_task_review_orchestrator_rejects_producer_verifier_identity(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

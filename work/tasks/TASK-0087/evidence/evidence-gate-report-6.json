@@ -1,0 +1,88 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0087",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-02T09:43:41.066350Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Approve loop-004: CodexSDKDriver alignment structured outputs are parsed behind the AgentDriver adapter and the corrected Workflow B GoalExecution succeeded from the repository-root workspace.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "CodexSDKDriver returns structured results for expected outputs AlignmentTurnDecision, RequirementDraft, and AcceptanceDraft, and rejects malformed model JSON with a structured error instead of an unhandled crash, covered by fake-client tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-bce790a8b40245b2",
+        "EVD-eb67c800660cbc15"
+      ],
+      "notes": "CodexSDKDriver returns mappings for AlignmentTurnDecision, RequirementDraft, AcceptanceDraft and raises AgentOutputContractError for malformed JSON; fake-client tests were added."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "No domain or workflow module imports the Codex SDK; provider prompting and parsing stay behind the AgentDriver port, verified by the existing adapter-dependency lint.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-bce790a8b40245b2",
+        "EVD-eb67c800660cbc15"
+      ],
+      "notes": "The implementation stays in src/ahra/adapters/codex_sdk.py and tests; SDK-specific logic remains behind the AgentDriver adapter."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The change is produced by a Workflow B development-bounded GoalExecution with kernel-derived completion, then approved through the AWKP EvidenceGate by an independent verifier.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-73fc4ec0cfba648f",
+        "EVD-eb67c800660cbc15"
+      ],
+      "notes": "GoalExecution GEXEC-9bd5f6eaddd9cb76 completed from the repository-root workspace and is being approved by an independent verifier."
+    }
+  ],
+  "commands": [
+    {
+      "command_id": "CMD-loop-004-tests",
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed",
+      "criterion_indices": [
+        1,
+        2
+      ],
+      "evidence_refs": [
+        "EVD-bce790a8b40245b2"
+      ]
+    },
+    {
+      "command_id": "CMD-loop-004-goal-complete",
+      "command": "uv run python -B -m ahra.cli goal start work/tasks/TASK-0087/runs/loop-004/goal-request.yaml --allow-development-agent",
+      "status": "passed",
+      "criterion_indices": [
+        3
+      ],
+      "evidence_refs": [
+        "EVD-73fc4ec0cfba648f"
+      ]
+    }
+  ],
+  "semantic_reviews": [
+    {
+      "review_id": "REV-loop-004-task-0087-semantic",
+      "status": "passed",
+      "reviewer": "agent:independent-verifier",
+      "criterion_indices": [
+        1,
+        2,
+        3
+      ],
+      "changed_files": [
+        "src/ahra/adapters/codex_sdk.py",
+        "tests/test_codex_sdk_driver.py"
+      ],
+      "changed_files_sha256": "sha256:4ac7324eca9cae04b0ab14b452f137b0aa44afc4a352445ec563b31b0e61b516",
+      "verified_changed_files_sha256": "sha256:4ac7324eca9cae04b0ab14b452f137b0aa44afc4a352445ec563b31b0e61b516",
+      "evidence_refs": [
+        "EVD-eb67c800660cbc15"
+      ]
+    }
+  ]
+}

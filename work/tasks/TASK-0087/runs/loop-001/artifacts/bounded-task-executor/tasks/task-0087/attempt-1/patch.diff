@@ -1,0 +1,188 @@
+diff --git a/src/ahra/adapters/codex_sdk.py b/src/ahra/adapters/codex_sdk.py
+index 339220c..1e1d551 100644
+--- a/src/ahra/adapters/codex_sdk.py
++++ b/src/ahra/adapters/codex_sdk.py
+@@ -9,7 +9,8 @@ from ahra.ports import AgentDriver, AgentOutputContractError, AgentRole, AgentRu
+ from ahra.reference_runner.models import to_jsonable
+ from ahra.reference_runner.output_contracts import parse_reference_output
+ 
+-PLANNER_STRUCTURED_OUTPUTS = {"AcceptanceDraft", "PlanDraft", "PlanPatchDraft"}
++ALIGNMENT_SESSION_OUTPUTS = {"AcceptanceDraft", "AlignmentTurnDecision", "RequirementDraft"}
++PLANNER_STRUCTURED_OUTPUTS = ALIGNMENT_SESSION_OUTPUTS | {"PlanDraft", "PlanPatchDraft"}
+ 
+ 
+ class CodexClient(Protocol):
+@@ -106,15 +107,18 @@ class CodexSDKDriver(AgentDriver):
+             )
+         if request.output_contract is not None:
+             validate_agent_output(request.output_contract, data, raw_output=raw)
+-        try:
+-            output = parse_reference_output(request.expected_output, data)
+-        except AgentOutputContractError as exc:
+-            raise AgentOutputContractError(
+-                request.expected_output,
+-                exc.message,
+-                raw_output=raw,
+-                details=exc.details,
+-            ) from exc
++        if request.expected_output in ALIGNMENT_SESSION_OUTPUTS:
++            output = data
++        else:
++            try:
++                output = parse_reference_output(request.expected_output, data)
++            except AgentOutputContractError as exc:
++                raise AgentOutputContractError(
++                    request.expected_output,
++                    exc.message,
++                    raw_output=raw,
++                    details=exc.details,
++                ) from exc
+         return AgentRunResult(output=output, raw_output=raw)
+ 
+     def _sandbox_for_request(self, request: AgentRunRequest) -> str:
+diff --git a/tests/test_codex_driver.py b/tests/test_codex_driver.py
+index 1fff738..bdb4f04 100644
+--- a/tests/test_codex_driver.py
++++ b/tests/test_codex_driver.py
+@@ -6,6 +6,7 @@ import sys
+ import types
+ import unittest
+ 
++from ahra import alignment_session
+ from ahra.adapters import CodexDriverConfig, CodexSDKClient, CodexSDKDriver
+ from ahra.planning import plan_draft_output_contract
+ from ahra.ports import AgentOutputContractError, AgentRole, AgentRunRequest
+@@ -147,6 +148,103 @@ class CodexSDKDriverTests(unittest.TestCase):
+                 )
+             )
+ 
++    def test_alignment_turn_decision_response_passes_through_after_contract_validation(self) -> None:
++        expected_output = alignment_session.ALIGNMENT_DECISION_OUTPUT
++        decision = {
++            "message": "Please confirm the write scope.",
++            "converged": False,
++            "missingDimensions": ["write scope"],
++        }
++        client = FakeCodexClient({expected_output: json.dumps(decision)})
++        driver = CodexSDKDriver(client=client)
++
++        result = asyncio.run(
++            driver.run(
++                AgentRunRequest(
++                    role=AgentRole.PLANNER,
++                    run_id="RUN-codex-test",
++                    expected_output=expected_output,
++                    output_contract=alignment_session._output_contract(expected_output),
++                    payload={"intent": {"intentId": "INTENT-alignment"}},
++                )
++            )
++        )
++
++        self.assertEqual(result.output, decision)
++        self.assertEqual(client.calls[0]["sandbox"], "read_only")
++        self.assertIn("Output contract name: AlignmentTurnDecision", client.calls[0]["prompt"])
++        self.assertIn('"converged"', client.calls[0]["prompt"])
++
++    def test_requirement_draft_response_passes_through_after_contract_validation(self) -> None:
++        expected_output = alignment_session.REQUIREMENT_DRAFT_OUTPUT
++        requirement = {
++            "summary": "Use the validated PlanDraft for the request draft.",
++            "planDraft": _minimal_plan_draft(),
++        }
++        client = FakeCodexClient({expected_output: json.dumps(requirement)})
++        driver = CodexSDKDriver(client=client)
++
++        result = asyncio.run(
++            driver.run(
++                AgentRunRequest(
++                    role=AgentRole.PLANNER,
++                    run_id="RUN-codex-test",
++                    expected_output=expected_output,
++                    output_contract=alignment_session._output_contract(expected_output),
++                    payload={"frozenRequirement": "Set VALUE to 3."},
++                )
++            )
++        )
++
++        self.assertEqual(result.output, requirement)
++        self.assertIn("Output contract name: RequirementDraft", client.calls[0]["prompt"])
++        self.assertIn('"planDraft"', client.calls[0]["prompt"])
++
++    def test_acceptance_draft_response_passes_through_after_contract_validation(self) -> None:
++        expected_output = alignment_session.ACCEPTANCE_DRAFT_OUTPUT
++        acceptance = {
++            "summary": "Use the validated ClaimGraph for acceptance.",
++            "claimGraph": _minimal_claim_graph(),
++        }
++        client = FakeCodexClient({expected_output: json.dumps(acceptance)})
++        driver = CodexSDKDriver(client=client)
++
++        result = asyncio.run(
++            driver.run(
++                AgentRunRequest(
++                    role=AgentRole.PLANNER,
++                    run_id="RUN-codex-test",
++                    expected_output=expected_output,
++                    output_contract=alignment_session._output_contract(expected_output),
++                    payload={"frozenRequirement": "Set VALUE to 3."},
++                )
++            )
++        )
++
++        self.assertEqual(result.output, acceptance)
++        self.assertIn("Output contract name: AcceptanceDraft", client.calls[0]["prompt"])
++        self.assertIn('"claimGraph"', client.calls[0]["prompt"])
++
++    def test_malformed_alignment_json_raises_contract_error(self) -> None:
++        expected_output = alignment_session.ALIGNMENT_DECISION_OUTPUT
++        driver = CodexSDKDriver(client=FakeCodexClient({expected_output: "not json"}))
++
++        with self.assertRaisesRegex(AgentOutputContractError, "JSON object") as raised:
++            asyncio.run(
++                driver.run(
++                    AgentRunRequest(
++                        role=AgentRole.PLANNER,
++                        run_id="RUN-codex-test",
++                        expected_output=expected_output,
++                        output_contract=alignment_session._output_contract(expected_output),
++                        payload={},
++                    )
++                )
++            )
++
++        self.assertEqual(raised.exception.expected_output, expected_output)
++        self.assertEqual(raised.exception.raw_output, "not json")
++
+     def test_output_contract_schema_is_prompted_and_validated(self) -> None:
+         client = FakeCodexClient(
+             {
+@@ -304,5 +402,29 @@ def _minimal_plan_draft() -> dict[str, object]:
+         },
+     }
+ 
++def _minimal_claim_graph() -> dict[str, object]:
++    return {
++        "apiVersion": "ahra.dev/v1alpha1",
++        "kind": "ClaimGraph",
++        "metadata": {"version": 1},
++        "spec": {
++            "goalRef": "GOAL-alignment",
++            "claims": [
++                {
++                    "id": "CLAIM-alignment-output",
++                    "type": "functional",
++                    "statement": "Codex alignment output is parsed into a structured mapping.",
++                    "criterionRefs": ["CRIT-alignment-output"],
++                    "dependsOn": [],
++                    "riskLevel": "R1",
++                    "required": True,
++                    "requiredEvidenceKinds": ["unit-test"],
++                    "gateRefs": ["GATE-alignment-output"],
++                }
++            ],
++        },
++    }
++
++
+ if __name__ == "__main__":
+     unittest.main()

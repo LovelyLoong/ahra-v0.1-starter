@@ -1,5 +1,133 @@
 {
+  "evidence": [
+    {
+      "created_at": "2026-07-02T08:34:32.255230Z",
+      "created_by": "agent:workflow-b-task-0086",
+      "evidence_id": "EVD-148b9f9009018754",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-148b9f9009018754.json",
+      "refs": [
+        "ART-TASK-0086-0001",
+        "GATERUN-148b9f9009018754",
+        "GEXEC-4f7734fea9374591"
+      ],
+      "sha256": "a2d7eaa1e8cfdc6d9874c6212bbb0f18f8e146f60b4e05392e05afdbeecafa39",
+      "task_id": "TASK-0086",
+      "uri": "local://evidence/kernel-evidence/EVD-148b9f9009018754.json"
+    },
+    {
+      "created_at": "2026-07-02T08:34:32.258237Z",
+      "created_by": "agent:workflow-b-task-0086",
+      "evidence_id": "EVD-749fd2374fdaeb5b",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-749fd2374fdaeb5b.json",
+      "refs": [
+        "ART-TASK-0086-0002",
+        "GATERUN-749fd2374fdaeb5b",
+        "GEXEC-4f7734fea9374591"
+      ],
+      "sha256": "eea95280fe889626087935de62598b53891530fa55785fdbde5c5f7ea120ee95",
+      "task_id": "TASK-0086",
+      "uri": "local://evidence/kernel-evidence/EVD-749fd2374fdaeb5b.json"
+    },
+    {
+      "created_at": "2026-07-02T08:34:32.262072Z",
+      "created_by": "agent:workflow-b-task-0086",
+      "evidence_id": "EVD-e5a661eae094b688",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-e5a661eae094b688.json",
+      "refs": [
+        "ART-TASK-0086-0003",
+        "GATERUN-e5a661eae094b688",
+        "GEXEC-4f7734fea9374591"
+      ],
+      "sha256": "9bd0cd88e2e7642e37cf77a82663e1ddca745651746154e9bf20e200df5c3a6a",
+      "task_id": "TASK-0086",
+      "uri": "local://evidence/kernel-evidence/EVD-e5a661eae094b688.json"
+    },
+    {
+      "created_at": "2026-07-02T08:46:11.655851Z",
+      "created_by": "agent:independent-verifier",
+      "evidence_id": "EVD-TASK-0086-0001",
+      "kind": "evidence_gate_report",
+      "media_type": "application/json",
+      "name": "evidence-gate-report-5.json",
+      "refs": [
+        "ART-TASK-0086-0005"
+      ],
+      "sha256": "c5c2e1428e563ff5073d9c220c7e816d4fd63fb01f1d832fd9e9326ba4319372",
+      "task_id": "TASK-0086",
+      "uri": "local://evidence/evidence-gate-report-5.json"
+    },
+    {
+      "created_at": "2026-07-02T09:17:11.524080Z",
+      "created_by": "agent:workflow-b-task-0086",
+      "evidence_id": "EVD-0464f274277140f1",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-0464f274277140f1.json",
+      "refs": [
+        "ART-TASK-0086-0006",
+        "GATERUN-0464f274277140f1",
+        "GEXEC-0fbd7eb0a324c6b6"
+      ],
+      "sha256": "1f67e7a1d5b28d09ac19ae2d0a7759d7a9b9b4c6b879daee92dd3af3c1f1bc4f",
+      "task_id": "TASK-0086",
+      "uri": "local://evidence/kernel-evidence/EVD-0464f274277140f1.json"
+    },
+    {
+      "created_at": "2026-07-02T09:17:11.526074Z",
+      "created_by": "agent:workflow-b-task-0086",
+      "evidence_id": "EVD-2425e8f440adaeda",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-2425e8f440adaeda.json",
+      "refs": [
+        "ART-TASK-0086-0007",
+        "GATERUN-2425e8f440adaeda",
+        "GEXEC-0fbd7eb0a324c6b6"
+      ],
+      "sha256": "3ecd9ae417857351bc2ebe24b1cf2b57e0f1538fa2bab21549930f8e12997711",
+      "task_id": "TASK-0086",
+      "uri": "local://evidence/kernel-evidence/EVD-2425e8f440adaeda.json"
+    },
+    {
+      "created_at": "2026-07-02T09:17:11.528067Z",
+      "created_by": "agent:workflow-b-task-0086",
+      "evidence_id": "EVD-8d592d60dd1693a7",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-8d592d60dd1693a7.json",
+      "refs": [
+        "ART-TASK-0086-0008",
+        "GATERUN-8d592d60dd1693a7",
+        "GEXEC-0fbd7eb0a324c6b6"
+      ],
+      "sha256": "b240755d556c583a9641d3f847d7359cf2229522177a65ca12e29959890e82a0",
+      "task_id": "TASK-0086",
+      "uri": "local://evidence/kernel-evidence/EVD-8d592d60dd1693a7.json"
+    },
+    {
+      "evidence_id": "EVD-TASK-0086-0002",
+      "task_id": "TASK-0086",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-9.json",
+      "uri": "local://evidence/evidence-gate-report-9.json",
+      "sha256": "a73ac3400cb9f4314933ca88ecd258d49446c040d41fc3176c7f23ad958e0006",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-02T09:17:11.647991Z",
+      "refs": [
+        "ART-TASK-0086-0010",
+        "EVD-0464f274277140f1",
+        "EVD-2425e8f440adaeda",
+        "EVD-8d592d60dd1693a7"
+      ]
+    }
+  ],
   "schema_version": "awkp/0.1",
-  "task_id": "TASK-0086",
-  "evidence": []
+  "task_id": "TASK-0086"
 }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, replace
 from typing import Any, Mapping
 
@@ -36,20 +37,35 @@ from .ports import (
 ALIGNMENT_DECISION_OUTPUT = "AlignmentTurnDecision"
 REQUIREMENT_DRAFT_OUTPUT = "RequirementDraft"
 ACCEPTANCE_DRAFT_OUTPUT = "AcceptanceDraft"
+DEFAULT_AGENT_TIMEOUT_SECONDS = 60.0
 
 
 class AlignmentSessionError(ValueError):
     """Structured failure for alignment-session contract violations."""
 
-    def __init__(self, code: str, message: str, *, ref: str, refs: tuple[str, ...] = ()) -> None:
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        *,
+        ref: str,
+        refs: tuple[str, ...] = (),
+        data: Mapping[str, Any] | None = None,
+        snapshot: Any | None = None,
+    ) -> None:
         self.code = code
         self.message = message
         self.ref = ref
         self.refs = refs or (ref,)
+        self.data = dict(data or {})
+        self.snapshot = snapshot
         super().__init__(f"{code} {ref}: {message}")
 
     def to_dict(self) -> dict[str, Any]:
-        return {"code": self.code, "message": self.message, "ref": self.ref, "refs": list(self.refs)}
+        payload = {"code": self.code, "message": self.message, "ref": self.ref, "refs": list(self.refs)}
+        if self.data:
+            payload["data"] = self.data
+        return payload
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,6 +75,7 @@ class AlignmentSessionTurn:
     message: str
     expected_output: str | None = None
     trace_ref: str | None = None
+    error: Mapping[str, Any] | None = None
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, Any]) -> "AlignmentSessionTurn":
@@ -68,6 +85,7 @@ class AlignmentSessionTurn:
             message=str(data["message"]),
             expected_output=str(data["expectedOutput"]) if data.get("expectedOutput") else None,
             trace_ref=str(data["traceRef"]) if data.get("traceRef") else None,
+            error=_mapping(data["error"], "turn.error") if data.get("error") else None,
         )
 
     def to_mapping(self) -> dict[str, Any]:
@@ -80,6 +98,8 @@ class AlignmentSessionTurn:
             data["expectedOutput"] = self.expected_output
         if self.trace_ref:
             data["traceRef"] = self.trace_ref
+        if self.error:
+            data["error"] = dict(self.error)
         return data
 
 
@@ -123,7 +143,15 @@ class AlignmentSessionSnapshot:
     def next_turn_index(self) -> int:
         return len(self.turns) + 1
 
-    def append_turn(self, *, actor: str, message: str, expected_output: str | None = None, trace_ref: str | None = None) -> "AlignmentSessionSnapshot":
+    def append_turn(
+        self,
+        *,
+        actor: str,
+        message: str,
+        expected_output: str | None = None,
+        trace_ref: str | None = None,
+        error: Mapping[str, Any] | None = None,
+    ) -> "AlignmentSessionSnapshot":
         return replace(
             self,
             turns=(
@@ -134,6 +162,7 @@ class AlignmentSessionSnapshot:
                     message=message,
                     expected_output=expected_output,
                     trace_ref=trace_ref,
+                    error=error,
                 ),
             ),
         )
@@ -183,6 +212,7 @@ class AlignmentSessionManager:
         profile_registry: GoalOperationProfileRegistry | None = None,
         default_profile_ref: str = DEVELOPMENT_BOUNDED_PROFILE_REF,
         max_dialogue_turns: int = 8,
+        agent_timeout_seconds: float = DEFAULT_AGENT_TIMEOUT_SECONDS,
     ) -> None:
         if registry is not None and profile_registry is not None:
             raise ValueError("pass either registry or profile_registry, not both")
@@ -190,6 +220,7 @@ class AlignmentSessionManager:
         self.registry = registry or RequestDraftRegistry(profiles=profile_registry or GoalOperationProfileRegistry())
         self.default_profile_ref = default_profile_ref
         self.max_dialogue_turns = max_dialogue_turns
+        self.agent_timeout_seconds = _positive_timeout_seconds(agent_timeout_seconds)
 
     def start(
         self,
@@ -248,23 +279,28 @@ class AlignmentSessionManager:
         if len(current.turns) >= self.max_dialogue_turns * 2:
             raise AlignmentSessionError("alignment_turn_limit", "alignment dialogue exceeded configured turn limit", ref="session.turns")
         after_user = current.append_turn(actor=actor, message=user_message)
-        driver_output = await self._run_agent(
-            after_user,
-            expected_output=ALIGNMENT_DECISION_OUTPUT,
-            payload={
-                "phase": "alignment-dialogue",
-                "intent": after_user.intent.to_mapping(),
-                "session": after_user.to_mapping(),
-                "userMessage": user_message,
-                "checklist": [
-                    "output form",
-                    "must-haves",
-                    "must-nots",
-                    "completion signal",
-                    "allowed free zones",
-                ],
-            },
-        )
+        try:
+            driver_output = await self._run_agent(
+                after_user,
+                expected_output=ALIGNMENT_DECISION_OUTPUT,
+                payload={
+                    "phase": "alignment-dialogue",
+                    "intent": after_user.intent.to_mapping(),
+                    "session": after_user.to_mapping(),
+                    "userMessage": user_message,
+                    "checklist": [
+                        "output form",
+                        "must-haves",
+                        "must-nots",
+                        "completion signal",
+                        "allowed free zones",
+                    ],
+                },
+            )
+        except AlignmentSessionError as exc:
+            if exc.code == "agent_driver_timeout":
+                exc.snapshot = self._snapshot_with_agent_error(after_user, exc, stage="awaiting_user")
+            raise
         decision = _mapping(driver_output.output, ALIGNMENT_DECISION_OUTPUT)
         agent_message = _required_string(decision, "message", ALIGNMENT_DECISION_OUTPUT)
         converged = bool(decision.get("converged", False))
@@ -336,28 +372,33 @@ class AlignmentSessionManager:
                 "request drafting requires a frozen requirement snapshot",
                 ref="session.frozenRequirement",
             )
-        requirement_result = await self._run_agent(
-            current,
-            expected_output=REQUIREMENT_DRAFT_OUTPUT,
-            payload={
-                "phase": "requirement-draft",
-                "intent": current.intent.to_mapping(),
-                "frozenRequirement": current.frozen_requirement,
-                "profileRef": current.profile_ref,
-                "runtimeRef": current.runtime_ref,
-            },
-        )
-        acceptance_result = await self._run_agent(
-            current,
-            expected_output=ACCEPTANCE_DRAFT_OUTPUT,
-            payload={
-                "phase": "acceptance-draft",
-                "intent": current.intent.to_mapping(),
-                "frozenRequirement": current.frozen_requirement,
-                "profileRef": current.profile_ref,
-                "runtimeRef": current.runtime_ref,
-            },
-        )
+        try:
+            requirement_result = await self._run_agent(
+                current,
+                expected_output=REQUIREMENT_DRAFT_OUTPUT,
+                payload={
+                    "phase": "requirement-draft",
+                    "intent": current.intent.to_mapping(),
+                    "frozenRequirement": current.frozen_requirement,
+                    "profileRef": current.profile_ref,
+                    "runtimeRef": current.runtime_ref,
+                },
+            )
+            acceptance_result = await self._run_agent(
+                current,
+                expected_output=ACCEPTANCE_DRAFT_OUTPUT,
+                payload={
+                    "phase": "acceptance-draft",
+                    "intent": current.intent.to_mapping(),
+                    "frozenRequirement": current.frozen_requirement,
+                    "profileRef": current.profile_ref,
+                    "runtimeRef": current.runtime_ref,
+                },
+            )
+        except AlignmentSessionError as exc:
+            if exc.code == "agent_driver_timeout":
+                exc.snapshot = self._snapshot_with_agent_error(current, exc, stage="frozen")
+            raise
         requirement = _mapping(requirement_result.output, REQUIREMENT_DRAFT_OUTPUT)
         acceptance = _mapping(acceptance_result.output, ACCEPTANCE_DRAFT_OUTPUT)
         request_draft = self._request_from_agent_outputs(current, requirement, acceptance)
@@ -416,7 +457,44 @@ class AlignmentSessionManager:
             ),
             metadata={"alignmentSessionId": snapshot.session_id, "stage": snapshot.stage},
         )
-        return await self.agent_driver.run(request)
+        task = asyncio.create_task(self.agent_driver.run(request))
+        try:
+            return await asyncio.wait_for(asyncio.shield(task), timeout=self.agent_timeout_seconds)
+        except asyncio.TimeoutError as exc:
+            task.cancel()
+            task.add_done_callback(_consume_cancelled_task)
+            raise self._timeout_error(snapshot, expected_output) from exc
+
+    def _timeout_error(self, snapshot: AlignmentSessionSnapshot, expected_output: str) -> AlignmentSessionError:
+        return AlignmentSessionError(
+            "agent_driver_timeout",
+            f"AgentDriver timed out while producing {expected_output}",
+            ref="agentDriver.timeout",
+            refs=(expected_output, snapshot.stage),
+            data={
+                "expectedOutput": expected_output,
+                "timeoutSeconds": self.agent_timeout_seconds,
+                "alignmentSessionId": snapshot.session_id,
+            },
+        )
+
+    def _snapshot_with_agent_error(
+        self,
+        snapshot: AlignmentSessionSnapshot,
+        error: AlignmentSessionError,
+        *,
+        stage: str,
+    ) -> AlignmentSessionSnapshot:
+        expected_output = str(error.data.get("expectedOutput") or "AgentDriver")
+        return replace(
+            snapshot.append_turn(
+                actor="agent:error",
+                message=error.message,
+                expected_output=expected_output,
+                error=error.to_dict(),
+            ),
+            stage=stage,
+        )
 
     def _resolve_profile(
         self,
@@ -579,6 +657,22 @@ def _mapping(value: Any, ref: str) -> Mapping[str, Any]:
     return value
 
 
+def _positive_timeout_seconds(value: float) -> float:
+    timeout = float(value)
+    if timeout <= 0:
+        raise ValueError("agent timeout must be greater than zero seconds")
+    return timeout
+
+
+def _consume_cancelled_task(task: asyncio.Task[Any]) -> None:
+    try:
+        task.result()
+    except asyncio.CancelledError:
+        return
+    except Exception:
+        return
+
+
 def _required_string(data: Mapping[str, Any], key: str, ref: str) -> str:
     value = data.get(key)
     if not isinstance(value, str) or not value.strip():
@@ -628,6 +722,7 @@ def _session_id(intent: IntentDraft, profile_ref: str, workspace_ref: str) -> st
 __all__ = [
     "ACCEPTANCE_DRAFT_OUTPUT",
     "ALIGNMENT_DECISION_OUTPUT",
+    "DEFAULT_AGENT_TIMEOUT_SECONDS",
     "REQUIREMENT_DRAFT_OUTPUT",
     "AlignmentSessionError",
     "AlignmentSessionManager",

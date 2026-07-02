@@ -1,0 +1,131 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:9383dac922471e33e7c96f547e141b12e554df9b1f59a622849933d7025b9252",
+    "planId": "PLAN-4cb258fbff9e0451",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:0086bbbb0086cccc0086dddd0086eeee0086ffff0086aaaa0086bbbb0086cccc",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-task-0086",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:0086aaaa0086bbbb0086cccc0086dddd0086eeee0086ffff0086aaaa0086bbbb",
+    "goalRef": "GOAL-LOOP-0086",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 8,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 40,
+          "maxWallSeconds": 2100
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:b710bab2fc710e296584de36ca7f71aacc7b0e2abceee14820fbf8bd542e009b",
+            "resources": [
+              "src/ahra/cli.py",
+              "src/ahra/workflow_a_cli.py",
+              "tests/test_cli.py",
+              "tests/test_workflow_a_cli.py"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "grantDigest": "sha256:29c8f71e459bf77dc8d0e7af7f760b9a58ed4dee9aeb136c1b49b197948d250d",
+            "resources": [
+              "uv run python -B scripts/check.py --test"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0086"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "workflow-a-start-workspace-fix",
+            "schemaRef": "ahra/artifact/code-change/0.1"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        ],
+        "gateRefs": [
+          "GATE-task-0086",
+          "GATE-task-0086-semantic-review"
+        ],
+        "id": "NODE-task-0086",
+        "inputRefs": [
+          "input/loop-0086@sha256:0086cccc0086dddd0086eeee0086ffff0086aaaa0086bbbb0086cccc0086dddd"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Fix WF-A-FORMAL-001 in src/ahra/workflow_a_cli.py (and its CLI\nwiring in src/ahra/cli.py only if required): ahra workflow-a start\nmust create the session workspace directory, the artifact\ndirectory, and the store parent directory when they are missing,\nor fail closed with a structured error naming the offending path.\nDo not change any other lifecycle stage semantics. Add a test that\nreproduces the WF-A-FORMAL-001 failure (start with a missing\nworkspace directory) and proves the fix, in\ntests/test_workflow_a_cli.py or tests/test_cli.py.\nRun uv run python -B scripts/check.py --test and record it in\nWorkReport.verification_commands_run.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 2100
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0086"
+        ],
+        "dependsOn": [
+          "NODE-task-0086"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0086"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the WF-A-FORMAL-001 fix and its regression test are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ]
+  }
+}

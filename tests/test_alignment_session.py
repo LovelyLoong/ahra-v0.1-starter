@@ -183,6 +183,32 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, "missing_claim_graph")
         self.assertEqual(raised.exception.ref, "agentOutput.claimGraph")
 
+    def test_hanging_agent_timeout_records_resumable_snapshot(self) -> None:
+        manager = AlignmentSessionManager(HangingAlignmentDriver(), agent_timeout_seconds=0.01)
+        snapshot = manager.start(_intent())
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            asyncio.run(manager.advance(snapshot, "This driver will not finish."))
+
+        self.assertEqual(raised.exception.code, "agent_driver_timeout")
+        self.assertEqual(raised.exception.to_dict()["data"]["expectedOutput"], ALIGNMENT_DECISION_OUTPUT)
+        timed_out = raised.exception.snapshot
+        self.assertIsInstance(timed_out, AlignmentSessionSnapshot)
+        assert isinstance(timed_out, AlignmentSessionSnapshot)
+        self.assertEqual(timed_out.stage, "awaiting_user")
+        self.assertEqual(timed_out.turns[-1].actor, "agent:error")
+        self.assertEqual(timed_out.turns[-1].error["code"], "agent_driver_timeout")
+
+        resumed = asyncio.run(AlignmentSessionManager(FakeAlignmentDriver()).advance(timed_out, "Try again."))
+
+        self.assertEqual(resumed.stage, "awaiting_user")
+
+
+class HangingAlignmentDriver:
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        await asyncio.Event().wait()
+        raise AssertionError(f"unexpected completion for {request.expected_output}")
+
 
 class FakeAlignmentDriver:
     def __init__(

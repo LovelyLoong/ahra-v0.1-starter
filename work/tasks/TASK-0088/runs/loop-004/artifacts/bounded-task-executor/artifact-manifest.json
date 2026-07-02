@@ -1,0 +1,60 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0088",
+  "artifacts": [
+    {
+      "artifact_id": "ART-04e586388b1647dc80ec359b5193c208",
+      "task_id": "task-0088",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/task-0088/attempt-1/patch.diff",
+      "sha256": "edbecd19197c053a2766614291349ddf60dec5cbd512b76044b2529bf82582fa",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-02T10:03:27.021236Z",
+      "input_refs": [
+        "task-0088",
+        "NRUN-374a74a0b9bdc986"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-66cb096a92cc432d9646a342e8e86799",
+      "task_id": "task-0088",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/task-0088/attempt-1/work-report.json",
+      "sha256": "e81051f832ba68c6cfb9a1e2216e540bd9a71ce61127532c3b7e4e7fbc16b692",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-02T10:03:27.023230Z",
+      "input_refs": [
+        "task-0088",
+        "NRUN-374a74a0b9bdc986"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-8d8bc4b22df94de2ae0d85a75588c333",
+      "task_id": "task-0088",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-task-0088/node-run.json",
+      "sha256": "a8ba11d76a8ccce1fbd9f178f27b23126eeb53ae385251856aa1f5963cc8df82",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-02T10:04:03.808128Z",
+      "input_refs": [
+        "PLAN-36244f2783e0ce9f",
+        "NODE-task-0088",
+        "NRUN-374a74a0b9bdc986"
+      ],
+      "evidence_refs": [
+        "EVD-25d889a0027f46abae206a8ecfa111fc"
+      ],
+      "supersedes": null
+    }
+  ]
+}

@@ -41,7 +41,13 @@ def is_task_run_artifact(path: Path) -> bool:
     except ValueError:
         return False
     parts = rel.parts
-    return len(parts) >= 4 and parts[0] == "work" and parts[1] == "tasks" and parts[3] == "runs"
+    if len(parts) < 4 or parts[0] != "work" or parts[1] != "tasks":
+        return False
+    # Run output lives under work/tasks/<TASK>/runs/. A run's worktree can
+    # materialize a full repo copy that nests its own work/tasks/<TASK>/runs/
+    # tree, so treat "runs" at any depth below the task dir as run byproduct
+    # rather than authored content.
+    return "runs" in parts[3:]
 
 
 def err(path: Path, message: str) -> None:

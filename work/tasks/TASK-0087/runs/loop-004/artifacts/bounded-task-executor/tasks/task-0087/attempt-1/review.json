@@ -1,0 +1,29 @@
+{
+  "verdict": "pass",
+  "summary": "All acceptance criteria have explicit deterministic evidence and the patch stays within the allowed file scope.",
+  "criteria": [
+    {
+      "criterion": "CLM-TASK-0087",
+      "passed": true,
+      "evidence": "Patch updates src/ahra/adapters/codex_sdk.py to recognize AlignmentTurnDecision, RequirementDraft, and AcceptanceDraft, validate their output contracts, return mapping outputs consumed by AlignmentSessionManager, and convert malformed JSON into AgentOutputContractError. The recorded command uv run python -B scripts/check.py --test passed with 330 tests run.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/adapters/codex_sdk.py",
+      "passed": true,
+      "evidence": "Deterministic required-artifact check exited 0, and git diff shows non-empty modifications to src/ahra/adapters/codex_sdk.py.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: codex-alignment-output-parsing",
+      "passed": true,
+      "evidence": "tests/test_codex_sdk_driver.py adds fake-client tests for AlignmentTurnDecision, RequirementDraft, AcceptanceDraft, and malformed alignment JSON; all are shown passing in the recorded test output.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [],
+  "non_blocking_issues": [
+    "The patch adds a broad prompt checkpoint saying not to run shell or process verification for all roles. It did not block this task's evidence, but it may be worth reviewing separately because executor requests can have granted verification commands."
+  ],
+  "confidence": 0.9
+}

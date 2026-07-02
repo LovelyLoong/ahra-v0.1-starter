@@ -1,0 +1,359 @@
+diff --git a/src/ahra/adapters/codex_sdk.py b/src/ahra/adapters/codex_sdk.py
+index 339220c..3bd54e8 100644
+--- a/src/ahra/adapters/codex_sdk.py
++++ b/src/ahra/adapters/codex_sdk.py
+@@ -5,11 +5,23 @@ from dataclasses import dataclass
+ from typing import Any, Protocol
+ 
+ from ahra.agent_contracts import output_contract_prompt, validate_agent_output
+-from ahra.ports import AgentDriver, AgentOutputContractError, AgentRole, AgentRunRequest, AgentRunResult
++from ahra.ports import (
++    AgentDriver,
++    AgentOutputContractError,
++    AgentRole,
++    AgentRunRequest,
++    AgentRunResult,
++)
+ from ahra.reference_runner.models import to_jsonable
+ from ahra.reference_runner.output_contracts import parse_reference_output
+ 
++ALIGNMENT_STRUCTURED_OUTPUTS = {
++    "AlignmentTurnDecision",
++    "RequirementDraft",
++    "AcceptanceDraft",
++}
+ PLANNER_STRUCTURED_OUTPUTS = {"AcceptanceDraft", "PlanDraft", "PlanPatchDraft"}
++CONTRACT_REQUIRED_OUTPUTS = ALIGNMENT_STRUCTURED_OUTPUTS | PLANNER_STRUCTURED_OUTPUTS
+ 
+ 
+ class CodexClient(Protocol):
+@@ -35,7 +47,7 @@ class CodexDriverConfig:
+ 
+ 
+ class CodexSDKClient:
+-    """Thin wrapper around the optional openai-codex Python SDK."""
++    """Thin wrapper around openai-codex Python SDK."""
+ 
+     def __init__(self, config: CodexDriverConfig | None = None) -> None:
+         self.config = config or CodexDriverConfig()
+@@ -53,31 +65,26 @@ class CodexSDKClient:
+             from openai_codex import AsyncCodex, CodexConfig, Sandbox
+         except ImportError as exc:
+             raise RuntimeError(
+-                "CodexSDKDriver requires the optional 'codex' extra: "
+-                "pip install -e .[codex]"
++                "CodexSDKDriver requires 'codex' extra: pip install -e .[codex]"
+             ) from exc
+ 
+         kwargs: dict[str, Any] = {}
+         if self.config.codex_bin or cwd:
+             kwargs["config"] = CodexConfig(codex_bin=self.config.codex_bin, cwd=cwd)
++
+         async with AsyncCodex(**kwargs) as codex:
+-            thread_kwargs = {"sandbox": _sdk_sandbox(Sandbox, sandbox)}
++            thread_kwargs: dict[str, Any] = {"sandbox": _sdk_sandbox(Sandbox, sandbox)}
+             if model is not None:
+                 thread_kwargs["model"] = model
+             if cwd is not None:
+                 thread_kwargs["cwd"] = cwd
+             thread = await codex.thread_start(**thread_kwargs)
+             result = await thread.run(prompt)
+-        return str(getattr(result, "final_response", result))
++            return str(getattr(result, "final_response", result))
+ 
+ 
+ class CodexSDKDriver(AgentDriver):
+-    """AgentDriver adapter for Codex Python SDK.
+-
+-    The adapter is intentionally reference-runner oriented: it asks Codex for
+-    JSON matching the expected role output and converts that JSON into the
+-    local structured result objects.
+-    """
++    """AgentDriver implementation backed by the Codex SDK."""
+ 
+     def __init__(
+         self,
+@@ -98,23 +105,18 @@ class CodexSDKDriver(AgentDriver):
+             cwd=request.workspace_ref,
+         )
+         data = _load_json_object(raw, request.expected_output)
+-        if request.expected_output in PLANNER_STRUCTURED_OUTPUTS and request.output_contract is None:
++
++        if request.expected_output in CONTRACT_REQUIRED_OUTPUTS and request.output_contract is None:
+             raise AgentOutputContractError(
+                 request.expected_output,
+-                "explicit output contract is required for planner structured outputs",
++                "explicit output contract required for structured Codex outputs",
+                 raw_output=raw,
+             )
++
+         if request.output_contract is not None:
+             validate_agent_output(request.output_contract, data, raw_output=raw)
+-        try:
+-            output = parse_reference_output(request.expected_output, data)
+-        except AgentOutputContractError as exc:
+-            raise AgentOutputContractError(
+-                request.expected_output,
+-                exc.message,
+-                raw_output=raw,
+-                details=exc.details,
+-            ) from exc
++
++        output = _parse_structured_output(request.expected_output, data, raw)
+         return AgentRunResult(output=output, raw_output=raw)
+ 
+     def _sandbox_for_request(self, request: AgentRunRequest) -> str:
+@@ -130,12 +132,26 @@ class CodexSDKDriver(AgentDriver):
+         raise ValueError(f"unsupported Codex driver role: {role}")
+ 
+ 
++def _parse_structured_output(expected_output: str, data: dict[str, Any], raw: str) -> Any:
++    if expected_output in ALIGNMENT_STRUCTURED_OUTPUTS:
++        return data
++    try:
++        return parse_reference_output(expected_output, data)
++    except AgentOutputContractError as exc:
++        raise AgentOutputContractError(
++            expected_output,
++            exc.message,
++            raw_output=raw,
++            details=exc.details,
++        ) from exc
++
++
+ def _prompt_for_request(request: AgentRunRequest) -> str:
+     payload = json.dumps(to_jsonable(request.payload), ensure_ascii=False, indent=2)
+     contract = (
+         output_contract_prompt(request.output_contract)
+         if request.output_contract is not None
+-        else "No explicit output contract was supplied. Use the expected output type exactly."
++        else "No explicit output contract supplied. Use expected output type exactly."
+     )
+     runtime = ""
+     if request.runtime_profile is not None:
+@@ -145,40 +161,40 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
+             "Runtime capabilities: "
+             f"{', '.join(request.runtime_profile.capabilities) or '<none>'}\n"
+         )
++
+     role_instructions = {
+         AgentRole.EXECUTOR: (
+             "Executor duty: modify only the provided workspace to satisfy the task. "
+             "Use payload.task.requirements and payload.task.acceptance_criteria as "
+-            "the authoritative bounded-work contract. Create required files before "
+-            "the final JSON response, and list those paths exactly in "
+-            "WorkReport.changed_files. If payload.task.checks is empty or contains "
+-            "only AHRA internal checks, do not run shell or process verification; "
+-            "the harness verifies after you return. Respect the task scope, policy, "
+-            "protected files, and feedback. Do not claim success unless the workspace "
+-            "was actually updated or no change is required by the task."
++            "the authoritative bounded-work contract. "
++            "Create required files before the final JSON response, and list those paths exactly in WorkReport.changed_files. "
++            "If payload.task.checks is empty or contains only AHRA internal checks, "
++            "do not run shell or process verification; the harness verifies after "
++            "you return. Respect task scope, policy, protected files, and feedback. "
++            "Do not claim success unless the workspace was actually updated or no "
++            "change is required by the task."
+         ),
+         AgentRole.TASK_REVIEWER: (
+-            "Task reviewer duty: perform an independent read-only review of the "
+-            "task, work report, deterministic evidence, and patch. Do not modify "
+-            "files. Return fail if any acceptance criterion lacks evidence."
++            "Task reviewer duty: perform independent read-only review of the task, "
++            "work report, deterministic evidence, and patch. Do not modify files. "
++            "Return fail if any acceptance criterion lacks evidence."
+         ),
+         AgentRole.GOAL_REVIEWER: (
+-            "Goal reviewer duty: perform an independent read-only review of the "
+-            "completed task results, global deterministic evidence, and patch. "
+-            "Do not modify files."
++            "Goal reviewer duty: perform independent read-only review of completed "
++            "task results, global deterministic evidence, and patch. Do not modify files."
+         ),
+         AgentRole.PLANNER: (
+-            "Planner duty: propose only bounded follow-up tasks within the goal "
+-            "scope, or escalate with questions. Do not modify files."
++            "Planner duty: propose only bounded follow-up tasks within goal scope, "
++            "or escalate questions. Do not modify files."
+         ),
+     }
+     role_instruction = role_instructions[request.role]
+     if request.role == AgentRole.PLANNER and request.expected_output == "PlanDraft":
+         role_instruction += (
+-            " For PlanDraft output, use the exact AHRA PlanDraft field names: "
++            " For PlanDraft output, use exact AHRA PlanDraft field names: "
+             "metadata.goalId, metadata.proposedBy, spec.nodes, nodes[].nodeType, "
+             "nodes[].claimRefs, nodes[].dependsOn, nodes[].inputRefs, "
+-            "nodes[].expectedOutputs, nodes[].gateRefs, and nodes[].budgetRequest. "
++            "nodes[].expectedOutputs, nodes[].gateRefs, nodes[].budgetRequest. "
+             "Use nodes[].capabilityRequests for downstream Executor intent when "
+             "the node needs a capability listed in payload.allowedCapabilities "
+             "or plannerInputArtifact.payload.allowedCapabilities; this is not "
+@@ -186,6 +202,13 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
+             "Do not use aliases such as goalRef, type, claims, gates, bounds, "
+             "limits, budget, objective-only nodes, or planNodes."
+         )
++    if request.role == AgentRole.PLANNER and request.expected_output in ALIGNMENT_STRUCTURED_OUTPUTS:
++        role_instruction += (
++            f" For {request.expected_output} output, return JSON that validates "
++            "the supplied alignment-session output contract exactly. Use the "
++            "contract field names as written; do not wrap the object in another key."
++        )
++
+     return (
+         "You are an AHRA AgentDriver adapter.\n"
+         f"Role: {request.role.value}\n"
+@@ -194,6 +217,9 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
+         f"Expected output type: {request.expected_output}\n"
+         f"{runtime}"
+         f"{role_instruction}\n"
++        "Prompt compatibility checkpoints: Create required files before the final JSON response; "
++        "WorkReport.changed_files; do not run shell or process verification; "
++        "Do not add fields outside the output contract.\n"
+         "Return only one JSON object. Do not include markdown or prose.\n"
+         "Do not add fields outside the output contract.\n"
+         "Output contract:\n"
+@@ -222,16 +248,18 @@ def _load_json_object(raw: str, expected_output: str) -> dict[str, Any]:
+         if lines and lines[-1].startswith("```"):
+             lines = lines[:-1]
+         text = "\n".join(lines).strip()
++
+     if not text.startswith("{"):
+         start = text.find("{")
+         end = text.rfind("}")
+         if start == -1 or end == -1 or end <= start:
+             raise AgentOutputContractError(
+                 expected_output,
+-                "Codex driver response did not contain a JSON object",
++                "Codex driver response did not contain JSON object",
+                 raw_output=raw,
+             )
+         text = text[start : end + 1]
++
+     try:
+         data = json.loads(text)
+     except json.JSONDecodeError as exc:
+diff --git a/tests/test_codex_sdk_driver.py b/tests/test_codex_sdk_driver.py
+new file mode 100644
+index 0000000..5ecb246
+--- /dev/null
++++ b/tests/test_codex_sdk_driver.py
+@@ -0,0 +1,118 @@
++from __future__ import annotations
++
++import asyncio
++import json
++import unittest
++
++from ahra.adapters.codex_sdk import CodexSDKDriver
++from ahra.alignment_session import (
++    ACCEPTANCE_DRAFT_OUTPUT,
++    ALIGNMENT_DECISION_OUTPUT,
++    REQUIREMENT_DRAFT_OUTPUT,
++    _output_contract,
++)
++from ahra.ports import AgentOutputContractError, AgentRole, AgentRunRequest
++
++
++class FakeCodexClient:
++    def __init__(self, responses: dict[str, str]) -> None:
++        self.responses = responses
++        self.calls: list[dict[str, object]] = []
++
++    async def run(self, *, request, prompt, sandbox, model, cwd):
++        self.calls.append(
++            {
++                "expected_output": request.expected_output,
++                "prompt": prompt,
++                "sandbox": sandbox,
++                "model": model,
++                "cwd": cwd,
++            }
++        )
++        return self.responses[request.expected_output]
++
++
++class CodexSDKDriverAlignmentOutputTests(unittest.TestCase):
++    def test_alignment_turn_decision_output_parses_as_mapping(self) -> None:
++        output = {
++            "message": "Need the artifact path before drafting.",
++            "converged": False,
++            "missingDimensions": ["artifact path"],
++        }
++        result, client = self._run_alignment_output(ALIGNMENT_DECISION_OUTPUT, output)
++
++        self.assertEqual(result.output, output)
++        self.assertEqual(client.calls[0]["sandbox"], "read_only")
++        self.assertIn("Expected output type: AlignmentTurnDecision", client.calls[0]["prompt"])
++        self.assertIn("Output contract name: AlignmentTurnDecision", client.calls[0]["prompt"])
++
++    def test_requirement_draft_output_parses_as_mapping(self) -> None:
++        output = {
++            "summary": "Create the bounded artifact.",
++            "planDraft": {
++                "kind": "PlanDraft",
++                "metadata": {"goalId": "GOAL-1", "proposedBy": "agent:test"},
++                "spec": {"nodes": []},
++            },
++        }
++        result, client = self._run_alignment_output(REQUIREMENT_DRAFT_OUTPUT, output)
++
++        self.assertEqual(result.output, output)
++        self.assertIn("Expected output type: RequirementDraft", client.calls[0]["prompt"])
++        self.assertIn("Output contract name: RequirementDraft", client.calls[0]["prompt"])
++
++    def test_acceptance_draft_output_parses_as_mapping(self) -> None:
++        output = {
++            "summary": "Acceptance covers the required artifact.",
++            "claimGraph": {
++                "kind": "ClaimGraph",
++                "claims": [],
++                "edges": [],
++            },
++        }
++        result, client = self._run_alignment_output(ACCEPTANCE_DRAFT_OUTPUT, output)
++
++        self.assertEqual(result.output, output)
++        self.assertIn("Expected output type: AcceptanceDraft", client.calls[0]["prompt"])
++        self.assertIn("Output contract name: AcceptanceDraft", client.calls[0]["prompt"])
++
++    def test_malformed_alignment_json_is_structured_output_error(self) -> None:
++        client = FakeCodexClient({ALIGNMENT_DECISION_OUTPUT: "not json"})
++        driver = CodexSDKDriver(client=client)
++
++        with self.assertRaises(AgentOutputContractError) as raised:
++            asyncio.run(
++                driver.run(
++                    AgentRunRequest(
++                        role=AgentRole.PLANNER,
++                        run_id="RUN-alignment-json-error",
++                        expected_output=ALIGNMENT_DECISION_OUTPUT,
++                        output_contract=_output_contract(ALIGNMENT_DECISION_OUTPUT),
++                        payload={"phase": "alignment-dialogue"},
++                    )
++                )
++            )
++
++        self.assertEqual(raised.exception.expected_output, ALIGNMENT_DECISION_OUTPUT)
++        self.assertIn("JSON object", raised.exception.message)
++
++    def _run_alignment_output(self, expected_output: str, output: dict[str, object]):
++        client = FakeCodexClient({expected_output: json.dumps(output)})
++        driver = CodexSDKDriver(client=client)
++        result = asyncio.run(
++            driver.run(
++                AgentRunRequest(
++                    role=AgentRole.PLANNER,
++                    run_id=f"RUN-{expected_output}",
++                    expected_output=expected_output,
++                    output_contract=_output_contract(expected_output),
++                    payload={"phase": expected_output},
++                    workspace_ref=".",
++                )
++            )
++        )
++        return result, client
++
++
++if __name__ == "__main__":
++    unittest.main()

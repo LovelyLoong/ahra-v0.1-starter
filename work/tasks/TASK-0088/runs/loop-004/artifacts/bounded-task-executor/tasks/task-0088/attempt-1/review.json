@@ -1,0 +1,57 @@
+{
+  "verdict": "pass",
+  "summary": "All acceptance criteria have explicit evidence. The patch implements configurable Workflow A AgentDriver timeouts, structured timeout errors, resumable snapshots, CLI timeout options for advance and draft, and hanging-driver tests. The required verification command passed.",
+  "criteria": [
+    {
+      "criterion": "CLM-TASK-0088",
+      "passed": true,
+      "evidence": "Patch implements workflow-a-turn-timeout behavior in src/ahra/alignment_session.py and src/ahra/workflow_a_cli.py, with CLI wiring in src/ahra/cli.py. Policy evidence shows only allowed files changed and no violations.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/alignment_session.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for src/ahra/alignment_session.py passed with exit_code 0; patch shows non-empty implementation changes.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for src/ahra/cli.py passed with exit_code 0; patch shows non-empty CLI changes.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/workflow_a_cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for src/ahra/workflow_a_cli.py passed with exit_code 0; patch shows non-empty timeout handling changes.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_alignment_session.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for tests/test_alignment_session.py passed with exit_code 0; patch adds hanging AgentDriver timeout coverage.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for tests/test_cli.py passed with exit_code 0; patch updates Workflow A CLI lifecycle test to exercise --timeout-seconds parsing path.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_workflow_a_cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for tests/test_workflow_a_cli.py passed with exit_code 0; patch adds a new hanging-driver draft timeout test.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: workflow-a-turn-timeout",
+      "passed": true,
+      "evidence": "Patch adds DEFAULT_AGENT_TIMEOUT_SECONDS, asyncio.wait_for around AgentDriver calls, structured agent_driver_timeout errors, persisted error snapshots for advance and draft paths, --timeout-seconds on both CLI subcommands, and hanging-driver tests. uv run python -B scripts/check.py --test passed with 328 tests run.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [],
+  "non_blocking_issues": [],
+  "confidence": 0.9
+}

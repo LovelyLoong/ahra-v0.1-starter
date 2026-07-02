@@ -1,5 +1,150 @@
 {
+  "evidence": [
+    {
+      "created_at": "2026-07-02T08:37:48.077386Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_id": "EVD-1a29f94f411abf74",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-1a29f94f411abf74.json",
+      "refs": [
+        "ART-TASK-0088-0001",
+        "GATERUN-1a29f94f411abf74",
+        "GEXEC-3a3e2f2351c9c4a7"
+      ],
+      "sha256": "7b5b5620c39c8c501f20e1f74015f5c2d95868388c4f318f049ef5030115008d",
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-evidence/EVD-1a29f94f411abf74.json"
+    },
+    {
+      "created_at": "2026-07-02T08:37:48.079557Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_id": "EVD-c7fd04244380ba9e",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-c7fd04244380ba9e.json",
+      "refs": [
+        "ART-TASK-0088-0002",
+        "GATERUN-c7fd04244380ba9e",
+        "GEXEC-3a3e2f2351c9c4a7"
+      ],
+      "sha256": "eff7c88f2c6a5fd96658b2a40689ba13b11d8b83eb8fb3368fd6fa7cfe848569",
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-evidence/EVD-c7fd04244380ba9e.json"
+    },
+    {
+      "created_at": "2026-07-02T08:37:48.082061Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_id": "EVD-cad7c06ebcbf54b1",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-cad7c06ebcbf54b1.json",
+      "refs": [
+        "ART-TASK-0088-0003",
+        "GATERUN-cad7c06ebcbf54b1",
+        "GEXEC-3a3e2f2351c9c4a7"
+      ],
+      "sha256": "876ddc2b60b6a84aef7c317accf1769ce47c53b28b79d1864a292d7430572145",
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-evidence/EVD-cad7c06ebcbf54b1.json"
+    },
+    {
+      "created_at": "2026-07-02T08:44:06.855855Z",
+      "created_by": "agent:independent-verifier",
+      "evidence_id": "EVD-TASK-0088-0001",
+      "kind": "evidence_gate_report",
+      "media_type": "application/json",
+      "name": "evidence-gate-report-5.json",
+      "refs": [
+        "ART-TASK-0088-0005"
+      ],
+      "sha256": "9e9eb7526166e4311654ffe964ea5872ec7be0a6f603a59cdf2eed41eb6c8b52",
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/evidence-gate-report-5.json"
+    },
+    {
+      "created_at": "2026-07-02T08:45:39.833688Z",
+      "created_by": "agent:independent-verifier",
+      "evidence_id": "EVD-TASK-0088-0002",
+      "kind": "evidence_gate_report",
+      "media_type": "application/json",
+      "name": "evidence-gate-report-8.json",
+      "refs": [
+        "ART-TASK-0088-0006",
+        "EVD-1a29f94f411abf74",
+        "EVD-c7fd04244380ba9e",
+        "EVD-cad7c06ebcbf54b1"
+      ],
+      "sha256": "ea4854e69b7eec9c99e850d589c06ef71a9054a9a93a5624fcde0bc267b1f238",
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/evidence-gate-report-8.json"
+    },
+    {
+      "created_at": "2026-07-02T10:05:07.391858Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_id": "EVD-2c520496f6982d5c",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-2c520496f6982d5c.json",
+      "refs": [
+        "ART-TASK-0088-0007",
+        "GATERUN-2c520496f6982d5c",
+        "GEXEC-8cd04e0803bead65"
+      ],
+      "sha256": "0217977e33a747e6625618bc4a51094681b9343346afab15e44831c1e85b7b1b",
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-evidence/EVD-2c520496f6982d5c.json"
+    },
+    {
+      "created_at": "2026-07-02T10:05:07.393853Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_id": "EVD-6b3183f8b120886d",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-6b3183f8b120886d.json",
+      "refs": [
+        "ART-TASK-0088-0008",
+        "GATERUN-6b3183f8b120886d",
+        "GEXEC-8cd04e0803bead65"
+      ],
+      "sha256": "b0f8d5aa44715e10baf16c8c33d7ecdaee0db7219eb06f0925593a954ee7ab8b",
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-evidence/EVD-6b3183f8b120886d.json"
+    },
+    {
+      "created_at": "2026-07-02T10:05:07.396842Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_id": "EVD-c7568e0d661805c6",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-c7568e0d661805c6.json",
+      "refs": [
+        "ART-TASK-0088-0009",
+        "GATERUN-c7568e0d661805c6",
+        "GEXEC-8cd04e0803bead65"
+      ],
+      "sha256": "a3d76ec45815e2f8ea0cfce15bdd25a2983714e3b4a1f921f5ba0ece1a2e3daf",
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-evidence/EVD-c7568e0d661805c6.json"
+    },
+    {
+      "evidence_id": "EVD-TASK-0088-0003",
+      "task_id": "TASK-0088",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-12.json",
+      "uri": "local://evidence/evidence-gate-report-12.json",
+      "sha256": "f4aea7b1a38a7b7c8cb66eb23c88ecd777d0f648a2b83c47ca352ad1b1d7bd7b",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-02T10:05:07.518679Z",
+      "refs": [
+        "ART-TASK-0088-0011",
+        "EVD-2c520496f6982d5c",
+        "EVD-6b3183f8b120886d",
+        "EVD-c7568e0d661805c6"
+      ]
+    }
+  ],
   "schema_version": "awkp/0.1",
-  "task_id": "TASK-0088",
-  "evidence": []
+  "task_id": "TASK-0088"
 }

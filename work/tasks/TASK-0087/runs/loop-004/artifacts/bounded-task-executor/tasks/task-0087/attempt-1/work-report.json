@@ -1,0 +1,12 @@
+{
+  "summary": "Updated CodexSDKDriver to prompt for and parse AlignmentTurnDecision, RequirementDraft, and AcceptanceDraft JSON outputs, returning structured AgentRunResult mappings and converting malformed model JSON into AgentOutputContractError. Added fake-client coverage for all three alignment outputs and malformed JSON.",
+  "changed_files": [
+    "src/ahra/adapters/codex_sdk.py",
+    "tests/test_codex_sdk_driver.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --test"
+  ],
+  "known_risks": [],
+  "unresolved_items": []
+}

@@ -1,0 +1,605 @@
+diff --git a/src/ahra/alignment_session.py b/src/ahra/alignment_session.py
+index 4f1bf1b..a769122 100644
+--- a/src/ahra/alignment_session.py
++++ b/src/ahra/alignment_session.py
+@@ -1,5 +1,6 @@
+ from __future__ import annotations
+ 
++import asyncio
+ from dataclasses import dataclass, replace
+ from typing import Any, Mapping
+ 
+@@ -36,20 +37,35 @@ from .ports import (
+ ALIGNMENT_DECISION_OUTPUT = "AlignmentTurnDecision"
+ REQUIREMENT_DRAFT_OUTPUT = "RequirementDraft"
+ ACCEPTANCE_DRAFT_OUTPUT = "AcceptanceDraft"
++DEFAULT_AGENT_TIMEOUT_SECONDS = 60.0
+ 
+ 
+ class AlignmentSessionError(ValueError):
+     """Structured failure for alignment-session contract violations."""
+ 
+-    def __init__(self, code: str, message: str, *, ref: str, refs: tuple[str, ...] = ()) -> None:
++    def __init__(
++        self,
++        code: str,
++        message: str,
++        *,
++        ref: str,
++        refs: tuple[str, ...] = (),
++        data: Mapping[str, Any] | None = None,
++        snapshot: Any | None = None,
++    ) -> None:
+         self.code = code
+         self.message = message
+         self.ref = ref
+         self.refs = refs or (ref,)
++        self.data = dict(data or {})
++        self.snapshot = snapshot
+         super().__init__(f"{code} {ref}: {message}")
+ 
+     def to_dict(self) -> dict[str, Any]:
+-        return {"code": self.code, "message": self.message, "ref": self.ref, "refs": list(self.refs)}
++        payload = {"code": self.code, "message": self.message, "ref": self.ref, "refs": list(self.refs)}
++        if self.data:
++            payload["data"] = self.data
++        return payload
+ 
+ 
+ @dataclass(frozen=True, slots=True)
+@@ -59,6 +75,7 @@ class AlignmentSessionTurn:
+     message: str
+     expected_output: str | None = None
+     trace_ref: str | None = None
++    error: Mapping[str, Any] | None = None
+ 
+     @classmethod
+     def from_mapping(cls, data: Mapping[str, Any]) -> "AlignmentSessionTurn":
+@@ -68,6 +85,7 @@ class AlignmentSessionTurn:
+             message=str(data["message"]),
+             expected_output=str(data["expectedOutput"]) if data.get("expectedOutput") else None,
+             trace_ref=str(data["traceRef"]) if data.get("traceRef") else None,
++            error=_mapping(data["error"], "turn.error") if data.get("error") else None,
+         )
+ 
+     def to_mapping(self) -> dict[str, Any]:
+@@ -80,6 +98,8 @@ class AlignmentSessionTurn:
+             data["expectedOutput"] = self.expected_output
+         if self.trace_ref:
+             data["traceRef"] = self.trace_ref
++        if self.error:
++            data["error"] = dict(self.error)
+         return data
+ 
+ 
+@@ -123,7 +143,15 @@ class AlignmentSessionSnapshot:
+     def next_turn_index(self) -> int:
+         return len(self.turns) + 1
+ 
+-    def append_turn(self, *, actor: str, message: str, expected_output: str | None = None, trace_ref: str | None = None) -> "AlignmentSessionSnapshot":
++    def append_turn(
++        self,
++        *,
++        actor: str,
++        message: str,
++        expected_output: str | None = None,
++        trace_ref: str | None = None,
++        error: Mapping[str, Any] | None = None,
++    ) -> "AlignmentSessionSnapshot":
+         return replace(
+             self,
+             turns=(
+@@ -134,6 +162,7 @@ class AlignmentSessionSnapshot:
+                     message=message,
+                     expected_output=expected_output,
+                     trace_ref=trace_ref,
++                    error=error,
+                 ),
+             ),
+         )
+@@ -183,6 +212,7 @@ class AlignmentSessionManager:
+         profile_registry: GoalOperationProfileRegistry | None = None,
+         default_profile_ref: str = DEVELOPMENT_BOUNDED_PROFILE_REF,
+         max_dialogue_turns: int = 8,
++        agent_timeout_seconds: float = DEFAULT_AGENT_TIMEOUT_SECONDS,
+     ) -> None:
+         if registry is not None and profile_registry is not None:
+             raise ValueError("pass either registry or profile_registry, not both")
+@@ -190,6 +220,7 @@ class AlignmentSessionManager:
+         self.registry = registry or RequestDraftRegistry(profiles=profile_registry or GoalOperationProfileRegistry())
+         self.default_profile_ref = default_profile_ref
+         self.max_dialogue_turns = max_dialogue_turns
++        self.agent_timeout_seconds = _positive_timeout_seconds(agent_timeout_seconds)
+ 
+     def start(
+         self,
+@@ -248,23 +279,28 @@ class AlignmentSessionManager:
+         if len(current.turns) >= self.max_dialogue_turns * 2:
+             raise AlignmentSessionError("alignment_turn_limit", "alignment dialogue exceeded configured turn limit", ref="session.turns")
+         after_user = current.append_turn(actor=actor, message=user_message)
+-        driver_output = await self._run_agent(
+-            after_user,
+-            expected_output=ALIGNMENT_DECISION_OUTPUT,
+-            payload={
+-                "phase": "alignment-dialogue",
+-                "intent": after_user.intent.to_mapping(),
+-                "session": after_user.to_mapping(),
+-                "userMessage": user_message,
+-                "checklist": [
+-                    "output form",
+-                    "must-haves",
+-                    "must-nots",
+-                    "completion signal",
+-                    "allowed free zones",
+-                ],
+-            },
+-        )
++        try:
++            driver_output = await self._run_agent(
++                after_user,
++                expected_output=ALIGNMENT_DECISION_OUTPUT,
++                payload={
++                    "phase": "alignment-dialogue",
++                    "intent": after_user.intent.to_mapping(),
++                    "session": after_user.to_mapping(),
++                    "userMessage": user_message,
++                    "checklist": [
++                        "output form",
++                        "must-haves",
++                        "must-nots",
++                        "completion signal",
++                        "allowed free zones",
++                    ],
++                },
++            )
++        except AlignmentSessionError as exc:
++            if exc.code == "agent_driver_timeout":
++                exc.snapshot = self._snapshot_with_agent_error(after_user, exc, stage="awaiting_user")
++            raise
+         decision = _mapping(driver_output.output, ALIGNMENT_DECISION_OUTPUT)
+         agent_message = _required_string(decision, "message", ALIGNMENT_DECISION_OUTPUT)
+         converged = bool(decision.get("converged", False))
+@@ -336,28 +372,33 @@ class AlignmentSessionManager:
+                 "request drafting requires a frozen requirement snapshot",
+                 ref="session.frozenRequirement",
+             )
+-        requirement_result = await self._run_agent(
+-            current,
+-            expected_output=REQUIREMENT_DRAFT_OUTPUT,
+-            payload={
+-                "phase": "requirement-draft",
+-                "intent": current.intent.to_mapping(),
+-                "frozenRequirement": current.frozen_requirement,
+-                "profileRef": current.profile_ref,
+-                "runtimeRef": current.runtime_ref,
+-            },
+-        )
+-        acceptance_result = await self._run_agent(
+-            current,
+-            expected_output=ACCEPTANCE_DRAFT_OUTPUT,
+-            payload={
+-                "phase": "acceptance-draft",
+-                "intent": current.intent.to_mapping(),
+-                "frozenRequirement": current.frozen_requirement,
+-                "profileRef": current.profile_ref,
+-                "runtimeRef": current.runtime_ref,
+-            },
+-        )
++        try:
++            requirement_result = await self._run_agent(
++                current,
++                expected_output=REQUIREMENT_DRAFT_OUTPUT,
++                payload={
++                    "phase": "requirement-draft",
++                    "intent": current.intent.to_mapping(),
++                    "frozenRequirement": current.frozen_requirement,
++                    "profileRef": current.profile_ref,
++                    "runtimeRef": current.runtime_ref,
++                },
++            )
++            acceptance_result = await self._run_agent(
++                current,
++                expected_output=ACCEPTANCE_DRAFT_OUTPUT,
++                payload={
++                    "phase": "acceptance-draft",
++                    "intent": current.intent.to_mapping(),
++                    "frozenRequirement": current.frozen_requirement,
++                    "profileRef": current.profile_ref,
++                    "runtimeRef": current.runtime_ref,
++                },
++            )
++        except AlignmentSessionError as exc:
++            if exc.code == "agent_driver_timeout":
++                exc.snapshot = self._snapshot_with_agent_error(current, exc, stage="frozen")
++            raise
+         requirement = _mapping(requirement_result.output, REQUIREMENT_DRAFT_OUTPUT)
+         acceptance = _mapping(acceptance_result.output, ACCEPTANCE_DRAFT_OUTPUT)
+         request_draft = self._request_from_agent_outputs(current, requirement, acceptance)
+@@ -416,7 +457,44 @@ class AlignmentSessionManager:
+             ),
+             metadata={"alignmentSessionId": snapshot.session_id, "stage": snapshot.stage},
+         )
+-        return await self.agent_driver.run(request)
++        task = asyncio.create_task(self.agent_driver.run(request))
++        try:
++            return await asyncio.wait_for(asyncio.shield(task), timeout=self.agent_timeout_seconds)
++        except asyncio.TimeoutError as exc:
++            task.cancel()
++            task.add_done_callback(_consume_cancelled_task)
++            raise self._timeout_error(snapshot, expected_output) from exc
++
++    def _timeout_error(self, snapshot: AlignmentSessionSnapshot, expected_output: str) -> AlignmentSessionError:
++        return AlignmentSessionError(
++            "agent_driver_timeout",
++            f"AgentDriver timed out while producing {expected_output}",
++            ref="agentDriver.timeout",
++            refs=(expected_output, snapshot.stage),
++            data={
++                "expectedOutput": expected_output,
++                "timeoutSeconds": self.agent_timeout_seconds,
++                "alignmentSessionId": snapshot.session_id,
++            },
++        )
++
++    def _snapshot_with_agent_error(
++        self,
++        snapshot: AlignmentSessionSnapshot,
++        error: AlignmentSessionError,
++        *,
++        stage: str,
++    ) -> AlignmentSessionSnapshot:
++        expected_output = str(error.data.get("expectedOutput") or "AgentDriver")
++        return replace(
++            snapshot.append_turn(
++                actor="agent:error",
++                message=error.message,
++                expected_output=expected_output,
++                error=error.to_dict(),
++            ),
++            stage=stage,
++        )
+ 
+     def _resolve_profile(
+         self,
+@@ -579,6 +657,22 @@ def _mapping(value: Any, ref: str) -> Mapping[str, Any]:
+     return value
+ 
+ 
++def _positive_timeout_seconds(value: float) -> float:
++    timeout = float(value)
++    if timeout <= 0:
++        raise ValueError("agent timeout must be greater than zero seconds")
++    return timeout
++
++
++def _consume_cancelled_task(task: asyncio.Task[Any]) -> None:
++    try:
++        task.result()
++    except asyncio.CancelledError:
++        return
++    except Exception:
++        return
++
++
+ def _required_string(data: Mapping[str, Any], key: str, ref: str) -> str:
+     value = data.get(key)
+     if not isinstance(value, str) or not value.strip():
+@@ -628,6 +722,7 @@ def _session_id(intent: IntentDraft, profile_ref: str, workspace_ref: str) -> st
+ __all__ = [
+     "ACCEPTANCE_DRAFT_OUTPUT",
+     "ALIGNMENT_DECISION_OUTPUT",
++    "DEFAULT_AGENT_TIMEOUT_SECONDS",
+     "REQUIREMENT_DRAFT_OUTPUT",
+     "AlignmentSessionError",
+     "AlignmentSessionManager",
+diff --git a/src/ahra/cli.py b/src/ahra/cli.py
+index f74bdfb..6b58c94 100644
+--- a/src/ahra/cli.py
++++ b/src/ahra/cli.py
+@@ -11,6 +11,7 @@ from typing import Any
+ 
+ import yaml
+ 
++from ahra.alignment_session import AlignmentSessionError
+ from ahra.awkp_state_writer import AwkpTaskStateWriter
+ from ahra.awkp_task_creator import AwkpTaskCreateRequest, AwkpTaskCreator
+ from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
+@@ -94,6 +95,9 @@ def main(argv: list[str] | None = None) -> int:
+     args = parser.parse_args(raw_argv)
+     try:
+         result = _dispatch(args)
++    except AlignmentSessionError as exc:
++        _print({"ok": False, "error": exc.to_dict()}, stream=sys.stderr)
++        return 2
+     except GoalOperationError as exc:
+         _print({"ok": False, **exc.to_error_dict()}, stream=sys.stderr)
+         return 2
+@@ -182,6 +186,7 @@ def _workflow_a_command(args: argparse.Namespace) -> Any:
+                 message=args.message,
+                 actor=args.actor,
+                 driver=_workflow_a_driver(args),
++                timeout_seconds=args.timeout_seconds,
+             )
+         )
+     if args.workflow_a_command == "snapshot":
+@@ -195,6 +200,7 @@ def _workflow_a_command(args: argparse.Namespace) -> Any:
+                 request_draft_path=Path(args.request_draft),
+                 approval_path=Path(args.approval) if args.approval else None,
+                 driver=_workflow_a_driver(args),
++                timeout_seconds=args.timeout_seconds,
+             )
+         )
+     if args.workflow_a_command == "admit":
+@@ -632,6 +638,7 @@ def _build_parser(
+     workflow_a_advance.add_argument("--actor", default="human:maintainer", help="Actor for the alignment turn.")
+     workflow_a_advance.add_argument("--driver-ref", default="codex-python-sdk", help="AgentDriver ref.")
+     workflow_a_advance.add_argument("--enable-fixture-driver", action="store_true", help="Enable workflow-a-fixture driver for smoke tests only.")
++    workflow_a_advance.add_argument("--timeout-seconds", type=float, help="Maximum seconds to wait for one AgentDriver call.")
+     workflow_a_snapshot = workflow_a_commands.add_parser("snapshot", help="Read an experimental Workflow A session snapshot.")
+     workflow_a_snapshot.add_argument("--session", required=True, help="Session JSON path.")
+     workflow_a_approve = workflow_a_commands.add_parser("approve-requirement", help="Apply Human Gate 1 requirement approval.")
+@@ -643,6 +650,7 @@ def _build_parser(
+     workflow_a_draft.add_argument("--approval", help="Approval JSON path to write waiting_auth Gate 2 record.")
+     workflow_a_draft.add_argument("--driver-ref", default="codex-python-sdk", help="AgentDriver ref.")
+     workflow_a_draft.add_argument("--enable-fixture-driver", action="store_true", help="Enable workflow-a-fixture driver for smoke tests only.")
++    workflow_a_draft.add_argument("--timeout-seconds", type=float, help="Maximum seconds to wait for one AgentDriver call.")
+     workflow_a_admit = workflow_a_commands.add_parser("admit", help="Run RequestDraftAdmission on a RequestDraft JSON file.")
+     workflow_a_admit.add_argument("--request-draft", required=True, help="RequestDraft JSON path.")
+     workflow_a_authorize = workflow_a_commands.add_parser("authorize", help="Apply Human Gate 2 and freeze GoalExecutionRequest.")
+diff --git a/src/ahra/workflow_a_cli.py b/src/ahra/workflow_a_cli.py
+index 8d1b31f..924072c 100644
+--- a/src/ahra/workflow_a_cli.py
++++ b/src/ahra/workflow_a_cli.py
+@@ -11,6 +11,7 @@ from .alignment_session import (
+     ACCEPTANCE_DRAFT_OUTPUT,
+     ALIGNMENT_DECISION_OUTPUT,
+     REQUIREMENT_DRAFT_OUTPUT,
++    AlignmentSessionError,
+     AlignmentSessionManager,
+     AlignmentSessionSnapshot,
+ )
+@@ -82,9 +83,14 @@ async def advance_session(
+     message: str,
+     actor: str,
+     driver: AgentDriver,
++    timeout_seconds: float | None = None,
+ ) -> dict[str, Any]:
+-    manager = AlignmentSessionManager(driver)
+-    snapshot = await manager.advance(_load_snapshot(session_path), message, actor=actor)
++    manager = _manager(driver, timeout_seconds=timeout_seconds)
++    try:
++        snapshot = await manager.advance(_load_snapshot(session_path), message, actor=actor)
++    except AlignmentSessionError as exc:
++        _write_error_snapshot(session_path, exc)
++        raise
+     _write_json(session_path, snapshot.to_mapping())
+     return {"sessionPath": str(session_path), "snapshot": snapshot.to_mapping()}
+ 
+@@ -100,16 +106,33 @@ def read_snapshot(*, session_path: Path) -> dict[str, Any]:
+     return {"sessionPath": str(session_path), "snapshot": _load_snapshot(session_path).to_mapping()}
+ 
+ 
++def _manager(driver: AgentDriver, *, timeout_seconds: float | None) -> AlignmentSessionManager:
++    if timeout_seconds is None:
++        return AlignmentSessionManager(driver)
++    return AlignmentSessionManager(driver, agent_timeout_seconds=timeout_seconds)
++
++
++def _write_error_snapshot(session_path: Path, error: AlignmentSessionError) -> None:
++    snapshot = error.snapshot
++    if isinstance(snapshot, AlignmentSessionSnapshot):
++        _write_json(session_path, snapshot.to_mapping())
++
++
+ async def draft_request(
+     *,
+     session_path: Path,
+     request_draft_path: Path,
+     approval_path: Path | None,
+     driver: AgentDriver,
++    timeout_seconds: float | None = None,
+ ) -> dict[str, Any]:
+-    manager = AlignmentSessionManager(driver)
++    manager = _manager(driver, timeout_seconds=timeout_seconds)
+     approval_service = ApprovalService() if approval_path is not None else None
+-    result = await manager.draft_request(_load_snapshot(session_path), approval_service=approval_service)
++    try:
++        result = await manager.draft_request(_load_snapshot(session_path), approval_service=approval_service)
++    except AlignmentSessionError as exc:
++        _write_error_snapshot(session_path, exc)
++        raise
+     _write_json(session_path, result.snapshot.to_mapping())
+     _write_json(request_draft_path, result.request_draft.to_mapping())
+     payload: dict[str, Any] = {
+diff --git a/tests/test_alignment_session.py b/tests/test_alignment_session.py
+index da51122..688fa90 100644
+--- a/tests/test_alignment_session.py
++++ b/tests/test_alignment_session.py
+@@ -183,6 +183,32 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+         self.assertEqual(raised.exception.code, "missing_claim_graph")
+         self.assertEqual(raised.exception.ref, "agentOutput.claimGraph")
+ 
++    def test_hanging_agent_timeout_records_resumable_snapshot(self) -> None:
++        manager = AlignmentSessionManager(HangingAlignmentDriver(), agent_timeout_seconds=0.01)
++        snapshot = manager.start(_intent())
++
++        with self.assertRaises(AlignmentSessionError) as raised:
++            asyncio.run(manager.advance(snapshot, "This driver will not finish."))
++
++        self.assertEqual(raised.exception.code, "agent_driver_timeout")
++        self.assertEqual(raised.exception.to_dict()["data"]["expectedOutput"], ALIGNMENT_DECISION_OUTPUT)
++        timed_out = raised.exception.snapshot
++        self.assertIsInstance(timed_out, AlignmentSessionSnapshot)
++        assert isinstance(timed_out, AlignmentSessionSnapshot)
++        self.assertEqual(timed_out.stage, "awaiting_user")
++        self.assertEqual(timed_out.turns[-1].actor, "agent:error")
++        self.assertEqual(timed_out.turns[-1].error["code"], "agent_driver_timeout")
++
++        resumed = asyncio.run(AlignmentSessionManager(FakeAlignmentDriver()).advance(timed_out, "Try again."))
++
++        self.assertEqual(resumed.stage, "awaiting_user")
++
++
++class HangingAlignmentDriver:
++    async def run(self, request: AgentRunRequest) -> AgentRunResult:
++        await asyncio.Event().wait()
++        raise AssertionError(f"unexpected completion for {request.expected_output}")
++
+ 
+ class FakeAlignmentDriver:
+     def __init__(
+diff --git a/tests/test_cli.py b/tests/test_cli.py
+index d43c16a..c56e6cf 100644
+--- a/tests/test_cli.py
++++ b/tests/test_cli.py
+@@ -262,12 +262,14 @@ class CliTests(unittest.TestCase):
+                     str(session),
+                     "--message",
+                     "That boundary is complete.",
+-                    "--driver-ref",
+-                    "workflow-a-fixture",
+-                    "--enable-fixture-driver",
+-                ],
+-                cwd=root,
+-            )
++                "--driver-ref",
++                "workflow-a-fixture",
++                "--enable-fixture-driver",
++                "--timeout-seconds",
++                "1",
++            ],
++            cwd=root,
++        )
+             self.assertEqual(advance_code, 0)
+             self.assertEqual(
+                 advance_payload["result"]["snapshot"]["stage"],
+@@ -284,14 +286,16 @@ class CliTests(unittest.TestCase):
+                     str(request_draft),
+                     "--approval",
+                     str(approval),
+-                    "--driver-ref",
+-                    "workflow-a-fixture",
+-                    "--enable-fixture-driver",
+-                ],
+-                cwd=root,
+-            )
++                "--driver-ref",
++                "workflow-a-fixture",
++                "--enable-fixture-driver",
++                "--timeout-seconds",
++                "1",
++            ],
++            cwd=root,
++        )
+             self.assertEqual(draft_code, 2)
+-            self.assertIn("requirement approval", draft_payload["error"])
++            self.assertIn("requirement approval", draft_payload["error"]["message"])
+ 
+             bad_gate_code, bad_gate_payload, _ = _run_cli(
+                 [
+@@ -305,7 +309,7 @@ class CliTests(unittest.TestCase):
+                 cwd=root,
+             )
+             self.assertEqual(bad_gate_code, 2)
+-            self.assertIn("human actor", bad_gate_payload["error"])
++            self.assertIn("human actor", bad_gate_payload["error"]["message"])
+ 
+             approve_code, approve_payload, _ = _run_cli(
+                 [
+@@ -331,12 +335,14 @@ class CliTests(unittest.TestCase):
+                     str(request_draft),
+                     "--approval",
+                     str(approval),
+-                    "--driver-ref",
+-                    "workflow-a-fixture",
+-                    "--enable-fixture-driver",
+-                ],
+-                cwd=root,
+-            )
++                "--driver-ref",
++                "workflow-a-fixture",
++                "--enable-fixture-driver",
++                "--timeout-seconds",
++                "1",
++            ],
++            cwd=root,
++        )
+             self.assertEqual(draft_code, 0)
+             self.assertEqual(draft_payload["result"]["approval"]["status"], "waiting_auth")
+             self.assertEqual(Path(draft_payload["result"]["requestDraft"]["spec"]["artifactDir"]), expected_artifacts)
+diff --git a/tests/test_workflow_a_cli.py b/tests/test_workflow_a_cli.py
+new file mode 100644
+index 0000000..38ed17e
+--- /dev/null
++++ b/tests/test_workflow_a_cli.py
+@@ -0,0 +1,70 @@
++from __future__ import annotations
++
++import asyncio
++import tempfile
++import unittest
++from pathlib import Path
++
++from ahra.alignment_session import AlignmentSessionError, REQUIREMENT_DRAFT_OUTPUT
++from ahra.ports import AgentRunRequest, AgentRunResult
++from ahra.workflow_a_cli import (
++    WorkflowAFixtureDriver,
++    advance_session,
++    approve_requirement,
++    draft_request,
++    read_snapshot,
++    start_session,
++)
++
++
++ROOT = Path(__file__).resolve().parents[1]
++EXAMPLE = ROOT / "examples" / "intents" / "phase1-example-intent.yaml"
++
++
++class WorkflowACliTests(unittest.TestCase):
++    def test_draft_timeout_writes_structured_resumable_snapshot(self) -> None:
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            session = root / "session.json"
++            request_draft = root / "request-draft.json"
++
++            start_session(intent_path=EXAMPLE, session_path=session)
++            asyncio.run(
++                advance_session(
++                    session_path=session,
++                    message="Keep the scope local.",
++                    actor="human:maintainer",
++                    driver=WorkflowAFixtureDriver(),
++                )
++            )
++            approve_requirement(session_path=session, actor="human:maintainer")
++
++            with self.assertRaises(AlignmentSessionError) as raised:
++                asyncio.run(
++                    draft_request(
++                        session_path=session,
++                        request_draft_path=request_draft,
++                        approval_path=None,
++                        driver=HangingDriver(),
++                        timeout_seconds=0.01,
++                    )
++                )
++
++            self.assertEqual(raised.exception.code, "agent_driver_timeout")
++            self.assertEqual(raised.exception.to_dict()["data"]["expectedOutput"], REQUIREMENT_DRAFT_OUTPUT)
++            self.assertFalse(request_draft.exists())
++
++            snapshot = read_snapshot(session_path=session)["snapshot"]
++            self.assertEqual(snapshot["stage"], "frozen")
++            self.assertEqual(snapshot["turns"][-1]["actor"], "agent:error")
++            self.assertEqual(snapshot["turns"][-1]["error"]["code"], "agent_driver_timeout")
++
++
++class HangingDriver:
++    async def run(self, request: AgentRunRequest) -> AgentRunResult:
++        await asyncio.Event().wait()
++        raise AssertionError(f"unexpected completion for {request.expected_output}")
++
++
++if __name__ == "__main__":
++    unittest.main()

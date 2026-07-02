@@ -1,0 +1,15 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0088",
+  "verifier": "agent:independent-verifier",
+  "decision": "request_changes",
+  "summary": "Recovery request: the first loop-002 bridge invocation reached review without an existing verifier report input, so a corrected EvidenceGate input must be supplied before approval.",
+  "criteria": [
+    {
+      "criterion_index": 3,
+      "status": "failed",
+      "evidence_refs": [],
+      "notes": "AWKP EvidenceGate approval was not yet complete because the bridge report input file was missing at the first bridge attempt."
+    }
+  ]
+}

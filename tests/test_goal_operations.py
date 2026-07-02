@@ -1032,6 +1032,46 @@ class GoalOperationCliTests(unittest.TestCase):
 
             self.assertEqual((task_dir / "state.json").read_text(encoding="utf-8"), before)
 
+    def test_goal_awkp_bridge_rejects_missing_report_before_state_write(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            goal_root = root / "goal"
+            goal_root.mkdir()
+            task_dir = _write_bridge_task(root)
+            request_path = _copy_command_gate_request(goal_root)
+            gate_input = goal_root / "workspace" / "inputs" / "command-gate.txt"
+            gate_input.parent.mkdir(parents=True)
+            gate_input.write_text("fixed\n", encoding="utf-8")
+            start_code, start_payload = _run_cli(["goal", "start", str(request_path)])
+            self.assertEqual(start_code, 0)
+            start_result = start_payload["result"]
+            self.assertEqual(start_result["goalStatus"], "succeeded")
+            before_state = (task_dir / "state.json").read_text(encoding="utf-8")
+            before_events = (task_dir / "events.jsonl").read_text(encoding="utf-8")
+            before_artifacts = (task_dir / "artifact-manifest.json").read_text(encoding="utf-8")
+            before_evidence = (task_dir / "evidence-manifest.json").read_text(encoding="utf-8")
+
+            with self.assertRaisesRegex(GoalOperationError, "verifier report input does not exist"):
+                GoalAwkpBridge(work_root=root / "work").run(
+                    GoalAwkpBridgeRequest(
+                        goal_execution_id=start_result["goalExecutionId"],
+                        task="TASK-BRIDGE",
+                        work_root=root / "work",
+                        expected_task_version=1,
+                        producer_actor="agent:producer",
+                        verifier_actor="agent:verifier",
+                        fencing_token="FENCE-bridge",
+                        report_paths=(root / "missing-report.json",),
+                        db_path=goal_root / ".ahra" / "goal-control.sqlite3",
+                        artifact_dir=goal_root / ".ahra" / "artifacts",
+                    )
+                )
+
+            self.assertEqual((task_dir / "state.json").read_text(encoding="utf-8"), before_state)
+            self.assertEqual((task_dir / "events.jsonl").read_text(encoding="utf-8"), before_events)
+            self.assertEqual((task_dir / "artifact-manifest.json").read_text(encoding="utf-8"), before_artifacts)
+            self.assertEqual((task_dir / "evidence-manifest.json").read_text(encoding="utf-8"), before_evidence)
+
     def test_finish_active_plan_if_terminal_finalizes_failed_goal(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             request_path = _copy_request(Path(temp))

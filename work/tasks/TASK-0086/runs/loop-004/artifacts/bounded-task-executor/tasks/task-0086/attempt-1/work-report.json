@@ -1,0 +1,12 @@
+{
+  "summary": "workflow-a-start-workspace-fix: updated workflow-a start to create missing workspace, artifact, and store parent directories before session creation; added a regression test for starting from a missing workspace directory. Existing required files src/ahra/cli.py and tests/test_cli.py were not changed.",
+  "changed_files": [
+    "src/ahra/workflow_a_cli.py",
+    "tests/test_workflow_a_cli.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --test"
+  ],
+  "known_risks": [],
+  "unresolved_items": []
+}

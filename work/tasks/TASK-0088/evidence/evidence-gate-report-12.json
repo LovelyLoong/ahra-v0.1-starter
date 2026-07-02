@@ -1,0 +1,92 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0088",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-02T10:05:07.518679Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Approve loop-004: Workflow A real-driver timeout behavior is implemented with structured timeout errors, ports.py is unchanged by the task, and the corrected Workflow B GoalExecution succeeded from the repository-root workspace.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "workflow-a advance and workflow-a draft accept a timeout option with a safe default and abort a hanging driver call with a structured timeout error while the session snapshot stays consistent and resumable, covered by a hanging fake-driver test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-2c520496f6982d5c",
+        "EVD-6b3183f8b120886d"
+      ],
+      "notes": "advance and draft now accept timeout settings and wrap AgentDriver.run with bounded structured timeout handling; hanging-driver tests cover the behavior."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "src/ahra/ports.py is unchanged by this task.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-2c520496f6982d5c",
+        "EVD-6b3183f8b120886d"
+      ],
+      "notes": "WorkReport changed_files excludes src/ahra/ports.py; this task did not change the AgentDriver port contract."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The change is produced by a Workflow B development-bounded GoalExecution with kernel-derived completion, then approved through the AWKP EvidenceGate by an independent verifier.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-c7568e0d661805c6",
+        "EVD-6b3183f8b120886d"
+      ],
+      "notes": "GoalExecution GEXEC-8cd04e0803bead65 completed from the repository-root workspace and is being approved by an independent verifier."
+    }
+  ],
+  "commands": [
+    {
+      "command_id": "CMD-loop-004-tests",
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed",
+      "criterion_indices": [
+        1,
+        2
+      ],
+      "evidence_refs": [
+        "EVD-2c520496f6982d5c"
+      ]
+    },
+    {
+      "command_id": "CMD-loop-004-goal-complete",
+      "command": "uv run python -B -m ahra.cli goal start work/tasks/TASK-0088/runs/loop-004/goal-request.yaml --allow-development-agent",
+      "status": "passed",
+      "criterion_indices": [
+        3
+      ],
+      "evidence_refs": [
+        "EVD-c7568e0d661805c6"
+      ]
+    }
+  ],
+  "semantic_reviews": [
+    {
+      "review_id": "REV-loop-004-task-0088-semantic",
+      "status": "passed",
+      "reviewer": "agent:independent-verifier",
+      "criterion_indices": [
+        1,
+        2,
+        3
+      ],
+      "changed_files": [
+        "src/ahra/alignment_session.py",
+        "src/ahra/cli.py",
+        "src/ahra/workflow_a_cli.py",
+        "tests/test_alignment_session.py",
+        "tests/test_cli.py",
+        "tests/test_workflow_a_cli.py"
+      ],
+      "changed_files_sha256": "sha256:8d7dc44f9b0d903e79db085242bf576de9caf45ab28f5b4782cbc4e01434583d",
+      "verified_changed_files_sha256": "sha256:8d7dc44f9b0d903e79db085242bf576de9caf45ab28f5b4782cbc4e01434583d",
+      "evidence_refs": [
+        "EVD-6b3183f8b120886d"
+      ]
+    }
+  ]
+}

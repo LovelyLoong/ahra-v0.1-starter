@@ -1,0 +1,160 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: loop-task-0087-rerun-004
+  requestId: GREQ-LOOP-0087-RERUN-004
+  idempotencyKey: loop:task-0087:rerun:4
+spec:
+  profileRef: profile/development-bounded
+  workspaceRef: ../../../../..
+  artifactDir: artifacts
+  store:
+    kind: sqlite
+    path: goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-LOOP-0087
+    goalDigest: sha256:0087aaaa0087bbbb0087cccc0087dddd0087eeee0087ffff0087aaaa0087bbbb
+    claimGraphRef: claim-graph/loop-0087
+    claimGraphDigest: sha256:0087bbbb0087cccc0087dddd0087eeee0087ffff0087aaaa0087bbbb0087cccc
+    requiredClaimRefs:
+    - CLM-TASK-0087
+    - CLM-GOAL-COMPLETE
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-task-0087: sha256:3333333333333333333333333333333333333333333333333333333333333333
+      GATE-task-0087-semantic-review: sha256:5555555555555555555555555555555555555555555555555555555555555555
+      GATE-goal-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+    - filesystem.write
+    - process.exec
+  execution:
+    maxRepairCycles: 0
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-LOOP-0087
+      proposedBy: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    spec:
+      rationale: 'Self-hosting loop, Increment F / Phase A-prime. Fix WF-A-FORMAL-002
+        per
+
+        work/tasks/TASK-0087/task.md: CodexSDKDriver must parse the Workflow A
+
+        alignment expected outputs. Declared filesystem.write resources are the
+
+        request-scoped allowlist admitted by TASK-0085.
+
+        '
+      nodes:
+      - id: NODE-task-0087
+        nodeType: bounded_task
+        objective: 'Fix WF-A-FORMAL-002 in src/ahra/adapters/codex_sdk.py:
+
+          CodexSDKDriver must support AgentRunRequest expected outputs
+
+          AlignmentTurnDecision, RequirementDraft, and AcceptanceDraft as
+
+          defined in src/ahra/alignment_session.py. For each, the driver
+
+          prompts Codex for JSON matching the expected output contract and
+
+          converts it into the structured AgentRunResult that
+
+          AlignmentSessionManager consumes. Malformed model JSON must be
+
+          rejected with a structured error, never an unhandled crash. Do not
+
+          import the Codex SDK anywhere outside the adapter, and do not
+
+          modify src/ahra/ports.py. Add fake-client tests in
+
+          tests/test_codex_sdk_driver.py (or the existing Codex driver test
+
+          module) covering all three outputs and the malformed-JSON path.
+
+          Run uv run python -B scripts/check.py --test and record it in
+
+          WorkReport.verification_commands_run.
+
+          '
+        claimRefs:
+        - CLM-TASK-0087
+        dependsOn: []
+        inputRefs:
+        - input/loop-0087@sha256:0087cccc0087dddd0087eeee0087ffff0087aaaa0087bbbb0087cccc0087dddd
+        expectedOutputs:
+        - name: codex-alignment-output-parsing
+          schemaRef: ahra/artifact/code-change/0.1
+          consumerNodeRefs:
+          - NODE-goal-verification
+          artifactRequired: true
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - src/ahra/adapters/codex_sdk.py
+          - tests/test_codex_*.py
+        - capability: process.exec
+          resources:
+          - uv run python -B scripts/check.py --test
+        gateRefs:
+        - GATE-task-0087
+        - GATE-task-0087-semantic-review
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 8
+          maxToolCalls: 40
+          maxSpawnedNodes: 0
+          maxWallSeconds: 2100
+          maxCostUsd: 1.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: true
+        timeoutSeconds: 2100
+        sideEffect: mutating
+      - id: NODE-goal-verification
+        nodeType: goal_verification
+        objective: Verify the Codex alignment-output parsing and its fake-client tests
+          are present and consistent.
+        claimRefs:
+        - CLM-TASK-0087
+        - CLM-GOAL-COMPLETE
+        dependsOn:
+        - NODE-task-0087
+        inputRefs:
+        - NODE-task-0087
+        expectedOutputs: []
+        capabilityRequests: []
+        gateRefs:
+        - GATE-goal-complete
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 1
+          maxSpawnedNodes: 0
+          maxWallSeconds: 60
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        timeoutSeconds: 60
+        sideEffect: idempotent
+        terminalGoalVerification: true

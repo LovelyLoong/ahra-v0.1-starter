@@ -1,0 +1,57 @@
+{
+  "verdict": "pass",
+  "summary": "All acceptance criteria have explicit evidence. The patch creates the missing workflow-a start directories before session creation, preserves other lifecycle stages, adds a regression test, and the required test command passed.",
+  "criteria": [
+    {
+      "criterion": "CLM-TASK-0086",
+      "passed": true,
+      "evidence": "Patch updates src/ahra/workflow_a_cli.py so start_session calls _prepare_start_paths before AlignmentSessionManager.start; tests/test_workflow_a_cli.py adds test_start_creates_missing_workspace_artifact_and_store_parent; uv run python -B scripts/check.py --test passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for src/ahra/cli.py passed with exit_code 0; read-only file inspection showed the file is present and non-empty.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/workflow_a_cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for src/ahra/workflow_a_cli.py passed with exit_code 0; patch modifies this file with non-empty implementation code.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for tests/test_cli.py passed with exit_code 0; read-only file inspection showed the file is present and non-empty.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_workflow_a_cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for tests/test_workflow_a_cli.py passed with exit_code 0; patch adds a non-empty regression test file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: workflow-a-start-workspace-fix",
+      "passed": true,
+      "evidence": "WorkReport summary names workflow-a-start-workspace-fix and changed files contain the corresponding code change and regression test; policy evidence reports no violations.",
+      "concerns": []
+    },
+    {
+      "criterion": "workflow-a start creates missing workspace, artifact, and store parent directories or fails closed with structured path errors",
+      "passed": true,
+      "evidence": "_prepare_start_paths normalizes workspace_ref, artifact_dir, and store_path, then _ensure_directory creates workspace, artifacts, and store.parent. _ensure_directory raises OSError or ValueError with the offending path, and cli.main catches OSError/ValueError into a structured JSON error. The regression test asserts the missing directories are created and snapshot paths match.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required verification command was run and recorded",
+      "passed": true,
+      "evidence": "WorkReport.verification_commands_run contains uv run python -B scripts/check.py --test; deterministic evidence shows the same command exited 0 after running 327 tests with OK.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [],
+  "non_blocking_issues": [],
+  "confidence": 0.9
+}

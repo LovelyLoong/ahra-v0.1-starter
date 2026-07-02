@@ -1,0 +1,71 @@
+{
+  "verdict": "fail",
+  "summary": "Reviewer output failed the deterministic review contract. Original summary: All acceptance criteria have explicit supporting evidence, including timeout implementation, CLI wiring, structured resumable timeout snapshots, required artifacts, policy compliance, and passing deterministic tests.",
+  "criteria": [
+    {
+      "criterion": "CLM-TASK-0088",
+      "passed": true,
+      "evidence": "Patch inspection shows workflow-a AgentDriver calls are wrapped with asyncio.wait_for using DEFAULT_AGENT_DRIVER_TIMEOUT_SECONDS=60.0, timeout errors are represented by AlignmentSessionTimeoutError, and workflow_a_cli persists the timeout snapshot before re-raising.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/alignment_session.py",
+      "passed": true,
+      "evidence": "Artifact check passed with exit_code 0; read-only file inspection found src/ahra/alignment_session.py length 29368 bytes.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/cli.py",
+      "passed": true,
+      "evidence": "Artifact check passed with exit_code 0; read-only file inspection found src/ahra/cli.py length 40893 bytes.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/workflow_a_cli.py",
+      "passed": true,
+      "evidence": "Artifact check passed with exit_code 0; read-only file inspection found src/ahra/workflow_a_cli.py length 16043 bytes.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_alignment_session.py",
+      "passed": true,
+      "evidence": "Artifact check passed with exit_code 0; read-only file inspection found tests/test_alignment_session.py length 16118 bytes.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_cli.py",
+      "passed": true,
+      "evidence": "Artifact check passed with exit_code 0; read-only file inspection found tests/test_cli.py length 29722 bytes.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_workflow_a_cli.py",
+      "passed": true,
+      "evidence": "Artifact check passed with exit_code 0; read-only file inspection found tests/test_workflow_a_cli.py length 5338 bytes.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: workflow-a-turn-timeout",
+      "passed": true,
+      "evidence": "tests/test_workflow_a_cli.py adds hanging-driver coverage for advance and draft timeouts, structured agent_driver_timeout errors, persisted lastError data, resumable snapshots, and successful resume paths; reported verification shows both new tests passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "Run uv run python -B scripts/check.py --test and record it in WorkReport.verification_commands_run.",
+      "passed": true,
+      "evidence": "WorkReport lists uv run python -B scripts/check.py --test, and deterministic evidence shows the same command exited 0 after running 327 tests with OK.",
+      "concerns": []
+    },
+    {
+      "criterion": "Do not modify src/ahra/ports.py or the AgentDriver protocol.",
+      "passed": true,
+      "evidence": "Read-only git diff inspection showed no diff for src/ahra/ports.py; changed files are limited to alignment_session.py, cli.py, workflow_a_cli.py, test_cli.py, and test_workflow_a_cli.py.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [
+    "Reviewer assessed unknown criteria: ['Do not modify src/ahra/ports.py or the AgentDriver protocol.', 'Run uv run python -B scripts/check.py --test and record it in WorkReport.verification_commands_run.']"
+  ],
+  "non_blocking_issues": [],
+  "confidence": 0.92
+}

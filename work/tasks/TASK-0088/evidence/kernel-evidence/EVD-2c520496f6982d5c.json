@@ -1,0 +1,62 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "Evidence",
+  "metadata": {
+    "evidenceId": "EVD-2c520496f6982d5c"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLM-TASK-0088"
+    ],
+    "confidence": "verified",
+    "dependencies": [],
+    "dependencyScope": "complete",
+    "environment": {
+      "policyDigest": "sha256:9b64794badd43e9690d0cb6847ee26fd9ba52950743eedd6381606c529c43a94",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:3dad9760677942d0fca6a2930403af3e15fede6e3d92962b91c9a1e7967946ab",
+      "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "fingerprint": "sha256:060ff4c9721d7b49cb1dc4fa8fffcc3c8c7477a104036463c1d04d7fb38374e5",
+    "gateDefinitionDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "gateRef": "GATE-task-0088",
+    "gateRunId": "GATERUN-2c520496f6982d5c",
+    "refs": [
+      "ART-task-0088-gate-run",
+      "GATERUN-2c520496f6982d5c"
+    ],
+    "result": "passed",
+    "subjects": [
+      {
+        "digest": "sha256:ab39c31cb1f8bb24089cb29871565ed1434235054e8ffaecb50c993fab5e4e7e",
+        "ref": "ART-04e586388b1647dc80ec359b5193c208"
+      },
+      {
+        "digest": "sha256:0aa3a949058e72d564261fb47483d4b44c28cc0f2949781f336e1552b4e22f54",
+        "ref": "ART-66cb096a92cc432d9646a342e8e86799"
+      },
+      {
+        "digest": "sha256:9590b1aa4889d699df460bb8206283c230b998aabd1a0e92c9221e72fe2e0528",
+        "ref": "ART-8d8bc4b22df94de2ae0d85a75588c333"
+      },
+      {
+        "digest": "sha256:035663681b6c6b1bb3bc144034d3772d7b1da9eaaaee7d0cee76de3ab35c662d",
+        "ref": "EVD-25d889a0027f46abae206a8ecfa111fc"
+      },
+      {
+        "digest": "sha256:fff083e3ae7043990c788a68631ed90bda1432f54bcc5a39f018e4f3facef934",
+        "ref": "EVD-b6eb3fa764604cb196eece50154f2cc2"
+      },
+      {
+        "digest": "sha256:8296eff7e3e4238c4e1624c1cc5c14de9106cab6bf36972aaa784e922ec6ef75",
+        "ref": "EVD-e5c17cc041e24e86a97836e1af852757"
+      }
+    ],
+    "supersedes": [],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

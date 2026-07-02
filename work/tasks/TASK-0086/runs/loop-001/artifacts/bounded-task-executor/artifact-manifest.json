@@ -1,0 +1,77 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0086",
+  "artifacts": [
+    {
+      "artifact_id": "ART-94f2561267634c878cbf7701f61e0ced",
+      "task_id": "task-0086",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/task-0086/attempt-1/patch.diff",
+      "sha256": "f53dd8f4bf20f64fc5ffcbc9065b101414c58e6d2e2579332e1c565c4eaaa2ff",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-02T07:16:33.083141Z",
+      "input_refs": [
+        "task-0086",
+        "NRUN-7a77b531b3881e8c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-378cab1d276e483f91152ab4ec584b4c",
+      "task_id": "task-0086",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/task-0086/attempt-1/work-report.json",
+      "sha256": "78a93f53053ca8f9986502970f6b2a136dc232ca99c63eee3ff75622a0364a7a",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-02T07:16:33.088124Z",
+      "input_refs": [
+        "task-0086",
+        "NRUN-7a77b531b3881e8c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-d6bd660b794f49b582d9c9c9fe753db1",
+      "task_id": "task-0086",
+      "kind": "rejected_patch",
+      "name": "rejected.patch",
+      "uri": "local://tasks/task-0086/rejected.patch",
+      "sha256": "f53dd8f4bf20f64fc5ffcbc9065b101414c58e6d2e2579332e1c565c4eaaa2ff",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-02T07:19:18.784097Z",
+      "input_refs": [
+        "task-0086",
+        "NRUN-7a77b531b3881e8c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-5ce968ec58a14badb9a2a0c0ee5943b0",
+      "task_id": "task-0086",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-task-0086/node-run.json",
+      "sha256": "9fa1ccc4dd3995a20ca3928123403425742a70c86a3963277cb5dbcca6717cf0",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-02T07:19:19.077339Z",
+      "input_refs": [
+        "PLAN-4cb258fbff9e0451",
+        "NODE-task-0086",
+        "NRUN-7a77b531b3881e8c"
+      ],
+      "evidence_refs": [
+        "EVD-bd3594223b0a4414bd859221624a9fc0"
+      ],
+      "supersedes": null
+    }
+  ]
+}

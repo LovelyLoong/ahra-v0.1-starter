@@ -1,0 +1,110 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanDraft",
+  "metadata": {
+    "goalId": "GOAL-LOOP-0088",
+    "proposedBy": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "spec": {
+    "nodes": [
+      {
+        "budgetRequest": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 8,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 40,
+          "maxWallSeconds": 2100
+        },
+        "capabilityRequests": [
+          {
+            "capability": "filesystem.write",
+            "resources": [
+              "src/ahra/alignment_session.py",
+              "src/ahra/cli.py",
+              "src/ahra/workflow_a_cli.py",
+              "tests/test_alignment_session.py",
+              "tests/test_cli.py",
+              "tests/test_workflow_a_cli.py"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "resources": [
+              "uv run python -B scripts/check.py --test"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0088"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "workflow-a-turn-timeout",
+            "schemaRef": "ahra/artifact/code-change/0.1"
+          }
+        ],
+        "gateRefs": [
+          "GATE-task-0088",
+          "GATE-task-0088-semantic-review"
+        ],
+        "id": "NODE-task-0088",
+        "inputRefs": [
+          "input/loop-0088@sha256:0088cccc0088dddd0088eeee0088ffff0088aaaa0088bbbb0088cccc0088dddd"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Fix WF-A-FORMAL-003: ahra workflow-a advance and workflow-a draft\nmust bound the real AgentDriver call with a configurable timeout\nand a safe default, implemented at the alignment session or\nworkflow_a_cli layer (for example asyncio.wait_for around the\ndriver invocation). On timeout, record a structured timeout error\nand leave the session snapshot consistent and resumable; never\nhang. Do not modify src/ahra/ports.py or the AgentDriver protocol.\nWire a --timeout-seconds CLI option in src/ahra/cli.py for both\nsubcommands. Add a hanging fake-driver test proving the timeout\naborts, the error is structured, and the snapshot is resumable, in\ntests/test_alignment_session.py or tests/test_workflow_a_cli.py.\nRun uv run python -B scripts/check.py --test and record it in\nWorkReport.verification_commands_run.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 2100
+      },
+      {
+        "budgetRequest": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "capabilityRequests": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0088"
+        ],
+        "dependsOn": [
+          "NODE-task-0088"
+        ],
+        "expectedOutputs": [],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0088"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the Workflow A turn timeout and its hanging-driver test are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ],
+    "rationale": "Self-hosting loop, Increment F / Phase A-prime. Fix WF-A-FORMAL-003 per\nwork/tasks/TASK-0088/task.md: real-driver Workflow A turns must be\nbounded by a timeout at the alignment session layer. Declared\nfilesystem.write resources are the request-scoped allowlist admitted by\nTASK-0085.\n"
+  }
+}

@@ -1,0 +1,164 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: loop-task-0088-rerun-004
+  requestId: GREQ-LOOP-0088-RERUN-004
+  idempotencyKey: loop:task-0088:rerun:4
+spec:
+  profileRef: profile/development-bounded
+  workspaceRef: ../../../../..
+  artifactDir: artifacts
+  store:
+    kind: sqlite
+    path: goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-LOOP-0088
+    goalDigest: sha256:0088aaaa0088bbbb0088cccc0088dddd0088eeee0088ffff0088aaaa0088bbbb
+    claimGraphRef: claim-graph/loop-0088
+    claimGraphDigest: sha256:0088bbbb0088cccc0088dddd0088eeee0088ffff0088aaaa0088bbbb0088cccc
+    requiredClaimRefs:
+    - CLM-TASK-0088
+    - CLM-GOAL-COMPLETE
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-task-0088: sha256:3333333333333333333333333333333333333333333333333333333333333333
+      GATE-task-0088-semantic-review: sha256:5555555555555555555555555555555555555555555555555555555555555555
+      GATE-goal-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+    - filesystem.write
+    - process.exec
+  execution:
+    maxRepairCycles: 0
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-LOOP-0088
+      proposedBy: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    spec:
+      rationale: 'Self-hosting loop, Increment F / Phase A-prime. Fix WF-A-FORMAL-003
+        per
+
+        work/tasks/TASK-0088/task.md: real-driver Workflow A turns must be
+
+        bounded by a timeout at the alignment session layer. Declared
+
+        filesystem.write resources are the request-scoped allowlist admitted by
+
+        TASK-0085.
+
+        '
+      nodes:
+      - id: NODE-task-0088
+        nodeType: bounded_task
+        objective: 'Fix WF-A-FORMAL-003: ahra workflow-a advance and workflow-a draft
+
+          must bound the real AgentDriver call with a configurable timeout
+
+          and a safe default, implemented at the alignment session or
+
+          workflow_a_cli layer (for example asyncio.wait_for around the
+
+          driver invocation). On timeout, record a structured timeout error
+
+          and leave the session snapshot consistent and resumable; never
+
+          hang. Do not modify src/ahra/ports.py or the AgentDriver protocol.
+
+          Wire a --timeout-seconds CLI option in src/ahra/cli.py for both
+
+          subcommands. Add a hanging fake-driver test proving the timeout
+
+          aborts, the error is structured, and the snapshot is resumable, in
+
+          tests/test_alignment_session.py or tests/test_workflow_a_cli.py.
+
+          Run uv run python -B scripts/check.py --test and record it in
+
+          WorkReport.verification_commands_run.
+
+          '
+        claimRefs:
+        - CLM-TASK-0088
+        dependsOn: []
+        inputRefs:
+        - input/loop-0088@sha256:0088cccc0088dddd0088eeee0088ffff0088aaaa0088bbbb0088cccc0088dddd
+        expectedOutputs:
+        - name: workflow-a-turn-timeout
+          schemaRef: ahra/artifact/code-change/0.1
+          consumerNodeRefs:
+          - NODE-goal-verification
+          artifactRequired: true
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - src/ahra/alignment_session.py
+          - src/ahra/workflow_a_cli.py
+          - src/ahra/cli.py
+          - tests/test_alignment_session.py
+          - tests/test_workflow_a_cli.py
+          - tests/test_cli.py
+        - capability: process.exec
+          resources:
+          - uv run python -B scripts/check.py --test
+        gateRefs:
+        - GATE-task-0088
+        - GATE-task-0088-semantic-review
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 8
+          maxToolCalls: 40
+          maxSpawnedNodes: 0
+          maxWallSeconds: 2100
+          maxCostUsd: 1.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: true
+        timeoutSeconds: 2100
+        sideEffect: mutating
+      - id: NODE-goal-verification
+        nodeType: goal_verification
+        objective: Verify the Workflow A turn timeout and its hanging-driver test
+          are present and consistent.
+        claimRefs:
+        - CLM-TASK-0088
+        - CLM-GOAL-COMPLETE
+        dependsOn:
+        - NODE-task-0088
+        inputRefs:
+        - NODE-task-0088
+        expectedOutputs: []
+        capabilityRequests: []
+        gateRefs:
+        - GATE-goal-complete
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 1
+          maxSpawnedNodes: 0
+          maxWallSeconds: 60
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        timeoutSeconds: 60
+        sideEffect: idempotent
+        terminalGoalVerification: true

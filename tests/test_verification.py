@@ -420,6 +420,42 @@ class VerificationExecutorTests(unittest.TestCase):
         self.assertEqual(report.evidence_records, ())
         self.assertEqual(report.gate_execution_integrity, 0.0)
 
+    def test_semantic_review_suffix_uses_semantic_review_runner_without_definition(self) -> None:
+        registry = GateRunnerRegistry()
+        registry.register(DeterministicGateRunner())
+        semantic_runner = SemanticReviewGateRunner(
+            lambda request: SubjectiveGateDecision(
+                verdict="pass",
+                confidence=0.91,
+                rationale=f"{request.gate_ref} passed.",
+                verifier_identity="agent:semantic-judge",
+                trace_ref="trace://semantic-review",
+            ),
+            verifier_identity="agent:semantic-judge",
+            release_ref="*",
+        )
+        registry.register(semantic_runner)
+        context = replace(
+            _execution_context(),
+            gate_definitions={},
+            gate_definition_digests={},
+            gate_claim_refs={"GATE-node-semantic-review": ("CLAIM-cli-detects-stale-docs",)},
+            metadata={"producerIdentity": "agent:producer"},
+        )
+
+        report = asyncio.run(
+            VerificationExecutor(registry).execute_selection(
+                _execution_selection("GATE-node-semantic-review"),
+                context,
+            )
+        )
+
+        self.assertTrue(report.passed)
+        self.assertEqual(tuple(call.gate_ref for call in semantic_runner.calls), ("GATE-node-semantic-review",))
+        self.assertEqual(report.gate_runs[0].command[0], "semantic_review")
+        self.assertIn("verifier:agent:semantic-judge", report.evidence_records[0].refs)
+        self.assertEqual(report.evidence_records[0].confidence, "verified")
+
     def test_runner_exception_records_blocking_gate_run_and_evidence(self) -> None:
         report = asyncio.run(
             _verification_executor(_ExplodingGateRunner()).execute_selection(

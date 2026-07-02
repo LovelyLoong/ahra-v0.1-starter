@@ -1,0 +1,270 @@
+diff --git a/src/ahra/cli.py b/src/ahra/cli.py
+index f74bdfb..73bebe3 100644
+--- a/src/ahra/cli.py
++++ b/src/ahra/cli.py
+@@ -98,7 +98,7 @@ def main(argv: list[str] | None = None) -> int:
+         _print({"ok": False, **exc.to_error_dict()}, stream=sys.stderr)
+         return 2
+     except (EvidenceGateError, ValueError, OSError, RuntimeError) as exc:
+-        _print({"ok": False, "error": str(exc)}, stream=sys.stderr)
++        _print({"ok": False, **_error_payload(exc)}, stream=sys.stderr)
+         return 2
+     except Exception as exc:  # noqa: BLE001 - CLI must fail closed with a structured error.
+         _print({"ok": False, "error": repr(exc)}, stream=sys.stderr)
+@@ -578,6 +578,15 @@ def _print(payload: dict[str, Any], *, stream: Any | None = None) -> None:
+     print(json.dumps(payload, ensure_ascii=False, indent=2), file=stream)
+ 
+ 
++def _error_payload(exc: BaseException) -> dict[str, Any]:
++    to_error_dict = getattr(exc, "to_error_dict", None)
++    if callable(to_error_dict):
++        payload = to_error_dict()
++        if isinstance(payload, dict) and "error" in payload:
++            return dict(payload)
++    return {"error": str(exc)}
++
++
+ def _build_parser(
+     *,
+     include_legacy_workflow: bool = False,
+diff --git a/src/ahra/workflow_a_cli.py b/src/ahra/workflow_a_cli.py
+index 8d1b31f..d7ad976 100644
+--- a/src/ahra/workflow_a_cli.py
++++ b/src/ahra/workflow_a_cli.py
+@@ -48,6 +48,23 @@ class UnavailableWorkflowADriver:
+         raise RuntimeError(f"Workflow A command requires an AgentDriver for {request.expected_output}")
+ 
+ 
++class WorkflowAPathError(RuntimeError):
++    def __init__(self, code: str, message: str, *, path: Path, path_role: str) -> None:
++        self.code = code
++        self.message = message
++        self.path = str(path)
++        self.path_role = path_role
++        super().__init__(message)
++
++    def to_error_dict(self) -> dict[str, Any]:
++        return {
++            "code": self.code,
++            "error": self.message,
++            "path": self.path,
++            "pathRole": self.path_role,
++        }
++
++
+ def start_session(
+     *,
+     intent_path: Path,
+@@ -61,15 +78,23 @@ def start_session(
+     producer_actor: str = "agent:alignment-session",
+ ) -> dict[str, Any]:
+     intent = IntentDraft.from_mapping(load_document(intent_path))
++    normalized_workspace_ref = _normalize_cli_path(workspace_ref)
++    normalized_artifact_dir = _normalize_cli_path(artifact_dir)
++    normalized_store_path = _normalize_cli_path(store_path)
++    _prepare_start_paths(
++        workspace_ref=normalized_workspace_ref,
++        artifact_dir=normalized_artifact_dir,
++        store_path=normalized_store_path,
++    )
+     manager = AlignmentSessionManager(UnavailableWorkflowADriver())
+     snapshot = manager.start(
+         intent,
+         profile_ref=profile_ref,
+         runtime_ref=runtime_ref,
+         runtime_digest=runtime_digest,
+-        workspace_ref=_normalize_cli_path(workspace_ref),
+-        artifact_dir=_normalize_cli_path(artifact_dir),
+-        store_path=_normalize_cli_path(store_path),
++        workspace_ref=normalized_workspace_ref,
++        artifact_dir=normalized_artifact_dir,
++        store_path=normalized_store_path,
+         producer_actor=producer_actor,
+     )
+     _write_json(session_path, snapshot.to_mapping())
+@@ -226,6 +251,50 @@ def _write_yaml(path: Path, payload: Mapping[str, Any]) -> None:
+     path.write_text(yaml.safe_dump(dict(payload), sort_keys=False), encoding="utf-8")
+ 
+ 
++def _prepare_start_paths(*, workspace_ref: str, artifact_dir: str, store_path: str) -> None:
++    _ensure_directory(Path(workspace_ref), "workspaceRef")
++    _ensure_directory(Path(artifact_dir), "artifactDir")
++    store = Path(store_path)
++    _ensure_directory(store.parent, "storeParent")
++    if store.exists() and store.is_dir():
++        raise WorkflowAPathError(
++            "workflow_a_store_path_is_directory",
++            f"workflow-a start store path is a directory: {store}",
++            path=store,
++            path_role="storePath",
++        )
++
++
++def _ensure_directory(path: Path, path_role: str) -> None:
++    try:
++        if path.exists():
++            if not path.is_dir():
++                raise WorkflowAPathError(
++                    "workflow_a_path_not_directory",
++                    f"workflow-a start path for {path_role} is not a directory: {path}",
++                    path=path,
++                    path_role=path_role,
++                )
++            return
++        path.mkdir(parents=True, exist_ok=True)
++    except WorkflowAPathError:
++        raise
++    except OSError as exc:
++        raise WorkflowAPathError(
++            "workflow_a_path_unavailable",
++            f"workflow-a start could not create {path_role} directory: {path}: {exc}",
++            path=path,
++            path_role=path_role,
++        ) from exc
++    if not path.is_dir():
++        raise WorkflowAPathError(
++            "workflow_a_path_not_directory",
++            f"workflow-a start path for {path_role} is not a directory: {path}",
++            path=path,
++            path_role=path_role,
++        )
++
++
+ def _normalize_cli_path(value: str) -> str:
+     path = Path(value)
+     if path.is_absolute():
+@@ -357,6 +426,7 @@ def _fixture_acceptance_output() -> dict[str, Any]:
+ 
+ __all__ = [
+     "WorkflowAFixtureDriver",
++    "WorkflowAPathError",
+     "admit_request",
+     "advance_session",
+     "approve_requirement",
+diff --git a/tests/test_cli.py b/tests/test_cli.py
+index 1c4b0b5..5c0de50 100644
+--- a/tests/test_cli.py
++++ b/tests/test_cli.py
+@@ -249,6 +249,9 @@ class CliTests(unittest.TestCase):
+             )
+             self.assertEqual(start_code, 0)
+             self.assertEqual(start_payload["result"]["snapshot"]["stage"], "dialogue")
++            self.assertTrue(expected_workspace.is_dir())
++            self.assertTrue(expected_artifacts.is_dir())
++            self.assertTrue(expected_store.parent.is_dir())
+             self.assertEqual(Path(start_payload["result"]["snapshot"]["workspaceRef"]), expected_workspace)
+             self.assertEqual(Path(start_payload["result"]["snapshot"]["artifactDir"]), expected_artifacts)
+             self.assertEqual(Path(start_payload["result"]["snapshot"]["storePath"]), expected_store)
+diff --git a/tests/test_workflow_a_cli.py b/tests/test_workflow_a_cli.py
+new file mode 100644
+index 0000000..f719dfa
+--- /dev/null
++++ b/tests/test_workflow_a_cli.py
+@@ -0,0 +1,107 @@
++from __future__ import annotations
++
++import contextlib
++import io
++import json
++import os
++import tempfile
++import unittest
++from pathlib import Path
++
++from ahra import cli
++
++
++ROOT = Path(__file__).resolve().parents[1]
++
++
++def _run_cli(argv: list[str], *, cwd: Path | None = None) -> tuple[int, dict, str]:
++    stdout = io.StringIO()
++    stderr = io.StringIO()
++    old_cwd = Path.cwd()
++    if cwd is not None:
++        os.chdir(cwd)
++    try:
++        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
++            code = cli.main(argv)
++    finally:
++        if cwd is not None:
++            os.chdir(old_cwd)
++    payload = json.loads(stdout.getvalue() or stderr.getvalue())
++    return code, payload, stderr.getvalue()
++
++
++class WorkflowAStartPathTests(unittest.TestCase):
++    def test_start_creates_missing_workspace_artifact_and_store_parent(self) -> None:
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            intent = ROOT / "examples" / "intents" / "phase1-example-intent.yaml"
++            session = root / "workflow-a" / "session.json"
++            workspace = root / "workflow-a" / "workspace"
++            artifacts = root / "workflow-a" / "artifacts"
++            store = root / "workflow-a" / "store" / "goal-control.sqlite3"
++
++            self.assertFalse(workspace.exists())
++            self.assertFalse(artifacts.exists())
++            self.assertFalse(store.parent.exists())
++
++            code, payload, _ = _run_cli(
++                [
++                    "workflow-a",
++                    "start",
++                    str(intent),
++                    "--session",
++                    str(session),
++                    "--workspace-ref",
++                    str(Path("workflow-a") / "workspace"),
++                    "--artifact-dir",
++                    str(Path("workflow-a") / "artifacts"),
++                    "--store-path",
++                    str(Path("workflow-a") / "store" / "goal-control.sqlite3"),
++                ],
++                cwd=root,
++            )
++
++            self.assertEqual(code, 0)
++            self.assertTrue(workspace.is_dir())
++            self.assertTrue(artifacts.is_dir())
++            self.assertTrue(store.parent.is_dir())
++            self.assertFalse(store.exists())
++            self.assertEqual(Path(payload["result"]["snapshot"]["workspaceRef"]), workspace.resolve())
++            self.assertEqual(Path(payload["result"]["snapshot"]["artifactDir"]), artifacts.resolve())
++            self.assertEqual(Path(payload["result"]["snapshot"]["storePath"]), store.resolve())
++
++    def test_start_fails_closed_with_structured_path_error(self) -> None:
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            intent = ROOT / "examples" / "intents" / "phase1-example-intent.yaml"
++            session = root / "workflow-a" / "session.json"
++            workspace = root / "workspace-file"
++            workspace.write_text("not a directory\n", encoding="utf-8")
++
++            code, payload, _ = _run_cli(
++                [
++                    "workflow-a",
++                    "start",
++                    str(intent),
++                    "--session",
++                    str(session),
++                    "--workspace-ref",
++                    str(workspace),
++                    "--artifact-dir",
++                    str(root / "artifacts"),
++                    "--store-path",
++                    str(root / "store" / "goal-control.sqlite3"),
++                ],
++                cwd=root,
++            )
++
++            self.assertEqual(code, 2)
++            self.assertFalse(payload["ok"])
++            self.assertEqual(payload["code"], "workflow_a_path_not_directory")
++            self.assertEqual(payload["path"], str(workspace.resolve()))
++            self.assertEqual(payload["pathRole"], "workspaceRef")
++            self.assertIn(str(workspace.resolve()), payload["error"])
++
++
++if __name__ == "__main__":
++    unittest.main()

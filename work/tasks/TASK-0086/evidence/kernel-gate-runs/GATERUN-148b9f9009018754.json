@@ -1,0 +1,62 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateRun",
+  "metadata": {
+    "gateRunId": "GATERUN-148b9f9009018754"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLM-TASK-0086"
+    ],
+    "command": [
+      "deterministic-gate-runner",
+      "GATE-task-0086-semantic-review"
+    ],
+    "completedAt": "2026-07-02T08:31:50.539026Z",
+    "decisionAt": null,
+    "dependencies": [],
+    "environment": {
+      "policyDigest": "sha256:9b64794badd43e9690d0cb6847ee26fd9ba52950743eedd6381606c529c43a94",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:2c9542a225f732fea3559ce9bac6be7c38ce331c009fc5d6a43a37b4bb047d54",
+      "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "evidenceRef": "EVD-148b9f9009018754",
+    "fingerprint": "sha256:5c5cf336fa74367732e8c2640256ffe2e3215466bbd1b1413b23f8b4fece122f",
+    "gateDefinitionDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "gateRef": "GATE-task-0086-semantic-review",
+    "result": "passed",
+    "startedAt": "2026-07-02T08:31:50.539026Z",
+    "subjects": [
+      {
+        "digest": "sha256:908e8930e20f91a1886141f20ad269e27a08f360dee7b0a7fc912bc8fde6aa0b",
+        "ref": "ART-6075e2f34d6a499a946dd2e8b06abe21"
+      },
+      {
+        "digest": "sha256:6544666a7a51e32655391a3a3b7e3b150a2da4725889e86e749b1d5160f01bc2",
+        "ref": "ART-bb1a6e5e2e3d4dcea062012aa8277035"
+      },
+      {
+        "digest": "sha256:e3455187ba922d730bb6400c7a3be020fdff215db13d5939ac36c037900c1404",
+        "ref": "ART-fb7249f891a24673a43e22814d6aeeb8"
+      },
+      {
+        "digest": "sha256:49795fb426eb368810350534c5ef270eb190d4aba21d29aac11472293db89de3",
+        "ref": "EVD-4665267eee7f47e4a50089fb00764c5a"
+      },
+      {
+        "digest": "sha256:df07c6047c6cfd56e58681863374f4a282ce20d47f715405f1a2ea5bba9ce1f7",
+        "ref": "EVD-a1e2420051864d50b055684f2245fcf3"
+      },
+      {
+        "digest": "sha256:fe3a867c4d77ea4487361e280861ddf342330e726625145243fead8dd2349378",
+        "ref": "EVD-d159f2059fa14b3a96b11c771a1f5bae"
+      }
+    ],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0088",
+  "verifier": "agent:independent-verifier",
+  "decision": "request_changes",
+  "summary": "Reject loop-002 review evidence: the GoalExecution and bridge materialization resolved workspace-relative paths under work/tasks/TASK-0088 instead of the repository root, so the produced source changes and DB/artifact refs do not prove the main workspace implementation.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "failed",
+      "evidence_refs": [],
+      "command_refs": [],
+      "notes": "loop-002 wrote workflow-a timeout changes under work/tasks/TASK-0088/src and tests under work/tasks/TASK-0088/tests instead of the repository src/ and tests/ trees."
+    },
+    {
+      "criterion_index": 2,
+      "status": "failed",
+      "evidence_refs": [],
+      "command_refs": [],
+      "notes": "The review evidence comes from the mis-resolved nested workspace, so it does not establish that the repository copy of src/ahra/ports.py was preserved by this task."
+    },
+    {
+      "criterion_index": 3,
+      "status": "failed",
+      "evidence_refs": [],
+      "command_refs": [],
+      "notes": "The bridge input refs point at work/tasks/TASK-0088/work/tasks/TASK-0088/runs/loop-002; the AWKP review must be rerun from a request whose workspaceRef resolves to the repository root."
+    }
+  ],
+  "commands": []
+}

@@ -1,0 +1,133 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:e6b60bffabd22ba00161fb220b54571dcd6f4dd289b96d2410f252f7519298ae",
+    "planId": "PLAN-36244f2783e0ce9f",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:0088bbbb0088cccc0088dddd0088eeee0088ffff0088aaaa0088bbbb0088cccc",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-task-0088",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:0088aaaa0088bbbb0088cccc0088dddd0088eeee0088ffff0088aaaa0088bbbb",
+    "goalRef": "GOAL-LOOP-0088",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 8,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 40,
+          "maxWallSeconds": 2100
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:ac98aa541e3800664d5fbf459e920a4ebc9c66c46e183574c59555ab198514f6",
+            "resources": [
+              "src/ahra/alignment_session.py",
+              "src/ahra/cli.py",
+              "src/ahra/workflow_a_cli.py",
+              "tests/test_alignment_session.py",
+              "tests/test_cli.py",
+              "tests/test_workflow_a_cli.py"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "grantDigest": "sha256:29c8f71e459bf77dc8d0e7af7f760b9a58ed4dee9aeb136c1b49b197948d250d",
+            "resources": [
+              "uv run python -B scripts/check.py --test"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0088"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "workflow-a-turn-timeout",
+            "schemaRef": "ahra/artifact/code-change/0.1"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        ],
+        "gateRefs": [
+          "GATE-task-0088",
+          "GATE-task-0088-semantic-review"
+        ],
+        "id": "NODE-task-0088",
+        "inputRefs": [
+          "input/loop-0088@sha256:0088cccc0088dddd0088eeee0088ffff0088aaaa0088bbbb0088cccc0088dddd"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Fix WF-A-FORMAL-003: ahra workflow-a advance and workflow-a draft\nmust bound the real AgentDriver call with a configurable timeout\nand a safe default, implemented at the alignment session or\nworkflow_a_cli layer (for example asyncio.wait_for around the\ndriver invocation). On timeout, record a structured timeout error\nand leave the session snapshot consistent and resumable; never\nhang. Do not modify src/ahra/ports.py or the AgentDriver protocol.\nWire a --timeout-seconds CLI option in src/ahra/cli.py for both\nsubcommands. Add a hanging fake-driver test proving the timeout\naborts, the error is structured, and the snapshot is resumable, in\ntests/test_alignment_session.py or tests/test_workflow_a_cli.py.\nRun uv run python -B scripts/check.py --test and record it in\nWorkReport.verification_commands_run.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 2100
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0088"
+        ],
+        "dependsOn": [
+          "NODE-task-0088"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0088"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the Workflow A turn timeout and its hanging-driver test are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ]
+  }
+}

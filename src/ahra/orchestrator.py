@@ -135,6 +135,7 @@ class AwkpTaskReviewOrchestrator:
                     blocker=blocker,
                 )
 
+            review_state = _awkp_task_state(task_dir)
             review = self.state_writer.request_review(
                 request.task,
                 expected_version=expected_version,
@@ -145,7 +146,7 @@ class AwkpTaskReviewOrchestrator:
                 refs=request.review_refs,
                 artifact_refs=request.artifact_refs,
                 evidence_refs=request.evidence_refs,
-                clear_blockers=cycle > 1,
+                clear_blockers=cycle > 1 or bool(review_state.get("blockers")),
                 next_action="Automated orchestrator is invoking independent EvidenceGate review.",
             )
             gate = self._gate_evaluator(

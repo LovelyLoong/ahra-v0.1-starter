@@ -670,9 +670,10 @@ class VerificationExecutor:
             command = definition.command
             expectation = definition.expectation
         else:
-            level = GateLevel.L2 if "goal" in gate_ref.casefold() else GateLevel.L0
-            evidence_kind = "deterministic_gate"
-            gate_kind = gate_ref
+            semantic_review_gate = _is_semantic_review_gate(gate_ref)
+            level = GateLevel.L2 if "goal" in gate_ref.casefold() or semantic_review_gate else GateLevel.L0
+            evidence_kind = "semantic_review" if semantic_review_gate else "deterministic_gate"
+            gate_kind = "semantic_review" if semantic_review_gate else gate_ref
             release_ref = "*"
             gate_definition_digest = context.gate_definition_digests.get(gate_ref, _synthetic_digest("gate", gate_ref))
             command = ()
@@ -1524,6 +1525,10 @@ def _output_stream(runtime_result: Mapping[str, Any], stream: str) -> str:
 
 def _synthetic_digest(kind: str, value: str) -> str:
     return canonical_fingerprint({"kind": kind, "value": value})
+
+
+def _is_semantic_review_gate(gate_ref: str) -> bool:
+    return gate_ref.casefold().endswith("-semantic-review")
 
 
 def _workspace_digest(workspace_ref: str | None) -> str | None:

@@ -1,0 +1,156 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: loop-task-0086-workflow-a-start-workspace-rerun-003
+  requestId: GREQ-LOOP-0086-RERUN-003
+  idempotencyKey: loop:task-0086:rerun:3
+spec:
+  profileRef: profile/development-bounded
+  workspaceRef: ../..
+  artifactDir: ../../work/tasks/TASK-0086/runs/loop-003/artifacts
+  store:
+    kind: sqlite
+    path: ../../work/tasks/TASK-0086/runs/loop-003/goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-LOOP-0086
+    goalDigest: sha256:0086aaaa0086bbbb0086cccc0086dddd0086eeee0086ffff0086aaaa0086bbbb
+    claimGraphRef: claim-graph/loop-0086
+    claimGraphDigest: sha256:0086bbbb0086cccc0086dddd0086eeee0086ffff0086aaaa0086bbbb0086cccc
+    requiredClaimRefs:
+    - CLM-TASK-0086
+    - CLM-GOAL-COMPLETE
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-task-0086: sha256:3333333333333333333333333333333333333333333333333333333333333333
+      GATE-task-0086-semantic-review: sha256:5555555555555555555555555555555555555555555555555555555555555555
+      GATE-goal-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+    - filesystem.write
+    - process.exec
+  execution:
+    maxRepairCycles: 0
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-LOOP-0086
+      proposedBy: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    spec:
+      rationale: 'Self-hosting loop, Increment F / Phase A-prime. Fix WF-A-FORMAL-001
+        per
+
+        work/tasks/TASK-0086/task.md: ahra workflow-a start must materialize or
+
+        fail closed on its session workspace paths. Declared filesystem.write
+
+        resources are the request-scoped allowlist admitted by TASK-0085.
+
+        '
+      nodes:
+      - id: NODE-task-0086
+        nodeType: bounded_task
+        objective: 'Fix WF-A-FORMAL-001 in src/ahra/workflow_a_cli.py (and its CLI
+
+          wiring in src/ahra/cli.py only if required): ahra workflow-a start
+
+          must create the session workspace directory, the artifact
+
+          directory, and the store parent directory when they are missing,
+
+          or fail closed with a structured error naming the offending path.
+
+          Do not change any other lifecycle stage semantics. Add a test that
+
+          reproduces the WF-A-FORMAL-001 failure (start with a missing
+
+          workspace directory) and proves the fix, in
+
+          tests/test_workflow_a_cli.py or tests/test_cli.py.
+
+          Run uv run python -B scripts/check.py --test and record it in
+
+          WorkReport.verification_commands_run.
+
+          '
+        claimRefs:
+        - CLM-TASK-0086
+        dependsOn: []
+        inputRefs:
+        - input/loop-0086@sha256:0086cccc0086dddd0086eeee0086ffff0086aaaa0086bbbb0086cccc0086dddd
+        expectedOutputs:
+        - name: workflow-a-start-workspace-fix
+          schemaRef: ahra/artifact/code-change/0.1
+          consumerNodeRefs:
+          - NODE-goal-verification
+          artifactRequired: true
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - src/ahra/workflow_a_cli.py
+          - src/ahra/cli.py
+          - tests/test_workflow_a_cli.py
+          - tests/test_cli.py
+        - capability: process.exec
+          resources:
+          - uv run python -B scripts/check.py --test
+        gateRefs:
+        - GATE-task-0086
+        - GATE-task-0086-semantic-review
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 8
+          maxToolCalls: 40
+          maxSpawnedNodes: 0
+          maxWallSeconds: 2100
+          maxCostUsd: 1.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: true
+        timeoutSeconds: 2100
+        sideEffect: mutating
+      - id: NODE-goal-verification
+        nodeType: goal_verification
+        objective: Verify the WF-A-FORMAL-001 fix and its regression test are present
+          and consistent.
+        claimRefs:
+        - CLM-TASK-0086
+        - CLM-GOAL-COMPLETE
+        dependsOn:
+        - NODE-task-0086
+        inputRefs:
+        - NODE-task-0086
+        expectedOutputs: []
+        capabilityRequests: []
+        gateRefs:
+        - GATE-goal-complete
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        budgetRequest:
+          maxModelCalls: 1
+          maxToolCalls: 1
+          maxSpawnedNodes: 0
+          maxWallSeconds: 60
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        timeoutSeconds: 60
+        sideEffect: idempotent
+        terminalGoalVerification: true

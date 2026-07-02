@@ -1,0 +1,60 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0086",
+  "artifacts": [
+    {
+      "artifact_id": "ART-2f82f7b481f34c7891c0cdbe77dff755",
+      "task_id": "task-0086",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/task-0086/attempt-1/patch.diff",
+      "sha256": "7948575bf3aa7ad2c1bc886ca934972da037d4bebc8d924d2c2276c42a9810cb",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-02T09:09:41.664042Z",
+      "input_refs": [
+        "task-0086",
+        "NRUN-7a77b531b3881e8c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-54f798f9b30a45b98ee16cf1fd331b2b",
+      "task_id": "task-0086",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/task-0086/attempt-1/work-report.json",
+      "sha256": "45c8979aca828985c1f4a72da5880f1bbd5468487fa616e3873b8a80d7326a6d",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-02T09:09:41.667032Z",
+      "input_refs": [
+        "task-0086",
+        "NRUN-7a77b531b3881e8c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-236838beded642de9ed58c6450055c61",
+      "task_id": "task-0086",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-task-0086/node-run.json",
+      "sha256": "08f199220422e102d0bf0aee9e82e45f7518033600b843a44184751549991a04",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-02T09:13:05.723090Z",
+      "input_refs": [
+        "PLAN-4cb258fbff9e0451",
+        "NODE-task-0086",
+        "NRUN-7a77b531b3881e8c"
+      ],
+      "evidence_refs": [
+        "EVD-a4623339102e42d5903d1dd52ad7479a"
+      ],
+      "supersedes": null
+    }
+  ]
+}

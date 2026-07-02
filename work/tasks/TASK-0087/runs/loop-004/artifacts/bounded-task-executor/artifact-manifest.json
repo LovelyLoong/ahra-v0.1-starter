@@ -1,0 +1,60 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0087",
+  "artifacts": [
+    {
+      "artifact_id": "ART-e0de0723b63647e58fe123029df0bb35",
+      "task_id": "task-0087",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/task-0087/attempt-1/patch.diff",
+      "sha256": "f12087d77c92cbaa7ba447a0ccca65c34700b9574baab46674333222a734f9e6",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-02T09:35:27.209258Z",
+      "input_refs": [
+        "task-0087",
+        "NRUN-c37b068ebcfe9482"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-01a46406dae7492eaf9664613e39d55b",
+      "task_id": "task-0087",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/task-0087/attempt-1/work-report.json",
+      "sha256": "940b66d0449db482a11011c8520e61783dff2f113284aa73ff44c980a2239106",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-02T09:35:27.211259Z",
+      "input_refs": [
+        "task-0087",
+        "NRUN-c37b068ebcfe9482"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-cbd8c9ee5c644dee92f955dec23f78be",
+      "task_id": "task-0087",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-task-0087/node-run.json",
+      "sha256": "edfdf25f7dca8210e940e006e77075c93833ecb9874c6a9d155d89c1ac2afb22",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-02T09:38:18.897184Z",
+      "input_refs": [
+        "PLAN-138b05ef12118c9e",
+        "NODE-task-0087",
+        "NRUN-c37b068ebcfe9482"
+      ],
+      "evidence_refs": [
+        "EVD-61154ff7a45947eda220bbf68c4d5efb"
+      ],
+      "supersedes": null
+    }
+  ]
+}

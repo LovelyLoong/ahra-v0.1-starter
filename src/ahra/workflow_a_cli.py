@@ -11,6 +11,7 @@ from .alignment_session import (
     ACCEPTANCE_DRAFT_OUTPUT,
     ALIGNMENT_DECISION_OUTPUT,
     REQUIREMENT_DRAFT_OUTPUT,
+    AlignmentSessionError,
     AlignmentSessionManager,
     AlignmentSessionSnapshot,
 )
@@ -82,9 +83,14 @@ async def advance_session(
     message: str,
     actor: str,
     driver: AgentDriver,
+    timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
-    manager = AlignmentSessionManager(driver)
-    snapshot = await manager.advance(_load_snapshot(session_path), message, actor=actor)
+    manager = _manager(driver, timeout_seconds=timeout_seconds)
+    try:
+        snapshot = await manager.advance(_load_snapshot(session_path), message, actor=actor)
+    except AlignmentSessionError as exc:
+        _write_error_snapshot(session_path, exc)
+        raise
     _write_json(session_path, snapshot.to_mapping())
     return {"sessionPath": str(session_path), "snapshot": snapshot.to_mapping()}
 
@@ -100,16 +106,33 @@ def read_snapshot(*, session_path: Path) -> dict[str, Any]:
     return {"sessionPath": str(session_path), "snapshot": _load_snapshot(session_path).to_mapping()}
 
 
+def _manager(driver: AgentDriver, *, timeout_seconds: float | None) -> AlignmentSessionManager:
+    if timeout_seconds is None:
+        return AlignmentSessionManager(driver)
+    return AlignmentSessionManager(driver, agent_timeout_seconds=timeout_seconds)
+
+
+def _write_error_snapshot(session_path: Path, error: AlignmentSessionError) -> None:
+    snapshot = error.snapshot
+    if isinstance(snapshot, AlignmentSessionSnapshot):
+        _write_json(session_path, snapshot.to_mapping())
+
+
 async def draft_request(
     *,
     session_path: Path,
     request_draft_path: Path,
     approval_path: Path | None,
     driver: AgentDriver,
+    timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
-    manager = AlignmentSessionManager(driver)
+    manager = _manager(driver, timeout_seconds=timeout_seconds)
     approval_service = ApprovalService() if approval_path is not None else None
-    result = await manager.draft_request(_load_snapshot(session_path), approval_service=approval_service)
+    try:
+        result = await manager.draft_request(_load_snapshot(session_path), approval_service=approval_service)
+    except AlignmentSessionError as exc:
+        _write_error_snapshot(session_path, exc)
+        raise
     _write_json(session_path, result.snapshot.to_mapping())
     _write_json(request_draft_path, result.request_draft.to_mapping())
     payload: dict[str, Any] = {

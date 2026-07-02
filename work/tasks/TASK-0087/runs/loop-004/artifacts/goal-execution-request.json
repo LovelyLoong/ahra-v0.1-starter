@@ -1,0 +1,171 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GoalExecutionRequest",
+  "metadata": {
+    "idempotencyKey": "loop:task-0087:rerun:4",
+    "name": "loop-task-0087-rerun-004",
+    "requestId": "GREQ-LOOP-0087-RERUN-004"
+  },
+  "spec": {
+    "artifactDir": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0087\\runs\\loop-004\\artifacts",
+    "execution": {
+      "branch": "main",
+      "maxConcurrency": 1,
+      "maxRepairCycles": 0
+    },
+    "executor": {
+      "adapterRef": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    "gateRunner": {
+      "adapterRef": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "goal": {
+      "claimGraphDigest": "sha256:0087bbbb0087cccc0087dddd0087eeee0087ffff0087aaaa0087bbbb0087cccc",
+      "claimGraphRef": "claim-graph/loop-0087",
+      "goalDigest": "sha256:0087aaaa0087bbbb0087cccc0087dddd0087eeee0087ffff0087aaaa0087bbbb",
+      "goalRef": "GOAL-LOOP-0087",
+      "requiredClaimRefs": [
+        "CLM-GOAL-COMPLETE",
+        "CLM-TASK-0087"
+      ]
+    },
+    "planDraft": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanDraft",
+      "metadata": {
+        "goalId": "GOAL-LOOP-0087",
+        "proposedBy": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "spec": {
+        "nodes": [
+          {
+            "budgetRequest": {
+              "maxCostUsd": 1.0,
+              "maxModelCalls": 8,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 40,
+              "maxWallSeconds": 2100
+            },
+            "capabilityRequests": [
+              {
+                "capability": "filesystem.write",
+                "resources": [
+                  "src/ahra/adapters/codex_sdk.py",
+                  "tests/test_codex_*.py"
+                ]
+              },
+              {
+                "capability": "process.exec",
+                "resources": [
+                  "uv run python -B scripts/check.py --test"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLM-TASK-0087"
+            ],
+            "dependsOn": [],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [
+                  "NODE-goal-verification"
+                ],
+                "name": "codex-alignment-output-parsing",
+                "schemaRef": "ahra/artifact/code-change/0.1"
+              }
+            ],
+            "gateRefs": [
+              "GATE-task-0087",
+              "GATE-task-0087-semantic-review"
+            ],
+            "id": "NODE-task-0087",
+            "inputRefs": [
+              "input/loop-0087@sha256:0087cccc0087dddd0087eeee0087ffff0087aaaa0087bbbb0087cccc0087dddd"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Fix WF-A-FORMAL-002 in src/ahra/adapters/codex_sdk.py:\nCodexSDKDriver must support AgentRunRequest expected outputs\nAlignmentTurnDecision, RequirementDraft, and AcceptanceDraft as\ndefined in src/ahra/alignment_session.py. For each, the driver\nprompts Codex for JSON matching the expected output contract and\nconverts it into the structured AgentRunResult that\nAlignmentSessionManager consumes. Malformed model JSON must be\nrejected with a structured error, never an unhandled crash. Do not\nimport the Codex SDK anywhere outside the adapter, and do not\nmodify src/ahra/ports.py. Add fake-client tests in\ntests/test_codex_sdk_driver.py (or the existing Codex driver test\nmodule) covering all three outputs and the malformed-JSON path.\nRun uv run python -B scripts/check.py --test and record it in\nWorkReport.verification_commands_run.\n",
+            "retryPolicy": {
+              "idempotencyKeyRequired": true,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "mutating",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 2100
+          },
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 1,
+              "maxWallSeconds": 60
+            },
+            "capabilityRequests": [],
+            "claimRefs": [
+              "CLM-GOAL-COMPLETE",
+              "CLM-TASK-0087"
+            ],
+            "dependsOn": [
+              "NODE-task-0087"
+            ],
+            "expectedOutputs": [],
+            "gateRefs": [
+              "GATE-goal-complete"
+            ],
+            "id": "NODE-goal-verification",
+            "inputRefs": [
+              "NODE-task-0087"
+            ],
+            "nodeType": "goal_verification",
+            "objective": "Verify the Codex alignment-output parsing and its fake-client tests are present and consistent.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": true,
+            "timeoutSeconds": 60
+          }
+        ],
+        "rationale": "Self-hosting loop, Increment F / Phase A-prime. Fix WF-A-FORMAL-002 per\nwork/tasks/TASK-0087/task.md: CodexSDKDriver must parse the Workflow A\nalignment expected outputs. Declared filesystem.write resources are the\nrequest-scoped allowlist admitted by TASK-0085.\n"
+      }
+    },
+    "planner": {
+      "adapterRef": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "profileRef": "profile/development-bounded",
+    "registry": {
+      "allowedCapabilities": [
+        "filesystem.write",
+        "process.exec"
+      ],
+      "gateDefinitions": [],
+      "gateRefs": {
+        "GATE-goal-complete": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "GATE-task-0087": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "GATE-task-0087-semantic-review": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "nodeTypes": {
+        "bounded_task": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "goal_verification": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "runtimeRefs": {
+        "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    },
+    "runtime": {
+      "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "store": {
+      "kind": "sqlite",
+      "path": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0087\\runs\\loop-004\\goal-control.sqlite3"
+    },
+    "workspaceRef": "E:\\ahra-v0.1-starter"
+  }
+}

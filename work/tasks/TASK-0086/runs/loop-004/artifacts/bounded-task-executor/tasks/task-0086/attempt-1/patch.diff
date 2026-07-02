@@ -1,0 +1,132 @@
+diff --git a/src/ahra/workflow_a_cli.py b/src/ahra/workflow_a_cli.py
+index 8d1b31f..1b31fc5 100644
+--- a/src/ahra/workflow_a_cli.py
++++ b/src/ahra/workflow_a_cli.py
+@@ -61,15 +61,20 @@ def start_session(
+     producer_actor: str = "agent:alignment-session",
+ ) -> dict[str, Any]:
+     intent = IntentDraft.from_mapping(load_document(intent_path))
++    workspace_path, artifact_path, store_path = _prepare_start_paths(
++        workspace_ref=workspace_ref,
++        artifact_dir=artifact_dir,
++        store_path=store_path,
++    )
+     manager = AlignmentSessionManager(UnavailableWorkflowADriver())
+     snapshot = manager.start(
+         intent,
+         profile_ref=profile_ref,
+         runtime_ref=runtime_ref,
+         runtime_digest=runtime_digest,
+-        workspace_ref=_normalize_cli_path(workspace_ref),
+-        artifact_dir=_normalize_cli_path(artifact_dir),
+-        store_path=_normalize_cli_path(store_path),
++        workspace_ref=workspace_path,
++        artifact_dir=artifact_path,
++        store_path=store_path,
+         producer_actor=producer_actor,
+     )
+     _write_json(session_path, snapshot.to_mapping())
+@@ -233,6 +238,25 @@ def _normalize_cli_path(value: str) -> str:
+     return str(path.resolve())
+ 
+ 
++def _prepare_start_paths(*, workspace_ref: str, artifact_dir: str, store_path: str) -> tuple[str, str, str]:
++    workspace = Path(_normalize_cli_path(workspace_ref))
++    artifacts = Path(_normalize_cli_path(artifact_dir))
++    store = Path(_normalize_cli_path(store_path))
++    _ensure_directory(workspace, "workspace-ref")
++    _ensure_directory(artifacts, "artifact-dir")
++    _ensure_directory(store.parent, "store-path parent")
++    return str(workspace), str(artifacts), str(store)
++
++
++def _ensure_directory(path: Path, ref: str) -> None:
++    try:
++        path.mkdir(parents=True, exist_ok=True)
++    except OSError as exc:
++        raise OSError(f"failed to create {ref} directory at {path}: {exc}") from exc
++    if not path.is_dir():
++        raise ValueError(f"{ref} is not a directory: {path}")
++
++
+ def _mapping(value: Any, ref: str) -> Mapping[str, Any]:
+     if not isinstance(value, Mapping):
+         raise ValueError(f"{ref} must be a mapping")
+diff --git a/tests/test_workflow_a_cli.py b/tests/test_workflow_a_cli.py
+new file mode 100644
+index 0000000..d74f9f9
+--- /dev/null
++++ b/tests/test_workflow_a_cli.py
+@@ -0,0 +1,72 @@
++from __future__ import annotations
++
++import contextlib
++import io
++import json
++import os
++import tempfile
++import unittest
++from pathlib import Path
++
++from ahra import cli
++
++
++ROOT = Path(__file__).resolve().parents[1]
++
++
++def _run_cli(argv: list[str], *, cwd: Path) -> tuple[int, dict, str]:
++    stdout = io.StringIO()
++    stderr = io.StringIO()
++    old_cwd = Path.cwd()
++    os.chdir(cwd)
++    try:
++        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
++            code = cli.main(argv)
++    finally:
++        os.chdir(old_cwd)
++    payload = json.loads(stdout.getvalue() or stderr.getvalue())
++    return code, payload, stderr.getvalue()
++
++
++class WorkflowAStartTests(unittest.TestCase):
++    def test_start_creates_missing_workspace_artifact_and_store_parent(self) -> None:
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            intent = ROOT / "examples" / "intents" / "phase1-example-intent.yaml"
++            session = Path("workflow-a") / "session" / "session.json"
++            workspace = Path("workflow-a") / "workspace"
++            artifact_dir = Path("workflow-a") / "artifacts"
++            store_path = Path("workflow-a") / "store" / "goal-control.sqlite3"
++
++            code, payload, _ = _run_cli(
++                [
++                    "workflow-a",
++                    "start",
++                    str(intent),
++                    "--session",
++                    str(session),
++                    "--workspace-ref",
++                    str(workspace),
++                    "--artifact-dir",
++                    str(artifact_dir),
++                    "--store-path",
++                    str(store_path),
++                ],
++                cwd=root,
++            )
++
++            expected_workspace = (root / workspace).resolve()
++            expected_artifacts = (root / artifact_dir).resolve()
++            expected_store = (root / store_path).resolve()
++            self.assertEqual(code, 0, payload)
++            self.assertTrue(expected_workspace.is_dir())
++            self.assertTrue(expected_artifacts.is_dir())
++            self.assertTrue(expected_store.parent.is_dir())
++            snapshot = payload["result"]["snapshot"]
++            self.assertEqual(Path(snapshot["workspaceRef"]), expected_workspace)
++            self.assertEqual(Path(snapshot["artifactDir"]), expected_artifacts)
++            self.assertEqual(Path(snapshot["storePath"]), expected_store)
++
++
++if __name__ == "__main__":
++    unittest.main()

@@ -1,0 +1,91 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0086",
+  "verifier": "agent:independent-verifier",
+  "decision": "approve",
+  "summary": "Approve loop-004: corrected root-resolving Workflow B GoalExecution succeeded, workflow-a start path materialization is covered by tests, and semantic review lineage is kernel-backed.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-0464f274277140f1",
+        "EVD-2425e8f440adaeda"
+      ],
+      "command_refs": [
+        "CMD-loop-004-tests"
+      ],
+      "notes": "workflow-a start now creates workspace, artifact, and store parent directories before session creation; regression coverage is in tests/test_workflow_a_cli.py."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-0464f274277140f1",
+        "EVD-2425e8f440adaeda"
+      ],
+      "command_refs": [
+        "CMD-loop-004-tests"
+      ],
+      "notes": "WorkReport recorded uv run python -B scripts/check.py --test, and the loop-004 deterministic gate passed."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-8d592d60dd1693a7",
+        "EVD-2425e8f440adaeda"
+      ],
+      "command_refs": [
+        "CMD-loop-004-goal-complete"
+      ],
+      "notes": "GoalExecution GEXEC-0fbd7eb0a324c6b6 completed from the repository-root workspace and is being approved by an independent verifier."
+    }
+  ],
+  "commands": [
+    {
+      "command_id": "CMD-loop-004-tests",
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed",
+      "criterion_indices": [
+        1,
+        2
+      ],
+      "evidence_refs": [
+        "EVD-0464f274277140f1"
+      ]
+    },
+    {
+      "command_id": "CMD-loop-004-goal-complete",
+      "command": "uv run python -B -m ahra.cli goal start work/tasks/TASK-0086/runs/loop-004/goal-request.yaml --allow-development-agent",
+      "status": "passed",
+      "criterion_indices": [
+        3
+      ],
+      "evidence_refs": [
+        "EVD-8d592d60dd1693a7"
+      ]
+    }
+  ],
+  "semantic_reviews": [
+    {
+      "review_id": "REV-loop-004-task-0086-semantic",
+      "status": "passed",
+      "reviewer": "agent:independent-verifier",
+      "criterion_indices": [
+        1,
+        2,
+        3
+      ],
+      "changed_files": [
+        "src/ahra/workflow_a_cli.py",
+        "tests/test_workflow_a_cli.py"
+      ],
+      "changed_files_sha256": "sha256:2903a680f4fefe6790732ec7d388a79d37f0422014d2bd98d2f3541f81bf3fe3",
+      "verified_changed_files_sha256": "sha256:2903a680f4fefe6790732ec7d388a79d37f0422014d2bd98d2f3541f81bf3fe3",
+      "evidence_refs": [
+        "EVD-2425e8f440adaeda"
+      ]
+    }
+  ]
+}

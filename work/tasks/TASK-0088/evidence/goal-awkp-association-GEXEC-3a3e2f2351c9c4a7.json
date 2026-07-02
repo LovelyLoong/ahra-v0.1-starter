@@ -1,0 +1,20 @@
+{
+  "artifactDir": "work\\tasks\\TASK-0088\\work\\tasks\\TASK-0088\\runs\\loop-002\\artifacts",
+  "dbPath": "work\\tasks\\TASK-0088\\work\\tasks\\TASK-0088\\runs\\loop-002\\goal-control.sqlite3",
+  "goalExecutionId": "GEXEC-3a3e2f2351c9c4a7",
+  "goalStatus": "succeeded",
+  "idempotencyKeyPrefix": "TASK-0088:loop-002:bridge",
+  "kernelEvidenceRefs": [
+    "EVD-1a29f94f411abf74",
+    "EVD-c7fd04244380ba9e",
+    "EVD-cad7c06ebcbf54b1"
+  ],
+  "kernelGateRunRefs": [
+    "GATERUN-1a29f94f411abf74",
+    "GATERUN-c7fd04244380ba9e",
+    "GATERUN-cad7c06ebcbf54b1"
+  ],
+  "profileRef": "profile/development-bounded",
+  "schema_version": "ahra/goal-awkp-association/0.1",
+  "taskId": "TASK-0088"
+}

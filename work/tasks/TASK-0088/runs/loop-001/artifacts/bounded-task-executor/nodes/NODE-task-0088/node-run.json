@@ -1,0 +1,54 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "NodeRun",
+  "metadata": {
+    "nodeRunId": "NRUN-99f9914a691b4d4fa1781b6aba4228a2",
+    "planId": "PLAN-36244f2783e0ce9f",
+    "nodeId": "NODE-task-0088",
+    "executorRelease": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "spec": {
+    "nodeType": "bounded_task",
+    "status": "rejected",
+    "artifactRefs": [
+      "ART-1ba3c8a4341e455ab8b07d9614e5b22c",
+      "ART-47ced4d713ef412e94c735e56d687336",
+      "ART-e80545b6192e4673bd2ab116575fb844"
+    ],
+    "evidenceRefs": [
+      "EVD-3e7f7bde86494ea4b0d1677467d868e4",
+      "EVD-0cdd584d5a0b479f9f0326ee187171c3",
+      "EVD-51d08dcb2622414bbbd9a1e7c4e0755b",
+      "EVD-59ba7b3cc5764da9bc818f060539dc2e"
+    ],
+    "gateRefs": [
+      "GATE-task-0088",
+      "GATE-task-0088-semantic-review"
+    ],
+    "terminalFailureRefs": [
+      "tasks/task-0088/terminal-failure.json"
+    ],
+    "taskCompletedStateUpdateAttempted": false,
+    "usage": {
+      "modelCalls": 2,
+      "toolCalls": 2,
+      "spawnedNodes": 0,
+      "costUsd": 0.0
+    },
+    "message": "Task exhausted its bounded attempts and was rolled back.",
+    "details": {
+      "taskId": "task-0088",
+      "taskStatus": "rejected",
+      "commit": null,
+      "semanticReviewEnabled": true,
+      "executionPolicy": {
+        "maxAttempts": 1,
+        "startupTimeoutSeconds": 120,
+        "idleTimeoutSeconds": 900,
+        "heartbeatIntervalSeconds": 60,
+        "attemptWallTimeoutSeconds": 2100,
+        "runDeadlineSeconds": 2100
+      }
+    }
+  }
+}

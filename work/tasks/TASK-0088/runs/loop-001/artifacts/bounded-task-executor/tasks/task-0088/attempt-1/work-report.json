@@ -1,0 +1,15 @@
+{
+  "summary": "Implemented workflow-a-turn-timeout: AgentDriver calls for workflow-a advance and draft now use a configurable timeout with a 60s default, persist structured timeout details in the session snapshot, and leave snapshots resumable. Added CLI --timeout-seconds wiring and hanging-driver regression coverage.",
+  "changed_files": [
+    "src/ahra/alignment_session.py",
+    "src/ahra/cli.py",
+    "src/ahra/workflow_a_cli.py",
+    "tests/test_cli.py",
+    "tests/test_workflow_a_cli.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --test"
+  ],
+  "known_risks": [],
+  "unresolved_items": []
+}

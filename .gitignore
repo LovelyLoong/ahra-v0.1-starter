@@ -10,4 +10,5 @@ build/
 .runtime/
 work/tasks/**/evidence/real-agent-pilot/**/workspace/
 work/tasks/**/evidence/debug-mode-b/**/workspace/
-artifacts/**/development-worktrees/
+**/development-worktrees/
+.claude/

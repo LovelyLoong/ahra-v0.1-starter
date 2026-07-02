@@ -1,5 +1,225 @@
 {
+  "artifacts": [
+    {
+      "artifact_id": "ART-TASK-0088-0001",
+      "created_at": "2026-07-02T08:37:48.077386Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_refs": [
+        "EVD-1a29f94f411abf74"
+      ],
+      "input_refs": [
+        "work\\tasks\\TASK-0088\\work\\tasks\\TASK-0088\\runs\\loop-002\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0088\\work\\tasks\\TASK-0088\\runs\\loop-002\\artifacts",
+        "GEXEC-3a3e2f2351c9c4a7"
+      ],
+      "kind": "kernel_gate_run_v2",
+      "media_type": "application/json",
+      "name": "GATERUN-1a29f94f411abf74.json",
+      "sha256": "8948dcf5e6b65d539b4f642c0a0d7ce92993a6ae083c668a171e115026f505d2",
+      "supersedes": null,
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-1a29f94f411abf74.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0088-0002",
+      "created_at": "2026-07-02T08:37:48.079557Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_refs": [
+        "EVD-c7fd04244380ba9e"
+      ],
+      "input_refs": [
+        "work\\tasks\\TASK-0088\\work\\tasks\\TASK-0088\\runs\\loop-002\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0088\\work\\tasks\\TASK-0088\\runs\\loop-002\\artifacts",
+        "GEXEC-3a3e2f2351c9c4a7"
+      ],
+      "kind": "kernel_gate_run_v2",
+      "media_type": "application/json",
+      "name": "GATERUN-c7fd04244380ba9e.json",
+      "sha256": "9d91556bae75779e35c3ea8237b6acbca77320169b659426dd2f8b797af70f67",
+      "supersedes": null,
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-c7fd04244380ba9e.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0088-0003",
+      "created_at": "2026-07-02T08:37:48.082061Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_refs": [
+        "EVD-cad7c06ebcbf54b1"
+      ],
+      "input_refs": [
+        "work\\tasks\\TASK-0088\\work\\tasks\\TASK-0088\\runs\\loop-002\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0088\\work\\tasks\\TASK-0088\\runs\\loop-002\\artifacts",
+        "GEXEC-3a3e2f2351c9c4a7"
+      ],
+      "kind": "kernel_gate_run_v2",
+      "media_type": "application/json",
+      "name": "GATERUN-cad7c06ebcbf54b1.json",
+      "sha256": "81bcf40049602324c4f18c80dee0f1aad98887441802d51841726842cf3cd64f",
+      "supersedes": null,
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-cad7c06ebcbf54b1.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0088-0004",
+      "created_at": "2026-07-02T08:37:48.083055Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_refs": [],
+      "input_refs": [
+        "work\\tasks\\TASK-0088\\work\\tasks\\TASK-0088\\runs\\loop-002\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0088\\work\\tasks\\TASK-0088\\runs\\loop-002\\artifacts",
+        "GEXEC-3a3e2f2351c9c4a7"
+      ],
+      "kind": "goal_awkp_association",
+      "media_type": "application/json",
+      "name": "goal-awkp-association-GEXEC-3a3e2f2351c9c4a7.json",
+      "sha256": "e3c78f0e4288304baa8c56dd2c5f5ea2b7810828003039aa6e1f865b0e79ed42",
+      "supersedes": null,
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/goal-awkp-association-GEXEC-3a3e2f2351c9c4a7.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0088-0005",
+      "created_at": "2026-07-02T08:44:06.855855Z",
+      "created_by": "agent:independent-verifier",
+      "evidence_refs": [
+        "EVD-TASK-0088-0001"
+      ],
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "kind": "evidence_gate_report",
+      "media_type": "application/json",
+      "name": "evidence-gate-report-5.json",
+      "sha256": "9e9eb7526166e4311654ffe964ea5872ec7be0a6f603a59cdf2eed41eb6c8b52",
+      "supersedes": null,
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/evidence-gate-report-5.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0088-0006",
+      "created_at": "2026-07-02T08:45:39.833688Z",
+      "created_by": "agent:independent-verifier",
+      "evidence_refs": [
+        "EVD-TASK-0088-0002"
+      ],
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "kind": "evidence_gate_report",
+      "media_type": "application/json",
+      "name": "evidence-gate-report-8.json",
+      "sha256": "ea4854e69b7eec9c99e850d589c06ef71a9054a9a93a5624fcde0bc267b1f238",
+      "supersedes": null,
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/evidence-gate-report-8.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0088-0007",
+      "created_at": "2026-07-02T10:05:07.391858Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_refs": [
+        "EVD-2c520496f6982d5c"
+      ],
+      "input_refs": [
+        "work\\tasks\\TASK-0088\\runs\\loop-004\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0088\\runs\\loop-004\\artifacts",
+        "GEXEC-8cd04e0803bead65"
+      ],
+      "kind": "kernel_gate_run_v2",
+      "media_type": "application/json",
+      "name": "GATERUN-2c520496f6982d5c.json",
+      "sha256": "bfbc0f6d8356795a28ae2f313cce26aedd7dad68e7760b6f6712527a72ebb379",
+      "supersedes": null,
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-2c520496f6982d5c.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0088-0008",
+      "created_at": "2026-07-02T10:05:07.393853Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_refs": [
+        "EVD-6b3183f8b120886d"
+      ],
+      "input_refs": [
+        "work\\tasks\\TASK-0088\\runs\\loop-004\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0088\\runs\\loop-004\\artifacts",
+        "GEXEC-8cd04e0803bead65"
+      ],
+      "kind": "kernel_gate_run_v2",
+      "media_type": "application/json",
+      "name": "GATERUN-6b3183f8b120886d.json",
+      "sha256": "fb4cad3bc869c619f5535ad15cb62c52038b07df6e7eed91bb9f2dfe7bf63f4a",
+      "supersedes": null,
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-6b3183f8b120886d.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0088-0009",
+      "created_at": "2026-07-02T10:05:07.396842Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_refs": [
+        "EVD-c7568e0d661805c6"
+      ],
+      "input_refs": [
+        "work\\tasks\\TASK-0088\\runs\\loop-004\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0088\\runs\\loop-004\\artifacts",
+        "GEXEC-8cd04e0803bead65"
+      ],
+      "kind": "kernel_gate_run_v2",
+      "media_type": "application/json",
+      "name": "GATERUN-c7568e0d661805c6.json",
+      "sha256": "6a5fd438752f25aad7ba0e1a884c48c1592356ec5108646f0a30f37555a90d15",
+      "supersedes": null,
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-c7568e0d661805c6.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0088-0010",
+      "created_at": "2026-07-02T10:05:07.397837Z",
+      "created_by": "agent:workflow-b-task-0088",
+      "evidence_refs": [],
+      "input_refs": [
+        "work\\tasks\\TASK-0088\\runs\\loop-004\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0088\\runs\\loop-004\\artifacts",
+        "GEXEC-8cd04e0803bead65"
+      ],
+      "kind": "goal_awkp_association",
+      "media_type": "application/json",
+      "name": "goal-awkp-association-GEXEC-8cd04e0803bead65.json",
+      "sha256": "7e3b104c6fa47ab1cb12296bcf48f185995675ea6bd7788fa44d2e515bb451bb",
+      "supersedes": null,
+      "task_id": "TASK-0088",
+      "uri": "local://evidence/goal-awkp-association-GEXEC-8cd04e0803bead65.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0088-0011",
+      "task_id": "TASK-0088",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-12.json",
+      "uri": "local://evidence/evidence-gate-report-12.json",
+      "sha256": "f4aea7b1a38a7b7c8cb66eb23c88ecd777d0f648a2b83c47ca352ad1b1d7bd7b",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-02T10:05:07.518679Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0088-0003"
+      ],
+      "supersedes": null
+    }
+  ],
   "schema_version": "awkp/0.1",
-  "task_id": "TASK-0088",
-  "artifacts": []
+  "task_id": "TASK-0088"
 }

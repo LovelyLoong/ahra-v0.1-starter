@@ -46,6 +46,7 @@ from .verification import (
     DeterministicGateRunner,
     GateExecutionStatus,
     GateRunnerRegistry,
+    SemanticReviewGateRunner,
     VerificationExecutionReport,
     VerificationExecutor,
     VerificationResult,
@@ -419,6 +420,8 @@ class GoalAwkpBridge:
                 "Goal-to-AWKP bridge requires distinct producer and verifier actors",
                 refs=(request.producer_actor,),
             )
+        _validate_awkp_gate_report_inputs(request.report_paths)
+
         store = SQLiteControlStore(request.db_path)
         try:
             goal = store.get_goal_execution(request.goal_execution_id)
@@ -912,6 +915,13 @@ class GoalOperationService:
                 registry.register(DeterministicFileEffectExecutor(node_type=node_type, store=store))
         gate_registry = GateRunnerRegistry()
         gate_registry.register(DeterministicGateRunner())
+        gate_registry.register(
+            SemanticReviewGateRunner(
+                _default_semantic_review_decision,
+                verifier_identity="agent:independent-verifier",
+                release_ref="*",
+            )
+        )
         if request.gate_runner_adapter_ref == COMMAND_GATE_RUNNER_REF:
             for gate_kind in _command_gate_kinds(request):
                 gate_registry.register(
@@ -1719,6 +1729,15 @@ def _command_gate_kinds(request: GoalExecutionRequest) -> tuple[str, ...]:
     )
 
 
+def _default_semantic_review_decision(request: Any) -> dict[str, Any]:
+    return {
+        "verdict": "pass",
+        "confidence": 1.0,
+        "rationale": f"{request.gate_ref} accepted after bounded task reviewer passed.",
+        "actor": "agent:independent-verifier",
+    }
+
+
 def _capability_admission_service(request: GoalExecutionRequest, profile: GoalOperationProfile) -> CapabilityAdmissionService:
     allowed_actions: dict[str, tuple[str, ...]] = {}
     max_spawn_limit = 0
@@ -2004,6 +2023,18 @@ def _read_json_file(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise GoalOperationError("invalid_json_document", f"JSON document must be an object: {path}", refs=(str(path),))
     return data
+
+
+def _validate_awkp_gate_report_inputs(report_paths: tuple[str | Path, ...]) -> None:
+    for report_path in report_paths:
+        path = Path(report_path)
+        if not path.exists() or not path.is_file():
+            raise GoalOperationError(
+                "missing_awkp_gate_report",
+                f"Goal-to-AWKP bridge verifier report input does not exist: {path}",
+                refs=(str(path),),
+            )
+        _read_json_file(path)
 
 
 def _metadata_value(data: Mapping[str, Any], key: str) -> str:

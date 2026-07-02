@@ -262,12 +262,14 @@ class CliTests(unittest.TestCase):
                     str(session),
                     "--message",
                     "That boundary is complete.",
-                    "--driver-ref",
-                    "workflow-a-fixture",
-                    "--enable-fixture-driver",
-                ],
-                cwd=root,
-            )
+                "--driver-ref",
+                "workflow-a-fixture",
+                "--enable-fixture-driver",
+                "--timeout-seconds",
+                "1",
+            ],
+            cwd=root,
+        )
             self.assertEqual(advance_code, 0)
             self.assertEqual(
                 advance_payload["result"]["snapshot"]["stage"],
@@ -284,14 +286,16 @@ class CliTests(unittest.TestCase):
                     str(request_draft),
                     "--approval",
                     str(approval),
-                    "--driver-ref",
-                    "workflow-a-fixture",
-                    "--enable-fixture-driver",
-                ],
-                cwd=root,
-            )
+                "--driver-ref",
+                "workflow-a-fixture",
+                "--enable-fixture-driver",
+                "--timeout-seconds",
+                "1",
+            ],
+            cwd=root,
+        )
             self.assertEqual(draft_code, 2)
-            self.assertIn("requirement approval", draft_payload["error"])
+            self.assertIn("requirement approval", draft_payload["error"]["message"])
 
             bad_gate_code, bad_gate_payload, _ = _run_cli(
                 [
@@ -305,7 +309,7 @@ class CliTests(unittest.TestCase):
                 cwd=root,
             )
             self.assertEqual(bad_gate_code, 2)
-            self.assertIn("human actor", bad_gate_payload["error"])
+            self.assertIn("human actor", bad_gate_payload["error"]["message"])
 
             approve_code, approve_payload, _ = _run_cli(
                 [
@@ -331,12 +335,14 @@ class CliTests(unittest.TestCase):
                     str(request_draft),
                     "--approval",
                     str(approval),
-                    "--driver-ref",
-                    "workflow-a-fixture",
-                    "--enable-fixture-driver",
-                ],
-                cwd=root,
-            )
+                "--driver-ref",
+                "workflow-a-fixture",
+                "--enable-fixture-driver",
+                "--timeout-seconds",
+                "1",
+            ],
+            cwd=root,
+        )
             self.assertEqual(draft_code, 0)
             self.assertEqual(draft_payload["result"]["approval"]["status"], "waiting_auth")
             self.assertEqual(Path(draft_payload["result"]["requestDraft"]["spec"]["artifactDir"]), expected_artifacts)

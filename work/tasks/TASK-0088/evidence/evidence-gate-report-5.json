@@ -1,0 +1,35 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0088",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-02T08:44:06.855855Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "Recovery request: the first loop-002 bridge invocation reached review without an existing verifier report input, so a corrected EvidenceGate input must be supplied before approval.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "workflow-a advance and workflow-a draft accept a timeout option with a safe default and abort a hanging driver call with a structured timeout error while the session snapshot stays consistent and resumable, covered by a hanging fake-driver test.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No verifier assessment was supplied."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "src/ahra/ports.py is unchanged by this task.",
+      "status": "missing",
+      "evidence_refs": [],
+      "notes": "No verifier assessment was supplied."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The change is produced by a Workflow B development-bounded GoalExecution with kernel-derived completion, then approved through the AWKP EvidenceGate by an independent verifier.",
+      "status": "failed",
+      "evidence_refs": [],
+      "notes": "AWKP EvidenceGate approval was not yet complete because the bridge report input file was missing at the first bridge attempt."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": []
+}

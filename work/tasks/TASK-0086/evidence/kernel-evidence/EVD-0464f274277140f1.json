@@ -1,0 +1,62 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "Evidence",
+  "metadata": {
+    "evidenceId": "EVD-0464f274277140f1"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLM-TASK-0086"
+    ],
+    "confidence": "verified",
+    "dependencies": [],
+    "dependencyScope": "complete",
+    "environment": {
+      "policyDigest": "sha256:9b64794badd43e9690d0cb6847ee26fd9ba52950743eedd6381606c529c43a94",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:2c9542a225f732fea3559ce9bac6be7c38ce331c009fc5d6a43a37b4bb047d54",
+      "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "fingerprint": "sha256:f0e131e0636519c23e025d00a98b000e019e1d520711c659ffea98e496e3848c",
+    "gateDefinitionDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "gateRef": "GATE-task-0086",
+    "gateRunId": "GATERUN-0464f274277140f1",
+    "refs": [
+      "ART-task-0086-gate-run",
+      "GATERUN-0464f274277140f1"
+    ],
+    "result": "passed",
+    "subjects": [
+      {
+        "digest": "sha256:94a3d27b78219e8d352fab191a290f905caee1d25d74d1467e82eb09e17fc270",
+        "ref": "ART-236838beded642de9ed58c6450055c61"
+      },
+      {
+        "digest": "sha256:2c473beca35f23526cc3abc36501a4329c5501ba1b4e02fd9afa3d641321dfac",
+        "ref": "ART-2f82f7b481f34c7891c0cdbe77dff755"
+      },
+      {
+        "digest": "sha256:b1b0d26150e29091a0387b4db1e08e91ff1a2b3341907881fe256eabaf473ee7",
+        "ref": "ART-54f798f9b30a45b98ee16cf1fd331b2b"
+      },
+      {
+        "digest": "sha256:529cdc63b039e1feb6666cdef52437120bcec884d0442ce6ab251a993dc2beea",
+        "ref": "EVD-84adf8a7074d4acf83155c2232bc4ecc"
+      },
+      {
+        "digest": "sha256:be7387ab9147170d98c725eb9124ffe0ea98f47f705342e55f844b63dc3fd639",
+        "ref": "EVD-a4623339102e42d5903d1dd52ad7479a"
+      },
+      {
+        "digest": "sha256:af2725edc41df0cd77b82b1ddd8e54a7967fc340d42a2116935b1373ea397d50",
+        "ref": "EVD-f151c2bf893b42d69b849e5071667e17"
+      }
+    ],
+    "supersedes": [],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

@@ -11,6 +11,7 @@ from typing import Any
 
 import yaml
 
+from ahra.alignment_session import AlignmentSessionError
 from ahra.awkp_state_writer import AwkpTaskStateWriter
 from ahra.awkp_task_creator import AwkpTaskCreateRequest, AwkpTaskCreator
 from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_task
@@ -94,6 +95,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(raw_argv)
     try:
         result = _dispatch(args)
+    except AlignmentSessionError as exc:
+        _print({"ok": False, "error": exc.to_dict()}, stream=sys.stderr)
+        return 2
     except GoalOperationError as exc:
         _print({"ok": False, **exc.to_error_dict()}, stream=sys.stderr)
         return 2
@@ -182,6 +186,7 @@ def _workflow_a_command(args: argparse.Namespace) -> Any:
                 message=args.message,
                 actor=args.actor,
                 driver=_workflow_a_driver(args),
+                timeout_seconds=args.timeout_seconds,
             )
         )
     if args.workflow_a_command == "snapshot":
@@ -195,6 +200,7 @@ def _workflow_a_command(args: argparse.Namespace) -> Any:
                 request_draft_path=Path(args.request_draft),
                 approval_path=Path(args.approval) if args.approval else None,
                 driver=_workflow_a_driver(args),
+                timeout_seconds=args.timeout_seconds,
             )
         )
     if args.workflow_a_command == "admit":
@@ -632,6 +638,7 @@ def _build_parser(
     workflow_a_advance.add_argument("--actor", default="human:maintainer", help="Actor for the alignment turn.")
     workflow_a_advance.add_argument("--driver-ref", default="codex-python-sdk", help="AgentDriver ref.")
     workflow_a_advance.add_argument("--enable-fixture-driver", action="store_true", help="Enable workflow-a-fixture driver for smoke tests only.")
+    workflow_a_advance.add_argument("--timeout-seconds", type=float, help="Maximum seconds to wait for one AgentDriver call.")
     workflow_a_snapshot = workflow_a_commands.add_parser("snapshot", help="Read an experimental Workflow A session snapshot.")
     workflow_a_snapshot.add_argument("--session", required=True, help="Session JSON path.")
     workflow_a_approve = workflow_a_commands.add_parser("approve-requirement", help="Apply Human Gate 1 requirement approval.")
@@ -643,6 +650,7 @@ def _build_parser(
     workflow_a_draft.add_argument("--approval", help="Approval JSON path to write waiting_auth Gate 2 record.")
     workflow_a_draft.add_argument("--driver-ref", default="codex-python-sdk", help="AgentDriver ref.")
     workflow_a_draft.add_argument("--enable-fixture-driver", action="store_true", help="Enable workflow-a-fixture driver for smoke tests only.")
+    workflow_a_draft.add_argument("--timeout-seconds", type=float, help="Maximum seconds to wait for one AgentDriver call.")
     workflow_a_admit = workflow_a_commands.add_parser("admit", help="Run RequestDraftAdmission on a RequestDraft JSON file.")
     workflow_a_admit.add_argument("--request-draft", required=True, help="RequestDraft JSON path.")
     workflow_a_authorize = workflow_a_commands.add_parser("authorize", help="Apply Human Gate 2 and freeze GoalExecutionRequest.")
