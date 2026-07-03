@@ -291,6 +291,7 @@ class IsolatedGitWorkspaceProvider:
         self.allowed_globs = tuple(allowed_globs)
         self.denied_globs = tuple(denied_globs)
         self._sessions: dict[str, tuple[str, Workspace]] = {}
+        self._propagated_refs: set[str] = set()
 
     def prepare_execution_workspace(
         self,
@@ -318,9 +319,13 @@ class IsolatedGitWorkspaceProvider:
 
     def finalize_execution_workspace(self, workspace_ref: str) -> None:
         execution_ref = str(Path(workspace_ref).resolve())
-        session = self._sessions.pop(execution_ref, None)
+        session = self._sessions.get(execution_ref)
         if session is None:
             return
+        if execution_ref not in self._propagated_refs:
+            return
+        self._sessions.pop(execution_ref, None)
+        self._propagated_refs.discard(execution_ref)
         source_ref, workspace = session
         source = Path(source_ref)
         manager = WorktreeManager(source)
@@ -388,6 +393,7 @@ class IsolatedGitWorkspaceProvider:
                 # File was deleted in worktree and exists in source: delete it
                 target_file.unlink()
 
+        self._propagated_refs.add(str(execution_path))
         return current_head(source)
 
     def fast_forward(self, workspace_ref: str, ref: str) -> str:
