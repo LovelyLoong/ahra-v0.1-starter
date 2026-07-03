@@ -203,6 +203,41 @@ class AlignmentSessionManagerTests(unittest.TestCase):
 
         self.assertEqual(resumed.stage, "awaiting_user")
 
+    def test_draft_contract_requires_nested_apiversion_for_plan_and_claim(self) -> None:
+        """Regression: contract must explicitly require apiVersion/kind for nested objects.
+
+        Before this fix, the output contracts for REQUIREMENT_DRAFT_OUTPUT and
+        ACCEPTANCE_DRAFT_OUTPUT declared planDraft and claimGraph as {"type": "object"}
+        without specifying required fields like apiVersion, kind, metadata, spec.
+        This meant real Agents were never told to include those fields, but the
+        parser required them, causing deterministic failures.
+
+        This test verifies the contracts now explicitly require the nested structure.
+        """
+        from ahra.alignment_session import _output_contract, REQUIREMENT_DRAFT_OUTPUT, ACCEPTANCE_DRAFT_OUTPUT
+
+        # Verify REQUIREMENT_DRAFT_OUTPUT contract requires nested apiVersion
+        req_contract = _output_contract(REQUIREMENT_DRAFT_OUTPUT)
+        plan_schema = req_contract.schema["properties"]["planDraft"]
+        self.assertEqual(plan_schema["type"], "object")
+        self.assertIn("apiVersion", plan_schema["required"])
+        self.assertIn("kind", plan_schema["required"])
+        self.assertIn("metadata", plan_schema["required"])
+        self.assertIn("spec", plan_schema["required"])
+        self.assertEqual(plan_schema["properties"]["apiVersion"]["const"], "ahra.dev/v1alpha1")
+        self.assertEqual(plan_schema["properties"]["kind"]["const"], "PlanDraft")
+
+        # Verify ACCEPTANCE_DRAFT_OUTPUT contract requires nested apiVersion
+        acc_contract = _output_contract(ACCEPTANCE_DRAFT_OUTPUT)
+        claim_schema = acc_contract.schema["properties"]["claimGraph"]
+        self.assertEqual(claim_schema["type"], "object")
+        self.assertIn("apiVersion", claim_schema["required"])
+        self.assertIn("kind", claim_schema["required"])
+        self.assertIn("metadata", claim_schema["required"])
+        self.assertIn("spec", claim_schema["required"])
+        self.assertEqual(claim_schema["properties"]["apiVersion"]["const"], "ahra.dev/v1alpha1")
+        self.assertEqual(claim_schema["properties"]["kind"]["const"], "ClaimGraph")
+
 
 class HangingAlignmentDriver:
     async def run(self, request: AgentRunRequest) -> AgentRunResult:

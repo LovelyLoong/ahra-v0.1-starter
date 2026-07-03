@@ -608,7 +608,30 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
             "additionalProperties": True,
             "properties": {
                 "summary": {"type": "string", "minLength": 1},
-                "planDraft": {"type": "object"},
+                "planDraft": {
+                    "type": "object",
+                    "required": ["apiVersion", "kind", "metadata", "spec"],
+                    "properties": {
+                        "apiVersion": {"type": "string", "const": "ahra.dev/v1alpha1"},
+                        "kind": {"type": "string", "const": "PlanDraft"},
+                        "metadata": {
+                            "type": "object",
+                            "required": ["goalId", "proposedBy"],
+                            "properties": {
+                                "goalId": {"type": "string"},
+                                "proposedBy": {"type": "string"},
+                            },
+                        },
+                        "spec": {
+                            "type": "object",
+                            "required": ["nodes"],
+                            "properties": {
+                                "rationale": {"type": "string"},
+                                "nodes": {"type": "array", "items": {"type": "object"}},
+                            },
+                        },
+                    },
+                },
             },
         }
     elif expected_output == ACCEPTANCE_DRAFT_OUTPUT:
@@ -617,7 +640,29 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
             "additionalProperties": True,
             "properties": {
                 "summary": {"type": "string", "minLength": 1},
-                "claimGraph": {"type": "object"},
+                "claimGraph": {
+                    "type": "object",
+                    "required": ["apiVersion", "kind", "metadata", "spec"],
+                    "properties": {
+                        "apiVersion": {"type": "string", "const": "ahra.dev/v1alpha1"},
+                        "kind": {"type": "string", "const": "ClaimGraph"},
+                        "metadata": {
+                            "type": "object",
+                            "required": ["version"],
+                            "properties": {
+                                "version": {"type": "integer"},
+                            },
+                        },
+                        "spec": {
+                            "type": "object",
+                            "required": ["goalRef", "claims"],
+                            "properties": {
+                                "goalRef": {"type": "string"},
+                                "claims": {"type": "array", "items": {"type": "object"}},
+                            },
+                        },
+                    },
+                },
             },
         }
     else:

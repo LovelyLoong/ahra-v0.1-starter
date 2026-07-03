@@ -1,0 +1,83 @@
+{
+  "artifactDir": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0090\\runs\\loop-001\\artifacts",
+  "frozenRequirement": "From TASK-0090 onward, docs/roadmaps/development-program-overview.md must contain a distinct top-level binding-rule section stating as normative requirements that new work defaults to the Workflow A+B loop and that any manual path must be recorded as a loop defect. The change must edit no other file, must not weaken, delete, or contradict existing acceptance criteria, the sequencing rule, or the kernel-boundary bootstrap exception, and completion is decided by uv run python -B scripts/check.py --lint exit 0 plus the section being distinct and discoverable.",
+  "intent": {
+    "apiVersion": "ahra.dev/v1alpha1",
+    "kind": "IntentDraft",
+    "metadata": {
+      "intentId": "INTENT-TASK-0090-BINDING-RULE",
+      "name": "task-0090-binding-rule"
+    },
+    "spec": {
+      "abstractGoal": "Make the \"new work defaults to the Workflow A plus B loop, and any manual path must be recorded as a loop defect\" rule an explicit, standalone binding rule in the development program overview, so it governs all work from TASK-0090 onward instead of being buried inside the Increment F execution note.",
+      "capabilityNeeds": [
+        {
+          "action": "filesystem.write",
+          "reason": "The executor edits the overview to add the binding-rule section.",
+          "resources": [
+            "docs/roadmaps/development-program-overview.md"
+          ],
+          "riskLevel": "R1"
+        }
+      ],
+      "constraints": [
+        {
+          "key": "scope",
+          "required": true,
+          "value": "Only edit docs/roadmaps/development-program-overview.md. Add one clearly headed binding-rule section; do not touch code, schemas, or any other document."
+        },
+        {
+          "key": "form",
+          "required": true,
+          "value": "A new top-level Markdown section titled so a reader immediately sees it is a binding rule, stating the default-to-A-plus-B rule and the manual-path-is-a-defect rule as normative requirements."
+        },
+        {
+          "key": "must-not",
+          "required": true,
+          "value": "Must not weaken, delete, or contradict any existing acceptance criteria, the sequencing rule, or the kernel-boundary bootstrap exception."
+        },
+        {
+          "key": "completion-signal",
+          "required": true,
+          "value": "The document still passes uv run python -B scripts/check.py --lint and the binding rule is present as a distinct, discoverable section."
+        },
+        {
+          "key": "verification",
+          "required": true,
+          "value": "The result must be command-gate decidable (lint exit 0)."
+        }
+      ],
+      "context": {
+        "profileRef": "profile/development-bounded",
+        "roadmapRef": "docs/roadmaps/development-program-overview.md",
+        "taskRef": "TASK-0090"
+      },
+      "priorityHint": "P1",
+      "requester": "human:maintainer",
+      "riskHint": "R1"
+    }
+  },
+  "missingDimensions": [],
+  "producerActor": "agent:alignment-session",
+  "profileRef": "profile/development-bounded",
+  "requirementApprovedBy": "human:maintainer",
+  "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "sessionId": "ASESS-1bb4111cdbecf9a5",
+  "stage": "frozen",
+  "storePath": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0090\\runs\\loop-001\\goal-control.sqlite3",
+  "turns": [
+    {
+      "actor": "human:maintainer",
+      "index": 1,
+      "message": "I want the binding rule 'new work defaults to the Workflow A+B loop, and any manual path must be recorded as a loop defect' to become an explicit, standalone binding-rule section in docs/roadmaps/development-program-overview.md, governing all work from TASK-0090 onward. Right now it is only an aside inside the Increment F execution note. Output form: one new clearly-titled top-level Markdown section. Must-have: both the default-to-A+B rule and the manual-path-is-a-defect rule stated as normative requirements. Must-not: do not weaken or delete any existing acceptance criteria, the sequencing rule, or the kernel-boundary bootstrap exception. Completion signal: check.py --lint stays green and the section is discoverable. The executor may choose exact wording and section placement."
+    },
+    {
+      "actor": "agent:alignment",
+      "expectedOutput": "AlignmentTurnDecision",
+      "index": 2,
+      "message": "Alignment is complete. The executor has a bounded task: edit only docs/roadmaps/development-program-overview.md to add one clearly titled top-level binding-rule section, with exact wording and placement left to the executor, then verify lint stays green and the section is discoverable."
+    }
+  ],
+  "workspaceRef": "E:\\ahra-v0.1-starter"
+}

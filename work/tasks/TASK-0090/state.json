@@ -2,15 +2,21 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0090",
   "context_id": "CTX-self-hosting-loop",
-  "state": "ready",
-  "state_version": 0,
-  "attempt": 0,
-  "owner": null,
-  "lease": null,
-  "next_action": "Task skeleton created; claim the task before producing evidence.",
+  "state": "working",
+  "state_version": 1,
+  "attempt": 1,
+  "owner": "agent:alignment-session",
+  "lease": {
+    "holder": "agent:alignment-session",
+    "fencing_token": "FENCE-32a37b6d9ea149e29fddf3bc8e23bfeb",
+    "acquired_at": "2026-07-03T03:58:34.702415Z",
+    "heartbeat_at": "2026-07-03T03:58:34.702415Z",
+    "expires_at": null
+  },
+  "next_action": "agent:alignment-session holds the task lease and is producing review evidence.",
   "pause_reason": null,
   "blockers": [],
   "artifact_refs": [],
   "evidence_refs": [],
-  "updated_at": "2026-07-02T04:07:15.619935Z"
+  "updated_at": "2026-07-03T03:58:34.702415Z"
 }

@@ -1,0 +1,51 @@
+apiVersion: ahra.dev/v1alpha1
+kind: IntentDraft
+metadata:
+  intentId: INTENT-TASK-0090-BINDING-RULE
+  name: task-0090-binding-rule
+spec:
+  abstractGoal: >-
+    Make the "new work defaults to the Workflow A plus B loop, and any manual
+    path must be recorded as a loop defect" rule an explicit, standalone binding
+    rule in the development program overview, so it governs all work from
+    TASK-0090 onward instead of being buried inside the Increment F execution
+    note.
+  constraints:
+    - key: scope
+      value: >-
+        Only edit docs/roadmaps/development-program-overview.md. Add one clearly
+        headed binding-rule section; do not touch code, schemas, or any other
+        document.
+      required: true
+    - key: form
+      value: >-
+        A new top-level Markdown section titled so a reader immediately sees it
+        is a binding rule, stating the default-to-A-plus-B rule and the
+        manual-path-is-a-defect rule as normative requirements.
+      required: true
+    - key: must-not
+      value: >-
+        Must not weaken, delete, or contradict any existing acceptance criteria,
+        the sequencing rule, or the kernel-boundary bootstrap exception.
+      required: true
+    - key: completion-signal
+      value: >-
+        The document still passes uv run python -B scripts/check.py --lint and
+        the binding rule is present as a distinct, discoverable section.
+      required: true
+    - key: verification
+      value: The result must be command-gate decidable (lint exit 0).
+      required: true
+  capabilityNeeds:
+    - action: filesystem.write
+      resources:
+        - docs/roadmaps/development-program-overview.md
+      reason: The executor edits the overview to add the binding-rule section.
+      riskLevel: R1
+  context:
+    profileRef: profile/development-bounded
+    roadmapRef: docs/roadmaps/development-program-overview.md
+    taskRef: TASK-0090
+  priorityHint: P1
+  riskHint: R1
+  requester: human:maintainer
