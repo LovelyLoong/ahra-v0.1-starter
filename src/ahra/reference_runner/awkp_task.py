@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 import shlex
+import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -583,8 +584,22 @@ def _load_manifest(path: Path, key: str, task_id: str) -> dict[str, Any]:
 
 def _write_json(path: Path, data: dict[str, Any]) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    temporary.replace(path)
+    payload = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+    # On Windows a host file scanner (e.g. an endpoint encryption client) can
+    # transiently lock the target during the write/rename, surfacing as
+    # PermissionError (WinError 5). The lock is momentary, so retry with a short
+    # backoff before giving up and re-raising the real error.
+    last_error: PermissionError | None = None
+    for attempt in range(5):
+        try:
+            temporary.write_text(payload, encoding="utf-8")
+            temporary.replace(path)
+            return
+        except PermissionError as error:
+            last_error = error
+            time.sleep(0.2 * (attempt + 1))
+    assert last_error is not None
+    raise last_error
 
 
 def _append_event(path: Path, event: dict[str, Any]) -> None:
