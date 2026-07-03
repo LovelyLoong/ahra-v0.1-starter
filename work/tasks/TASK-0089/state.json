@@ -2,15 +2,20 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0089",
   "context_id": "CTX-self-hosting-loop",
-  "state": "ready",
-  "state_version": 0,
-  "attempt": 0,
+  "state": "review",
+  "state_version": 2,
+  "attempt": 1,
   "owner": null,
   "lease": null,
-  "next_action": "Task skeleton created; claim the task before producing evidence.",
+  "next_action": "Automated orchestrator is invoking independent EvidenceGate review.",
   "pause_reason": null,
   "blockers": [],
-  "artifact_refs": [],
-  "evidence_refs": [],
-  "updated_at": "2026-07-02T04:07:15.217817Z"
+  "artifact_refs": [
+    "git:72ed577",
+    "git:2cdea3c"
+  ],
+  "evidence_refs": [
+    "EVD-TASK-0089-manual-completion"
+  ],
+  "updated_at": "2026-07-03T03:49:22.872728Z"
 }

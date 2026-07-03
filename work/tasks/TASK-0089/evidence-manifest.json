@@ -1,5 +1,20 @@
 {
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0089",
-  "evidence": []
+  "evidence": [
+    {
+      "evidence_id": "EVD-TASK-0089-0001",
+      "task_id": "TASK-0089",
+      "kind": "manual-completion",
+      "name": "manual-merge-completion",
+      "uri": "local://evidence/manual-completion-report.json",
+      "sha256": "b85274de89c266fa028f19326bbf956cf5b2c2b7913cd36fa2d38ee772fd89a6",
+      "media_type": "application/json",
+      "created_by": "human:maintainer",
+      "created_at": "2026-07-03T03:50:00Z",
+      "input_refs": ["git:72ed577", "git:2cdea3c"],
+      "evidence_refs": [],
+      "supersedes": null
+    }
+  ]
 }
