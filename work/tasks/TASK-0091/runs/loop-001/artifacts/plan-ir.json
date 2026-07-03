@@ -1,0 +1,132 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:728ac1cd856ad993de85f99d6373d610afdb9d19eb9303e334854a1e6ee312a2",
+    "planId": "PLAN-7534fae1c96a070e",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:0091bbbb0091cccc0091dddd0091eeee0091ffff0091aaaa0091bbbb0091cccc",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-task-0091",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:0091aaaa0091bbbb0091cccc0091dddd0091eeee0091ffff0091aaaa0091bbbb",
+    "goalRef": "GOAL-LOOP-0091",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 10,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 50,
+          "maxWallSeconds": 2100
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:3d701f57a967ac532fe98029d08968faccfd72e90a90df8c1cd76c0da4e4c83a",
+            "resources": [
+              "docs/policies/data-lifecycle.md",
+              "docs/policies/index.md",
+              "src/ahra/reference_runner/git_ops.py",
+              "tests/test_git_ops.py",
+              "tests/test_repo_hygiene.py"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "grantDigest": "sha256:29c8f71e459bf77dc8d0e7af7f760b9a58ed4dee9aeb136c1b49b197948d250d",
+            "resources": [
+              "uv run python -B scripts/check.py --test"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0091"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "run-byproduct-gc-change",
+            "schemaRef": "ahra/artifact/code-change/0.1"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        ],
+        "gateRefs": [
+          "GATE-task-0091",
+          "GATE-task-0091-semantic-review"
+        ],
+        "id": "NODE-task-0091",
+        "inputRefs": [
+          "input/loop-0091@sha256:0091cccc0091dddd0091eeee0091ffff0091aaaa0091bbbb0091cccc0091dddd"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Implement TASK-0091 acceptance criteria. 1) In\nsrc/ahra/reference_runner/git_ops.py,\nIsolatedGitWorkspaceProvider.finalize_execution_workspace must\nremove the isolated worktree directory and prune its git worktree\nregistration after successful propagation of changes back to the\nsource, and must retain the worktree when propagation fails so it\nstays available for diagnosis. Cover both behaviors with tests in\ntests/test_git_ops.py. 2) Add a repository-hygiene test in\ntests/test_repo_hygiene.py that fails when any completed task\ndirectory under work/tasks contains a development-worktrees\ndirectory, and passes against the current tree. 3) Create\ndocs/policies/data-lifecycle.md defining the four task-data\nretention tiers - contract (task.md, permanent), authority\n(state.json and events.jsonl, permanent but archived after\ncompletion with Git history as audit authority), evidence\n(required until EvidenceGate approval, then archived with the\ntask), run byproducts (runs/ worktrees, sqlite stores, caches:\nephemeral, garbage-collected on success, retained on failure until\nthe defect closes) - plus the completion-distillation rule: facts\nland in docs/, process lands in archive/. Link it from\ndocs/policies/index.md. Run\nuv run python -B scripts/check.py --test and record it in\nWorkReport.verification_commands_run.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 2100
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0091"
+        ],
+        "dependsOn": [
+          "NODE-task-0091"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0091"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the worktree GC, hygiene test, and data-lifecycle policy are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ]
+  }
+}

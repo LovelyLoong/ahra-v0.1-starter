@@ -9,12 +9,12 @@ owner: team:platform
 source_refs: []
 evidence_refs: []
 confidence: verified
-last_verified_at: 2026-06-21T00:00:00Z
+last_verified_at: 2026-07-02T00:00:00Z
 review_after: 2026-09-21T00:00:00Z
 tags: [index]
 ---
 
-# Durable knowledge
+# Durable Knowledge
 
 | Area | Purpose |
 |---|---|
@@ -24,3 +24,4 @@ tags: [index]
 | [Roadmaps](roadmaps/index.md) | Stage gates and implementation sequence |
 | [Runbooks](runbooks/index.md) | Repeatable operational procedures |
 | [Glossary](glossary/index.md) | Stable project vocabulary |
+| [Archived trace](../archive/docs/index.md) | Superseded or archived documents, trace-only and not active authority |

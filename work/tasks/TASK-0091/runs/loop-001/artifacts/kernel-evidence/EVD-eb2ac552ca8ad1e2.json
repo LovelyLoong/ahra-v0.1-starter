@@ -1,0 +1,62 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "Evidence",
+  "metadata": {
+    "evidenceId": "EVD-eb2ac552ca8ad1e2"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLM-TASK-0091"
+    ],
+    "confidence": "verified",
+    "dependencies": [],
+    "dependencyScope": "complete",
+    "environment": {
+      "policyDigest": "sha256:9b64794badd43e9690d0cb6847ee26fd9ba52950743eedd6381606c529c43a94",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:11094caa275f9d19138442c25f2affd808f2827c1859e9d9dc9ffc11c8c883da",
+      "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "fingerprint": "sha256:c78325aa1c5a8d0258a13c26af01a1fe57dc371ec1db8dfb9c4be0ce580c3918",
+    "gateDefinitionDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "gateRef": "GATE-task-0091",
+    "gateRunId": "GATERUN-eb2ac552ca8ad1e2",
+    "refs": [
+      "ART-task-0091-gate-run",
+      "GATERUN-eb2ac552ca8ad1e2"
+    ],
+    "result": "passed",
+    "subjects": [
+      {
+        "digest": "sha256:5e9677e5459f617abd6d2b42528ff3aa6eea208651b4f7dbedf114ae46d4de12",
+        "ref": "ART-1d5a6cd8bd454984a9e084397510dac4"
+      },
+      {
+        "digest": "sha256:bed64f7fb6f84603ab46f1b2559f6a2bab3de0161c08dc80c2fe1f75aebfe36c",
+        "ref": "ART-6adff0bee38340dd9e259c29cdfe58eb"
+      },
+      {
+        "digest": "sha256:90529715af9bdc61b815402ea54d3f4cd2870821d7dccb8fdcb690df176e1fd2",
+        "ref": "ART-8320d57e1a9f4ac1abab036b76bd2aa3"
+      },
+      {
+        "digest": "sha256:63119911757ca9f373be1e3e101a30c9d84d1a8a413a12bc6a62766d1cfef7c7",
+        "ref": "EVD-2a2bf0f7733d4c208b1a57e0ed7113e4"
+      },
+      {
+        "digest": "sha256:a52028c7ef69a400398d9887f40381e489de46cadeae7f8a8d2a5eef3a430f89",
+        "ref": "EVD-401aa1dbe4a04416987102ef02a4fb11"
+      },
+      {
+        "digest": "sha256:e8b2cc492bf0d449026c27593db8a3639a80c1b2a5d97e1336ce38efc26fd160",
+        "ref": "EVD-a9a51a226f0c4ddb968880440fcf7118"
+      }
+    ],
+    "supersedes": [],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

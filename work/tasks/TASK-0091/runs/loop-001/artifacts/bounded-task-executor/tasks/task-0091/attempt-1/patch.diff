@@ -1,0 +1,226 @@
+diff --git a/docs/policies/data-lifecycle.md b/docs/policies/data-lifecycle.md
+new file mode 100644
+index 0000000..eeaee65
+--- /dev/null
++++ b/docs/policies/data-lifecycle.md
+@@ -0,0 +1,42 @@
++---
++type: Policy
++id: POLICY-data-lifecycle
++schema_version: awkp/0.1
++title: Task data lifecycle policy
++description: Defines retention tiers for task contracts, authority state, evidence, and run byproducts.
++status: active
++owner: team:platform
++source_refs:
++  - ../../work/index.md
++evidence_refs: []
++confidence: reviewed
++last_verified_at: 2026-07-03T00:00:00Z
++review_after: 2026-10-03T00:00:00Z
++tags: [policy, data, lifecycle, tasks]
++---
++
++# Summary
++
++Task data is retained by authority tier. Permanent records stay small and reviewable. Ephemeral run byproducts are garbage-collected after success and retained on failure only while they are needed to diagnose and close the defect.
++
++# Retention tiers
++
++## Contract
++
++`task.md` is the task contract. It is permanent and must remain available for acceptance, scope, and non-goal review.
++
++## Authority
++
++`state.json` and `events.jsonl` are authority records. They are permanent, but after completion they are archived with Git history as the audit authority. `state.json` preserves the final machine-readable state; `events.jsonl` preserves the append-only transition log.
++
++## Evidence
++
++Evidence is required until EvidenceGate approval. After approval, evidence is archived with the task so the completed decision remains traceable without keeping transient execution surfaces alive.
++
++## Run byproducts
++
++`runs/` worktrees, SQLite stores, caches, and other execution byproducts are ephemeral. They are garbage-collected on success. On failure, they are retained until the defect closes so the diagnostic state remains inspectable.
++
++# Completion distillation
++
++After completion, facts land in `docs/` and process lands in `archive/`. Distilled facts must describe the durable project truth; process records must preserve how the task was executed, reviewed, and approved without becoming the active authority.
+diff --git a/docs/policies/index.md b/docs/policies/index.md
+index 8549eeb..4b8169f 100644
+--- a/docs/policies/index.md
++++ b/docs/policies/index.md
+@@ -20,5 +20,6 @@ tags: [policies]
+ |---|---|
+ | [Agent authority boundaries](agent-authority-boundaries.md) | Non-delegable authority separation for Planner, Executor, Verifier, and trusted Harness |
+ | [Component lifecycle](component-lifecycle.md) | Lifecycle classes and default exposure rules for components and docs |
++| [Data lifecycle](data-lifecycle.md) | Retention tiers for task contracts, authority state, evidence, and run byproducts |
+ | [Document governance](document-governance.md) | Authority, provenance, freshness, and review rules for project knowledge |
+ | [Minimal live loop metrics](minimal-loop-metrics.md) | Proposed hard metrics and scorecard fields for M1 dynamic-kernel experiments |
+diff --git a/src/ahra/reference_runner/git_ops.py b/src/ahra/reference_runner/git_ops.py
+index 50b7ce8..5b141d0 100644
+--- a/src/ahra/reference_runner/git_ops.py
++++ b/src/ahra/reference_runner/git_ops.py
+@@ -291,6 +291,7 @@ class IsolatedGitWorkspaceProvider:
+         self.allowed_globs = tuple(allowed_globs)
+         self.denied_globs = tuple(denied_globs)
+         self._sessions: dict[str, tuple[str, Workspace]] = {}
++        self._propagated_refs: set[str] = set()
+ 
+     def prepare_execution_workspace(
+         self,
+@@ -318,9 +319,13 @@ class IsolatedGitWorkspaceProvider:
+ 
+     def finalize_execution_workspace(self, workspace_ref: str) -> None:
+         execution_ref = str(Path(workspace_ref).resolve())
+-        session = self._sessions.pop(execution_ref, None)
++        session = self._sessions.get(execution_ref)
+         if session is None:
+             return
++        if execution_ref not in self._propagated_refs:
++            return
++        self._sessions.pop(execution_ref, None)
++        self._propagated_refs.discard(execution_ref)
+         source_ref, workspace = session
+         source = Path(source_ref)
+         manager = WorktreeManager(source)
+@@ -388,6 +393,7 @@ class IsolatedGitWorkspaceProvider:
+                 # File was deleted in worktree and exists in source: delete it
+                 target_file.unlink()
+ 
++        self._propagated_refs.add(str(execution_path))
+         return current_head(source)
+ 
+     def fast_forward(self, workspace_ref: str, ref: str) -> str:
+diff --git a/tests/test_git_ops.py b/tests/test_git_ops.py
+index 4b053a5..6a1406f 100644
+--- a/tests/test_git_ops.py
++++ b/tests/test_git_ops.py
+@@ -5,7 +5,12 @@ import tempfile
+ import unittest
+ from pathlib import Path
+ 
+-from ahra.reference_runner.git_ops import GitError, WorktreeManager, fast_forward
++from ahra.reference_runner.git_ops import (
++    GitError,
++    IsolatedGitWorkspaceProvider,
++    WorktreeManager,
++    fast_forward,
++)
+ 
+ 
+ def _git(repo: Path, *args: str) -> str:
+@@ -38,6 +43,11 @@ def _init_repo(root: Path) -> Path:
+     return repo
+ 
+ 
++def _worktree_list_contains(repo: Path, path: Path) -> bool:
++    output = _git(repo, "worktree", "list", "--porcelain").replace("\\", "/")
++    return str(path).replace("\\", "/") in output
++
++
+ class WorktreeManagerTests(unittest.TestCase):
+     def test_create_allows_dirty_source_worktree_but_integration_rejects_it(self) -> None:
+         with tempfile.TemporaryDirectory() as temp:
+@@ -83,5 +93,59 @@ class WorktreeManagerTests(unittest.TestCase):
+             self.assertIn("RUN-shared-prefix-probe", first.branch)
+ 
+ 
++class IsolatedGitWorkspaceProviderTests(unittest.TestCase):
++    def test_finalize_removes_worktree_after_successful_propagation(self) -> None:
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            repo = _init_repo(root)
++            provider = IsolatedGitWorkspaceProvider(
++                worktree_root=root / "development-worktrees",
++                allowed_globs=("*.txt",),
++                denied_globs=(),
++            )
++            execution_ref = provider.prepare_execution_workspace(
++                str(repo),
++                run_id="RUN-success",
++                node_id="NODE-success",
++            )
++            execution_path = Path(execution_ref)
++
++            (execution_path / "value.txt").write_text("2\n", encoding="utf-8")
++            provider.commit_all(execution_ref, "materialize execution result")
++            provider.finalize_execution_workspace(execution_ref)
++
++            self.assertEqual((repo / "value.txt").read_text(encoding="utf-8"), "2\n")
++            self.assertFalse(execution_path.exists())
++            self.assertFalse(_worktree_list_contains(repo, execution_path))
++
++    def test_finalize_retains_worktree_when_propagation_fails(self) -> None:
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            repo = _init_repo(root)
++            provider = IsolatedGitWorkspaceProvider(
++                worktree_root=root / "development-worktrees",
++                allowed_globs=("nested/*",),
++                denied_globs=(),
++            )
++            execution_ref = provider.prepare_execution_workspace(
++                str(repo),
++                run_id="RUN-failure",
++                node_id="NODE-failure",
++            )
++            execution_path = Path(execution_ref)
++
++            (execution_path / "nested").mkdir()
++            (execution_path / "nested" / "value.txt").write_text("2\n", encoding="utf-8")
++            (repo / "nested").write_text("source conflict\n", encoding="utf-8")
++
++            with self.assertRaises(OSError):
++                provider.commit_all(execution_ref, "materialize execution result")
++
++            provider.finalize_execution_workspace(execution_ref)
++
++            self.assertTrue(execution_path.exists())
++            self.assertTrue(_worktree_list_contains(repo, execution_path))
++
++
+ if __name__ == "__main__":
+     unittest.main()
+diff --git a/tests/test_repo_hygiene.py b/tests/test_repo_hygiene.py
+new file mode 100644
+index 0000000..ae1b9b5
+--- /dev/null
++++ b/tests/test_repo_hygiene.py
+@@ -0,0 +1,36 @@
++from __future__ import annotations
++
++import json
++import unittest
++from pathlib import Path
++
++
++REPO_ROOT = Path(__file__).resolve().parents[1]
++TASKS_ROOT = REPO_ROOT / "work" / "tasks"
++
++
++def _is_completed_task(task_dir: Path) -> bool:
++    state_path = task_dir / "state.json"
++    if not state_path.is_file():
++        return False
++    state = json.loads(state_path.read_text(encoding="utf-8"))
++    return state.get("state") == "completed"
++
++
++class RepositoryHygieneTests(unittest.TestCase):
++    def test_completed_tasks_do_not_contain_development_worktrees(self) -> None:
++        offenders: list[str] = []
++        for task_dir in sorted(TASKS_ROOT.iterdir()):
++            if not task_dir.is_dir() or not _is_completed_task(task_dir):
++                continue
++            offenders.extend(
++                str(path.relative_to(REPO_ROOT))
++                for path in task_dir.rglob("development-worktrees")
++                if path.is_dir()
++            )
++
++        self.assertEqual([], offenders)
++
++
++if __name__ == "__main__":
++    unittest.main()

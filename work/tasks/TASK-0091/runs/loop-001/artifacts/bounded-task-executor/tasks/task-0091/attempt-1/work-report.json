@@ -1,0 +1,15 @@
+{
+  "summary": "Implemented run-byproduct cleanup gating for isolated git workspaces, added coverage for successful cleanup and failed-propagation retention, added completed-task worktree hygiene coverage, and documented task data lifecycle policy. The final required test command passed.",
+  "changed_files": [
+    "docs/policies/data-lifecycle.md",
+    "docs/policies/index.md",
+    "src/ahra/reference_runner/git_ops.py",
+    "tests/test_git_ops.py",
+    "tests/test_repo_hygiene.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --test"
+  ],
+  "known_risks": [],
+  "unresolved_items": []
+}

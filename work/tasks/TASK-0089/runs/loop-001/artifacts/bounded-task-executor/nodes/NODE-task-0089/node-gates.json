@@ -1,0 +1,28 @@
+{
+  "schema_version": "ahra/node-gate-summary/0.1",
+  "plan_id": "PLAN-94135617ff0cf192",
+  "node_id": "NODE-task-0089",
+  "node_type": "bounded_task",
+  "gate_refs": [
+    "GATE-task-0089",
+    "GATE-task-0089-semantic-review"
+  ],
+  "l0_gates": [],
+  "semantic_review_enabled": true,
+  "status": "rejected",
+  "attempts": [
+    {
+      "attempt": 1,
+      "deterministicPassed": false,
+      "requiredChecksPassed": false,
+      "checkExecutionStatus": "skipped_policy_failed",
+      "checkSkipReason": "Policy gate failed before verification checks; no deterministic check records were produced.",
+      "agentReportedVerificationCommands": [
+        "uv run python -B scripts/check.py --lint",
+        "uv run python -B scripts/check.py --lint"
+      ],
+      "reviewVerdict": "fail",
+      "error": null
+    }
+  ]
+}

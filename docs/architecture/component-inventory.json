@@ -1066,7 +1066,7 @@
       "owner": "harness:dispatcher",
       "review_after": "2026-09-25T00:00:00Z",
       "paths": [
-        "work/tasks/TASK-0001..TASK-0031"
+        "archive/work/tasks/TASK-0001..TASK-0031"
       ],
       "serves": [
         "AuditTrail"

@@ -1,0 +1,107 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanDraft",
+  "metadata": {
+    "goalId": "GOAL-LOOP-0089",
+    "proposedBy": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "spec": {
+    "nodes": [
+      {
+        "budgetRequest": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 10,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 50,
+          "maxWallSeconds": 2100
+        },
+        "capabilityRequests": [
+          {
+            "capability": "filesystem.write",
+            "resources": [
+              "archive/**",
+              "docs/**",
+              "work/**"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "resources": [
+              "uv run python -B scripts/check.py --lint"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0089"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "entropy-archive-change",
+            "schemaRef": "ahra/artifact/doc-change/0.1"
+          }
+        ],
+        "gateRefs": [
+          "GATE-task-0089",
+          "GATE-task-0089-semantic-review"
+        ],
+        "id": "NODE-task-0089",
+        "inputRefs": [
+          "input/loop-0089@sha256:0089cccc0089dddd0089eeee0089ffff0089aaaa0089bbbb0089cccc0089dddd"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Reduce default-context entropy per work/tasks/TASK-0089/task.md:\n1. Move completed task directories work/tasks/TASK-0001 through\n   work/tasks/TASK-0080 to archive/work/tasks/ unmodified\n   (state.json and events.jsonl byte-identical; do not rewrite any\n   event history).\n2. Rewrite work/index.md to list only live tasks (TASK-0081 and\n   later) plus a one-line digest table of archived tasks with\n   their final state and a pointer to archive/work/tasks/.\n3. Move documents whose docs/architecture/authority-map.md status\n   is superseded or archived to archive/docs/ and update the\n   authority map and docs/index.md so every remaining active owner\n   path resolves and archived material is trace-only.\n4. Run uv run python -B scripts/check.py --lint and record it in\n   WorkReport.verification_commands_run; every remaining relative\n   link must resolve.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 2100
+      },
+      {
+        "budgetRequest": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "capabilityRequests": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0089"
+        ],
+        "dependsOn": [
+          "NODE-task-0089"
+        ],
+        "expectedOutputs": [],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0089"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the archive moves, index digest, and authority-map updates are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ],
+    "rationale": "Self-hosting loop, Increment F / Phase R. Physically archive completed\ntasks and superseded documents per work/tasks/TASK-0089/task.md. Moves\nrely on the TASK-0085 deletion/rename propagation; Git history remains\nthe audit authority. Declared filesystem.write resources are the\nrequest-scoped allowlist admitted by TASK-0085.\n"
+  }
+}

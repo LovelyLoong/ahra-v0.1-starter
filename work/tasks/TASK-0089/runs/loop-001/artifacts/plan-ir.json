@@ -1,0 +1,130 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:2ef9a7140beeffbb240a8e1e82f708981e3094086e7a9c23967a62fbb64f2134",
+    "planId": "PLAN-94135617ff0cf192",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:0089bbbb0089cccc0089dddd0089eeee0089ffff0089aaaa0089bbbb0089cccc",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-task-0089",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:0089aaaa0089bbbb0089cccc0089dddd0089eeee0089ffff0089aaaa0089bbbb",
+    "goalRef": "GOAL-LOOP-0089",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 10,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 50,
+          "maxWallSeconds": 2100
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:7539a928fe72391c751af805db3f07ec0d7290f6f38bf5d5132dac6fe8d58bc7",
+            "resources": [
+              "archive/**",
+              "docs/**",
+              "work/**"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "grantDigest": "sha256:b42b5c183ca6cfb6f98403968ad4481ce6f8421813638b1b10b84ca77aca87a2",
+            "resources": [
+              "uv run python -B scripts/check.py --lint"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0089"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "entropy-archive-change",
+            "schemaRef": "ahra/artifact/doc-change/0.1"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        ],
+        "gateRefs": [
+          "GATE-task-0089",
+          "GATE-task-0089-semantic-review"
+        ],
+        "id": "NODE-task-0089",
+        "inputRefs": [
+          "input/loop-0089@sha256:0089cccc0089dddd0089eeee0089ffff0089aaaa0089bbbb0089cccc0089dddd"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Reduce default-context entropy per work/tasks/TASK-0089/task.md:\n1. Move completed task directories work/tasks/TASK-0001 through\n   work/tasks/TASK-0080 to archive/work/tasks/ unmodified\n   (state.json and events.jsonl byte-identical; do not rewrite any\n   event history).\n2. Rewrite work/index.md to list only live tasks (TASK-0081 and\n   later) plus a one-line digest table of archived tasks with\n   their final state and a pointer to archive/work/tasks/.\n3. Move documents whose docs/architecture/authority-map.md status\n   is superseded or archived to archive/docs/ and update the\n   authority map and docs/index.md so every remaining active owner\n   path resolves and archived material is trace-only.\n4. Run uv run python -B scripts/check.py --lint and record it in\n   WorkReport.verification_commands_run; every remaining relative\n   link must resolve.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 2100
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0089"
+        ],
+        "dependsOn": [
+          "NODE-task-0089"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0089"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the archive moves, index digest, and authority-map updates are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ]
+  }
+}

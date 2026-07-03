@@ -1,0 +1,51 @@
+{
+  "verdict": "pass",
+  "summary": "All listed acceptance criteria have explicit evidence in the patch, WorkReport, and deterministic check results.",
+  "criteria": [
+    {
+      "criterion": "CLM-TASK-0091",
+      "passed": true,
+      "evidence": "Patch updates IsolatedGitWorkspaceProvider.finalize_execution_workspace to remove/prune only after commit_all records successful propagation, retains sessions/worktrees when propagation is not marked successful, adds tests for both cleanup and retention, adds repository hygiene coverage, adds data lifecycle policy documentation, and the required test command passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: docs/policies/data-lifecycle.md",
+      "passed": true,
+      "evidence": "Artifact existence check passed with exit_code 0; patch adds a non-empty 42-line policy document defining contract, authority, evidence, run byproducts, and completion distillation.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: docs/policies/index.md",
+      "passed": true,
+      "evidence": "Artifact existence check passed with exit_code 0; patch links Data lifecycle from docs/policies/index.md.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/reference_runner/git_ops.py",
+      "passed": true,
+      "evidence": "Artifact existence check passed with exit_code 0; patch modifies IsolatedGitWorkspaceProvider in src/ahra/reference_runner/git_ops.py.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_git_ops.py",
+      "passed": true,
+      "evidence": "Artifact existence check passed with exit_code 0; patch adds IsolatedGitWorkspaceProvider tests for successful cleanup and failed-propagation retention.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_repo_hygiene.py",
+      "passed": true,
+      "evidence": "Artifact existence check passed with exit_code 0; patch adds a repository hygiene test that scans completed tasks for development-worktrees directories.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: run-byproduct-gc-change",
+      "passed": true,
+      "evidence": "WorkReport.changed_files lists only the required five files; policy evidence reports no violations; deterministic check uv run python -B scripts/check.py --test passed with 338 tests run and OK, and WorkReport.verification_commands_run records the required command.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [],
+  "non_blocking_issues": [],
+  "confidence": 0.86
+}

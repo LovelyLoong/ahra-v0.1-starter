@@ -51,4 +51,4 @@ tags: [architecture]
 
 | Concept | Purpose |
 |---|---|
-| [Framework completion roadmap](framework-completion-roadmap.md) | Superseded implementation roadmap retained for traceability |
+| [Framework completion roadmap](../../archive/docs/architecture/framework-completion-roadmap.md) | Superseded implementation roadmap retained for traceability |

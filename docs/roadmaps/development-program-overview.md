@@ -133,6 +133,10 @@ Structure: one bootstrap exception, then everything runs through Workflow B.
   authority.
 - 0090 Phase S milestone: the first improvement driven end-to-end through a
   real-driver Workflow A session into Workflow B execution.
+- 0091 Data lifecycle: garbage-collect isolated worktrees after successful
+  propagation, enforce the retention rule with a repository-hygiene test, and
+  define the four-tier task-data retention policy
+  (`docs/policies/data-lifecycle.md`) with the completion-distillation rule.
 
 Execution rule: 0086..0089 are executed by Workflow B alone through the
 pre-authored requests `examples/goals/task-0086..0089-*.yaml`; each request's

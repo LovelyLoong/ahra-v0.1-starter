@@ -3,224 +3,57 @@ type: WorkIndex
 id: WORK-index
 schema_version: awkp/0.1
 title: Work index
-description: Generated-style view of current dynamic-kernel tasks; task state files remain authoritative in filesystem mode.
+description: Default live task index. Archived task records are trace-only under archive/work/tasks.
 status: active
 owner: harness:dispatcher
-source_refs: [tasks/TASK-0021/state.json, tasks/TASK-0022/state.json, tasks/TASK-0023/state.json, tasks/TASK-0024/state.json, tasks/TASK-0025/state.json, tasks/TASK-0026/state.json, tasks/TASK-0027/state.json, tasks/TASK-0028/state.json, tasks/TASK-0029/state.json, tasks/TASK-0030/state.json, tasks/TASK-0031/state.json, tasks/TASK-0032/state.json, tasks/TASK-0033/state.json, tasks/TASK-0034/state.json, tasks/TASK-0035/state.json, tasks/TASK-0036/state.json, tasks/TASK-0037/state.json, tasks/TASK-0038/state.json, tasks/TASK-0039/state.json, tasks/TASK-0040/state.json, tasks/TASK-0041/state.json, tasks/TASK-0042/state.json, tasks/TASK-0043/state.json, tasks/TASK-0044/state.json, tasks/TASK-0045/state.json, tasks/TASK-0046/state.json, tasks/TASK-0047/state.json, tasks/TASK-0048/state.json, tasks/TASK-0049/state.json, tasks/TASK-0050/state.json, tasks/TASK-0051/state.json, tasks/TASK-0052/state.json, tasks/TASK-0053/state.json, tasks/TASK-0054/state.json, tasks/TASK-0055/state.json, tasks/TASK-0056/state.json, tasks/TASK-0057/state.json, tasks/TASK-0058/state.json, tasks/TASK-0059/state.json, tasks/TASK-0060/state.json, tasks/TASK-0061/state.json, tasks/TASK-0062/state.json, tasks/TASK-0063/state.json, tasks/TASK-0064/state.json, tasks/TASK-0065/state.json, tasks/TASK-0066/state.json, tasks/TASK-0067/state.json, tasks/TASK-0068/state.json, tasks/TASK-0069/state.json, tasks/TASK-0070/state.json, tasks/TASK-0071/state.json, tasks/TASK-0072/state.json, tasks/TASK-0073/state.json, tasks/TASK-0074/state.json, tasks/TASK-0075/state.json, tasks/TASK-0076/state.json, tasks/TASK-0077/state.json, tasks/TASK-0078/state.json, tasks/TASK-0079/state.json, tasks/TASK-0080/state.json, tasks/TASK-0081/state.json, tasks/TASK-0082/state.json, tasks/TASK-0083/state.json, tasks/TASK-0084/state.json, tasks/TASK-0085/state.json, tasks/TASK-0086/state.json, tasks/TASK-0087/state.json, tasks/TASK-0088/state.json, tasks/TASK-0089/state.json, tasks/TASK-0090/state.json]
-evidence_refs: [EVD-TASK-0060-0008, EVD-TASK-0060-0003, EVD-TASK-0060-0002, EVD-TASK-0060-0001, EVD-TASK-0059-0007, EVD-TASK-0059-0003, EVD-TASK-0059-0002, EVD-TASK-0059-0001, EVD-TASK-0058-0008, EVD-TASK-0057-0008, EVD-TASK-0056-0004, EVD-TASK-0056-0003, EVD-TASK-0056-0002, EVD-TASK-0056-0001, EVD-TASK-0055-0003, EVD-TASK-0055-0002, EVD-TASK-0055-0001, EVD-TASK-0054-0003, EVD-TASK-0054-0002, EVD-TASK-0054-0001, EVD-TASK-0053-0003, EVD-TASK-0053-0002, EVD-TASK-0053-0001, EVD-TASK-0052-0003, EVD-TASK-0052-0002, EVD-TASK-0052-0001, EVD-TASK-0051-0003, EVD-TASK-0051-0002, EVD-TASK-0051-0001, EVD-TASK-0050-0003, EVD-TASK-0050-0002, EVD-TASK-0050-0001, EVD-TASK-0049-0004, EVD-TASK-0049-0003, EVD-TASK-0049-0002, EVD-TASK-0049-0001, EVD-TASK-0048-0004, EVD-TASK-0048-0003, EVD-TASK-0048-0002, EVD-TASK-0048-0001, EVD-TASK-0047-0004, EVD-TASK-0047-0003, EVD-TASK-0047-0002, EVD-TASK-0047-0001, EVD-TASK-0046-0003, EVD-TASK-0046-0002, EVD-TASK-0046-0001, EVD-TASK-0045-0011, EVD-TASK-0045-0010, EVD-TASK-0045-0009, EVD-TASK-0045-0008, EVD-TASK-0045-0007, EVD-TASK-0045-0006, EVD-TASK-0045-0005, EVD-TASK-0045-0004, EVD-TASK-0045-0003, EVD-TASK-0045-0002, EVD-TASK-0045-0001, EVD-TASK-0044-0003, EVD-TASK-0044-0002, EVD-TASK-0044-0001, EVD-TASK-0043-0007, EVD-TASK-0043-0006, EVD-TASK-0043-0005, EVD-TASK-0043-0004, EVD-TASK-0043-0003, EVD-TASK-0043-0002, EVD-TASK-0043-0001, EVD-TASK-0042-0009, EVD-TASK-0041-0010, EVD-TASK-0042-0008, EVD-TASK-0042-0007, EVD-TASK-0041-0009, EVD-TASK-0041-0008, EVD-TASK-0042-0006, EVD-TASK-0042-0005, EVD-TASK-0042-0004, EVD-TASK-0042-0003, EVD-TASK-0042-0002, EVD-TASK-0042-0001, EVD-TASK-0041-0007, EVD-TASK-0041-0006, EVD-TASK-0041-0005, EVD-TASK-0041-0004, EVD-TASK-0041-0003, EVD-TASK-0041-0002, EVD-TASK-0041-0001, EVD-TASK-0040-0010, EVD-TASK-0040-0009, EVD-TASK-0040-0008, EVD-TASK-0040-0007, EVD-TASK-0040-0006, EVD-TASK-0040-0005, EVD-TASK-0040-0004, EVD-TASK-0040-0003, EVD-TASK-0040-0002, EVD-TASK-0040-0001, EVD-TASK-0031-0001, EVD-TASK-0031-0002, EVD-TASK-0031-0003, EVD-TASK-0032-0001, EVD-TASK-0032-0002, EVD-TASK-0032-0003, EVD-TASK-0032-0004, EVD-TASK-0033-0001, EVD-TASK-0033-0002, EVD-TASK-0033-0003, EVD-TASK-0033-0004, EVD-TASK-0034-0001, EVD-TASK-0034-0002, EVD-TASK-0034-0003, EVD-TASK-0034-0004, EVD-TASK-0035-0001, EVD-TASK-0035-0002, EVD-TASK-0035-0003, EVD-TASK-0035-0004, EVD-TASK-0036-0001, EVD-TASK-0036-0002, EVD-TASK-0036-0003, EVD-TASK-0036-0004, EVD-TASK-0037-0001, EVD-TASK-0037-0002, EVD-TASK-0037-0003, EVD-TASK-0037-0004, EVD-TASK-0037-0005, EVD-TASK-0038-0001, EVD-TASK-0038-0002, EVD-TASK-0038-0003, EVD-TASK-0038-0004, EVD-TASK-0038-0005, EVD-TASK-0039-0001, EVD-TASK-0039-0002, EVD-TASK-0039-0003, EVD-TASK-0039-0004, EVD-TASK-0039-0005, EVD-TASK-0039-0006, EVD-TASK-0039-0007]
-confidence: reviewed
-last_verified_at: 2026-07-01T14:04:01.933997Z
+source_refs:
+- tasks/TASK-0081/state.json
+- tasks/TASK-0082/state.json
+- tasks/TASK-0083/state.json
+- tasks/TASK-0084/state.json
+- tasks/TASK-0085/state.json
+- tasks/TASK-0086/state.json
+- tasks/TASK-0087/state.json
+- tasks/TASK-0088/state.json
+- tasks/TASK-0089/state.json
+- tasks/TASK-0090/state.json
+- tasks/TASK-0091/state.json
+evidence_refs: []
+confidence: verified
+last_verified_at: 2026-07-02T00:00:00Z
 review_after: 2026-09-25T00:00:00Z
-tags: [work, index, dynamic-kernel]
+tags: [work, tasks, dynamic-kernel]
 ---
 
-# Tasks
+# Work Index
 
-Current dynamic-kernel stage tasks:
+Default work context lists only live task directories in `work/tasks/`.
+TASK-0001 through TASK-0080 are archived unmodified under `archive/work/tasks/`
+and are trace-only unless a current task, event, or evidence record references
+them explicitly.
 
-| Task | State | Owner | State version | Next action |
+## Live Tasks
+
+| Task | State | Owner | Version | Next action |
 |---|---|---|---:|---|
-| [TASK-0021](tasks/TASK-0021/task.md) | completed | unassigned | 7 | Completed by EvidenceGate verifier approval. |
-| [TASK-0022](tasks/TASK-0022/task.md) | completed | unassigned | 5 | Completed by EvidenceGate verifier approval; stale input_refs metadata corrected after maintainer authorization. |
-| [TASK-0023](tasks/TASK-0023/task.md) | completed | unassigned | 5 | Completed by EvidenceGate verifier approval. |
-| [TASK-0024](tasks/TASK-0024/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0025](tasks/TASK-0025/task.md) | completed | unassigned | 8 | Completed by EvidenceGate verifier approval. |
-| [TASK-0026](tasks/TASK-0026/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0027](tasks/TASK-0027/task.md) | completed | unassigned | 5 | Completed by EvidenceGate verifier approval. |
-| [TASK-0028](tasks/TASK-0028/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0029](tasks/TASK-0029/task.md) | completed | unassigned | 11 | Completed by EvidenceGate verifier approval. |
-| [TASK-0030](tasks/TASK-0030/task.md) | completed | unassigned | 9 | Completed by EvidenceGate verifier approval. |
-| [TASK-0031](tasks/TASK-0031/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0032](tasks/TASK-0032/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0033](tasks/TASK-0033/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
-| [TASK-0034](tasks/TASK-0034/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
-| [TASK-0035](tasks/TASK-0035/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
-| [TASK-0036](tasks/TASK-0036/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
-| [TASK-0037](tasks/TASK-0037/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
-| [TASK-0038](tasks/TASK-0038/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
-| [TASK-0039](tasks/TASK-0039/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
-| [TASK-0040](tasks/TASK-0040/task.md) | completed | unassigned | 9 | Completed by EvidenceGate verifier approval. |
-| [TASK-0041](tasks/TASK-0041/task.md) | completed | unassigned | 7 | Completed by EvidenceGate verifier approval. |
-| [TASK-0042](tasks/TASK-0042/task.md) | completed | unassigned | 7 | Completed by EvidenceGate verifier approval. |
-| [TASK-0043](tasks/TASK-0043/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
-| [TASK-0044](tasks/TASK-0044/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
-| [TASK-0045](tasks/TASK-0045/task.md) | completed | unassigned | 7 | Completed by EvidenceGate verifier approval; Mode C remains no-go and non-default. |
-| [TASK-0046](tasks/TASK-0046/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval; work index and closeout documentation are synchronized to the TASK-0045 approval boundary. |
-| [TASK-0047](tasks/TASK-0047/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval; Mode C remains no-go and non-default. |
-| [TASK-0048](tasks/TASK-0048/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval; Mode C remains non-default and not default-path approved. |
-| [TASK-0049](tasks/TASK-0049/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval; opened narrow TASK-0050 for real bounded Executor dependency alignment and Mode C pilot invariants. |
-| [TASK-0050](tasks/TASK-0050/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval; Mode C remains non-default and not broad-stability approved. |
-| [TASK-0051](tasks/TASK-0051/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval; explicit Mode C pilot approved for the tested local M1 bounded path only. |
-| [TASK-0052](tasks/TASK-0052/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0053](tasks/TASK-0053/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0054](tasks/TASK-0054/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0055](tasks/TASK-0055/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0056](tasks/TASK-0056/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0057](tasks/TASK-0057/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0058](tasks/TASK-0058/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0059](tasks/TASK-0059/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0060](tasks/TASK-0060/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0061](tasks/TASK-0061/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0062](tasks/TASK-0062/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0063](tasks/TASK-0063/task.md) | completed | unassigned | 12 | Completed by EvidenceGate verifier approval. |
-| [TASK-0064](tasks/TASK-0064/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0065](tasks/TASK-0065/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0066](tasks/TASK-0066/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0067](tasks/TASK-0067/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0068](tasks/TASK-0068/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0069](tasks/TASK-0069/task.md) | completed | unassigned | 9 | Completed by EvidenceGate verifier approval. |
-| [TASK-0070](tasks/TASK-0070/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
-| [TASK-0071](tasks/TASK-0071/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0072](tasks/TASK-0072/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0073](tasks/TASK-0073/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0074](tasks/TASK-0074/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0075](tasks/TASK-0075/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
-| [TASK-0076](tasks/TASK-0076/task.md) | completed | unassigned | 9 | Completed by EvidenceGate verifier approval. |
-| [TASK-0077](tasks/TASK-0077/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval; registered Workflow A dogfood checkpoint and hardened future dogfood validation. |
-| [TASK-0078](tasks/TASK-0078/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval; hardened Workflow A session gates and removed implicit fixed-converter fallback from active alignment session behavior. |
-| [TASK-0079](tasks/TASK-0079/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval; added independent Workflow B semantic code-review gate. |
-| [TASK-0080](tasks/TASK-0080/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval; moved Workflow A dogfood artifact/store locations into task-scoped run storage. |
-| [TASK-0081](tasks/TASK-0081/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval; exposed the experimental Workflow A CLI lifecycle with required human gates. |
-| [TASK-0082](tasks/TASK-0082/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval; gated alignment-session-manager promotion through component lifecycle evidence. |
-| [TASK-0083](tasks/TASK-0083/task.md) | review | unassigned | 2 | Await independent EvidenceGate review. |
-| [TASK-0084](tasks/TASK-0084/task.md) | review | unassigned | 2 | Await independent EvidenceGate review. |
-| [TASK-0085](tasks/TASK-0085/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval; request-scoped write admission bootstrap accepted. |
-| [TASK-0086](tasks/TASK-0086/task.md) | ready | unassigned | 0 | Task skeleton created; claim the task before producing evidence. |
-| [TASK-0087](tasks/TASK-0087/task.md) | ready | unassigned | 0 | Task skeleton created; claim the task before producing evidence. |
-| [TASK-0088](tasks/TASK-0088/task.md) | ready | unassigned | 0 | Task skeleton created; claim the task before producing evidence. |
+| [TASK-0081](tasks/TASK-0081/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
+| [TASK-0082](tasks/TASK-0082/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
+| [TASK-0083](tasks/TASK-0083/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
+| [TASK-0084](tasks/TASK-0084/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
+| [TASK-0085](tasks/TASK-0085/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
+| [TASK-0086](tasks/TASK-0086/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
+| [TASK-0087](tasks/TASK-0087/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
+| [TASK-0088](tasks/TASK-0088/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
 | [TASK-0089](tasks/TASK-0089/task.md) | ready | unassigned | 0 | Task skeleton created; claim the task before producing evidence. |
 | [TASK-0090](tasks/TASK-0090/task.md) | ready | unassigned | 0 | Task skeleton created; claim the task before producing evidence. |
+| [TASK-0091](tasks/TASK-0091/task.md) | ready | unassigned | 0 | Task skeleton created; claim the task before producing evidence. |
 
-# Proposed Next Sequence
+## Archived Tasks
 
-The full forward plan is mapped in
-[the development program overview](../docs/roadmaps/development-program-overview.md):
-Increment A (verification teeth, TASK-0052..0056), Increment B (workflow
-autonomy, TASK-0057..0061), then Phase 1 intent closure and later governance
-depth. Do not start an increment before its predecessor's demonstration task is
-EvidenceGate-approved.
+80 completed tasks (TASK-0001 through TASK-0080) have been archived to
+`archive/work/tasks/` with their contract, authority state, evidence, and
+handoffs preserved byte-identical. Git history remains the audit authority.
 
-`TASK-0041` and `TASK-0042` completed the post-SG-10 real Planner and real
-Executor follow-ups after TASK-0040 approved the pilot report and safety
-boundaries. Combined Mode C remains no-go until a separate task authorizes and
-audits that scope.
-
-`TASK-0043` completed independent EvidenceGate review for the Mode C no-go
-evidence package. This does not promote Mode C: three repetitions produced zero
-successes, with two isolated runner timeouts and one budget_exceeded failure.
-`TASK-0044` completed the timeout/finalization recovery and partial child-run
-reporting fix, but Mode C remains no-go and non-default until a separate
-authorized pilot proves combined behavior.
-
-`TASK-0045` completed after independent EvidenceGate re-review approved the
-digest correction and the closeout/no-go evidence package. The approval is
-limited to SG-10 safety/audit closeout and TASK-0044 timeout recovery behavior
-under live Mode C conditions. It does not approve Mode C default-path
-promotion.
-
-TASK-0045 stage conclusion: the M1 default safe path was complete, but real
-Mode C was still no-go at that point. TASK-0045 ran three bounded isolated Mode
-C repetitions with explicit combined/model-cost authorization; the result was
-`run_count=3`, `success_count=0`, and `failure_classes={timeout: 3}`.
-
-`TASK-0046` completed the docs-only closeout sync for this index and handoff
-state. The next task should be either Mode C timeout root-cause analysis or a
-release checkpoint.
-
-`TASK-0047` completed independent EvidenceGate review for the narrow Mode C
-timeout root-cause repair. It approved only the process-boundary fix that lets
-child runs self-close before the isolated watchdog. The post-fix live bounded
-Mode C rerun still failed with `success_count=0` and
-`failure_classes={timeout: 1}`. Mode C remains no-go and non-default pending
-separate repair and EvidenceGate approval.
-
-`TASK-0048` completed independent EvidenceGate review for the separate
-bounded-write repair. One bounded live Mode C rerun succeeded after the repair
-(`success_count=1`), but this is not a default-path approval or a broad
-stability pilot. Mode C remains non-default pending any separately authorized
-wider pilot and EvidenceGate approval.
-
-`TASK-0049` completed independent EvidenceGate review for the current workflow
-integrity preview and latent defect audit. The default deterministic M1 Goal
-path passed a fresh temporary smoke, while broader Mode C work remains blocked
-by P1 workflow risks: real bounded Executor dependency lifecycle alignment,
-coarser-than-needed pilot scorecard failure classes, pilot-specific real
-Executor budget invariants, and non-literal output contract coverage. This is
-not a Mode C default-path approval.
-
-`TASK-0050` completed independent EvidenceGate review for the workflow-invariant
-closeout of those four P1 risks: TaskHarness lifecycle/import alignment,
-scorecard failure dimensions, explicit real Executor budget invariant evidence,
-and deterministic coverage for non-literal and multi-output bounded Executor
-contracts. This is not a Mode C default-path approval or broad live Mode C
-stability approval.
-
-`TASK-0051` completed independent EvidenceGate review after a fresh
-post-TASK-0050 Mode C pilot ran three isolated repetitions with real Planner
-plus real Executor and produced `run_count=3`, `success_count=3`,
-`failure_classes={}`, planner admission rate `1.0`, executor accepted node rate
-`1.0`, and clean independent inspect results for all three GoalExecutions. This
-formally promotes Mode C from no-go to an approved explicit pilot for the tested
-local M1 bounded path only. It does not promote Mode C to the default path and
-does not prove production-grade or arbitrary-project orchestration.
-
-`TASK-0052` completed by EvidenceGate verifier approval. The task opened the
-GateDefinition contract for command-gate verification by adding optional
-expectation semantics, domain parsing for `command` and `expectation`, a linted
-example record, ADR-0008, and an `architecture/SPEC.md` correction that keeps
-`standard-harness` and `loop-engineering` out of the recommended default path.
-
-`TASK-0053` completed by EvidenceGate verifier approval. It adds
-`CommandGateRunner`, carries GateDefinition command and expectation into gate
-execution requests, enforces default-deny `process.exec` grants before calling
-`RuntimeProvider.exec`, records raw command output artifacts, preserves the
-existing workspace mutation fail-closed path, and keeps
-`DeterministicGateRunner` as the fixture/CI baseline.
-
-`TASK-0054` completed by EvidenceGate verifier approval. The default
-GoalOperation completion path derives `CompletionGateResult` from current
-`EvidenceV2` via `evaluate_completion()`, and `_finish_goal_if_ready` uses the
-derived completion value rather than unconditional success.
-
-`TASK-0055` completed by EvidenceGate verifier approval. The offline AWKP
-EvidenceGate approve path now requires command-backed criteria and passed
-command entries to reference kernel `EvidenceV2` with valid `GateRunV2` lineage
-and matching fingerprints. The independent approval used CommandGateRunner
-evidence for the targeted EvidenceGate tests, AWKP lint, project lint, and diff
-check.
-
-`TASK-0056` completed by EvidenceGate verifier approval. The final review
-confirmed the repaired AWKP frontmatter, reran the targeted command-gate tests,
-the full `scripts/check.py`, and `git diff --check`, and recorded
-command-backed Kernel `EvidenceV2`/`GateRunV2` lineage before approving the
-task.
-
-`TASK-0057` completed by EvidenceGate verifier approval. The final review
-confirmed the governed CAS task state writer, lease/fencing-token checks,
-duplicate idempotency rejection, monotonic events, producer review-only
-boundary, and command-backed Kernel `EvidenceV2`/`GateRunV2` lineage for the
-targeted tests, AWKP lint, project lint, and diff check.
-
-`TASK-0058` completed by EvidenceGate verifier approval. The approval covers
-`ahra task create`, `ahra task claim`, lint-clean skeleton generation, bad input
-rejection, governed CAS claiming through the TASK-0057 writer, default CLI help
-exposure, targeted CLI/lint/diff checks, and the producer review-only boundary.
-
-`TASK-0059` completed by EvidenceGate verifier approval. The approval covers
-`AwkpTaskReviewOrchestrator`, `ahra task orchestrate-review`, distinct
-producer/verifier enforcement, changes_requested reclaim/review looping through
-the TASK-0057 writer, max-cycle blocker surfacing, the hollow-gate fail-closed
-regression, and command-backed targeted/full/diff verification.
-
-`TASK-0060` completed by EvidenceGate verifier approval. The approval covers
-`GoalAwkpBridge`, `ahra goal bridge-awkp-task`, governed `goal_awkp_associated`
-task events, materialized kernel EvidenceV2/GateRun records, distinct
-producer/verifier enforcement, targeted/full/lint/diff command evidence, and
-the rule that EvidenceGate alone may complete the AWKP task.
-
-# Archive
-
-`TASK-0001` through `TASK-0020` are historical audit records retained under
-`work/tasks/`. They are excluded from normal context loading unless explicitly
-referenced by the current task, event, evidence, or user request. Their own
-`state.json` and `events.jsonl` files remain authoritative.
+| Range | Count | Archive location |
+|---|---:|---|
+| TASK-0001 to TASK-0080 | 80 | [archive/work/tasks/](../archive/work/tasks/) |

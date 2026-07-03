@@ -6,7 +6,7 @@ title: Framework completion roadmap
 description: Implementation-facing roadmap for turning the starter into an Agent workflow foundation.
 status: superseded
 owner: team:platform
-source_refs: [../../architecture/SPEC.md, ../../README.md]
+source_refs: [../../../architecture/SPEC.md, ../../../README.md]
 evidence_refs: []
 confidence: reviewed
 last_verified_at: 2026-06-22T00:00:00Z
@@ -19,7 +19,7 @@ tags: [architecture, roadmap, framework]
 # Purpose
 
 This document maps the remaining framework gaps to explicit implementation
-decisions. It is narrower than [AHRA SPEC](../../architecture/SPEC.md): this is
+decisions. It is narrower than [AHRA SPEC](../../../architecture/SPEC.md): this is
 about what this Agent workflow foundation should implement next, defer, or keep
 optional.
 

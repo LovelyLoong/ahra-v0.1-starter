@@ -1,0 +1,60 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0091",
+  "artifacts": [
+    {
+      "artifact_id": "ART-8320d57e1a9f4ac1abab036b76bd2aa3",
+      "task_id": "task-0091",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/task-0091/attempt-1/patch.diff",
+      "sha256": "dd61b09814f659cd8487d4ae2f30abdc479884e0ba3cbd84b9459eea279f17b4",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-03T02:09:44.754021Z",
+      "input_refs": [
+        "task-0091",
+        "NRUN-f7f9879ec9e19abe"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-6adff0bee38340dd9e259c29cdfe58eb",
+      "task_id": "task-0091",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/task-0091/attempt-1/work-report.json",
+      "sha256": "8e622906d8858620285b1f5a85c21c21f3b2f4855263bbe477eb3b474f66559c",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-03T02:09:44.758008Z",
+      "input_refs": [
+        "task-0091",
+        "NRUN-f7f9879ec9e19abe"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-1d5a6cd8bd454984a9e084397510dac4",
+      "task_id": "task-0091",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-task-0091/node-run.json",
+      "sha256": "384a12e19e377785dd7d90f2ec8fb1ceed82f9749394f487de8d5731bfe3cc2a",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-03T02:10:22.800911Z",
+      "input_refs": [
+        "PLAN-7534fae1c96a070e",
+        "NODE-task-0091",
+        "NRUN-f7f9879ec9e19abe"
+      ],
+      "evidence_refs": [
+        "EVD-2a2bf0f7733d4c208b1a57e0ed7113e4"
+      ],
+      "supersedes": null
+    }
+  ]
+}
