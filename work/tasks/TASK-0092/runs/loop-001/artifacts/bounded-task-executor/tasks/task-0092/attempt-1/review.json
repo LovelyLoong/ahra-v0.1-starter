@@ -1,0 +1,19 @@
+{
+  "verdict": "fail",
+  "summary": "Semantic review was skipped because the deterministic gate failed.",
+  "criteria": [
+    {
+      "criterion": "Deterministic preconditions",
+      "passed": false,
+      "evidence": "Required checks and policy must pass before semantic review.",
+      "concerns": [
+        "Required check failed: granted process.exec: uv run python -B scripts/check.py"
+      ]
+    }
+  ],
+  "blocking_issues": [
+    "Required check failed: granted process.exec: uv run python -B scripts/check.py"
+  ],
+  "non_blocking_issues": [],
+  "confidence": 1.0
+}

@@ -286,6 +286,7 @@ class TaskHarness:
         node_id: str | None = None,
         actor: str = "executor",
         semantic_review_enabled: bool = True,
+        preserve_failed_workspace: bool = False,
     ) -> None:
         self.driver = driver
         self.workspace_provider = workspace_provider or LocalGitWorkspaceProvider()
@@ -298,6 +299,7 @@ class TaskHarness:
         self.node_id = node_id
         self.actor = actor
         self.semantic_review_enabled = semantic_review_enabled
+        self.preserve_failed_workspace = preserve_failed_workspace
         self._run_started_monotonic: float | None = None
 
     def collect_evidence(
@@ -328,6 +330,61 @@ class TaskHarness:
             patch_excerpt=_excerpt(full_patch),
         )
         return evidence, full_patch
+
+    def _capture_failure_patch(
+        self,
+        *,
+        store: ReferenceRunStore,
+        task: TaskSpec,
+        workspace_ref: str,
+        checkpoint: str,
+        attempt_number: int,
+        run_id: str,
+    ) -> dict | None:
+        """Best-effort capture of the failed work as an untrusted audit artifact."""
+        try:
+            failure_patch = self.workspace_provider.patch(workspace_ref, checkpoint)
+        except Exception:
+            return None
+        if not failure_patch.strip():
+            return None
+        return store.write_artifact(
+            f"tasks/{task.id}/attempt-{attempt_number}/failure.patch",
+            failure_patch,
+            task_id=task.id,
+            kind="failure_patch",
+            media_type="text/x-diff",
+            created_by=f"workflow-module:{self.module_id}",
+            input_refs=[task.id, run_id],
+        )
+
+    def _discard_or_preserve_failed_work(
+        self,
+        *,
+        store: ReferenceRunStore,
+        task: TaskSpec,
+        workspace_ref: str,
+        checkpoint: str,
+        attempt_number: int,
+        restore_patch_text: str | None = None,
+    ) -> bool:
+        """Roll back failed work, or keep it in the workspace when preservation is enabled.
+
+        Returns True when the workspace was rolled back to the checkpoint.
+        """
+        if self.preserve_failed_workspace:
+            if restore_patch_text is not None:
+                self.workspace_provider.restore_patch(workspace_ref, checkpoint, restore_patch_text)
+            store.event(
+                "failed_workspace_preserved",
+                task_id=task.id,
+                attempt=attempt_number,
+                workspace=self.workspace_provider.resolve_path(workspace_ref),
+                checkpoint=checkpoint,
+            )
+            return False
+        self.workspace_provider.rollback(workspace_ref, checkpoint)
+        return True
 
     async def run_task(
         self,
@@ -491,7 +548,21 @@ class TaskHarness:
                                 retryable=False,
                                 error=repr(exc),
                             )
-                            self.workspace_provider.rollback(workspace_ref, checkpoint)
+                            failure_patch_record = self._capture_failure_patch(
+                                store=store,
+                                task=task,
+                                workspace_ref=workspace_ref,
+                                checkpoint=checkpoint,
+                                attempt_number=attempt_number,
+                                run_id=run_id,
+                            )
+                            rolled_back = self._discard_or_preserve_failed_work(
+                                store=store,
+                                task=task,
+                                workspace_ref=workspace_ref,
+                                checkpoint=checkpoint,
+                                attempt_number=attempt_number,
+                            )
                             result = TaskRunResult(
                                 run_id=run_id,
                                 task_id=task.id,
@@ -500,7 +571,8 @@ class TaskHarness:
                                 attempts=tuple(attempts),
                                 message=(
                                     "Task review failed its output contract after bounded "
-                                    f"review retries and was rolled back: {exc!r}"
+                                    "review retries and was "
+                                    f"{'rolled back' if rolled_back else 'preserved in the failed workspace'}: {exc!r}"
                                 ),
                                 workspace=str(workspace),
                                 branch=branch,
@@ -511,6 +583,11 @@ class TaskHarness:
                                 task=task,
                                 result=result,
                                 execution_policy=self.execution_policy,
+                                refs=(
+                                    [failure_patch_record["artifact_id"]]
+                                    if failure_patch_record
+                                    else None
+                                ),
                             )
                             return result
                     else:
@@ -624,14 +701,27 @@ class TaskHarness:
                     created_by=f"workflow-module:{self.module_id}",
                     input_refs=[task.id, run_id],
                 )
-                self.workspace_provider.rollback(workspace_ref, checkpoint)
+                rolled_back = self._discard_or_preserve_failed_work(
+                    store=store,
+                    task=task,
+                    workspace_ref=workspace_ref,
+                    checkpoint=checkpoint,
+                    attempt_number=attempt_number,
+                    restore_patch_text=(
+                        patch_before_checks if evidence.verification_mutated_workspace else None
+                    ),
+                )
                 result = TaskRunResult(
                     run_id=run_id,
                     task_id=task.id,
                     status=WorkflowOutcome.REJECTED,
                     checkpoint=checkpoint,
                     attempts=tuple(attempts),
-                    message="Task exhausted its bounded attempts and was rolled back.",
+                    message=(
+                        "Task exhausted its bounded attempts and was rolled back."
+                        if rolled_back
+                        else "Task exhausted its bounded attempts; failed work was preserved in the workspace."
+                    ),
                     workspace=str(workspace),
                     branch=branch,
                     artifact_dir=str(store.run_dir),
@@ -658,14 +748,32 @@ class TaskHarness:
                 if attempt_number < max_attempts:
                     feedback = f"The harness raised an execution error: {exc!r}. Recover safely."
                     continue
-                self.workspace_provider.rollback(workspace_ref, checkpoint)
+                failure_patch_record = self._capture_failure_patch(
+                    store=store,
+                    task=task,
+                    workspace_ref=workspace_ref,
+                    checkpoint=checkpoint,
+                    attempt_number=attempt_number,
+                    run_id=run_id,
+                )
+                rolled_back = self._discard_or_preserve_failed_work(
+                    store=store,
+                    task=task,
+                    workspace_ref=workspace_ref,
+                    checkpoint=checkpoint,
+                    attempt_number=attempt_number,
+                )
                 result = TaskRunResult(
                     run_id=run_id,
                     task_id=task.id,
                     status=WorkflowOutcome.ERROR,
                     checkpoint=checkpoint,
                     attempts=tuple(attempts),
-                    message=f"Task failed with an execution error and was rolled back: {exc!r}",
+                    message=(
+                        f"Task failed with an execution error and was rolled back: {exc!r}"
+                        if rolled_back
+                        else f"Task failed with an execution error; failed work was preserved in the workspace: {exc!r}"
+                    ),
                     workspace=str(workspace),
                     branch=branch,
                     artifact_dir=str(store.run_dir),
@@ -675,6 +783,11 @@ class TaskHarness:
                     task=task,
                     result=result,
                     execution_policy=self.execution_policy,
+                    refs=(
+                        [failure_patch_record["artifact_id"]]
+                        if failure_patch_record
+                        else None
+                    ),
                 )
                 return result
 

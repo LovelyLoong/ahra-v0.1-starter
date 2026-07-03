@@ -121,6 +121,7 @@ class BoundedTaskExecutor:
         runtime_profile_ref: str | None = None,
         execution_policy: ExecutionPolicy | None = None,
         release_ref: str = BOUNDED_TASK_EXECUTOR_RELEASE,
+        preserve_failed_workspace: bool = False,
     ) -> None:
         self.driver = driver
         self.store = store
@@ -129,6 +130,7 @@ class BoundedTaskExecutor:
         self.runtime_profile_ref = runtime_profile_ref
         self.execution_policy = execution_policy or ExecutionPolicy()
         self._release_ref = release_ref
+        self.preserve_failed_workspace = preserve_failed_workspace
 
     @property
     def node_type(self) -> str:
@@ -285,6 +287,7 @@ class BoundedTaskExecutor:
             plan_id=request.plan.plan_id,
             node_id=request.node.node_id,
             semantic_review_enabled=semantic_review_enabled,
+            preserve_failed_workspace=self.preserve_failed_workspace,
         ).run_task(
             task=task,
             workspace_ref=request.workspace_ref,

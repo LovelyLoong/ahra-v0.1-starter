@@ -1,0 +1,133 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:47c94993da12ad5c7f1dfb62fd8e44118722c92f6cdb8dbcec3b3f8147a5bf35",
+    "planId": "PLAN-6913879059ad5209",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:0092bbbb0092cccc0092dddd0092eeee0092ffff0092aaaa0092bbbb0092cccc",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-task-0092",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:0092aaaa0092bbbb0092cccc0092dddd0092eeee0092ffff0092aaaa0092bbbb",
+    "goalRef": "GOAL-LOOP-0092",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 10,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 50,
+          "maxWallSeconds": 2100
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:4060ffdb6d48fd87e6d79bd7b14bfd46c7e49e49f13b98623e94798b6da2de6f",
+            "resources": [
+              "contracts/schemas/boundary-contract.schema.json",
+              "examples/records/boundary-contract.json",
+              "src/ahra/alignment_session.py",
+              "src/ahra/boundary_contract.py",
+              "tests/test_alignment_session.py",
+              "tests/test_boundary_contract.py"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "grantDigest": "sha256:7129566cf0d099711d23e52e35c90791bf79f15bb3f549d751f99314bff20722",
+            "resources": [
+              "uv run python -B scripts/check.py"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0092"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "boundary-contract-change",
+            "schemaRef": "ahra/artifact/code-change/0.1"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        ],
+        "gateRefs": [
+          "GATE-task-0092",
+          "GATE-task-0092-semantic-review"
+        ],
+        "id": "NODE-task-0092",
+        "inputRefs": [
+          "input/loop-0092@sha256:0092cccc0092dddd0092eeee0092ffff0092aaaa0092bbbb0092cccc0092dddd"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Implement TASK-0092 acceptance criteria. 1) Add\ncontracts/schemas/boundary-contract.schema.json defining the five\ntyped entry kinds (must, must_not, completion_signal, free_zone,\nopen_question) with required unique entry IDs, plus an example\nrecord examples/records/boundary-contract.json that validates\nagainst it. Do NOT edit scripts/lint_contracts.py or anything under\nscripts/ -- that path is outside your write boundary; the trusted\nmaintainer registers the schema/example in the linter after this\nnode completes. 2) Add\nsrc/ahra/boundary_contract.py with frozen domain objects that parse\nand validate a boundary contract; freeze validation must reject\ncontracts containing open_question entries, duplicate entry IDs, or\nunknown kinds; cover with tests/test_boundary_contract.py. 3) In\nsrc/ahra/alignment_session.py, make the Human Gate 1 freeze path\nrecord the typed boundary contract and its sha256 digest in the\nimmutable session snapshot, keeping the prose requirement as trace\nonly; cover with tests/test_alignment_session.py. Run\nuv run python -B scripts/check.py and record it in\nWorkReport.verification_commands_run.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 2100
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0092"
+        ],
+        "dependsOn": [
+          "NODE-task-0092"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0092"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the boundary-contract schema, domain objects, and Gate 1 freeze semantics are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ]
+  }
+}

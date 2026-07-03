@@ -156,6 +156,7 @@ class GoalOperationProfile:
     filesystem_write_blacklist: tuple[str, ...] = ()
     process_exec_allowlist: tuple[str, ...] = ()
     default_node_budget: PlanBudget | None = None
+    preserve_failed_workspace: bool = False
 
     @property
     def registered_node_types(self) -> frozenset[str]:
@@ -377,6 +378,7 @@ class GoalOperationProfileRegistry:
                 filesystem_write_blacklist=DEVELOPMENT_BOUNDED_WRITE_BLACKLIST,
                 process_exec_allowlist=DEVELOPMENT_BOUNDED_PROCESS_COMMANDS,
                 default_node_budget=DEVELOPMENT_BOUNDED_NODE_BUDGET,
+                preserve_failed_workspace=True,
             ),
         )
         self._profiles = {profile.profile_ref: profile for profile in default_profiles}
@@ -608,7 +610,8 @@ class GoalOperationService:
             execution.plan_execution_id,
             expected_version=goal.status_version,
         )
-        workspace_provider = self._real_executor_workspace_provider(request, self.profiles.get(request.profile_ref))
+        profile = self.profiles.get(request.profile_ref)
+        workspace_provider = self._real_executor_workspace_provider(request, profile)
         execution_workspace_ref = self._prepare_execution_workspace(request, workspace_provider)
         scheduler = self._scheduler(
             request,
@@ -630,7 +633,10 @@ class GoalOperationService:
                 latest_goal = store.get_goal_execution(goal.goal_execution_id)
                 defects = _scheduler_defects(scheduler)
                 completion = _scheduler_completion(scheduler)
-                execution_workspace_preserved = latest_execution.status == PlanExecutionStatus.FAILED
+                execution_workspace_preserved = (
+                    profile.preserve_failed_workspace
+                    and latest_execution.status == PlanExecutionStatus.FAILED
+                )
             else:
                 latest_execution = asyncio.run(
                     scheduler.run_until_terminal(
@@ -650,7 +656,10 @@ class GoalOperationService:
                     open_defect_refs=tuple(defect.defect_id for defect in defects),
                 )
                 ran = True
-                execution_workspace_preserved = latest_execution.status == PlanExecutionStatus.FAILED
+                execution_workspace_preserved = (
+                    profile.preserve_failed_workspace
+                    and latest_execution.status == PlanExecutionStatus.FAILED
+                )
         finally:
             self._finalize_execution_workspace(
                 workspace_provider,
@@ -706,7 +715,8 @@ class GoalOperationService:
             )
         recover_sqlite_control_plane(store)
         assert bundle.plan is not None
-        workspace_provider = self._real_executor_workspace_provider(request, self.profiles.get(request.profile_ref))
+        profile = self.profiles.get(request.profile_ref)
+        workspace_provider = self._real_executor_workspace_provider(request, profile)
         execution_workspace_ref = self._prepare_execution_workspace(request, workspace_provider)
         scheduler = self._scheduler(
             request,
@@ -732,7 +742,10 @@ class GoalOperationService:
                 completion=completion,
                 open_defect_refs=tuple(defect.defect_id for defect in defects),
             )
-            execution_workspace_preserved = execution.status == PlanExecutionStatus.FAILED
+            execution_workspace_preserved = (
+                profile.preserve_failed_workspace
+                and execution.status == PlanExecutionStatus.FAILED
+            )
         finally:
             self._finalize_execution_workspace(
                 workspace_provider,
@@ -903,6 +916,7 @@ class GoalOperationService:
                     runtime_profile_ref=self.real_executor_runtime_profile_ref,
                     execution_policy=self.real_executor_execution_policy,
                     release_ref=REAL_BOUNDED_EXECUTOR_REF,
+                    preserve_failed_workspace=profile.preserve_failed_workspace,
                 )
             )
             registry.register(DeterministicFileEffectExecutor(node_type="repair", store=store))

@@ -1,0 +1,959 @@
+diff --git a/contracts/schemas/boundary-contract.schema.json b/contracts/schemas/boundary-contract.schema.json
+new file mode 100644
+index 0000000..cbca50d
+--- /dev/null
++++ b/contracts/schemas/boundary-contract.schema.json
+@@ -0,0 +1,234 @@
++{
++  "$schema": "https://json-schema.org/draft/2020-12/schema",
++  "$id": "https://ahra.dev/schemas/boundary-contract.v1alpha1.json",
++  "title": "AHRA BoundaryContract",
++  "type": "object",
++  "additionalProperties": true,
++  "required": [
++    "apiVersion",
++    "kind",
++    "metadata",
++    "spec"
++  ],
++  "properties": {
++    "apiVersion": {
++      "const": "ahra.dev/v1alpha1"
++    },
++    "kind": {
++      "const": "BoundaryContract"
++    },
++    "metadata": {
++      "type": "object",
++      "additionalProperties": true,
++      "required": [
++        "contractId",
++        "version"
++      ],
++      "properties": {
++        "contractId": {
++          "type": "string",
++          "pattern": "^BC-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
++        },
++        "version": {
++          "type": "integer",
++          "minimum": 1
++        },
++        "source": {
++          "type": "string",
++          "minLength": 1
++        }
++      }
++    },
++    "spec": {
++      "type": "object",
++      "additionalProperties": true,
++      "required": [
++        "entries"
++      ],
++      "properties": {
++        "entries": {
++          "type": "array",
++          "minItems": 1,
++          "uniqueItems": true,
++          "x-ahra-uniqueKey": "id",
++          "description": "Each entry id is required and must be unique within the BoundaryContract.",
++          "items": {
++            "$ref": "#/$defs/entry"
++          }
++        }
++      }
++    }
++  },
++  "$defs": {
++    "entryId": {
++      "type": "string",
++      "pattern": "^BCE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
++    },
++    "stringList": {
++      "type": "array",
++      "items": {
++        "type": "string",
++        "minLength": 1
++      }
++    },
++    "entry": {
++      "oneOf": [
++        {
++          "$ref": "#/$defs/mustEntry"
++        },
++        {
++          "$ref": "#/$defs/mustNotEntry"
++        },
++        {
++          "$ref": "#/$defs/completionSignalEntry"
++        },
++        {
++          "$ref": "#/$defs/freeZoneEntry"
++        },
++        {
++          "$ref": "#/$defs/openQuestionEntry"
++        }
++      ]
++    },
++    "mustEntry": {
++      "type": "object",
++      "additionalProperties": true,
++      "required": [
++        "id",
++        "kind",
++        "statement"
++      ],
++      "properties": {
++        "id": {
++          "$ref": "#/$defs/entryId"
++        },
++        "kind": {
++          "const": "must"
++        },
++        "statement": {
++          "type": "string",
++          "minLength": 1
++        },
++        "rationale": {
++          "type": "string",
++          "minLength": 1
++        },
++        "refs": {
++          "$ref": "#/$defs/stringList"
++        }
++      }
++    },
++    "mustNotEntry": {
++      "type": "object",
++      "additionalProperties": true,
++      "required": [
++        "id",
++        "kind",
++        "statement"
++      ],
++      "properties": {
++        "id": {
++          "$ref": "#/$defs/entryId"
++        },
++        "kind": {
++          "const": "must_not"
++        },
++        "statement": {
++          "type": "string",
++          "minLength": 1
++        },
++        "rationale": {
++          "type": "string",
++          "minLength": 1
++        },
++        "refs": {
++          "$ref": "#/$defs/stringList"
++        }
++      }
++    },
++    "completionSignalEntry": {
++      "type": "object",
++      "additionalProperties": true,
++      "required": [
++        "id",
++        "kind",
++        "statement"
++      ],
++      "properties": {
++        "id": {
++          "$ref": "#/$defs/entryId"
++        },
++        "kind": {
++          "const": "completion_signal"
++        },
++        "statement": {
++          "type": "string",
++          "minLength": 1
++        },
++        "rationale": {
++          "type": "string",
++          "minLength": 1
++        },
++        "refs": {
++          "$ref": "#/$defs/stringList"
++        }
++      }
++    },
++    "freeZoneEntry": {
++      "type": "object",
++      "additionalProperties": true,
++      "required": [
++        "id",
++        "kind",
++        "statement"
++      ],
++      "properties": {
++        "id": {
++          "$ref": "#/$defs/entryId"
++        },
++        "kind": {
++          "const": "free_zone"
++        },
++        "statement": {
++          "type": "string",
++          "minLength": 1
++        },
++        "rationale": {
++          "type": "string",
++          "minLength": 1
++        },
++        "refs": {
++          "$ref": "#/$defs/stringList"
++        }
++      }
++    },
++    "openQuestionEntry": {
++      "type": "object",
++      "additionalProperties": true,
++      "required": [
++        "id",
++        "kind",
++        "statement"
++      ],
++      "properties": {
++        "id": {
++          "$ref": "#/$defs/entryId"
++        },
++        "kind": {
++          "const": "open_question"
++        },
++        "statement": {
++          "type": "string",
++          "minLength": 1
++        },
++        "rationale": {
++          "type": "string",
++          "minLength": 1
++        },
++        "refs": {
++          "$ref": "#/$defs/stringList"
++        }
++      }
++    }
++  }
++}
+diff --git a/examples/records/boundary-contract.json b/examples/records/boundary-contract.json
+new file mode 100644
+index 0000000..d8d65bc
+--- /dev/null
++++ b/examples/records/boundary-contract.json
+@@ -0,0 +1,39 @@
++{
++  "apiVersion": "ahra.dev/v1alpha1",
++  "kind": "BoundaryContract",
++  "metadata": {
++    "contractId": "BC-TASK-0092-EXAMPLE",
++    "version": 1,
++    "source": "examples/records/boundary-contract.json"
++  },
++  "spec": {
++    "entries": [
++      {
++        "id": "BCE-WRITE-LOCAL-ARTIFACT",
++        "kind": "must",
++        "statement": "The executor writes only the requested bounded workspace artifacts.",
++        "refs": [
++          "task.requirements"
++        ]
++      },
++      {
++        "id": "BCE-NO-SCRIPT-EDITS",
++        "kind": "must_not",
++        "statement": "The executor does not edit scripts or any file outside the write boundary.",
++        "refs": [
++          "task.policy.allowed_globs"
++        ]
++      },
++      {
++        "id": "BCE-CHECK-PASSES",
++        "kind": "completion_signal",
++        "statement": "The run is complete when uv run python -B scripts/check.py exits successfully."
++      },
++      {
++        "id": "BCE-IMPLEMENTATION-CHOICES",
++        "kind": "free_zone",
++        "statement": "The executor may choose internal names and helper functions that preserve the public contract."
++      }
++    ]
++  }
++}
+diff --git a/src/ahra/alignment_session.py b/src/ahra/alignment_session.py
+index b6dbf88..e7b1784 100644
+--- a/src/ahra/alignment_session.py
++++ b/src/ahra/alignment_session.py
+@@ -6,6 +6,7 @@ from typing import Any, Mapping
+ 
+ from .acceptance_contracts import ClaimGraph
+ from .approval_service import ApprovalRecord
++from .boundary_contract import BoundaryContract, BoundaryContractError
+ from .request_draft import (
+     RequestDraft,
+     RequestDraftError,
+@@ -117,6 +118,8 @@ class AlignmentSessionSnapshot:
+     stage: str = "dialogue"
+     turns: tuple[AlignmentSessionTurn, ...] = ()
+     frozen_requirement: str | None = None
++    boundary_contract: BoundaryContract | None = None
++    boundary_contract_digest: str | None = None
+     requirement_approved_by: str | None = None
+     missing_dimensions: tuple[str, ...] = ()
+ 
+@@ -135,6 +138,12 @@ class AlignmentSessionSnapshot:
+             stage=str(data.get("stage") or "dialogue"),
+             turns=tuple(AlignmentSessionTurn.from_mapping(_mapping(item, "turn")) for item in data.get("turns", ())),
+             frozen_requirement=str(data["frozenRequirement"]) if data.get("frozenRequirement") else None,
++            boundary_contract=(
++                BoundaryContract.from_mapping(_mapping(data["boundaryContract"], "boundaryContract"))
++                if data.get("boundaryContract")
++                else None
++            ),
++            boundary_contract_digest=str(data["boundaryContractDigest"]) if data.get("boundaryContractDigest") else None,
+             requirement_approved_by=str(data["requirementApprovedBy"]) if data.get("requirementApprovedBy") else None,
+             missing_dimensions=tuple(str(item) for item in data.get("missingDimensions", ())),
+         )
+@@ -184,6 +193,10 @@ class AlignmentSessionSnapshot:
+         }
+         if self.frozen_requirement:
+             data["frozenRequirement"] = self.frozen_requirement
++        if self.boundary_contract:
++            data["boundaryContract"] = self.boundary_contract.to_mapping()
++        if self.boundary_contract_digest:
++            data["boundaryContractDigest"] = self.boundary_contract_digest
+         if self.requirement_approved_by:
+             data["requirementApprovedBy"] = self.requirement_approved_by
+         return data
+@@ -311,6 +324,11 @@ class AlignmentSessionManager:
+                 "converged alignment turn must include frozenRequirement",
+                 ref="agentOutput.frozenRequirement",
+             )
++        boundary_contract: BoundaryContract | None = None
++        boundary_contract_digest: str | None = None
++        if converged:
++            boundary_contract = _boundary_contract_from_agent_output(decision, frozen_requirement=frozen_requirement)
++            boundary_contract_digest = boundary_contract.digest()
+         after_agent = after_user.append_turn(
+             actor="agent:alignment",
+             message=agent_message,
+@@ -321,6 +339,8 @@ class AlignmentSessionManager:
+             after_agent,
+             stage="awaiting_requirement_approval" if converged else "awaiting_user",
+             frozen_requirement=frozen_requirement or after_agent.frozen_requirement,
++            boundary_contract=boundary_contract or after_agent.boundary_contract,
++            boundary_contract_digest=boundary_contract_digest or after_agent.boundary_contract_digest,
+             missing_dimensions=_string_tuple(decision.get("missingDimensions") or decision.get("missing_dimensions")),
+         )
+ 
+@@ -337,6 +357,27 @@ class AlignmentSessionManager:
+                 "requirement approval requires an agent-proposed frozen requirement",
+                 ref="session.stage",
+             )
++        if current.boundary_contract is None or not current.boundary_contract_digest:
++            raise AlignmentSessionError(
++                "boundary_contract_not_ready",
++                "requirement freeze requires a typed boundary contract and digest",
++                ref="session.boundaryContract",
++            )
++        try:
++            boundary_contract = current.boundary_contract.validate_for_freeze()
++        except BoundaryContractError as exc:
++            raise _boundary_contract_alignment_error(exc) from exc
++        boundary_contract_digest = boundary_contract.digest()
++        if boundary_contract_digest != current.boundary_contract_digest:
++            raise AlignmentSessionError(
++                "boundary_contract_digest_mismatch",
++                "boundary contract digest does not match the typed boundary contract",
++                ref="session.boundaryContractDigest",
++                data={
++                    "expectedDigest": boundary_contract_digest,
++                    "actualDigest": current.boundary_contract_digest,
++                },
++            )
+         if actor == current.producer_actor:
+             raise AlignmentSessionError(
+                 "producer_cannot_approve_requirement",
+@@ -351,7 +392,13 @@ class AlignmentSessionManager:
+                 ref="approval.actor",
+                 refs=(actor,),
+             )
+-        return replace(current, stage="frozen", requirement_approved_by=actor)
++        return replace(
++            current,
++            stage="frozen",
++            requirement_approved_by=actor,
++            boundary_contract=boundary_contract,
++            boundary_contract_digest=boundary_contract_digest,
++        )
+ 
+     async def draft_request(
+         self,
+@@ -372,6 +419,12 @@ class AlignmentSessionManager:
+                 "request drafting requires a frozen requirement snapshot",
+                 ref="session.frozenRequirement",
+             )
++        if current.boundary_contract is None or not current.boundary_contract_digest:
++            raise AlignmentSessionError(
++                "boundary_contract_not_frozen",
++                "request drafting requires frozen typed boundary contract snapshot",
++                ref="session.boundaryContract",
++            )
+         try:
+             claim_id_prefix = f"CLM-{current.intent.intent_id.upper().replace('INTENT-', '')}"
+             goal_ref = _goal_ref_from_intent(current.intent.intent_id)
+@@ -382,6 +435,8 @@ class AlignmentSessionManager:
+                     "phase": "requirement-draft",
+                     "intent": current.intent.to_mapping(),
+                     "frozenRequirement": current.frozen_requirement,
++                    "boundaryContract": current.boundary_contract.to_mapping(),
++                    "boundaryContractDigest": current.boundary_contract_digest,
+                     "profileRef": current.profile_ref,
+                     "runtimeRef": current.runtime_ref,
+                     "coordinationRules": {
+@@ -399,6 +454,8 @@ class AlignmentSessionManager:
+                     "phase": "acceptance-draft",
+                     "intent": current.intent.to_mapping(),
+                     "frozenRequirement": current.frozen_requirement,
++                    "boundaryContract": current.boundary_contract.to_mapping(),
++                    "boundaryContractDigest": current.boundary_contract_digest,
+                     "profileRef": current.profile_ref,
+                     "runtimeRef": current.runtime_ref,
+                     "coordinationRules": {
+@@ -602,6 +659,47 @@ class AlignmentSessionManager:
+         )
+ 
+ 
++def _boundary_contract_output_schema() -> dict[str, Any]:
++    entry_schema = {
++        "type": "object",
++        "required": ["id", "kind", "statement"],
++        "properties": {
++            "id": {"type": "string"},
++            "kind": {
++                "type": "string",
++                "enum": ["must", "must_not", "completion_signal", "free_zone", "open_question"],
++            },
++            "statement": {"type": "string", "minLength": 1},
++            "rationale": {"type": "string"},
++            "refs": {"type": "array", "items": {"type": "string"}},
++        },
++    }
++    return {
++        "type": "object",
++        "required": ["apiVersion", "kind", "metadata", "spec"],
++        "properties": {
++            "apiVersion": {"type": "string", "const": "ahra.dev/v1alpha1"},
++            "kind": {"type": "string", "const": "BoundaryContract"},
++            "metadata": {
++                "type": "object",
++                "required": ["contractId", "version"],
++                "properties": {
++                    "contractId": {"type": "string"},
++                    "version": {"type": "integer"},
++                    "source": {"type": "string"},
++                },
++            },
++            "spec": {
++                "type": "object",
++                "required": ["entries"],
++                "properties": {
++                    "entries": {"type": "array", "minItems": 1, "uniqueItems": True, "items": entry_schema}
++                },
++            },
++        },
++    }
++
++
+ def _output_contract(expected_output: str) -> AgentOutputContract:
+     schema: dict[str, Any]
+     if expected_output == ALIGNMENT_DECISION_OUTPUT:
+@@ -613,8 +711,15 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
+                 "message": {"type": "string", "minLength": 1},
+                 "converged": {"type": "boolean"},
+                 "frozenRequirement": {"type": "string"},
++                "boundaryContract": _boundary_contract_output_schema(),
+                 "missingDimensions": {"type": "array", "items": {"type": "string"}},
+             },
++            "allOf": [
++                {
++                    "if": {"required": ["converged"], "properties": {"converged": {"const": True}}},
++                    "then": {"required": ["frozenRequirement", "boundaryContract"]},
++                }
++            ],
+         }
+     elif expected_output == REQUIREMENT_DRAFT_OUTPUT:
+         schema = {
+@@ -800,6 +905,52 @@ def _plan_from_output(output: Mapping[str, Any]) -> PlanDraft:
+     )
+ 
+ 
++def _boundary_contract_from_agent_output(output: Mapping[str, Any], *, frozen_requirement: str) -> BoundaryContract:
++    boundary_contract_data = output.get("boundaryContract") or output.get("boundary_contract")
++    if boundary_contract_data is None:
++        return _boundary_contract_from_legacy_requirement(frozen_requirement)
++    try:
++        return BoundaryContract.from_mapping(
++            _mapping(boundary_contract_data, "agentOutput.boundaryContract")
++        ).validate_for_freeze()
++    except BoundaryContractError as exc:
++        raise _boundary_contract_alignment_error(exc) from exc
++
++
++def _boundary_contract_from_legacy_requirement(frozen_requirement: str) -> BoundaryContract:
++    digest = canonical_fingerprint({"frozenRequirement": frozen_requirement})
++    contract = BoundaryContract.from_mapping(
++        {
++            "apiVersion": "ahra.dev/v1alpha1",
++            "kind": "BoundaryContract",
++            "metadata": {
++                "contractId": "BC-LEGACY-" + digest.removeprefix("sha256:")[:16].upper(),
++                "version": 1,
++                "source": "alignment-session:legacy-frozen-requirement",
++            },
++            "spec": {
++                "entries": [
++                    {
++                        "id": "BCE-LEGACY-FROZEN-REQUIREMENT",
++                        "kind": "must",
++                        "statement": frozen_requirement,
++                    }
++                ]
++            },
++        }
++    )
++    return contract.validate_for_freeze()
++
++
++def _boundary_contract_alignment_error(error: BoundaryContractError) -> AlignmentSessionError:
++    return AlignmentSessionError(
++        "invalid_boundary_contract",
++        error.message,
++        ref=f"agentOutput.boundaryContract.{error.ref}",
++        data={"boundaryContractError": error.to_dict()},
++    )
++
++
+ def _mapping(value: Any, ref: str) -> Mapping[str, Any]:
+     if not isinstance(value, Mapping):
+         raise AlignmentSessionError("invalid_mapping", f"{ref} must be a mapping", ref=ref)
+diff --git a/src/ahra/boundary_contract.py b/src/ahra/boundary_contract.py
+new file mode 100644
+index 0000000..82ba9f2
+--- /dev/null
++++ b/src/ahra/boundary_contract.py
+@@ -0,0 +1,194 @@
++from __future__ import annotations
++
++import hashlib
++import json
++from dataclasses import dataclass
++from enum import StrEnum
++from typing import Any, Mapping
++
++SUPPORTED_API_VERSION = "ahra.dev/v1alpha1"
++BOUNDARY_CONTRACT_KIND = "BoundaryContract"
++
++
++class BoundaryContractEntryKind(StrEnum):
++    MUST = "must"
++    MUST_NOT = "must_not"
++    COMPLETION_SIGNAL = "completion_signal"
++    FREE_ZONE = "free_zone"
++    OPEN_QUESTION = "open_question"
++
++
++class BoundaryContractError(ValueError):
++    def __init__(self, code: str, message: str, *, ref: str) -> None:
++        self.code = code
++        self.message = message
++        self.ref = ref
++        super().__init__(f"{code} {ref}: {message}")
++
++    def to_dict(self) -> dict[str, str]:
++        return {"code": self.code, "message": self.message, "ref": self.ref}
++
++
++@dataclass(frozen=True, slots=True)
++class BoundaryContractEntry:
++    entry_id: str
++    kind: str
++    statement: str
++    rationale: str | None = None
++    refs: tuple[str, ...] = ()
++
++    @classmethod
++    def from_mapping(cls, data: Mapping[str, Any], *, ref: str = "entry") -> "BoundaryContractEntry":
++        return cls(
++            entry_id=_required_string(data, "id", ref),
++            kind=_required_string(data, "kind", ref),
++            statement=_required_string(data, "statement", ref),
++            rationale=_optional_string(data.get("rationale")),
++            refs=_string_tuple(data.get("refs", ()), ref=f"{ref}.refs"),
++        )
++
++    def to_mapping(self) -> dict[str, Any]:
++        data: dict[str, Any] = {
++            "id": self.entry_id,
++            "kind": self.kind,
++            "statement": self.statement,
++        }
++        if self.rationale:
++            data["rationale"] = self.rationale
++        if self.refs:
++            data["refs"] = list(self.refs)
++        return data
++
++
++@dataclass(frozen=True, slots=True)
++class BoundaryContract:
++    contract_id: str
++    version: int
++    entries: tuple[BoundaryContractEntry, ...]
++    api_version: str = SUPPORTED_API_VERSION
++    kind: str = BOUNDARY_CONTRACT_KIND
++    source: str | None = None
++
++    @classmethod
++    def from_mapping(cls, data: Mapping[str, Any]) -> "BoundaryContract":
++        metadata = _mapping(data.get("metadata"), "metadata")
++        spec = _mapping(data.get("spec"), "spec")
++        entries = spec.get("entries")
++        if not isinstance(entries, (list, tuple)):
++            raise BoundaryContractError("invalid_entries", "spec.entries must be a list", ref="spec.entries")
++        return cls(
++            api_version=_required_string(data, "apiVersion", "apiVersion"),
++            kind=_required_string(data, "kind", "kind"),
++            contract_id=_required_string(metadata, "contractId", "metadata.contractId"),
++            version=_positive_int(metadata.get("version"), ref="metadata.version"),
++            source=_optional_string(metadata.get("source")),
++            entries=tuple(
++                BoundaryContractEntry.from_mapping(_mapping(item, f"spec.entries[{index}]"), ref=f"spec.entries[{index}]")
++                for index, item in enumerate(entries)
++            ),
++        )
++
++    def validate_for_freeze(self) -> "BoundaryContract":
++        if self.api_version != SUPPORTED_API_VERSION:
++            raise BoundaryContractError(
++                "unsupported_api_version",
++                f"apiVersion must be {SUPPORTED_API_VERSION}",
++                ref="apiVersion",
++            )
++        if self.kind != BOUNDARY_CONTRACT_KIND:
++            raise BoundaryContractError("invalid_kind", "kind must be BoundaryContract", ref="kind")
++        if not self.entries:
++            raise BoundaryContractError("empty_entries", "boundary contract must contain at least one entry", ref="spec.entries")
++
++        seen: dict[str, int] = {}
++        for index, entry in enumerate(self.entries):
++            if entry.entry_id in seen:
++                raise BoundaryContractError(
++                    "duplicate_entry_id",
++                    f"entry id duplicates spec.entries[{seen[entry.entry_id]}]",
++                    ref=f"spec.entries[{index}].id",
++                )
++            seen[entry.entry_id] = index
++            try:
++                entry_kind = BoundaryContractEntryKind(entry.kind)
++            except ValueError as exc:
++                raise BoundaryContractError(
++                    "unknown_entry_kind",
++                    f"unknown boundary entry kind: {entry.kind}",
++                    ref=f"spec.entries[{index}].kind",
++                ) from exc
++            if entry_kind == BoundaryContractEntryKind.OPEN_QUESTION:
++                raise BoundaryContractError(
++                    "open_question_not_freezable",
++                    "open_question entries must be resolved before freeze",
++                    ref=f"spec.entries[{index}].kind",
++                )
++        return self
++
++    def digest(self) -> str:
++        canonical = json.dumps(self.to_mapping(), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
++        return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
++
++    def to_mapping(self) -> dict[str, Any]:
++        metadata: dict[str, Any] = {"contractId": self.contract_id, "version": self.version}
++        if self.source:
++            metadata["source"] = self.source
++        return {
++            "apiVersion": self.api_version,
++            "kind": self.kind,
++            "metadata": metadata,
++            "spec": {"entries": [entry.to_mapping() for entry in self.entries]},
++        }
++
++
++def _mapping(value: Any, ref: str) -> Mapping[str, Any]:
++    if not isinstance(value, Mapping):
++        raise BoundaryContractError("invalid_mapping", "value must be an object", ref=ref)
++    return value
++
++
++def _required_string(data: Mapping[str, Any], key: str, ref: str) -> str:
++    value = data.get(key)
++    if not isinstance(value, str) or not value.strip():
++        raise BoundaryContractError("missing_string", f"{key} must be a non-empty string", ref=ref)
++    return value
++
++
++def _optional_string(value: Any) -> str | None:
++    if value is None:
++        return None
++    text = str(value).strip()
++    return text or None
++
++
++def _positive_int(value: Any, *, ref: str) -> int:
++    if isinstance(value, bool):
++        raise BoundaryContractError("invalid_integer", "value must be a positive integer", ref=ref)
++    try:
++        integer = int(value)
++    except (TypeError, ValueError) as exc:
++        raise BoundaryContractError("invalid_integer", "value must be a positive integer", ref=ref) from exc
++    if integer < 1:
++        raise BoundaryContractError("invalid_integer", "value must be a positive integer", ref=ref)
++    return integer
++
++
++def _string_tuple(value: Any, *, ref: str) -> tuple[str, ...]:
++    if value is None:
++        return ()
++    if not isinstance(value, (list, tuple)):
++        raise BoundaryContractError("invalid_string_list", "value must be a list of strings", ref=ref)
++    result = tuple(str(item).strip() for item in value)
++    if any(not item for item in result):
++        raise BoundaryContractError("invalid_string_list", "value must contain only non-empty strings", ref=ref)
++    return result
++
++
++__all__ = [
++    "BOUNDARY_CONTRACT_KIND",
++    "SUPPORTED_API_VERSION",
++    "BoundaryContract",
++    "BoundaryContractEntry",
++    "BoundaryContractEntryKind",
++    "BoundaryContractError",
++]
+diff --git a/tests/test_alignment_session.py b/tests/test_alignment_session.py
+index e8cb6fc..f21f854 100644
+--- a/tests/test_alignment_session.py
++++ b/tests/test_alignment_session.py
+@@ -68,6 +68,47 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+         self.assertEqual(approved.stage, "frozen")
+         self.assertEqual(approved.requirement_approved_by, "human:maintainer")
+ 
++    def test_requirement_freeze_records_boundary_contract_snapshot(self) -> None:
++        driver = FakeAlignmentDriver()
++        manager = AlignmentSessionManager(driver)
++        snapshot = manager.start(_intent())
++        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
++        snapshot = asyncio.run(manager.advance(snapshot, "Requirement boundary complete."))
++
++        self.assertIsNotNone(snapshot.boundary_contract)
++        assert snapshot.boundary_contract is not None
++        self.assertEqual(snapshot.boundary_contract_digest, snapshot.boundary_contract.digest())
++        mapping = snapshot.to_mapping()
++        self.assertEqual(mapping["boundaryContract"], snapshot.boundary_contract.to_mapping())
++        self.assertEqual(mapping["boundaryContractDigest"], snapshot.boundary_contract_digest)
++
++        restored = AlignmentSessionSnapshot.from_mapping(mapping)
++        approved = manager.approve_requirement(restored, actor="human:maintainer")
++
++        self.assertEqual(approved.stage, "frozen")
++        self.assertEqual(approved.boundary_contract, snapshot.boundary_contract)
++        self.assertEqual(approved.boundary_contract_digest, snapshot.boundary_contract_digest)
++
++    def test_legacy_converged_alignment_synthesizes_boundary_contract(self) -> None:
++        driver = FakeAlignmentDriver(
++            alignment_output={
++                "message": "Requirement boundary frozen.",
++                "converged": True,
++                "frozenRequirement": "Write one governed deterministic summary artifact.",
++                "missingDimensions": [],
++            }
++        )
++        manager = AlignmentSessionManager(driver)
++        snapshot = manager.start(_intent())
++        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
++
++        snapshot = asyncio.run(manager.advance(snapshot, "Requirement boundary complete."))
++
++        self.assertIsNotNone(snapshot.boundary_contract)
++        assert snapshot.boundary_contract is not None
++        self.assertEqual(snapshot.boundary_contract.entries[0].kind, "must")
++        self.assertEqual(snapshot.boundary_contract.entries[0].statement, "Write one governed deterministic summary artifact.")
++
+     def test_convergence_outputs_untrusted_request_draft(self) -> None:
+         driver = FakeAlignmentDriver()
+         manager = AlignmentSessionManager(driver)
+@@ -249,11 +290,13 @@ class FakeAlignmentDriver:
+     def __init__(
+         self,
+         *,
++        alignment_output: dict[str, object] | None = None,
+         requirement_output: dict[str, object] | None = None,
+         acceptance_output: dict[str, object] | None = None,
+     ) -> None:
+         self.calls: list[AgentRunRequest] = []
+         self.alignment_turns = 0
++        self.alignment_output = alignment_output
+         self.requirement_output = requirement_output
+         self.acceptance_output = acceptance_output
+ 
+@@ -269,14 +312,7 @@ class FakeAlignmentDriver:
+                         "missingDimensions": ["completion signal"],
+                     }
+                 )
+-            return AgentRunResult(
+-                output={
+-                    "message": "Requirement boundary frozen.",
+-                    "converged": True,
+-                    "frozenRequirement": "Write one governed deterministic summary artifact in the local workspace.",
+-                    "missingDimensions": [],
+-                }
+-            )
++            return AgentRunResult(output=self.alignment_output or _alignment_output())
+         if request.expected_output == REQUIREMENT_DRAFT_OUTPUT:
+             return AgentRunResult(output=self.requirement_output or _requirement_output())
+         if request.expected_output == ACCEPTANCE_DRAFT_OUTPUT:
+@@ -284,6 +320,48 @@ class FakeAlignmentDriver:
+         raise AssertionError(f"unexpected expected_output {request.expected_output}")
+ 
+ 
++def _alignment_output() -> dict[str, object]:
++    return {
++        "message": "Requirement boundary frozen.",
++        "converged": True,
++        "frozenRequirement": "Write one governed deterministic summary artifact in the local workspace.",
++        "boundaryContract": _boundary_contract(),
++        "missingDimensions": [],
++    }
++
++
++def _boundary_contract() -> dict[str, object]:
++    return {
++        "apiVersion": "ahra.dev/v1alpha1",
++        "kind": "BoundaryContract",
++        "metadata": {"contractId": "BC-ALIGNMENT-SESSION-TEST", "version": 1},
++        "spec": {
++            "entries": [
++                {
++                    "id": "BCE-SUMMARY-ARTIFACT",
++                    "kind": "must",
++                    "statement": "Write one governed deterministic summary artifact in the local workspace.",
++                },
++                {
++                    "id": "BCE-NO-UNBOUNDED-SCOPE",
++                    "kind": "must_not",
++                    "statement": "Do not write outside the bounded local workspace.",
++                },
++                {
++                    "id": "BCE-SUMMARY-EXISTS",
++                    "kind": "completion_signal",
++                    "statement": "The requested summary artifact exists.",
++                },
++                {
++                    "id": "BCE-IMPLEMENTATION-DETAILS",
++                    "kind": "free_zone",
++                    "statement": "The executor may choose implementation details that satisfy the contract.",
++                },
++            ]
++        },
++    }
++
++
+ def _frozen_snapshot(manager: AlignmentSessionManager) -> AlignmentSessionSnapshot:
+     snapshot = manager.start(_intent())
+     snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+diff --git a/tests/test_boundary_contract.py b/tests/test_boundary_contract.py
+new file mode 100644
+index 0000000..e9c2b51
+--- /dev/null
++++ b/tests/test_boundary_contract.py
+@@ -0,0 +1,80 @@
++from __future__ import annotations
++
++import unittest
++from pathlib import Path
++
++from ahra.boundary_contract import BoundaryContract, BoundaryContractError
++from ahra.validation import load_document, validate_document
++
++ROOT = Path(__file__).resolve().parents[1]
++EXAMPLE = ROOT / "examples" / "records" / "boundary-contract.json"
++SCHEMA = ROOT / "contracts" / "schemas" / "boundary-contract.schema.json"
++
++
++class BoundaryContractTests(unittest.TestCase):
++    def test_example_validates_against_schema_and_freezes(self) -> None:
++        self.assertEqual(validate_document(EXAMPLE, SCHEMA), [])
++        contract = BoundaryContract.from_mapping(load_document(EXAMPLE)).validate_for_freeze()
++
++        self.assertEqual(contract.contract_id, "BC-TASK-0092-EXAMPLE")
++        self.assertTrue(contract.digest().startswith("sha256:"))
++
++    def test_freeze_rejects_open_question_entries(self) -> None:
++        contract = BoundaryContract.from_mapping(
++            _contract(
++                [
++                    {
++                        "id": "BCE-QUESTION",
++                        "kind": "open_question",
++                        "statement": "Which artifact path is authoritative?",
++                    }
++                ]
++            )
++        )
++
++        with self.assertRaises(BoundaryContractError) as raised:
++            contract.validate_for_freeze()
++
++        self.assertEqual(raised.exception.code, "open_question_not_freezable")
++
++    def test_freeze_rejects_duplicate_entry_ids(self) -> None:
++        contract = BoundaryContract.from_mapping(
++            _contract(
++                [
++                    {"id": "BCE-DUPLICATE", "kind": "must", "statement": "Create the requested artifact."},
++                    {"id": "BCE-DUPLICATE", "kind": "must_not", "statement": "Do not edit protected paths."},
++                ]
++            )
++        )
++
++        with self.assertRaises(BoundaryContractError) as raised:
++            contract.validate_for_freeze()
++
++        self.assertEqual(raised.exception.code, "duplicate_entry_id")
++
++    def test_freeze_rejects_unknown_kinds(self) -> None:
++        contract = BoundaryContract.from_mapping(
++            _contract(
++                [
++                    {"id": "BCE-UNKNOWN", "kind": "maybe", "statement": "This kind is not part of the contract."},
++                ]
++            )
++        )
++
++        with self.assertRaises(BoundaryContractError) as raised:
++            contract.validate_for_freeze()
++
++        self.assertEqual(raised.exception.code, "unknown_entry_kind")
++
++
++def _contract(entries: list[dict[str, object]]) -> dict[str, object]:
++    return {
++        "apiVersion": "ahra.dev/v1alpha1",
++        "kind": "BoundaryContract",
++        "metadata": {"contractId": "BC-UNIT-TEST", "version": 1},
++        "spec": {"entries": entries},
++    }
++
++
++if __name__ == "__main__":
++    unittest.main()

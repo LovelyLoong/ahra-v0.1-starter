@@ -1,0 +1,22 @@
+{
+  "summary": "Implemented the boundary contract schema/example, frozen domain model validation, and alignment-session snapshot recording with boundary contract digests. The required check was run; unit tests completed OK, but the overall check exited nonzero because the existing AWKP lint reports work/tasks/TASK-0091/handoffs missing a required task component outside this task's write boundary.",
+  "changed_files": [
+    "contracts/schemas/boundary-contract.schema.json",
+    "examples/records/boundary-contract.json",
+    "src/ahra/alignment_session.py",
+    "src/ahra/boundary_contract.py",
+    "tests/test_alignment_session.py",
+    "tests/test_boundary_contract.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py",
+    "uv run python -B scripts/check.py"
+  ],
+  "known_risks": [
+    "uv run python -B scripts/check.py exits nonzero due to a pre-existing AWKP lint failure at work/tasks/TASK-0091/handoffs, which is outside the allowed write resources for this task.",
+    "contracts/schemas/boundary-contract.schema.json and examples/records/boundary-contract.json are intentionally not registered in scripts/lint_contracts.py because scripts/ is outside the write boundary."
+  ],
+  "unresolved_items": [
+    "A trusted maintainer must handle the out-of-scope AWKP lint issue and register the new schema/example in the linter after this node completes."
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "NodeRun",
+  "metadata": {
+    "nodeRunId": "NRUN-0bd8856425554bc485be285d8ac8fc88",
+    "planId": "PLAN-6913879059ad5209",
+    "nodeId": "NODE-task-0092",
+    "executorRelease": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "spec": {
+    "nodeType": "bounded_task",
+    "status": "error",
+    "artifactRefs": [
+      "ART-cd9760aa0b3d4fb090923afd4b4ce623",
+      "ART-55a0d436160d45dd93c39d51aeea4c6f"
+    ],
+    "evidenceRefs": [
+      "EVD-839d7986e6f74d1890bb75116f28dd4b",
+      "EVD-abca4ae233d74dd8ac62dc0662675de0",
+      "EVD-9cccfde67f934398b258432c1e960326",
+      "EVD-e525922aa14549d49b5ba78d2a79dd9c"
+    ],
+    "gateRefs": [
+      "GATE-task-0092",
+      "GATE-task-0092-semantic-review"
+    ],
+    "terminalFailureRefs": [
+      "tasks/task-0092/terminal-failure.json"
+    ],
+    "taskCompletedStateUpdateAttempted": false,
+    "usage": {
+      "modelCalls": 2,
+      "toolCalls": 2,
+      "spawnedNodes": 0,
+      "costUsd": 0.0
+    },
+    "message": "Task failed with an execution error and was rolled back: PermissionError(13, '拒绝访问。')",
+    "details": {
+      "taskId": "task-0092",
+      "taskStatus": "error",
+      "commit": null,
+      "semanticReviewEnabled": true,
+      "executionPolicy": {
+        "maxAttempts": 1,
+        "startupTimeoutSeconds": 120,
+        "idleTimeoutSeconds": 900,
+        "heartbeatIntervalSeconds": 60,
+        "attemptWallTimeoutSeconds": 2100,
+        "runDeadlineSeconds": 2100
+      }
+    }
+  }
+}

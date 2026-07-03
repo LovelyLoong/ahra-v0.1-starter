@@ -1,0 +1,38 @@
+{
+  "schema_version": "ahra/node-gate-summary/0.1",
+  "plan_id": "PLAN-6913879059ad5209",
+  "node_id": "NODE-task-0092",
+  "node_type": "bounded_task",
+  "gate_refs": [
+    "GATE-task-0092",
+    "GATE-task-0092-semantic-review"
+  ],
+  "l0_gates": [],
+  "semantic_review_enabled": true,
+  "status": "error",
+  "attempts": [
+    {
+      "attempt": 1,
+      "deterministicPassed": false,
+      "requiredChecksPassed": false,
+      "checkExecutionStatus": "completed",
+      "checkSkipReason": null,
+      "agentReportedVerificationCommands": [
+        "uv run python -B scripts/check.py",
+        "uv run python -B scripts/check.py"
+      ],
+      "reviewVerdict": "fail",
+      "error": null
+    },
+    {
+      "attempt": 1,
+      "deterministicPassed": false,
+      "requiredChecksPassed": false,
+      "checkExecutionStatus": null,
+      "checkSkipReason": null,
+      "agentReportedVerificationCommands": [],
+      "reviewVerdict": null,
+      "error": "PermissionError(13, '拒绝访问。')"
+    }
+  ]
+}
