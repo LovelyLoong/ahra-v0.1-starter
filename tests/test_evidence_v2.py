@@ -220,7 +220,7 @@ class EvidenceV2Tests(unittest.TestCase):
         self.assertEqual(events[0].superseded_by, "EVD-new")
 
     def test_legacy_manifest_adapter_labels_records_as_partial(self) -> None:
-        manifest = json.loads((ROOT / "work/tasks/TASK-0023/evidence-manifest.json").read_text(encoding="utf-8"))
+        manifest = json.loads((ROOT / "archive/work/tasks/TASK-0023/evidence-manifest.json").read_text(encoding="utf-8"))
 
         legacy = adapt_legacy_evidence_manifest(manifest)
 
