@@ -1,3 +1,15 @@
+---
+type: Handoff
+id: HANDOFF-TASK-0090-0001
+schema_version: awkp/0.1
+title: TASK-0090 A→B run blocked at Workflow A draft stage
+description: Handoff recording the first real A→B run blocked at the Workflow A draft stage.
+owner: agent:alignment-session
+status: active
+created_by: agent:alignment-session
+created_at: 2026-07-03T00:00:00Z
+---
+
 # HANDOFF-0001 — TASK-0090 A→B run blocked at Workflow A draft stage
 
 **From**: agent:alignment-session (operator driving the first real A→B loop)

@@ -1,3 +1,13 @@
+---
+type: Defect
+id: DEF-wf-a-draft-contract-apiversion
+schema_version: awkp/0.1
+title: "Workflow A draft stage contract omits nested apiVersion"
+description: "Blocker defect: Workflow A draft output contract omitted nested apiVersion, discovered during TASK-0090; fixed in alignment_session.py."
+owner: agent:contract-fixer
+status: fixed
+---
+
 # Defect: Workflow A draft stage contract omits nested apiVersion
 
 **Defect ID**: DEF-wf-a-draft-contract-apiversion

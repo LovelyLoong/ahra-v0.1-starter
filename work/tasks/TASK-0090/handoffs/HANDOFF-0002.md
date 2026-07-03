@@ -1,3 +1,15 @@
+---
+type: Handoff
+id: HANDOFF-TASK-0090-0002
+schema_version: awkp/0.1
+title: DEF-wf-a-draft-contract-apiversion fixed, awaiting codex SDK
+description: Handoff recording the draft-contract apiVersion defect fix and the pending codex SDK resume.
+owner: agent:contract-fixer
+status: active
+created_by: agent:contract-fixer
+created_at: 2026-07-03T00:00:00Z
+---
+
 # HANDOFF-0002 — DEF-wf-a-draft-contract-apiversion fixed, awaiting codex SDK
 
 **From**: agent:contract-fixer

@@ -50,6 +50,7 @@ class CodexSDKDriverAlignmentOutputTests(unittest.TestCase):
         output = {
             "summary": "Create the bounded artifact.",
             "planDraft": {
+                "apiVersion": "ahra.dev/v1alpha1",
                 "kind": "PlanDraft",
                 "metadata": {"goalId": "GOAL-1", "proposedBy": "agent:test"},
                 "spec": {"nodes": []},
@@ -65,9 +66,10 @@ class CodexSDKDriverAlignmentOutputTests(unittest.TestCase):
         output = {
             "summary": "Acceptance covers the required artifact.",
             "claimGraph": {
+                "apiVersion": "ahra.dev/v1alpha1",
                 "kind": "ClaimGraph",
-                "claims": [],
-                "edges": [],
+                "metadata": {"version": 1},
+                "spec": {"goalRef": "GOAL-1", "claims": []},
             },
         }
         result, client = self._run_alignment_output(ACCEPTANCE_DRAFT_OUTPUT, output)

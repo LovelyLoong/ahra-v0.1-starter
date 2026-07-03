@@ -65,9 +65,12 @@ spec:
             Implement TASK-0092 acceptance criteria. 1) Add
             contracts/schemas/boundary-contract.schema.json defining the five
             typed entry kinds (must, must_not, completion_signal, free_zone,
-            open_question) with required unique entry IDs, register it plus an
-            example record examples/records/boundary-contract.json in
-            scripts/lint_contracts.py so lint accepts them. 2) Add
+            open_question) with required unique entry IDs, plus an example
+            record examples/records/boundary-contract.json that validates
+            against it. Do NOT edit scripts/lint_contracts.py or anything under
+            scripts/ -- that path is outside your write boundary; the trusted
+            maintainer registers the schema/example in the linter after this
+            node completes. 2) Add
             src/ahra/boundary_contract.py with frozen domain objects that parse
             and validate a boundary contract; freeze validation must reject
             contracts containing open_question entries, duplicate entry IDs, or
@@ -94,7 +97,6 @@ spec:
               resources:
                 - contracts/schemas/boundary-contract.schema.json
                 - examples/records/boundary-contract.json
-                - scripts/lint_contracts.py
                 - src/ahra/boundary_contract.py
                 - src/ahra/alignment_session.py
                 - tests/test_boundary_contract.py

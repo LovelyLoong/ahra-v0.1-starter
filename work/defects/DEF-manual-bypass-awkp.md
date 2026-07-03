@@ -1,3 +1,13 @@
+---
+type: Defect
+id: DEF-manual-bypass-awkp
+schema_version: awkp/0.1
+title: "Manual Bypass of AWKP Governance"
+description: "Governance-process defect recording a manual bypass of the AWKP loop."
+owner: human:maintainer
+status: documented
+---
+
 # Defect: Manual Bypass of AWKP Governance
 
 **Defect ID**: DEF-manual-bypass-awkp  
