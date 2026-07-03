@@ -3,18 +3,19 @@ type: Architecture
 id: ARCH-intent-alignment-workflow
 schema_version: awkp/0.1
 title: Intent alignment front workflow (Workflow A)
-description: Defines the Agent-driven intent-to-contract front workflow that turns a human's natural-language request into a frozen GoalExecutionRequest for the execution workflow, using role separation, requirement-as-acceptance, boundary front-loading, and two human gates.
+description: Defines the Agent-driven intent-to-contract front workflow that turns a human's natural-language request into a frozen GoalExecutionRequest for the execution workflow, using a typed boundary contract, acceptance-first serial drafting, a deterministic cross-alignment admission gate, and two human gates.
 status: active
 owner: human:maintainer
 source_refs:
   - ../../architecture/decisions/ADR-0009-agent-driven-intent-alignment-front-workflow.md
+  - ../../architecture/decisions/ADR-0010-boundary-contract-acceptance-first-alignment.md
   - ../../AHRA_dynamic_kernel_master_plan_2026-06-25.md
   - ./dynamic-agent-kernel.md
   - ../policies/agent-authority-boundaries.md
   - ../roadmaps/phase1-minimal-loop-intent-roadmap.md
 evidence_refs: [TASK-0077]
 confidence: draft
-last_verified_at: 2026-07-01T10:30:10Z
+last_verified_at: 2026-07-03T00:00:00Z
 review_after: 2026-09-30T00:00:00Z
 tags: [architecture, intent, alignment, workflow, phase1, agent-driven]
 ---
@@ -33,12 +34,18 @@ The foundation has two workflows joined by one immutable contract.
   multi-turn dialogue, and produces a frozen `GoalExecutionRequest` that
   Workflow B can consume without further human prompt authoring.
 
-This document is the active owner of the Workflow A concept. The decision record
-is [ADR-0009](../../architecture/decisions/ADR-0009-agent-driven-intent-alignment-front-workflow.md).
-Workflow A is **proposed and partially implemented as an experimental,
-non-default path**. The prior TASK-0063 non-Agent deterministic transformer has
-been removed from the active source surface; its records are historical trace
-only.
+This document is the active owner of the Workflow A concept. The decision
+records are
+[ADR-0009](../../architecture/decisions/ADR-0009-agent-driven-intent-alignment-front-workflow.md)
+(agent-driven front workflow) and
+[ADR-0010](../../architecture/decisions/ADR-0010-boundary-contract-acceptance-first-alignment.md)
+(boundary contract, acceptance-first drafting, cross-alignment admission),
+which amends ADR-0009 decisions 2 and 4. Workflow A is **proposed and partially
+implemented as an experimental, non-default path**; the implemented
+`alignment_session` slice still follows the superseded ADR-0009 parallel
+drafting topology and is scheduled for revision. The prior TASK-0063 non-Agent
+deterministic transformer has been removed from the active source surface; its
+records are historical trace only.
 
 # Core principle: requirement is the acceptance
 
@@ -48,10 +55,10 @@ The single most important rule of this workflow:
 > Verification is also judged against the user's requirement. When the
 > requirement is satisfied, verification passes.
 
-Implementation and acceptance therefore share one anchor: the **frozen
-requirement**. The implementation Agent and the acceptance Agent do not invent
-their own separate targets; they both express the same frozen requirement, one
-as "what to build" and the other as "how completion is judged."
+Implementation and acceptance therefore share one anchor: the **frozen boundary
+contract**. The acceptance Agent expresses it as "how completion is judged"; the
+implementation side then targets that frozen acceptance. Neither invents a
+separate standard.
 
 # Core principle: front-load the boundary
 
@@ -68,31 +75,77 @@ implementation and verification become. Residual subjectivity that genuinely
 cannot be made objective must be explicitly marked as a user-acknowledged free
 zone, not left as an unspoken gap.
 
-# Three-Agent role separation
+# The boundary contract (Gate 1 product)
+
+What Human Gate 1 freezes is not prose but a **boundary contract**: a short list
+(typically 5–15 entries) of typed, ID'd boundary entries. The IDs name the
+boundary itself, not enumerated requirement detail.
+
+| Kind | Meaning | Acceptance authority |
+|---|---|---|
+| `must` | must be present in the result | must be covered by at least one Claim |
+| `must_not` | must be explicitly absent | must be covered by at least one Claim |
+| `completion_signal` | what objectively counts as done | must be covered by at least one Claim |
+| `free_zone` | executing Agent's explicit discretion | Claims must NOT reference it |
+| `open_question` | unresolved topic | blocks freeze until resolved or removed |
+
+```yaml
+frozenBoundary:
+  - id: REQ-M1
+    kind: must
+    text: The output must be command-gate decidable.
+  - id: REQ-N1
+    kind: must_not
+    text: No files outside the workspace may change.
+  - id: REQ-C1
+    kind: completion_signal
+    text: scripts/check.py exits 0.
+  - id: REQ-F1
+    kind: free_zone
+    text: Internal module decomposition is the implementer's choice.
+```
+
+**No-gray-zone rule:** every topic surfaced in the alignment dialogue must land
+in exactly one entry before freeze. Nothing may remain "neither frozen nor
+declared free" — drift concentrates in exactly such gaps. A free zone is an
+explicitly granted right with an ID, not an omission.
+
+When the human genuinely cannot state the boundary yet, Workflow A may route a
+**low-cost exploratory spike** (a small bounded B run or a manually supplied
+artifact) whose product serves purely as alignment material. Spike output is
+untrusted input; it never becomes acceptance content automatically, and only
+Human Gate 1 freezes the boundary contract.
+
+# Three-Agent role separation, acceptance first
 
 Workflow A uses three distinct Agents. The separation mirrors the
 Planner/Executor/Verifier power split in the master plan, applied to the
-contract-generation stage so that the author of "what to build" is never the
-author of "how it is judged."
+contract-generation stage so that the author of "what to build" never authors
+or alters "how it is judged."
 
 ```text
 User: natural language ("analyze the XX market", "refactor the login module")
    |
    v
 [1] Alignment Agent  -- multi-turn dialogue -->
-        clarifies the requirement from multiple angles AND drives the user to
-        constrain the output shape (format, must-haves, must-nots, completion
-        signal, explicitly allowed free zones)
+        drives every surfaced topic into a typed boundary entry
+        (must / must_not / completion_signal / free_zone / open_question)
    |
-   v  [HUMAN GATE 1 - light]  user confirms "my requirement and output boundary
-   |                          are fully stated" -> requirement is frozen
+   v  [HUMAN GATE 1 - light]  user confirms the boundary contract is complete
+   |                          (no open_question left) -> boundary is frozen
    |
-   +--> [2] Requirement Agent  reads ONLY the frozen requirement ->
-   |        drafts the deliverable spec for B (the PlanDraft side: what to build)
+   v
+[2] Acceptance Agent   reads ONLY the frozen boundary contract ->
+        drafts the ClaimGraph / GatePlan; every Claim's criterionRefs
+        reference boundary entry IDs -> ClaimGraph is digest-frozen
    |
-   +--> [3] Acceptance Agent   reads ONLY the frozen requirement ->
-            drafts the acceptance spec for B (the ClaimGraph / GatePlan side:
-            how completion is judged)
+   v
+[3] Requirement Agent  reads the boundary contract + the FROZEN ClaimGraph ->
+        drafts the PlanDraft; node claimRefs may only reference existing
+        claim IDs (read-only visibility, no write path into acceptance)
+   |
+   v  deterministic cross-alignment gate (referential integrity across
+   |  boundary entries / Claims / PlanNodes; fail closed, bounded redrafts)
    |
    v  the two specs combine into a RequestDraft -> RequestDraft admission
    |
@@ -105,13 +158,23 @@ User: natural language ("analyze the XX market", "refactor the login module")
              verification -> EvidenceGate completion
 ```
 
-## Why [2] and [3] must not see each other's output
+## Why acceptance drafts first and the planner may read it
 
-The implementation spec and the acceptance spec are produced **in parallel and
-independently, each reading only the frozen requirement**. If the acceptance
-Agent reads the implementation spec, acceptance degenerates into "prove the
-chosen implementation is correct" instead of "prove the user's requirement is
-met." Independence at the source is what prevents collusion and rule capture.
+The superseded ADR-0009 topology ran [2] and [3] in parallel, each independently
+interpreting the same natural-language requirement, coordinated only by a
+claim-ID prefix convention. Two independent compilations of ambiguous prose
+diverge structurally — that misalignment was observed in real-driver testing and
+is topology-caused, not prompt-caused.
+
+The v2 ordering keeps exactly one natural-language-to-structure translation (the
+acceptance side); the planner performs structure-to-structure derivation against
+the frozen ClaimGraph. Power separation is preserved because what is forbidden
+is the producer **authoring or altering** acceptance, not **seeing** it —
+acceptance criteria are visible to implementers by design, exactly as a test
+suite is visible to developers. The ClaimGraph digest is captured before the
+Requirement Agent runs, so the planner has no write path into the acceptance.
+The reverse ordering (plan first, acceptance judges the plan) remains forbidden:
+it degenerates acceptance into "prove the chosen implementation is correct."
 
 # The two human gates
 
@@ -132,12 +195,13 @@ change without human approval is a non-goal, and no Agent may self-declare
 completion. The acceptance criteria drafted by Agent [3] are **untrusted** until
 a human authorization actor freezes them.
 
-# The alignment output contract checklist
+# The alignment elicitation checklist
 
 The alignment Agent does not chat aimlessly. It is guided by a fixed set of
-dimensions it must drive to closure before proposing requirement freeze:
+dimensions it must drive to closure before proposing boundary freeze:
 
-1. **Output form** — document, table, code, dataset, report?
+1. **Output form** — document, table, code, dataset, report? (captured as
+   `must` entries)
 2. **Must-haves** — what must be present in the result?
 3. **Must-nots** — what must explicitly be absent? (frequently forgotten, highly
    valuable for shrinking subjectivity)
@@ -145,8 +209,10 @@ dimensions it must drive to closure before proposing requirement freeze:
 5. **Allowed free zones** — which parts may the executing Agent decide on its
    own? (everything outside these is, by default, expected to be objective)
 
-The last dimension turns residual subjectivity from an accidental gap into a
-knowing, user-approved region.
+Each closed dimension lands as one or more typed boundary entries; anything
+still open is an `open_question` entry that blocks Gate 1. The free-zone
+dimension turns residual subjectivity from an accidental gap into a knowing,
+user-approved, ID'd region.
 
 # Verification: validate the product, not the process
 
@@ -158,6 +224,7 @@ checked at Workflow A's exit is deterministic and command-gate decidable:
 | Exit gate | What is checked | How it is judged |
 |---|---|---|
 | Structure gate | the RequestDraft is a well-formed GoalExecutionRequest suite | schema validation, exit 0 |
+| Cross-alignment gate | every PlanNode claimRef resolves in the frozen ClaimGraph; every required Claim is covered by a node; every must/must_not/completion_signal entry is referenced by a Claim's criterionRefs; no Claim references a free_zone; no open_question remains | deterministic validator accepts; fail closed with a structured mismatch report and bounded redrafts |
 | Admission gate | digests resolve, capabilities are within the allowed set, the ClaimGraph is acyclic and valid | `RequestDraftAdmission` accepts |
 | Consumability gate | the frozen request is actually runnable by Workflow B | `goal validate` / `goal plan` exit 0 on the frozen request |
 
@@ -181,7 +248,10 @@ frozen RequestDraft passing the three exit gates and being consumable by B.
   drive dialogue, preserve immutable snapshots, reject profile/runtime digest
   mismatches before Agent invocation, require explicit Requirement-Agent
   `PlanDraft` and Acceptance-Agent `ClaimGraph`, enforce Human Gate 1, and emit
-  an untrusted `RequestDraft` for Gate 2 authorization. It remains non-default
+  an untrusted `RequestDraft` for Gate 2 authorization. It still implements the
+  superseded ADR-0009 parallel drafting order and prose freeze; migrating it to
+  the ADR-0010 boundary contract, acceptance-first serial drafting, and
+  cross-alignment gate is pending implementation work. It remains non-default
   until a separate component-lifecycle promotion approves default visibility.
 
 # Non-goals

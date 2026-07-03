@@ -1,0 +1,310 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "RequestDraft",
+  "metadata": {
+    "idempotencyKey": "phase1-task-0090-binding-rule-001",
+    "intentId": "INTENT-TASK-0090-BINDING-RULE",
+    "name": "phase1-task-0090-binding-rule",
+    "producerActor": "agent:alignment-session",
+    "requestId": "REQ-0159c5a3c8ca8642"
+  },
+  "spec": {
+    "artifactDir": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0090\\runs\\loop-001\\artifacts",
+    "capabilityPolicies": {},
+    "claimGraph": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "ClaimGraph",
+      "metadata": {
+        "goalId": "INTENT-TASK-0090-BINDING-RULE",
+        "name": "intent-task-0090-binding-rule",
+        "version": 1
+      },
+      "spec": {
+        "claims": [
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "scope"
+            ],
+            "dependsOn": [],
+            "gateRefs": [
+              "scope-review"
+            ],
+            "id": "CLAIM-TASK-0090-SCOPE",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "diff"
+            ],
+            "riskLevel": "R1",
+            "statement": "Only docs/roadmaps/development-program-overview.md is modified for TASK-0090; no code, schemas, or other documents are changed.",
+            "type": "governance"
+          },
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "form"
+            ],
+            "dependsOn": [
+              "CLAIM-TASK-0090-SCOPE"
+            ],
+            "gateRefs": [
+              "section-discoverability-review"
+            ],
+            "id": "CLAIM-TASK-0090-BINDING-SECTION",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "diff",
+              "document-inspection"
+            ],
+            "riskLevel": "R1",
+            "statement": "docs/roadmaps/development-program-overview.md contains a distinct top-level Markdown section whose heading clearly identifies it as a binding rule.",
+            "type": "functional"
+          },
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "form",
+              "completion-signal"
+            ],
+            "dependsOn": [
+              "CLAIM-TASK-0090-BINDING-SECTION"
+            ],
+            "gateRefs": [
+              "normative-content-review"
+            ],
+            "id": "CLAIM-TASK-0090-NORMATIVE-RULE",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "diff",
+              "document-inspection"
+            ],
+            "riskLevel": "R1",
+            "statement": "The new binding-rule section states as normative requirements that new work from TASK-0090 onward defaults to the Workflow A+B loop and that any manual path must be recorded as a loop defect.",
+            "type": "governance"
+          },
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "must-not"
+            ],
+            "dependsOn": [
+              "CLAIM-TASK-0090-NORMATIVE-RULE"
+            ],
+            "gateRefs": [
+              "non-contradiction-review"
+            ],
+            "id": "CLAIM-TASK-0090-NON-CONTRADICTION",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "diff",
+              "document-inspection"
+            ],
+            "riskLevel": "R1",
+            "statement": "The change does not weaken, delete, or contradict existing acceptance criteria, the sequencing rule, or the kernel-boundary bootstrap exception.",
+            "type": "quality"
+          },
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "completion-signal",
+              "verification"
+            ],
+            "dependsOn": [
+              "CLAIM-TASK-0090-SCOPE",
+              "CLAIM-TASK-0090-NON-CONTRADICTION"
+            ],
+            "gateRefs": [
+              "lint"
+            ],
+            "id": "CLAIM-TASK-0090-LINT-GATE",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "command-result"
+            ],
+            "riskLevel": "R1",
+            "statement": "Completion is command-gate decidable by uv run python -B scripts/check.py --lint exiting 0 after the document-only change.",
+            "type": "operational"
+          }
+        ],
+        "goalRef": "INTENT-TASK-0090-BINDING-RULE"
+      }
+    },
+    "execution": {
+      "branch": "main",
+      "maxConcurrency": 1,
+      "maxRepairCycles": 0
+    },
+    "executor": {
+      "adapterRef": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    "gateRunner": {
+      "adapterRef": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "goal": {
+      "claimGraphDigest": "sha256:5d78a31fada8accaf246e484bf50e5fe70b2e9f3c1f6bd2565502e7c0a5d23ea",
+      "goalDigest": "sha256:e934d250f0aa5b42d18cf70877c17031d1251398462305760445d22fbb74782b",
+      "goalRef": "GOAL-TASK-0090-BINDING-RULE-ALIGNED",
+      "requiredClaimRefs": [
+        "CLAIM-TASK-0090-SCOPE",
+        "CLAIM-TASK-0090-BINDING-SECTION",
+        "CLAIM-TASK-0090-NORMATIVE-RULE",
+        "CLAIM-TASK-0090-NON-CONTRADICTION",
+        "CLAIM-TASK-0090-LINT-GATE"
+      ]
+    },
+    "planDraft": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanDraft",
+      "metadata": {
+        "goalId": "INTENT-TASK-0090-BINDING-RULE",
+        "proposedBy": "planner"
+      },
+      "spec": {
+        "nodes": [
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 300
+            },
+            "capabilityRequests": [
+              {
+                "capability": "filesystem.write",
+                "resources": [
+                  "docs/roadmaps/development-program-overview.md"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "INTENT-TASK-0090-BINDING-RULE"
+            ],
+            "dependsOn": [],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [
+                  "NODE-0090-VERIFY-BINDING-RULE"
+                ],
+                "deliveryRole": "executor",
+                "name": "updated-development-program-overview",
+                "schemaRef": "artifact://markdown-document"
+              }
+            ],
+            "gateRefs": [
+              "binding-rule-section-present",
+              "no-acceptance-criteria-weakened",
+              "scope-one-file-only"
+            ],
+            "id": "NODE-0090-ADD-BINDING-RULE-SECTION",
+            "inputRefs": [
+              "TASK-0090",
+              "docs/roadmaps/development-program-overview.md"
+            ],
+            "nodeType": "document-edit",
+            "objective": "Edit only docs/roadmaps/development-program-overview.md to add one clearly headed top-level Markdown section that is discoverable as a binding rule and normatively states that, from TASK-0090 onward, new work defaults to the Workflow A+B loop and any manual path must be recorded as a loop defect, without weakening, deleting, or contradicting existing acceptance criteria, the sequencing rule, or the kernel-boundary bootstrap exception.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "bounded-doc-write",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 300
+          },
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.1,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 4,
+              "maxWallSeconds": 300
+            },
+            "capabilityRequests": [
+              {
+                "capability": "process.exec",
+                "resources": [
+                  "uv run python -B scripts/check.py --lint"
+                ]
+              },
+              {
+                "capability": "filesystem.read",
+                "resources": [
+                  "docs/roadmaps/development-program-overview.md"
+                ],
+                "riskLevel": "R0"
+              }
+            ],
+            "claimRefs": [
+              "INTENT-TASK-0090-BINDING-RULE"
+            ],
+            "dependsOn": [
+              "NODE-0090-ADD-BINDING-RULE-SECTION"
+            ],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "verifier",
+                "name": "task-0090-verification-result",
+                "schemaRef": "artifact://command-gate-report"
+              }
+            ],
+            "gateRefs": [
+              "binding-rule-section-present",
+              "lint-exit-0",
+              "single-file-diff"
+            ],
+            "id": "NODE-0090-VERIFY-BINDING-RULE",
+            "inputRefs": [
+              "docs/roadmaps/development-program-overview.md"
+            ],
+            "nodeType": "verification",
+            "objective": "Verify that only docs/roadmaps/development-program-overview.md changed, the new binding-rule section is distinct and discoverable, the normative default-to-Workflow-A+B and manual-path-is-loop-defect requirements are present, and uv run python -B scripts/check.py --lint exits 0.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "verification-only",
+            "terminalGoalVerification": true,
+            "timeoutSeconds": 300
+          }
+        ],
+        "rationale": "The requirement is narrow and command-gate decidable. A single write node preserves the one-file scope, and a separate verification node checks both the lint gate and the distinct-section requirement without broadening implementation scope."
+      }
+    },
+    "planner": {
+      "adapterRef": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "profileRef": "profile/development-bounded",
+    "registry": {
+      "allowedCapabilities": [
+        "filesystem.write"
+      ],
+      "gateRefs": {
+        "GATE-alignment-complete": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "GATE-alignment-objective": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "nodeTypes": {
+        "bounded_task": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "goal_verification": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "runtimeRefs": {
+        "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    },
+    "runtime": {
+      "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "store": {
+      "kind": "sqlite",
+      "path": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0090\\runs\\loop-001\\goal-control.sqlite3"
+    },
+    "workspaceRef": "E:\\ahra-v0.1-starter"
+  }
+}

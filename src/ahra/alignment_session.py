@@ -373,6 +373,8 @@ class AlignmentSessionManager:
                 ref="session.frozenRequirement",
             )
         try:
+            claim_id_prefix = f"CLM-{current.intent.intent_id.upper().replace('INTENT-', '')}"
+            goal_ref = _goal_ref_from_intent(current.intent.intent_id)
             requirement_result = await self._run_agent(
                 current,
                 expected_output=REQUIREMENT_DRAFT_OUTPUT,
@@ -382,6 +384,12 @@ class AlignmentSessionManager:
                     "frozenRequirement": current.frozen_requirement,
                     "profileRef": current.profile_ref,
                     "runtimeRef": current.runtime_ref,
+                    "coordinationRules": {
+                        "claimIdPrefix": claim_id_prefix,
+                        "claimIdFormat": f"{claim_id_prefix}-<SHORT-DESCRIPTOR>",
+                        "instruction": f"When referencing acceptance claims in your PlanDraft nodes, use claim IDs that start with '{claim_id_prefix}-'. The Acceptance Agent will use the same prefix. Keep descriptors short (1-3 uppercase words with hyphens).",
+                    },
+                    "goalRef": goal_ref,
                 },
             )
             acceptance_result = await self._run_agent(
@@ -393,6 +401,12 @@ class AlignmentSessionManager:
                     "frozenRequirement": current.frozen_requirement,
                     "profileRef": current.profile_ref,
                     "runtimeRef": current.runtime_ref,
+                    "coordinationRules": {
+                        "claimIdPrefix": claim_id_prefix,
+                        "claimIdFormat": f"{claim_id_prefix}-<SHORT-DESCRIPTOR>",
+                        "instruction": f"All claim IDs in your ClaimGraph must start with '{claim_id_prefix}-' followed by a short descriptor (1-3 uppercase words with hyphens, e.g. '{claim_id_prefix}-LINT-PASS'). The Requirement Agent will reference claims using the same prefix.",
+                    },
+                    "goalRef": goal_ref,
                 },
             )
         except AlignmentSessionError as exc:
@@ -627,7 +641,73 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
                             "required": ["nodes"],
                             "properties": {
                                 "rationale": {"type": "string"},
-                                "nodes": {"type": "array", "items": {"type": "object"}},
+                                "nodes": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["id", "nodeType", "objective", "budgetRequest"],
+                                        "properties": {
+                                            "id": {"type": "string"},
+                                            "nodeType": {"type": "string"},
+                                            "objective": {"type": "string"},
+                                            "claimRefs": {"type": "array", "items": {"type": "string"}},
+                                            "dependsOn": {"type": "array", "items": {"type": "string"}},
+                                            "inputRefs": {"type": "array", "items": {"type": "string"}},
+                                            "expectedOutputs": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "required": ["name", "schemaRef"],
+                                                    "properties": {
+                                                        "name": {"type": "string"},
+                                                        "schemaRef": {"type": "string"},
+                                                        "consumerNodeRefs": {"type": "array", "items": {"type": "string"}},
+                                                        "deliveryRole": {"type": "string"},
+                                                        "artifactRequired": {"type": "boolean"},
+                                                    },
+                                                },
+                                            },
+                                            "capabilityRequests": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "required": ["capability", "resources"],
+                                                    "properties": {
+                                                        "capability": {"type": "string"},
+                                                        "resources": {"type": "array", "items": {"type": "string"}},
+                                                        "riskLevel": {"type": "string"},
+                                                        "approvalRefs": {"type": "array", "items": {"type": "string"}},
+                                                    },
+                                                },
+                                            },
+                                            "gateRefs": {"type": "array", "items": {"type": "string"}},
+                                            "runtimeRef": {"type": "string"},
+                                            "budgetRequest": {
+                                                "type": "object",
+                                                "required": ["maxModelCalls", "maxToolCalls"],
+                                                "properties": {
+                                                    "maxModelCalls": {"type": "integer"},
+                                                    "maxToolCalls": {"type": "integer"},
+                                                    "maxSpawnedNodes": {"type": "integer"},
+                                                    "maxWallSeconds": {"type": "integer"},
+                                                    "maxCostUsd": {"type": "number"},
+                                                },
+                                            },
+                                            "retryPolicy": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "maxAttempts": {"type": "integer"},
+                                                    "backoffSeconds": {"type": "number"},
+                                                    "idempotencyKeyRequired": {"type": "boolean"},
+                                                },
+                                            },
+                                            "timeoutSeconds": {"type": "integer"},
+                                            "compensationRef": {"type": "string"},
+                                            "sideEffect": {"type": "string"},
+                                            "terminalGoalVerification": {"type": "boolean"},
+                                        },
+                                    },
+                                },
                             },
                         },
                     },
@@ -658,7 +738,31 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
                             "required": ["goalRef", "claims"],
                             "properties": {
                                 "goalRef": {"type": "string"},
-                                "claims": {"type": "array", "items": {"type": "object"}},
+                                "claims": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": ["id", "type", "statement", "criterionRefs", "riskLevel", "requiredEvidenceKinds"],
+                                        "properties": {
+                                            "id": {"type": "string"},
+                                            "type": {
+                                                "type": "string",
+                                                "enum": ["functional", "structural", "quality", "security", "operational", "governance"],
+                                            },
+                                            "statement": {"type": "string"},
+                                            "criterionRefs": {"type": "array", "items": {"type": "string"}},
+                                            "dependsOn": {"type": "array", "items": {"type": "string"}},
+                                            "riskLevel": {
+                                                "type": "string",
+                                                "enum": ["R0", "R1", "R2", "R3"],
+                                            },
+                                            "requiredEvidenceKinds": {"type": "array", "items": {"type": "string"}},
+                                            "gateRefs": {"type": "array", "items": {"type": "string"}},
+                                            "approvalRequired": {"type": "boolean"},
+                                            "required": {"type": "boolean"},
+                                        },
+                                    },
+                                },
                             },
                         },
                     },

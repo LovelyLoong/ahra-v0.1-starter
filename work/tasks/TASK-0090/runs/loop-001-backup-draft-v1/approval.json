@@ -1,0 +1,12 @@
+{
+  "approvalId": "APR-0159c5a3c8ca8642",
+  "decidedAt": null,
+  "decisionBy": null,
+  "intentId": "INTENT-TASK-0090-BINDING-RULE",
+  "producerActor": "agent:alignment-session",
+  "reason": "RequestDraft is waiting for human authorization.",
+  "requestId": "REQ-0159c5a3c8ca8642",
+  "requestedAt": "2026-07-03T06:42:32.603106Z",
+  "requestedBy": "agent:alignment-session",
+  "status": "waiting_auth"
+}
