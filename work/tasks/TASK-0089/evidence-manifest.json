@@ -12,9 +12,27 @@
       "media_type": "application/json",
       "created_by": "human:maintainer",
       "created_at": "2026-07-03T03:50:00Z",
-      "input_refs": ["git:72ed577", "git:2cdea3c"],
+      "input_refs": [
+        "git:72ed577",
+        "git:2cdea3c"
+      ],
       "evidence_refs": [],
       "supersedes": null
+    },
+    {
+      "evidence_id": "EVD-TASK-0089-0002",
+      "task_id": "TASK-0089",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-3.json",
+      "uri": "local://evidence/evidence-gate-report-3.json",
+      "sha256": "53e5a0e6865e4d0cd141c0692a305376b85d80760c16cbd6de9e017f3cbb56f1",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-06T02:27:29.953431Z",
+      "refs": [
+        "ART-TASK-0089-0001",
+        "EVD-TASK-0089-0001"
+      ]
     }
   ]
 }

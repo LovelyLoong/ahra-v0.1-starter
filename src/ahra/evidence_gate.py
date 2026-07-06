@@ -4,7 +4,9 @@ import argparse
 import hashlib
 import json
 import re
+import struct
 import sys
+import zlib
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
@@ -16,6 +18,12 @@ PASSED_STATUSES = {"passed", "pass"}
 FAILED_STATUSES = {"failed", "fail", "missing", "blocked"}
 DEVELOPMENT_BOUNDED_PROFILE_REF = "profile/development-bounded"
 TASK_LOCAL_URI_PREFIXES = {"evidence", "handoffs", "local-records", "runs"}
+PACK_OBJECT_TYPES = {
+    1: "commit",
+    2: "tree",
+    3: "blob",
+    4: "tag",
+}
 
 
 class EvidenceGateError(ValueError):
@@ -363,12 +371,16 @@ def _validate_manifest_hashes(task_dir: Path, manifest: dict[str, Any], key: str
         sha = str(record.get("sha256") or "")
         if not re.fullmatch(r"[a-f0-9]{64}", sha):
             raise EvidenceGateError(f"{key}[{index}] has invalid sha256")
-        if not uri.startswith("local://"):
+        if uri.startswith("local://"):
+            path = _local_uri_path(task_dir, uri)
+            if not path.exists() or not path.is_file():
+                raise EvidenceGateError(f"{key}[{index}] local uri is missing: {uri}")
+            payload = path.read_bytes()
+        elif uri.startswith("git:"):
+            payload = _git_uri_bytes(task_dir, uri)
+        else:
             continue
-        path = _local_uri_path(task_dir, uri)
-        if not path.exists() or not path.is_file():
-            raise EvidenceGateError(f"{key}[{index}] local uri is missing: {uri}")
-        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        actual = hashlib.sha256(payload).hexdigest()
         if actual != sha:
             raise EvidenceGateError(f"{key}[{index}] hash mismatch for {uri}")
 
@@ -400,6 +412,303 @@ def _local_uri_relative(uri: str) -> Path:
     ):
         raise EvidenceGateError(f"local uri must be a clean relative path: {uri}")
     return Path(*parts)
+
+
+def _git_uri_bytes(task_dir: Path, uri: str) -> bytes:
+    repo_root = _repository_root_for_task(task_dir.resolve())
+    if repo_root is None:
+        raise EvidenceGateError(f"git uri cannot be resolved without repository root: {uri}")
+    commit, relative = _git_uri_parts(uri)
+    store = _GitObjectStore(_git_dir_for_repo(repo_root))
+    object_type, commit_payload = store.read(commit)
+    if object_type != "commit":
+        raise EvidenceGateError(f"git uri commit object is not a commit: {uri}")
+    tree_id = _commit_tree_id(commit_payload, uri)
+    return _tree_blob_bytes(store, tree_id, relative, uri)
+
+
+def _git_uri_parts(uri: str) -> tuple[str, PurePosixPath]:
+    raw = uri.removeprefix("git:")
+    commit, separator, path = raw.partition(":")
+    if not separator or not re.fullmatch(r"[a-f0-9]{40}", commit):
+        raise EvidenceGateError(f"git uri must be git:<40hex-commit>:<relative-path>: {uri}")
+    normalized = path.replace("\\", "/").strip()
+    parsed = PurePosixPath(normalized)
+    parts = [part for part in parsed.parts if part]
+    if (
+        not normalized
+        or normalized.startswith("/")
+        or re.match(r"^[A-Za-z]:", normalized)
+        or "." in parts
+        or ".." in parts
+    ):
+        raise EvidenceGateError(f"git uri must use a clean relative path: {uri}")
+    return commit, PurePosixPath(*parts)
+
+
+def _git_dir_for_repo(repo_root: Path) -> Path:
+    marker = repo_root / ".git"
+    if marker.is_dir():
+        return marker
+    if marker.is_file():
+        text = marker.read_text(encoding="utf-8").strip()
+        prefix = "gitdir:"
+        if text.startswith(prefix):
+            raw = text.removeprefix(prefix).strip()
+            path = Path(raw)
+            return path if path.is_absolute() else (repo_root / path).resolve()
+    raise EvidenceGateError(f"repository root has no usable .git directory: {repo_root}")
+
+
+class _GitObjectStore:
+    def __init__(self, git_dir: Path) -> None:
+        self.git_dir = git_dir
+        self._cache: dict[str, tuple[str, bytes]] = {}
+        self._pack_cache: dict[Path, bytes] = {}
+
+    def read(self, object_id: str) -> tuple[str, bytes]:
+        if not re.fullmatch(r"[a-f0-9]{40}", object_id):
+            raise EvidenceGateError(f"invalid git object id: {object_id}")
+        if object_id in self._cache:
+            return self._cache[object_id]
+        obj = self._read_loose(object_id)
+        if obj is None:
+            obj = self._read_packed(object_id)
+        if obj is None:
+            raise EvidenceGateError(f"git object is missing: {object_id}")
+        self._cache[object_id] = obj
+        return obj
+
+    def _read_loose(self, object_id: str) -> tuple[str, bytes] | None:
+        path = self.git_dir / "objects" / object_id[:2] / object_id[2:]
+        if not path.exists():
+            return None
+        try:
+            raw = zlib.decompress(path.read_bytes())
+        except zlib.error as exc:
+            raise EvidenceGateError(f"git loose object is corrupt: {object_id}") from exc
+        return _split_git_object(raw, object_id)
+
+    def _read_packed(self, object_id: str) -> tuple[str, bytes] | None:
+        pack_dir = self.git_dir / "objects" / "pack"
+        for index_path in sorted(pack_dir.glob("*.idx")):
+            offset = _pack_index_offset(index_path, object_id)
+            if offset is None:
+                continue
+            pack_path = index_path.with_suffix(".pack")
+            return self._read_pack_object(pack_path, offset)
+        return None
+
+    def _read_pack_object(self, pack_path: Path, offset: int) -> tuple[str, bytes]:
+        pack = self._pack_bytes(pack_path)
+        if offset < 12 or offset >= len(pack):
+            raise EvidenceGateError(f"git pack object offset is invalid: {pack_path}")
+        object_type_code, _size, position = _pack_object_header(pack, offset)
+        if object_type_code in PACK_OBJECT_TYPES:
+            return PACK_OBJECT_TYPES[object_type_code], _pack_decompress(pack, position)
+        if object_type_code == 6:
+            base_offset, position = _pack_ofs_delta_base(pack, position, offset)
+            base_type, base_payload = self._read_pack_object(pack_path, base_offset)
+            delta = _pack_decompress(pack, position)
+            return base_type, _apply_git_delta(base_payload, delta)
+        if object_type_code == 7:
+            if position + 20 > len(pack):
+                raise EvidenceGateError(f"git pack ref-delta is truncated: {pack_path}")
+            base_id = pack[position : position + 20].hex()
+            base_type, base_payload = self.read(base_id)
+            delta = _pack_decompress(pack, position + 20)
+            return base_type, _apply_git_delta(base_payload, delta)
+        raise EvidenceGateError(f"unsupported git pack object type: {object_type_code}")
+
+    def _pack_bytes(self, pack_path: Path) -> bytes:
+        if pack_path not in self._pack_cache:
+            data = pack_path.read_bytes()
+            if not data.startswith(b"PACK"):
+                raise EvidenceGateError(f"git pack file is invalid: {pack_path}")
+            self._pack_cache[pack_path] = data
+        return self._pack_cache[pack_path]
+
+
+def _split_git_object(raw: bytes, object_id: str) -> tuple[str, bytes]:
+    header, separator, payload = raw.partition(b"\0")
+    if not separator:
+        raise EvidenceGateError(f"git object has invalid header: {object_id}")
+    parts = header.split(b" ", 1)
+    if len(parts) != 2:
+        raise EvidenceGateError(f"git object has invalid header: {object_id}")
+    object_type = parts[0].decode("ascii", errors="strict")
+    try:
+        declared_size = int(parts[1])
+    except ValueError as exc:
+        raise EvidenceGateError(f"git object has invalid size: {object_id}") from exc
+    if declared_size != len(payload):
+        raise EvidenceGateError(f"git object size mismatch: {object_id}")
+    return object_type, payload
+
+
+def _pack_index_offset(index_path: Path, object_id: str) -> int | None:
+    data = index_path.read_bytes()
+    if not data.startswith(b"\xfftOc"):
+        raise EvidenceGateError(f"unsupported git pack index format: {index_path}")
+    version = struct.unpack(">I", data[4:8])[0]
+    if version != 2:
+        raise EvidenceGateError(f"unsupported git pack index version: {version}")
+    fanout_offset = 8
+    count = struct.unpack(">I", data[fanout_offset + 255 * 4 : fanout_offset + 256 * 4])[0]
+    names_offset = fanout_offset + 256 * 4
+    object_bytes = bytes.fromhex(object_id)
+    low, high = 0, count
+    while low < high:
+        middle = (low + high) // 2
+        candidate = data[names_offset + middle * 20 : names_offset + (middle + 1) * 20]
+        if candidate < object_bytes:
+            low = middle + 1
+        else:
+            high = middle
+    if low >= count:
+        return None
+    candidate = data[names_offset + low * 20 : names_offset + (low + 1) * 20]
+    if candidate != object_bytes:
+        return None
+    crc_offset = names_offset + count * 20
+    offsets_offset = crc_offset + count * 4
+    offset_value = struct.unpack(">I", data[offsets_offset + low * 4 : offsets_offset + (low + 1) * 4])[0]
+    if offset_value & 0x80000000:
+        large_index = offset_value & 0x7FFFFFFF
+        large_offset = offsets_offset + count * 4 + large_index * 8
+        return struct.unpack(">Q", data[large_offset : large_offset + 8])[0]
+    return offset_value
+
+
+def _pack_object_header(pack: bytes, offset: int) -> tuple[int, int, int]:
+    position = offset
+    first = pack[position]
+    position += 1
+    object_type = (first >> 4) & 0x07
+    size = first & 0x0F
+    shift = 4
+    byte = first
+    while byte & 0x80:
+        byte = pack[position]
+        position += 1
+        size |= (byte & 0x7F) << shift
+        shift += 7
+    return object_type, size, position
+
+
+def _pack_decompress(pack: bytes, position: int) -> bytes:
+    try:
+        decompressor = zlib.decompressobj()
+        payload = decompressor.decompress(pack[position:])
+    except zlib.error as exc:
+        raise EvidenceGateError("git pack object is corrupt") from exc
+    if not decompressor.eof:
+        raise EvidenceGateError("git pack object is truncated")
+    return payload
+
+
+def _pack_ofs_delta_base(pack: bytes, position: int, object_offset: int) -> tuple[int, int]:
+    byte = pack[position]
+    position += 1
+    distance = byte & 0x7F
+    while byte & 0x80:
+        byte = pack[position]
+        position += 1
+        distance = ((distance + 1) << 7) | (byte & 0x7F)
+    return object_offset - distance, position
+
+
+def _apply_git_delta(base: bytes, delta: bytes) -> bytes:
+    position, source_size = _delta_varint(delta, 0)
+    position, target_size = _delta_varint(delta, position)
+    if source_size != len(base):
+        raise EvidenceGateError("git delta source size mismatch")
+    output = bytearray()
+    while position < len(delta):
+        command = delta[position]
+        position += 1
+        if command & 0x80:
+            copy_offset = 0
+            copy_size = 0
+            for bit_index, shift in enumerate((0, 8, 16, 24)):
+                if command & (1 << bit_index):
+                    copy_offset |= delta[position] << shift
+                    position += 1
+            for bit_index, shift in enumerate((0, 8, 16)):
+                if command & (1 << (4 + bit_index)):
+                    copy_size |= delta[position] << shift
+                    position += 1
+            if copy_size == 0:
+                copy_size = 0x10000
+            output.extend(base[copy_offset : copy_offset + copy_size])
+        elif command:
+            output.extend(delta[position : position + command])
+            position += command
+        else:
+            raise EvidenceGateError("git delta contains invalid copy command")
+    if len(output) != target_size:
+        raise EvidenceGateError("git delta target size mismatch")
+    return bytes(output)
+
+
+def _delta_varint(delta: bytes, position: int) -> tuple[int, int]:
+    shift = 0
+    value = 0
+    while True:
+        if position >= len(delta):
+            raise EvidenceGateError("git delta varint is truncated")
+        byte = delta[position]
+        position += 1
+        value |= (byte & 0x7F) << shift
+        if not byte & 0x80:
+            return position, value
+        shift += 7
+
+
+def _commit_tree_id(payload: bytes, uri: str) -> str:
+    first_line = payload.split(b"\n", 1)[0]
+    prefix = b"tree "
+    if not first_line.startswith(prefix):
+        raise EvidenceGateError(f"git uri commit has no tree: {uri}")
+    tree_id = first_line.removeprefix(prefix).decode("ascii", errors="strict")
+    if not re.fullmatch(r"[a-f0-9]{40}", tree_id):
+        raise EvidenceGateError(f"git uri commit tree is invalid: {uri}")
+    return tree_id
+
+
+def _tree_blob_bytes(store: _GitObjectStore, tree_id: str, relative: PurePosixPath, uri: str) -> bytes:
+    current_tree = tree_id
+    parts = [part.encode("utf-8") for part in relative.parts]
+    for index, wanted in enumerate(parts):
+        object_type, tree_payload = store.read(current_tree)
+        if object_type != "tree":
+            raise EvidenceGateError(f"git uri path traverses non-tree object: {uri}")
+        found_id = _tree_entry_id(tree_payload, wanted, uri)
+        if index == len(parts) - 1:
+            target_type, target_payload = store.read(found_id)
+            if target_type != "blob":
+                raise EvidenceGateError(f"git uri path is not a blob: {uri}")
+            return target_payload
+        current_tree = found_id
+    raise EvidenceGateError(f"git uri path is missing: {uri}")
+
+
+def _tree_entry_id(tree_payload: bytes, wanted: bytes, uri: str) -> str:
+    position = 0
+    while position < len(tree_payload):
+        try:
+            space = tree_payload.index(b" ", position)
+            nul = tree_payload.index(b"\0", space + 1)
+        except ValueError as exc:
+            raise EvidenceGateError(f"git tree object is corrupt: {uri}") from exc
+        name = tree_payload[space + 1 : nul]
+        object_id = tree_payload[nul + 1 : nul + 21]
+        if len(object_id) != 20:
+            raise EvidenceGateError(f"git tree entry is truncated: {uri}")
+        if name == wanted:
+            return object_id.hex()
+        position = nul + 21
+    raise EvidenceGateError(f"git uri path is missing: {uri}")
 
 
 def _repository_root_for_task(task_dir: Path) -> Path | None:

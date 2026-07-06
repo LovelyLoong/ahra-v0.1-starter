@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import subprocess
 import tempfile
 import unittest
 from datetime import datetime
@@ -833,6 +834,72 @@ class EvidenceGateTests(unittest.TestCase):
             self.assertEqual(events[-1]["previous_lease_fencing_token"], "FENCE-1")
             self.assertEqual(events[-1]["lease_fencing_token"], "FENCE-2")
 
+    def test_awkp_state_writer_clears_blockers_with_cas_and_audit_event(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_state_writer_task(root)
+            writer = AwkpTaskStateWriter(
+                work_root=root / "work",
+                clock=lambda: "2026-06-22T00:01:00Z",
+            )
+            writer.add_blocker(
+                "TASK-9100",
+                expected_version=0,
+                actor="agent:verifier",
+                idempotency_key="TASK-9100:blocker:1",
+                blocker="Manifest hash points at a mutable workspace path.",
+                reason="Record blocker before repair.",
+                refs=("state.json", "artifact-manifest.json"),
+            )
+
+            with self.assertRaisesRegex(AwkpTaskStateCasError, "expected state_version 0, current 1"):
+                writer.clear_blockers(
+                    "TASK-9100",
+                    expected_version=0,
+                    actor="agent:state-reconciler",
+                    idempotency_key="TASK-9100:clear-blockers:stale",
+                    reason="Stale clear must fail.",
+                )
+
+            cleared = writer.clear_blockers(
+                "TASK-9100",
+                expected_version=1,
+                actor="agent:state-reconciler",
+                idempotency_key="TASK-9100:clear-blockers:1",
+                reason="Manifest references were repaired to immutable git objects.",
+                refs=("state.json", "artifact-manifest.json"),
+                next_action="Rerun independent EvidenceGate review.",
+            )
+
+            self.assertEqual(cleared.state_version, 2)
+            state = json.loads((task_dir / "state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["state"], "ready")
+            self.assertEqual(state["blockers"], [])
+            self.assertEqual(state["next_action"], "Rerun independent EvidenceGate review.")
+            events = [
+                json.loads(line)
+                for line in (task_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertEqual(events[-1]["event_type"], "blockers_cleared")
+            self.assertEqual(events[-1]["resolved_blockers"], ["Manifest hash points at a mutable workspace path."])
+
+            with self.assertRaisesRegex(AwkpTaskStateIdempotencyError, "duplicate idempotency_key"):
+                writer.clear_blockers(
+                    "TASK-9100",
+                    expected_version=2,
+                    actor="agent:state-reconciler",
+                    idempotency_key="TASK-9100:clear-blockers:1",
+                    reason="Duplicate clear must fail idempotently.",
+                )
+            with self.assertRaisesRegex(ValueError, "has no blockers to clear"):
+                writer.clear_blockers(
+                    "TASK-9100",
+                    expected_version=2,
+                    actor="agent:state-reconciler",
+                    idempotency_key="TASK-9100:clear-blockers:2",
+                    reason="No-op clears are not audit events.",
+                )
+
     def test_approve_writes_gate_report_and_completes_task(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -923,6 +990,80 @@ class EvidenceGateTests(unittest.TestCase):
             _write_json(manifest_path, manifest)
             report = _write_gate_input(root)
 
+            result = evaluate_task_gate(
+                "TASK-9001",
+                work_root=root / "work",
+                expected_version=4,
+                report_path=report,
+                actor="agent:verifier",
+            )
+
+            self.assertEqual(result.state, "completed")
+
+    def test_git_uri_manifest_hashes_are_verified_against_git_blob(self) -> None:
+        git_version = subprocess.run(["git", "--version"], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if git_version.returncode != 0:
+            self.skipTest("git executable is unavailable")
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _make_task(root)
+            repo_file = root / "src" / "ahra" / "example.py"
+            repo_file.parent.mkdir(parents=True)
+            repo_file.write_bytes(b"VALUE = 1\n")
+
+            def git(*args: str) -> str:
+                result = subprocess.run(
+                    ["git", "-C", str(root), *args],
+                    check=False,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                )
+                if result.returncode != 0:
+                    self.fail(f"git {' '.join(args)} failed: {result.stderr}")
+                return result.stdout.strip()
+
+            git("init")
+            git("config", "user.email", "test@example.invalid")
+            git("config", "user.name", "AHRA Test")
+            git("add", "src/ahra/example.py")
+            git("commit", "-m", "add example")
+            commit = git("rev-parse", "HEAD")
+            repo_sha = hashlib.sha256(repo_file.read_bytes()).hexdigest()
+
+            manifest_path = task_dir / "artifact-manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["artifacts"].append(
+                {
+                    "artifact_id": "ART-TASK-9001-GIT-BLOB",
+                    "task_id": "TASK-9001",
+                    "kind": "code_change",
+                    "name": "example.py",
+                    "uri": f"git:{commit}:src/ahra/example.py",
+                    "sha256": "0" * 64,
+                    "media_type": "text/x-python",
+                    "created_by": "agent:codex",
+                    "created_at": "2026-06-22T00:03:10Z",
+                    "input_refs": ["task.md"],
+                    "evidence_refs": ["EVD-TASK-9001-0001"],
+                    "supersedes": None,
+                }
+            )
+            _write_json(manifest_path, manifest)
+            report = _write_gate_input(root)
+
+            with self.assertRaisesRegex(EvidenceGateError, "hash mismatch"):
+                evaluate_task_gate(
+                    "TASK-9001",
+                    work_root=root / "work",
+                    expected_version=4,
+                    report_path=report,
+                    actor="agent:verifier",
+                )
+
+            manifest["artifacts"][-1]["sha256"] = repo_sha
+            _write_json(manifest_path, manifest)
             result = evaluate_task_gate(
                 "TASK-9001",
                 work_root=root / "work",

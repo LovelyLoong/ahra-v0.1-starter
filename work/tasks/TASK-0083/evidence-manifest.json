@@ -33,6 +33,22 @@
         "ART-TASK-0083-HANDOFF-0001",
         "EVD-TASK-0083-0001"
       ]
+    },
+    {
+      "evidence_id": "EVD-TASK-0083-0003",
+      "task_id": "TASK-0083",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-5.json",
+      "uri": "local://evidence/evidence-gate-report-5.json",
+      "sha256": "8608d4e7afbeb43f12896b9b1358f8d1cd83eea0b20cce9b807cc2f91b1c8324",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-06T03:22:08.066842Z",
+      "refs": [
+        "ART-TASK-0083-0003",
+        "EVD-TASK-0083-0001",
+        "EVD-TASK-0083-0002"
+      ]
     }
   ]
 }

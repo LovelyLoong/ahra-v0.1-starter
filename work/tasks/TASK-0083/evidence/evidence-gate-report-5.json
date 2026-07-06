@@ -1,0 +1,43 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0083",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-06T03:22:08.066842Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Independent review accepts the Workflow A promotion readiness audit after manifest repair. The task does not promote component:alignment-session-manager; it keeps Workflow A experimental/default_visible false and documents the missing non-fixture Workflow A to Workflow B consumer proof.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "Promotion readiness is mapped to the component-lifecycle default path requirements and the completed prerequisite tasks TASK-0079, TASK-0080, TASK-0081, and TASK-0082.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0083-0001",
+        "EVD-TASK-0083-0002"
+      ],
+      "notes": "The promotion readiness report maps the component lifecycle requirements to TASK-0079, TASK-0080, TASK-0081, and TASK-0082."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "component:alignment-session-manager is promoted only if the evidence supports every default-visible requirement; otherwise it remains experimental/default_visible false with explicit blockers.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0083-0001",
+        "EVD-TASK-0083-0002"
+      ],
+      "notes": "The recorded readiness decision keeps component:alignment-session-manager experimental/default_visible false and lists explicit promotion blockers."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Validation proves the inventory, framework entrypoint docs, Workflow A goal request, lint, tests, and diff are consistent after the readiness decision.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0083-0002"
+      ],
+      "notes": "The verification summary records the inventory, framework entrypoint, goal validation, lint, test, and diff checks used for the readiness decision."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": []
+}

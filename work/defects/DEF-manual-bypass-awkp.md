@@ -5,7 +5,7 @@ schema_version: awkp/0.1
 title: "Manual Bypass of AWKP Governance"
 description: "Governance-process defect recording a manual bypass of the AWKP loop."
 owner: human:maintainer
-status: documented
+status: partially_resolved
 ---
 
 # Defect: Manual Bypass of AWKP Governance
@@ -13,7 +13,7 @@ status: documented
 **Defect ID**: DEF-manual-bypass-awkp  
 **Created**: 2026-07-03  
 **Severity**: governance-process  
-**Status**: documented
+**Status**: partially_resolved
 
 ## Summary
 
@@ -40,6 +40,18 @@ The maintainer (in conversation context) performed git commits after verifying t
 Attempted retrospective governance completion via `ahra task claim` and `ahra evidence-gate evaluate` on 2026-07-03. Process blocked by EvidenceV2 format requirements.
 
 **Workaround**: Document the defect, commit the partial governance records, and proceed with TASK-0090 as the first task to follow the complete A→B flow correctly.
+
+## 2026-07-06 Reconciliation
+
+TASK-0091 was reconciled through the governed Goal/AWKP bridge using the already
+succeeded Workflow B GoalExecution `GEXEC-187a468033890487`. The bridge
+materialized kernel EvidenceV2/GateRun records into TASK-0091 and EvidenceGate
+approved completion at state_version 4.
+
+TASK-0089 was not force-completed. The current EvidenceGate recorded
+`changes_requested` at state_version 3 because the fourth acceptance criterion
+requires Workflow B kernel-derived completion, while the accepted archive merge
+was manual after the Workflow B policy gate rejected the oversized change.
 
 ## Prevention
 

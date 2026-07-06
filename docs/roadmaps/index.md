@@ -22,3 +22,4 @@ tags: [roadmaps, index]
 | [Dynamic Agent kernel roadmap](dynamic-kernel-roadmap.md) | Stage gates and implementation order for the governed dynamic Agent kernel |
 | [Dynamic kernel M1 implementation roadmap](dynamic-kernel-m1-roadmap.md) | Proposed SG-5 through SG-10 sequence after TASK-0032 |
 | [Phase 1 minimal-loop intent-closure roadmap](phase1-minimal-loop-intent-roadmap.md) | Proposed SG-P1-A through SG-P1-G: Agent-assisted GoalExecutionRequest authoring plus governed network and subjective-judgment gates, after TASK-0052..0061 |
+| [Dynamic workflow synthesis roadmap](dynamic-workflow-synthesis-roadmap.md) | Proposed next-stage sequence for WorkflowIR synthesis, module composition, metadata-filtered docs, lesson distillation, and validated Skill evolution |

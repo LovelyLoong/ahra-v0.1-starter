@@ -426,6 +426,18 @@ class AwkpTaskStateWriterPort(Protocol):
         next_action: str | None = None,
     ) -> Any: ...
 
+    def clear_blockers(
+        self,
+        task_ref: str | Path,
+        *,
+        expected_version: int,
+        actor: str,
+        idempotency_key: str,
+        reason: str,
+        refs: Iterable[str] = ("state.json",),
+        next_action: str | None = None,
+    ) -> Any: ...
+
 
 @runtime_checkable
 class AwkpTaskCreatorPort(Protocol):

@@ -1,0 +1,50 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0089",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-06T02:27:29.953431Z",
+  "decision": "request_changes",
+  "target_state": "changes_requested",
+  "summary": "TASK-0089 cannot be completed by the current EvidenceGate because the implementation was manually merged after Workflow B policy rejection and lacks kernel EvidenceV2-backed completion for the Workflow B acceptance criterion.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "work/tasks contains only TASK-0081 and later; TASK-0001 through TASK-0080 directories are moved unmodified to archive/work/tasks/ with state.json and events.jsonl byte-identical.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0089-0001"
+      ],
+      "notes": "The archive move was recorded in the manual completion evidence."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "work/index.md lists live tasks plus a one-line digest table for archived tasks with their final state, and every remaining relative link resolves.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0089-0001"
+      ],
+      "notes": "The work index and archive digest update were recorded in the manual completion evidence."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Documents with authority-map status superseded or archived are moved to archive/docs/, the authority map and docs/index.md are updated, and uv run python -B scripts/check.py --lint passes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0089-0001"
+      ],
+      "notes": "The documentation archive update and lint result were recorded in the manual completion evidence."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The change is produced by a Workflow B development-bounded GoalExecution with kernel-derived completion, then approved through the AWKP EvidenceGate by an independent verifier.",
+      "status": "failed",
+      "evidence_refs": [
+        "EVD-TASK-0089-0001"
+      ],
+      "notes": "The existing evidence states this criterion is only partial: Workflow B rejected the run by policy limits and the accepted merge was manual rather than kernel-derived completion."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": []
+}

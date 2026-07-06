@@ -7,7 +7,7 @@
       "task_id": "TASK-0083",
       "kind": "doc_change",
       "name": "component-inventory.json",
-      "uri": "local://docs/architecture/component-inventory.json",
+      "uri": "git:c1c22789b1bc3d6b32bd1397d522830c9ab15a39:docs/architecture/component-inventory.json",
       "sha256": "1794aef3c3435bfc4f6f78573e8d474a84923dc5d8aff48eff374e542a75a71e",
       "media_type": "application/json",
       "created_by": "agent:codex-supervisor",
@@ -28,7 +28,7 @@
       "task_id": "TASK-0083",
       "kind": "doc_change",
       "name": "framework-entrypoints.md",
-      "uri": "local://docs/architecture/framework-entrypoints.md",
+      "uri": "git:c1c22789b1bc3d6b32bd1397d522830c9ab15a39:docs/architecture/framework-entrypoints.md",
       "sha256": "cd50ab83fc5da86c571ce0f2dfe081ad48b424b89b7e6490f41c091073c3b918",
       "media_type": "text/markdown",
       "created_by": "agent:codex-supervisor",
@@ -60,6 +60,27 @@
       "evidence_refs": [
         "EVD-TASK-0083-0001",
         "EVD-TASK-0083-0002"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-TASK-0083-0003",
+      "task_id": "TASK-0083",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-5.json",
+      "uri": "local://evidence/evidence-gate-report-5.json",
+      "sha256": "8608d4e7afbeb43f12896b9b1358f8d1cd83eea0b20cce9b807cc2f91b1c8324",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-06T03:22:08.066842Z",
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0083-0003"
       ],
       "supersedes": null
     }

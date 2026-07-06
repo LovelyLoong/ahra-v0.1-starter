@@ -356,6 +356,81 @@ class AwkpTaskStateWriter:
                 occurred_at=now,
             )
 
+    def clear_blockers(
+        self,
+        task_ref: str | Path,
+        *,
+        expected_version: int,
+        actor: str,
+        idempotency_key: str,
+        reason: str,
+        refs: Iterable[str] = ("state.json",),
+        next_action: str | None = None,
+    ) -> AwkpTaskStateTransitionResult:
+        task_dir = self._task_dir(task_ref)
+        with self._locked(task_dir):
+            state_path = task_dir / "state.json"
+            event_path = task_dir / "events.jsonl"
+            state = _load_json(state_path)
+            events = _load_events(event_path)
+            task_id = _task_id_from_state(task_dir, state)
+            _require_non_empty("actor", actor)
+            _require_non_empty("idempotency_key", idempotency_key)
+            _require_non_empty("reason", reason)
+            _assert_expected_version(task_id, state, expected_version)
+            _assert_unique_idempotency(event_path, events, idempotency_key)
+            current_state = str(state.get("state") or "")
+            if current_state in {"completed", "failed", "canceled", "rejected"}:
+                raise AwkpTaskStateWriterError(f"{task_id} cannot clear blockers in terminal state {current_state!r}")
+
+            resolved_blockers = [str(item) for item in state.get("blockers", []) if str(item)]
+            if not resolved_blockers:
+                raise AwkpTaskStateWriterError(f"{task_id} has no blockers to clear")
+
+            now = _monotonic_now(self._clock, events)
+            new_version = int(state["state_version"]) + 1
+            event_id = _next_event_id(task_id, events)
+            event = {
+                "schema_version": "awkp/0.1",
+                "event_id": event_id,
+                "idempotency_key": idempotency_key,
+                "task_id": task_id,
+                "context_id": state.get("context_id"),
+                "event_type": "blockers_cleared",
+                "actor": actor,
+                "occurred_at": now,
+                "causation_id": _last_event_id(events),
+                "correlation_id": state.get("context_id"),
+                "from_state": current_state,
+                "to_state": current_state,
+                "reason": reason,
+                "refs": _unique_refs(refs),
+                "expected_version": expected_version,
+                "new_state_version": new_version,
+                "resolved_blockers": resolved_blockers,
+            }
+            _append_event(event_path, event)
+            updated = dict(state)
+            updated.update(
+                {
+                    "state_version": new_version,
+                    "next_action": next_action or reason,
+                    "blockers": [],
+                    "updated_at": now,
+                }
+            )
+            _write_json(state_path, updated)
+            return AwkpTaskStateTransitionResult(
+                task_id=task_id,
+                from_state=current_state,
+                to_state=current_state,
+                state_version=new_version,
+                event_id=event_id,
+                idempotency_key=idempotency_key,
+                fencing_token=None,
+                occurred_at=now,
+            )
+
     def _acquire(
         self,
         task_ref: str | Path,

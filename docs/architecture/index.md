@@ -27,6 +27,7 @@ tags: [architecture]
 | [Verification system v2](verification-system.md) | Claim, Gate, Evidence validity, Defect, and selective reverification model |
 | [PlanDraft and PlanIR](plan-ir.md) | Planner output boundary, trusted compilation, executable DAG, and validation rules |
 | [Repository consolidation](repository-consolidation.md) | Component disposition and default-path cleanup rules |
+| [Dynamic workflow synthesis](dynamic-workflow-synthesis.md) | Next-phase design for task-specific WorkflowIR generation from modules, filtered docs, validation, and lesson distillation |
 
 ## M1 Proposed Architecture
 

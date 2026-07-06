@@ -38,7 +38,8 @@ EvidenceGate plus a distinct verifier always decides.
 [B] Workflow autonomy    -> work flows ready->completed without manual handoff
 [C] Intent closure (P1)  -> an abstract Goal becomes a frozen GoalExecutionRequest
 [D] Governance depth (P2/P3) -> Goal and AWKP become one governed surface
-[E] Self-iteration (P4)  -> deferred; memory-driven strategy synthesis, last
+[E] Self-iteration (P4)  -> deferred; memory-driven strategy synthesis
+[G] Dynamic workflow synthesis -> task-specific WorkflowIR from modules and docs
 ```
 
 # Increment A - Verification teeth (TASK-0052..0056)
@@ -144,6 +145,29 @@ declared filesystem.write resources are its write scope under the 0085
 admission. Binding rule from 0090 onward: new work defaults to the A plus B
 loop, and any manual path must be recorded as a loop defect.
 
+# Increment G - Dynamic workflow synthesis
+
+Supersede fixed workflow selection as the long-term mental model. Workflow A,
+Workflow B, and Loop Engineering remain reference patterns. The next phase
+first admits the user's request through Goal Intake. Only a manually confirmed
+`GoalSpec` plus `AcceptanceSpec` reaches the Dynamic Workflow Synthesizer, which
+then reads the goal, acceptance mode, optional verifier spec, current state,
+module catalog, metadata-filtered project docs, and prior lessons, then emits a
+task-specific WorkflowIR.
+
+The durable assets become:
+
+- rules and protected boundaries;
+- Goal Intake admission and mandatory human confirmation for accepted goals;
+- generic module contracts and module manifests;
+- metadata-filtered docs and lessons;
+- WorkflowIR validation gates;
+- task-local temporary modules and promotion paths;
+- Skill improvement proposals validated against historical or held-out tasks.
+
+Owner roadmap: [Dynamic workflow synthesis roadmap](dynamic-workflow-synthesis-roadmap.md).
+Owner architecture: [Dynamic workflow synthesis](../architecture/dynamic-workflow-synthesis.md).
+
 # Status pointer
 
 Live task states are authoritative in `work/tasks/*/state.json` and summarized
@@ -153,7 +177,8 @@ implementations are in review (0062-0069), workflow infrastructure is in review
 (0070), and Increments D-E are conceptual only. As of 2026-07-02: Workflow A
 formal supervision recorded defects WF-A-FORMAL-001..003, component-lifecycle
 follow-ups TASK-0083/0084 are in review, and Increment F (TASK-0085..0090) is
-ready.
+ready. As of 2026-07-06: Increment G is an agreed next-phase design direction,
+documented for planning, with no runtime implementation claim yet.
 
 # Sequencing rule
 

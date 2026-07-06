@@ -3,7 +3,7 @@
   "task_id": "TASK-0090",
   "context_id": "CTX-self-hosting-loop",
   "state": "working",
-  "state_version": 1,
+  "state_version": 2,
   "attempt": 1,
   "owner": "agent:alignment-session",
   "lease": {
@@ -13,10 +13,12 @@
     "heartbeat_at": "2026-07-03T03:58:34.702415Z",
     "expires_at": null
   },
-  "next_action": "agent:alignment-session holds the task lease and is producing review evidence.",
+  "next_action": "Do not resume TASK-0090 now. Build and verify the redesigned Workflow A path first, then retry TASK-0090 from fresh artifacts or explicit re-authorization.",
   "pause_reason": null,
-  "blockers": [],
+  "blockers": [
+    "TASK-0090 is intentionally suspended until the redesigned Workflow A from TASK-0091 through TASK-0094 is available; existing loop-001/loop-002 run files are trace-only and must not be reused as completion evidence."
+  ],
   "artifact_refs": [],
   "evidence_refs": [],
-  "updated_at": "2026-07-03T03:58:34.702415Z"
+  "updated_at": "2026-07-06T02:47:33.338048Z"
 }

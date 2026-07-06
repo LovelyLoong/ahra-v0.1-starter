@@ -1,0 +1,33 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0084",
+  "decision": "approve",
+  "verifier": "agent:independent-verifier",
+  "summary": "Independent review accepts the Workflow A to Workflow B handoff conformance smoke after manifest repair. The evidence is explicitly fixture/review-bypass scope and does not claim default-visible promotion or full production readiness.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0084-0001"
+      ],
+      "notes": "The smoke report records workflow-a fixture mode with explicit human:maintainer gate actors and documents that live review is bypassed for conformance only."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0084-0001"
+      ],
+      "notes": "The smoke report records goal validate, goal plan, and goal start consuming the authorized request successfully."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0084-0001"
+      ],
+      "notes": "The smoke report scope states that the result does not claim default-visible promotion or full human-gated production readiness."
+    }
+  ]
+}

@@ -2,20 +2,24 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0089",
   "context_id": "CTX-self-hosting-loop",
-  "state": "review",
-  "state_version": 2,
+  "state": "changes_requested",
+  "state_version": 3,
   "attempt": 1,
   "owner": null,
   "lease": null,
-  "next_action": "Automated orchestrator is invoking independent EvidenceGate review.",
+  "next_action": "Address EvidenceGate verifier findings and return to review.",
   "pause_reason": null,
-  "blockers": [],
+  "blockers": [
+    "Criterion 4: The existing evidence states this criterion is only partial: Workflow B rejected the run by policy limits and the accepted merge was manual rather than kernel-derived completion."
+  ],
   "artifact_refs": [
     "git:72ed577",
-    "git:2cdea3c"
+    "git:2cdea3c",
+    "ART-TASK-0089-0001"
   ],
   "evidence_refs": [
-    "EVD-TASK-0089-manual-completion"
+    "EVD-TASK-0089-manual-completion",
+    "EVD-TASK-0089-0002"
   ],
-  "updated_at": "2026-07-03T03:49:22.872728Z"
+  "updated_at": "2026-07-06T02:27:29.953431Z"
 }

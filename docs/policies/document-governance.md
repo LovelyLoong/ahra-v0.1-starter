@@ -25,3 +25,31 @@ Each fact class has one authority. Machine state is structured; durable knowledg
 - Critical claims require source or evidence references.
 - Supersede rather than silently erase historical decisions.
 - Policy changes require human or CODEOWNER approval.
+
+# Metadata Filtering
+
+Future pattern, lesson, module, and anti-pattern documents must carry enough
+metadata for an Agent to filter before semantic reading. At minimum:
+
+- `doc_kind`: architecture, policy, pattern, lesson, module, runbook, or
+  anti_pattern;
+- `authority`: active, proposed, experimental, archived, or superseded;
+- `scope`: project, workflow, module, task_family, or task_local;
+- `applies_to`: task types, risk levels, modules, or file areas;
+- `evidence_refs`: task ids, run ids, gate reports, or verifier reports;
+- `failure_modes`: known ways this guidance can mislead;
+- `review_after`: freshness boundary.
+
+Agents must prefer active, in-scope, fresh documents with evidence references.
+Archived, superseded, task-local, or stale documents may explain history but
+must not override active authority.
+
+# Skill And Docs Boundary
+
+Skills describe operating methods. Docs record durable project truth. A Skill
+may reference docs, module manifests, and lessons, but it must not become the
+only authority for project facts.
+
+Skill changes that alter workflow behavior are treated as proposed operating
+method changes. They require evidence that the new behavior improves outcomes
+without weakening protected rules.
