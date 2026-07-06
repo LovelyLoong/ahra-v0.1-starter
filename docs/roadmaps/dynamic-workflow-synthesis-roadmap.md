@@ -54,31 +54,41 @@ Authority update
 
 ## SG-DWS-1: Goal Intake and GoalSpec admission
 
-- Goal Intake emits `GoalSpec`, `AcceptanceSpec`, optional `VerifierSpec`,
+- Goal Intake emits `GoalSpec`, `AcceptanceSpec`, `VerificationPlan`,
   `OpenQuestions`, `KnownAssumptions`, `ScopeBoundary`, `NonGoals`, and
-  `AdmissionDecision`.
+  `AdmissionDecision`. `VerificationPlan` may contain zero or more frozen
+  `VerifierSpec` entries.
 - `GoalSpec` records the user's desired outcome, scope boundary, endpoint, and
   non-goals without prescribing workflow topology or modules.
-- `AcceptanceSpec` records whether acceptance is `tool_verifier` or
-  `human_acceptance`.
-- When `AcceptanceSpec.mode = tool_verifier`, `VerifierSpec` is produced by
-  Goal Intake and frozen by manual user confirmation before synthesis. The
-  Synthesizer cannot choose, combine, or alter the verification standard later.
+- `AcceptanceSpec` records the mandatory final human acceptance contract:
+  external Human Acceptance Briefing Agent, required HTML technical report,
+  `HumanAcceptancePackageManifest`, `HumanAcceptanceDecision`, WorkflowIR
+  terminal state `ready_for_acceptance_briefing`, and pre-decision terminal state
+  `awaiting_user_acceptance`.
+- `VerificationPlan` records every known tool-verifiable check or an explicit
+  reason no tool-verifiable check exists. Relevant `VerifierSpec` entries are
+  produced by Goal Intake and frozen by manual user confirmation before
+  synthesis. The Synthesizer cannot choose, combine, or alter the verification
+  standards later.
 - Tool verifier results include status, claim or criterion coverage, failed or
   unresolved claims, evidence or observation refs, diagnostic summary, and a
   next repair boundary or a reason no repair boundary can be proposed.
 - Bare pass/fail tool verifiers are rejected for iterative topologies because
   they cannot drive reliable repair.
-- When `AcceptanceSpec.mode = human_acceptance`, the synthesized workflow may
-  execute and deliver, but it must terminate as `awaiting_user_acceptance`
-  instead of claiming automatic completion.
+- The synthesized workflow may execute and deliver, but it must run feasible
+  tool-verifiable checks before handoff and terminate as
+  `ready_for_acceptance_briefing` instead of claiming automatic completion.
+- Human acceptance is recorded as a minimal `HumanAcceptanceDecision` with
+  decision, reviewer, decided_at, package refs, and optional notes or requested
+  changes.
 - Requests without a clear goal, clear scope, or clear endpoint do not enter
   synthesis; they return `clarification_needed`,
   `exploratory_context_needed`, `split_required`, `not_clear_enough`, or
   `unsupported_for_execution_workflow`.
 - `AdmissionDecision = accepted` is not enough by itself. The user must manually
-  confirm the `GoalSpec`, `AcceptanceSpec`, `ScopeBoundary`, assumptions, and
-  non-goals before Synthesizer execution starts.
+  confirm the `GoalSpec`, `AcceptanceSpec`, `VerificationPlan`,
+  `ScopeBoundary`, assumptions, and non-goals before Synthesizer execution
+  starts.
 - Bounded exploratory steps may run automatically to discover context or
   candidate verifier strategies, but they must not silently rewrite the user's
   intent or lower the target.
@@ -89,15 +99,22 @@ Authority update
 
 ## SG-DWS-2: WorkflowIR contract
 
-- A schema or domain object records goal, acceptance mode, optional verifier,
-  selected modules, permissions, gates, budgets, loop limits, artifacts, and
-  terminal states.
+- A schema or domain object records goal, acceptance contract,
+  `VerificationPlan`, selected modules, permissions, gates, budgets, loop
+  limits, artifacts, and terminal states.
+- WorkflowIR records the fixed run layout under
+  `work/tasks/<TASK-ID>/runs/<RUN-ID>/`.
+- WorkflowIR records the evidence and context package required by the external
+  Human Acceptance Briefing Agent.
+- The HTML technical report, `HumanAcceptancePackageManifest`, and
+  `HumanAcceptanceDecision` are fixed-path artifacts outside WorkflowIR scope.
 - Every executable subgoal, phase, or module objective maps back to frozen
   `GoalSpec` criteria; Synthesizer cannot add, delete, or rewrite criteria.
 - WorkflowIR is a run artifact by default and cannot become project authority
   without distillation or promotion.
-- Tests reject missing acceptance mode, missing verifier for `tool_verifier`,
-  unbounded loops, and unauthorized side effects.
+- Tests reject missing acceptance contract, missing fixed layout, missing
+  briefing input package, skipped feasible checks without reasons, unbounded
+  loops, and unauthorized side effects.
 
 ## SG-DWS-3: Module manifest contract
 
@@ -118,14 +135,16 @@ Authority update
 ## SG-DWS-5: Synthesizer Skill v1
 
 - A project-local Skill reads the accepted `GoalSpec`, `AcceptanceSpec`,
-  optional `VerifierSpec`, state summary, module catalog, and filtered docs,
-  then emits WorkflowIR.
+  `VerificationPlan`, state summary, module catalog, and filtered docs, then
+  emits WorkflowIR.
 - The Skill may choose A-like, B-like, Loop-like, or custom structures, but it
   must not weaken the goal or stop condition.
 - The Skill may bind verifier modules only to implement a frozen `VerifierSpec`
   when one exists; it must not change the verification standard.
-- For `human_acceptance`, the Skill should generate a delivery/review handoff
-  topology instead of pretending automatic verification exists.
+- The Skill should generate a delivery/review handoff topology that runs
+  feasible tool verification first, then produces evidence and context for the
+  external Human Acceptance Briefing Agent instead of generating the final human
+  acceptance package inside WorkflowIR.
 - The Skill must include verifier and review modules needed by the accepted
   goal, but it must not default every task to Loop Engineering. One-pass,
   staged, fan-out/fan-in, score-and-select, and bounded-loop topologies are all
@@ -140,6 +159,23 @@ Authority update
   evidence.
 - Completion remains an independent verifier or EvidenceGate decision, not a
   synthesizer assertion.
+- The dynamic workflow can enter `ready_for_acceptance_briefing` only after
+  producing the briefing input package and completing feasible tool
+  verification.
+- The run can enter `awaiting_user_acceptance` only after a fresh external Human
+  Acceptance Briefing Agent produces the HTML technical report and
+  `HumanAcceptancePackageManifest`. The report explains changes, affected
+  files/modules/APIs, decisions, verification results, unresolved checks, risks,
+  inspection guidance, and optional comprehension questions for complex work.
+  The manifest gives the outer validator structured refs for those sections and
+  their evidence.
+- The external Human Acceptance Briefing Agent may read the frozen contract,
+  validated WorkflowIR, current implementation, changed artifacts, verifier
+  results, review results, and `evidence/briefing-inputs/`. It must not read
+  `tmp/` directly.
+- A run reaches confirmed acceptance only when
+  `HumanAcceptanceDecision.decision = accepted`; `rejected` and
+  `request_changes` return to repair, replanning, or user alignment.
 
 ## SG-DWS-7: Lesson distillation
 
@@ -153,6 +189,8 @@ Authority update
 - A synthesized workflow that completes normally and reaches its confirmed
   acceptance condition must emit a project-local Skill artifact under
   `skills/workflows/` describing the reusable workflow pattern.
+- Workflow Skill distillation requires an accepted
+  `HumanAcceptanceDecision`.
 - During execution, workflow self-adjustments, loop notes, temporary scripts,
   and generated WorkflowIR remain task-local byproducts.
 - The distillation pass filters the task-local material before writing the
@@ -185,17 +223,28 @@ Do not implement these before SG-DWS-6:
 
 Stop and create a Defect or design handoff when:
 
-- generated WorkflowIR with `tool_verifier` acceptance can pass validation
-  without a real verifier;
+- generated WorkflowIR skips a feasible tool-verifiable check in
+  `VerificationPlan` without an explicit reason;
 - a tool verifier only returns pass/fail without claim coverage, evidence refs,
   or repair boundary diagnostics;
 - the Synthesizer changes, combines, or replaces the frozen `VerifierSpec`;
 - the Synthesizer adds, removes, or rewrites `GoalSpec` criteria under the name
   of execution decomposition;
 - generated WorkflowIR is forced into Loop Engineering when a simpler topology
-  satisfies the frozen goal and verifier;
-- a `human_acceptance` workflow claims automatic completion instead of
-  `awaiting_user_acceptance`;
+  satisfies the frozen goal and verification plan;
+- a workflow claims automatic completion instead of
+  `ready_for_acceptance_briefing`;
+- a WorkflowIR includes the external Human Acceptance Briefing Agent as an
+  internal generated module;
+- a run reaches `awaiting_user_acceptance` without a fresh external Human
+  Acceptance Briefing Agent producing the HTML technical report,
+  `HumanAcceptancePackageManifest`, and review package;
+- the external Human Acceptance Briefing Agent reads `tmp/`, loop notes,
+  scratch experiments, temporary modules, or generated scripts directly;
+- a workflow claims completion or performs workflow Skill distillation without
+  `HumanAcceptanceDecision.decision = accepted`;
+- a generated workflow changes the fixed run layout or writes mandatory
+  artifacts outside their contract paths;
 - synthesis runs directly from a vague raw request instead of an accepted
   `GoalSpec`;
 - synthesis starts from an accepted `GoalSpec` without explicit human

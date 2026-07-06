@@ -53,3 +53,24 @@ and reaches its confirmed acceptance condition may distill its workflow shape
 into a project-local Skill under `skills/workflows/`. The distillation pass must
 filter out one-off context, temporary paths, stale assumptions, and unsuccessful
 attempts before writing the reusable Skill artifact.
+
+For dynamically synthesized workflows, the fixed run layout under
+`work/tasks/<TASK-ID>/runs/<RUN-ID>/` is a contract surface. `contract/` records
+are frozen after human confirmation, `tmp/` holds mutable iteration byproducts,
+`evidence/` is append-only evidence, `evidence/briefing-inputs/` contains the
+dynamic workflow output package for external acceptance briefing, `handoff/`
+contains the mandatory human review artifacts written outside WorkflowIR, and
+`distillation/` is written only after confirmed acceptance.
+`tmp/` is never a direct input source for external human acceptance briefing.
+Temporary material must be promoted into `evidence/briefing-inputs/` or another
+evidence artifact before it can influence the final human review package.
+
+The HTML technical report, `HumanAcceptancePackageManifest`,
+`HumanAcceptanceDecision`, and review package are mandatory handoff or evidence
+artifacts for every dynamically synthesized workflow. The HTML report and
+package manifest are produced by a fresh external Human Acceptance Briefing
+Agent, not by WorkflowIR. They must be retained with the task or run record
+until acceptance is resolved. They help the user review the work, record the
+user's final decision, and let the outer workflow validate handoff completeness,
+but they do not become durable project truth unless separately distilled into
+reviewed docs.
