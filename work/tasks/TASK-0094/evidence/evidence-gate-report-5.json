@@ -1,0 +1,96 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0094",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-06T08:49:59.033783Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Verifier maps TASK-0094 acceptance criteria to the succeeded Workflow B loop-002 GoalExecution kernel EvidenceV2/GateRun records.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "A deterministic validator rejects drafts where any must, must_not, or completion_signal boundary entry lacks a covering Claim, any Claim references a free_zone entry, any required Claim lacks a covering PlanNode claimRef, any PlanNode claimRef does not resolve in the frozen ClaimGraph, or any open_question entry remains; each failure class is covered by a unit test.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-b9ff4eb99d7e6d33",
+        "EVD-8d1b315ca26e1e33",
+        "EVD-7bcb0325248424f2"
+      ],
+      "notes": "Workflow B loop-002 adds deterministic cross-alignment validation covering uncovered boundary entries, free_zone criterion refs, unknown boundary criterion refs, uncovered required claims, unknown PlanNode claimRefs, and open_question entries, with tests/test_cross_alignment.py coverage."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "Validation failure fails closed before Human Gate 2: the RequestDraft is rejected with a structured mismatch report recorded in the session snapshot, redraft attempts are bounded, and exhausting the bound terminates the session with a recorded failure instead of silently proceeding, covered by tests.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-b9ff4eb99d7e6d33",
+        "EVD-8d1b315ca26e1e33",
+        "EVD-7bcb0325248424f2"
+      ],
+      "notes": "Workflow B loop-002 records CrossAlignmentReport on AlignmentSessionSnapshot, rejects before Human Gate 2, bounds redraft attempts, and fails with cross_alignment_redraft_exhausted when exhausted, covered by tests/test_alignment_session.py."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "The validator runs in the alignment session exit path ahead of RequestDraftAdmission, and its behavior matches the cross-alignment gate row in docs/architecture/intent-alignment-workflow.md.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-b9ff4eb99d7e6d33",
+        "EVD-8d1b315ca26e1e33",
+        "EVD-7bcb0325248424f2"
+      ],
+      "notes": "Workflow B loop-002 wires validate_cross_alignment into the alignment session exit path ahead of RequestDraftAdmission and updates docs/architecture/intent-alignment-workflow.md to match the cross-alignment gate row."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The change is produced by a Workflow B development-bounded GoalExecution with kernel-derived completion, then approved through the AWKP EvidenceGate by an independent verifier.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-b9ff4eb99d7e6d33",
+        "EVD-8d1b315ca26e1e33",
+        "EVD-7bcb0325248424f2"
+      ],
+      "notes": "Workflow B loop-002 GoalExecution GEXEC-8068ad6231a9464f succeeded with kernel-derived completion, deterministic checks, and independent semantic review before this AWKP EvidenceGate review."
+    }
+  ],
+  "commands": [
+    {
+      "command_id": "CMD-task-0094-check",
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "criterion_indices": [
+        1,
+        2,
+        3
+      ],
+      "evidence_refs": [
+        "EVD-b9ff4eb99d7e6d33"
+      ]
+    }
+  ],
+  "semantic_reviews": [
+    {
+      "review_id": "SEM-TASK-0094-0001",
+      "status": "passed",
+      "reviewer": "agent:independent-verifier",
+      "criterion_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "changed_files": [
+        "docs/architecture/intent-alignment-workflow.md",
+        "src/ahra/alignment_session.py",
+        "src/ahra/cross_alignment.py",
+        "tests/test_alignment_session.py",
+        "tests/test_cross_alignment.py"
+      ],
+      "changed_files_sha256": "sha256:2402d4ed36c7727068d8e498e198b90f5aa4cc1780f38fd710dc383b63c090d2",
+      "verified_changed_files_sha256": "sha256:2402d4ed36c7727068d8e498e198b90f5aa4cc1780f38fd710dc383b63c090d2",
+      "evidence_refs": [
+        "EVD-8d1b315ca26e1e33"
+      ]
+    }
+  ]
+}

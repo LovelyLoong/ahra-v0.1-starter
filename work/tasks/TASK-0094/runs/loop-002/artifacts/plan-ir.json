@@ -1,0 +1,136 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:16c3730096713a9df8b362e721c5a6116fb8364e4cfc965cc9c6ad950e9f197c",
+    "planId": "PLAN-5c9f486612415b08",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:0094bbbb0094cccc0094dddd0094eeee0094ffff0094aaaa0094bbbb0094cccc",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-task-0094",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:0094aaaa0094bbbb0094cccc0094dddd0094eeee0094ffff0094aaaa0094bbbb",
+    "goalRef": "GOAL-LOOP-0094",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 10,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 50,
+          "maxWallSeconds": 2100
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:41d9460e53ba43560622dcbae1d37ab89a85ce4900a1a1b8d1ee5ea3ddfda5ce",
+            "resources": [
+              "docs/architecture/intent-alignment-workflow.md",
+              "src/ahra/alignment_session.py",
+              "src/ahra/cross_alignment.py",
+              "tests/test_alignment_session.py",
+              "tests/test_cross_alignment.py"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "grantDigest": "sha256:7129566cf0d099711d23e52e35c90791bf79f15bb3f549d751f99314bff20722",
+            "resources": [
+              "uv run python -B scripts/check.py"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0094"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "cross-alignment-gate-change",
+            "schemaRef": "ahra/artifact/code-change/0.1"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        ],
+        "gateRefs": [
+          "GATE-task-0094",
+          "GATE-task-0094-semantic-review"
+        ],
+        "id": "NODE-task-0094",
+        "inputRefs": [
+          "input/loop-0094@sha256:0094cccc0094dddd0094eeee0094ffff0094aaaa0094bbbb0094cccc0094dddd",
+          "work/tasks/TASK-0094/runs/loop-001/artifacts/bounded-task-executor/tasks/task-0094/attempt-1/deterministic-evidence.json",
+          "work/tasks/TASK-0094/runs/loop-001/artifacts/bounded-task-executor/tasks/task-0094/attempt-1/patch.diff",
+          "work/tasks/TASK-0094/runs/loop-001/artifacts/bounded-task-executor/tasks/task-0094/attempt-1/work-report.json",
+          "work/tasks/TASK-0094/runs/loop-001/artifacts/goal-start-report.json"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Implement TASK-0094 acceptance criteria. 1) Add a deterministic\ncross-alignment validator in src/ahra/cross_alignment.py that\nrejects drafts where any must, must_not, or completion_signal\nboundary entry lacks a covering Claim criterionRefs reference, any\nClaim references a free_zone entry, any required Claim lacks a\ncovering PlanNode claimRef, any PlanNode claimRef does not resolve\nin the frozen ClaimGraph, or any open_question entry remains; cover\neach failure class with a unit test in\ntests/test_cross_alignment.py. 2) Wire the validator into the\nsrc/ahra/alignment_session.py exit path ahead of\nRequestDraftAdmission: on failure the RequestDraft is rejected\nbefore Human Gate 2 with a structured mismatch report recorded in\nthe session snapshot, redraft attempts are bounded, and exhausting\nthe bound terminates the session with a recorded failure; cover\nwith tests/test_alignment_session.py. 3) Keep behavior consistent\nwith the cross-alignment gate row in\ndocs/architecture/intent-alignment-workflow.md. Run\nuv run python -B scripts/check.py and record it in\nWorkReport.verification_commands_run.\nLoop-001 trace:\nwork/tasks/TASK-0094/runs/loop-001/artifacts/bounded-task-executor/tasks/task-0094/attempt-1/patch.diff\ncontains an implementation-shaped patch and deterministic-evidence.json\nrecords uv run python -B scripts/check.py with exit_code 0, but\nGEXEC-ee215e366a5767b2 timed out before review/kernel evidence. Reuse\nonly the correct implementation shape, rerun verification, and ensure\nthe Workflow B Task reviewer returns a ReviewResult.criteria item whose\ncriterion field is exactly CLM-TASK-0094.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 2100
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0094"
+        ],
+        "dependsOn": [
+          "NODE-task-0094"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0094"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the cross-alignment validator, fail-closed rejection, and bounded redraft loop are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ]
+  }
+}

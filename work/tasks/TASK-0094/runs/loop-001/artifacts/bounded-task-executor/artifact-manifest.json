@@ -1,0 +1,40 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0094",
+  "artifacts": [
+    {
+      "artifact_id": "ART-52254cfaa8d54685aabffbf9f4178420",
+      "task_id": "task-0094",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/task-0094/attempt-1/patch.diff",
+      "sha256": "d831c61e6a178c94fe68791fa351537a632f8c5e47cd6ad58291d79dd40a4769",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-06T08:14:31.841139Z",
+      "input_refs": [
+        "task-0094",
+        "NRUN-2099ee31907efbab"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-8a417fa118aa43b69e5ee1039b5d0ebd",
+      "task_id": "task-0094",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/task-0094/attempt-1/work-report.json",
+      "sha256": "09d63a983db60a730a234ac5a2721b0a4797b11e30df71c031ac723fbba8ed18",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-06T08:14:31.843132Z",
+      "input_refs": [
+        "task-0094",
+        "NRUN-2099ee31907efbab"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    }
+  ]
+}

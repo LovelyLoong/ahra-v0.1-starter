@@ -1,0 +1,21 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0094",
+  "evidence": [
+    {
+      "evidence_id": "EVD-44ca9988116b4629b9b9dfb1fac3fa2c",
+      "task_id": "task-0094",
+      "kind": "deterministic_gate",
+      "name": "deterministic-evidence.json",
+      "uri": "local://tasks/task-0094/attempt-1/deterministic-evidence.json",
+      "sha256": "abbd2d63019560772d2ef6ee2cf98296b5016712ce50a29404fce4255b1bdc66",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-06T08:14:31.846531Z",
+      "refs": [
+        "ART-52254cfaa8d54685aabffbf9f4178420",
+        "ART-8a417fa118aa43b69e5ee1039b5d0ebd"
+      ]
+    }
+  ]
+}

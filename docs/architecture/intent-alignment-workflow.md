@@ -13,9 +13,9 @@ source_refs:
   - ./dynamic-agent-kernel.md
   - ../policies/agent-authority-boundaries.md
   - ../roadmaps/phase1-minimal-loop-intent-roadmap.md
-evidence_refs: [TASK-0077]
+evidence_refs: [TASK-0077, TASK-0094]
 confidence: draft
-last_verified_at: 2026-07-03T00:00:00Z
+last_verified_at: 2026-07-06T00:00:00Z
 review_after: 2026-09-30T00:00:00Z
 tags: [architecture, intent, alignment, workflow, phase1, agent-driven]
 ---
@@ -247,12 +247,13 @@ frozen RequestDraft passing the three exit gates and being consumable by B.
   is the current AgentDriver-backed Workflow A implementation slice. It can
   drive dialogue, preserve immutable snapshots, reject profile/runtime digest
   mismatches before Agent invocation, require explicit Requirement-Agent
-  `PlanDraft` and Acceptance-Agent `ClaimGraph`, enforce Human Gate 1, and emit
-  an untrusted `RequestDraft` for Gate 2 authorization. It still implements the
-  superseded ADR-0009 parallel drafting order and prose freeze; migrating it to
-  the ADR-0010 boundary contract, acceptance-first serial drafting, and
-  cross-alignment gate is pending implementation work. It remains non-default
-  until a separate component-lifecycle promotion approves default visibility.
+  `PlanDraft` and Acceptance-Agent `ClaimGraph`, enforce Human Gate 1, run the
+  ADR-0010 boundary-contract and acceptance-first serial drafting order, and
+  apply the deterministic cross-alignment gate before emitting an untrusted
+  `RequestDraft` for Gate 2 authorization. Cross-alignment failures are recorded
+  as structured reports on the session snapshot and can trigger only bounded
+  redrafts. It remains non-default until a separate component-lifecycle
+  promotion approves default visibility.
 
 # Non-goals
 

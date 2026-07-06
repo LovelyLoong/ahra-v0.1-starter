@@ -18,6 +18,9 @@ source_refs:
 - tasks/TASK-0089/state.json
 - tasks/TASK-0090/state.json
 - tasks/TASK-0091/state.json
+- tasks/TASK-0092/state.json
+- tasks/TASK-0093/state.json
+- tasks/TASK-0094/state.json
 evidence_refs: []
 confidence: verified
 last_verified_at: 2026-07-02T00:00:00Z
@@ -46,7 +49,10 @@ them explicitly.
 | [TASK-0088](tasks/TASK-0088/task.md) | completed | unassigned | 3 | Completed by EvidenceGate verifier approval. |
 | [TASK-0089](tasks/TASK-0089/task.md) | ready | unassigned | 0 | Task skeleton created; claim the task before producing evidence. |
 | [TASK-0090](tasks/TASK-0090/task.md) | ready | unassigned | 0 | Task skeleton created; claim the task before producing evidence. |
-| [TASK-0091](tasks/TASK-0091/task.md) | ready | unassigned | 0 | Task skeleton created; claim the task before producing evidence. |
+| [TASK-0091](tasks/TASK-0091/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
+| [TASK-0092](tasks/TASK-0092/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
+| [TASK-0093](tasks/TASK-0093/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
+| [TASK-0094](tasks/TASK-0094/task.md) | completed | unassigned | 5 | Completed by EvidenceGate verifier approval. |
 
 ## Archived Tasks
 

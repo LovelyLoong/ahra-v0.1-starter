@@ -8,6 +8,7 @@ from pathlib import Path
 from ahra.alignment_session import (
     ACCEPTANCE_DRAFT_OUTPUT,
     ALIGNMENT_DECISION_OUTPUT,
+    CROSS_ALIGNMENT_REPORT_OUTPUT,
     REQUIREMENT_DRAFT_OUTPUT,
     AlignmentSessionError,
     AlignmentSessionManager,
@@ -113,8 +114,19 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         ]
         self.assertEqual(draft_calls, [ACCEPTANCE_DRAFT_OUTPUT, REQUIREMENT_DRAFT_OUTPUT])
         acceptance_call = next(call for call in driver.calls if call.expected_output == ACCEPTANCE_DRAFT_OUTPUT)
-        self.assertEqual(set(acceptance_call.payload), {"phase", "boundaryContract", "boundaryContractDigest"})
+        self.assertEqual(
+            set(acceptance_call.payload),
+            {
+                "phase",
+                "boundaryContract",
+                "boundaryContractDigest",
+                "redraftAttempt",
+                "previousCrossAlignmentReport",
+            },
+        )
         self.assertEqual(acceptance_call.payload["boundaryContractDigest"], snapshot.boundary_contract_digest)
+        self.assertEqual(acceptance_call.payload["redraftAttempt"], 0)
+        self.assertIsNone(acceptance_call.payload["previousCrossAlignmentReport"])
 
         requirement_call = next(call for call in driver.calls if call.expected_output == REQUIREMENT_DRAFT_OUTPUT)
         frozen_claim_graph = result.request_draft.to_mapping()["spec"]["claimGraph"]
@@ -130,19 +142,21 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         acceptance_output = copy.deepcopy(_acceptance_output())
         acceptance_output["claimGraph"]["spec"]["claims"][0]["criterionRefs"] = ["CRIT-summary-artifact"]
         driver = FakeAlignmentDriver(acceptance_output=acceptance_output)
-        manager = AlignmentSessionManager(driver)
+        manager = AlignmentSessionManager(driver, max_cross_alignment_redrafts=0)
         snapshot = _frozen_snapshot(manager)
 
         with self.assertRaises(AlignmentSessionError) as raised:
             asyncio.run(manager.draft_request(snapshot))
 
-        self.assertEqual(raised.exception.code, "unresolved_boundary_criterion_refs")
-        self.assertEqual(raised.exception.ref, "claimGraph.spec.claims[].criterionRefs")
-        self.assertEqual(raised.exception.refs, ("CRIT-summary-artifact",))
-        self.assertEqual(
-            raised.exception.data["claimCriterionRefs"],
-            {"CLAIM-summary-artifact": ["CRIT-summary-artifact"]},
-        )
+        self.assertEqual(raised.exception.code, "cross_alignment_redraft_exhausted")
+        failed = raised.exception.snapshot
+        self.assertIsInstance(failed, AlignmentSessionSnapshot)
+        assert isinstance(failed, AlignmentSessionSnapshot)
+        report = failed.to_mapping()["crossAlignmentReport"]
+        self.assertEqual(report["kind"], "CrossAlignmentReport")
+        codes = {item["code"] for item in report["spec"]["mismatches"]}
+        self.assertIn("unknown-boundary-criterion-ref", codes)
+        self.assertIn("uncovered-boundary-entry", codes)
 
     def test_requirement_output_falsey_present_claim_graph_divergence_is_rejected(self) -> None:
         requirement_output = copy.deepcopy(_requirement_output())
@@ -165,16 +179,73 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         requirement_output = copy.deepcopy(_requirement_output())
         requirement_output["planDraft"]["spec"]["nodes"][0]["claimRefs"] = ["CLAIM-missing"]
         driver = FakeAlignmentDriver(requirement_output=requirement_output)
-        manager = AlignmentSessionManager(driver)
+        manager = AlignmentSessionManager(driver, max_cross_alignment_redrafts=0)
         snapshot = _frozen_snapshot(manager)
 
         with self.assertRaises(AlignmentSessionError) as raised:
             asyncio.run(manager.draft_request(snapshot))
 
-        self.assertEqual(raised.exception.code, "unresolved_plan_claim_refs")
-        self.assertEqual(raised.exception.ref, "planDraft.spec.nodes[].claimRefs")
-        self.assertEqual(raised.exception.refs, ("CLAIM-missing",))
-        self.assertEqual(raised.exception.data["nodeClaimRefs"], {"NODE-write-summary": ["CLAIM-missing"]})
+        self.assertEqual(raised.exception.code, "cross_alignment_redraft_exhausted")
+        failed = raised.exception.snapshot
+        self.assertIsInstance(failed, AlignmentSessionSnapshot)
+        assert isinstance(failed, AlignmentSessionSnapshot)
+        report = failed.to_mapping()["crossAlignmentReport"]
+        codes = {item["code"] for item in report["spec"]["mismatches"]}
+        self.assertIn("unknown-plan-claim-ref", codes)
+
+    def test_cross_alignment_failure_records_snapshot_before_human_gate_2(self) -> None:
+        acceptance_output = copy.deepcopy(_acceptance_output())
+        acceptance_output["claimGraph"]["spec"]["claims"][0]["criterionRefs"] = ["BCE-FREE-INTERNAL-STEPS"]
+        driver = FakeAlignmentDriver(acceptance_output=acceptance_output)
+        manager = AlignmentSessionManager(driver, max_cross_alignment_redrafts=0)
+        approval_service = RecordingApprovalService()
+        snapshot = _frozen_snapshot(manager)
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            asyncio.run(manager.draft_request(snapshot, approval_service=approval_service))
+
+        self.assertFalse(approval_service.called)
+        self.assertEqual(raised.exception.code, "cross_alignment_redraft_exhausted")
+        failed = raised.exception.snapshot
+        self.assertIsInstance(failed, AlignmentSessionSnapshot)
+        assert isinstance(failed, AlignmentSessionSnapshot)
+        self.assertEqual(failed.stage, "failed")
+        self.assertEqual(failed.turns[-1].actor, "agent:cross-alignment")
+        self.assertEqual(failed.turns[-1].expected_output, CROSS_ALIGNMENT_REPORT_OUTPUT)
+        report = failed.to_mapping()["crossAlignmentReport"]
+        codes = {item["code"] for item in report["spec"]["mismatches"]}
+        self.assertIn("free-zone-criterion-ref", codes)
+        self.assertIn("uncovered-boundary-entry", codes)
+
+    def test_cross_alignment_redraft_is_bounded_and_can_recover(self) -> None:
+        invalid_acceptance = copy.deepcopy(_acceptance_output())
+        invalid_acceptance["claimGraph"]["spec"]["claims"][0]["criterionRefs"] = ["BCE-COMPLETE-SUMMARY"]
+        driver = FakeAlignmentDriver(acceptance_outputs=[invalid_acceptance, _acceptance_output()])
+        manager = AlignmentSessionManager(driver, max_cross_alignment_redrafts=1)
+        snapshot = _frozen_snapshot(manager)
+
+        result = asyncio.run(manager.draft_request(snapshot))
+
+        self.assertEqual(result.snapshot.stage, "request_drafted")
+        self.assertEqual(result.snapshot.cross_alignment_redraft_attempts, 1)
+        self.assertEqual(result.snapshot.to_mapping()["crossAlignmentReport"]["spec"]["result"], "accepted")
+        draft_calls = [
+            call.expected_output
+            for call in driver.calls
+            if call.expected_output in {ACCEPTANCE_DRAFT_OUTPUT, REQUIREMENT_DRAFT_OUTPUT}
+        ]
+        self.assertEqual(
+            draft_calls,
+            [ACCEPTANCE_DRAFT_OUTPUT, REQUIREMENT_DRAFT_OUTPUT, ACCEPTANCE_DRAFT_OUTPUT, REQUIREMENT_DRAFT_OUTPUT],
+        )
+        second_acceptance = [
+            call for call in driver.calls if call.expected_output == ACCEPTANCE_DRAFT_OUTPUT
+        ][1]
+        self.assertEqual(second_acceptance.payload["redraftAttempt"], 1)
+        self.assertEqual(
+            second_acceptance.payload["previousCrossAlignmentReport"]["spec"]["result"],
+            "rejected",
+        )
 
     def test_run_emits_request_draft_after_explicit_requirement_approval(self) -> None:
         driver = FakeAlignmentDriver()
@@ -347,18 +418,31 @@ class HangingAlignmentDriver:
         raise AssertionError(f"unexpected completion for {request.expected_output}")
 
 
+class RecordingApprovalService:
+    def __init__(self) -> None:
+        self.called = False
+
+    def request_authorization(self, request_draft: RequestDraft, *, actor: str):
+        self.called = True
+        raise AssertionError("cross-alignment failures must not reach Human Gate 2 authorization")
+
+
 class FakeAlignmentDriver:
     def __init__(
         self,
         *,
         requirement_output: dict[str, object] | None = None,
+        requirement_outputs: list[dict[str, object]] | None = None,
         acceptance_output: dict[str, object] | None = None,
+        acceptance_outputs: list[dict[str, object]] | None = None,
         boundary_contract_output: dict[str, object] | None = None,
     ) -> None:
         self.calls: list[AgentRunRequest] = []
         self.alignment_turns = 0
         self.requirement_output = requirement_output
+        self.requirement_outputs = list(requirement_outputs or [])
         self.acceptance_output = acceptance_output
+        self.acceptance_outputs = list(acceptance_outputs or [])
         self.boundary_contract_output = boundary_contract_output
 
     async def run(self, request: AgentRunRequest) -> AgentRunResult:
@@ -383,10 +467,20 @@ class FakeAlignmentDriver:
                 }
             )
         if request.expected_output == REQUIREMENT_DRAFT_OUTPUT:
-            return AgentRunResult(output=self.requirement_output or _requirement_output())
+            return AgentRunResult(output=self._next_requirement_output())
         if request.expected_output == ACCEPTANCE_DRAFT_OUTPUT:
-            return AgentRunResult(output=self.acceptance_output or _acceptance_output())
+            return AgentRunResult(output=self._next_acceptance_output())
         raise AssertionError(f"unexpected expected_output {request.expected_output}")
+
+    def _next_requirement_output(self) -> dict[str, object]:
+        if self.requirement_outputs:
+            return self.requirement_outputs.pop(0)
+        return self.requirement_output or _requirement_output()
+
+    def _next_acceptance_output(self) -> dict[str, object]:
+        if self.acceptance_outputs:
+            return self.acceptance_outputs.pop(0)
+        return self.acceptance_output or _acceptance_output()
 
 
 def _frozen_snapshot(manager: AlignmentSessionManager) -> AlignmentSessionSnapshot:
@@ -499,7 +593,11 @@ def _acceptance_output() -> dict[str, object]:
                         "id": "CLAIM-summary-artifact",
                         "type": "functional",
                         "statement": "A deterministic summary artifact is produced in the local workspace.",
-                        "criterionRefs": ["BCE-COMPLETE-SUMMARY"],
+                        "criterionRefs": [
+                            "BCE-COMPLETE-SUMMARY",
+                            "BCE-MUST-NOT-OUTSIDE-WORKSPACE",
+                            "BCE-MUST-SUMMARY",
+                        ],
                         "dependsOn": [],
                         "riskLevel": "R1",
                         "required": True,

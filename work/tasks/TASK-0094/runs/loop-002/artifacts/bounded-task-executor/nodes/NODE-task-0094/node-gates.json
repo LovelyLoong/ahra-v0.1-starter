@@ -1,0 +1,28 @@
+{
+  "schema_version": "ahra/node-gate-summary/0.1",
+  "plan_id": "PLAN-5c9f486612415b08",
+  "node_id": "NODE-task-0094",
+  "node_type": "bounded_task",
+  "gate_refs": [
+    "GATE-task-0094",
+    "GATE-task-0094-semantic-review"
+  ],
+  "l0_gates": [],
+  "semantic_review_enabled": true,
+  "status": "accepted",
+  "attempts": [
+    {
+      "attempt": 1,
+      "deterministicPassed": true,
+      "requiredChecksPassed": true,
+      "checkExecutionStatus": "completed",
+      "checkSkipReason": null,
+      "agentReportedVerificationCommands": [
+        "uv run python -B scripts/check.py",
+        "uv run python -B scripts/check.py"
+      ],
+      "reviewVerdict": "pass",
+      "error": null
+    }
+  ]
+}

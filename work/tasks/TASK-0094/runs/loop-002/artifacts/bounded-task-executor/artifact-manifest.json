@@ -1,0 +1,60 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0094",
+  "artifacts": [
+    {
+      "artifact_id": "ART-f1f742571bb345318a02552ef12af91f",
+      "task_id": "task-0094",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/task-0094/attempt-1/patch.diff",
+      "sha256": "93a0bfb25a8ef4c8c5861d2679484fe65c7c41d8cbe06bd4276cbc327c6acfd1",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-06T08:41:56.363292Z",
+      "input_refs": [
+        "task-0094",
+        "NRUN-aca7ec74bf64bc45"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-a1136df41c864b7abf3318b7d58579e7",
+      "task_id": "task-0094",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/task-0094/attempt-1/work-report.json",
+      "sha256": "659234e3a055b34ec5be52a41ed2b67973ee37dea8092720318c15317bc86581",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-06T08:41:56.364846Z",
+      "input_refs": [
+        "task-0094",
+        "NRUN-aca7ec74bf64bc45"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-82f4bd0f672f4c74814fc917b0ec97e3",
+      "task_id": "task-0094",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-task-0094/node-run.json",
+      "sha256": "b2312972228ac7ed2f0b9867eedf8b1c304fa6c1f99254539e03b65cedfa1460",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-06T08:42:34.223741Z",
+      "input_refs": [
+        "PLAN-5c9f486612415b08",
+        "NODE-task-0094",
+        "NRUN-aca7ec74bf64bc45"
+      ],
+      "evidence_refs": [
+        "EVD-4b70a947aec648c39a8909a019cbe345"
+      ],
+      "supersedes": null
+    }
+  ]
+}

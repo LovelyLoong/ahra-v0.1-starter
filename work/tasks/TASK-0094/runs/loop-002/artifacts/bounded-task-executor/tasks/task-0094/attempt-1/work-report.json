@@ -1,0 +1,16 @@
+{
+  "summary": "Implemented the deterministic cross-alignment validator and wired it into the alignment-session draft exit path with structured mismatch reports, bounded redrafts, and failure before Human Gate 2. The first check run exposed a stale test expectation for redraft metadata; after updating it, the rerun passed.",
+  "changed_files": [
+    "docs/architecture/intent-alignment-workflow.md",
+    "src/ahra/alignment_session.py",
+    "src/ahra/cross_alignment.py",
+    "tests/test_alignment_session.py",
+    "tests/test_cross_alignment.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py",
+    "uv run python -B scripts/check.py"
+  ],
+  "known_risks": [],
+  "unresolved_items": []
+}

@@ -1,5 +1,71 @@
 {
+  "evidence": [
+    {
+      "created_at": "2026-07-06T08:49:58.968245Z",
+      "created_by": "agent:workflow-b-supervisor",
+      "evidence_id": "EVD-7bcb0325248424f2",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-7bcb0325248424f2.json",
+      "refs": [
+        "ART-TASK-0094-0001",
+        "GATERUN-7bcb0325248424f2",
+        "GEXEC-8068ad6231a9464f"
+      ],
+      "sha256": "ddeb2c4e1277b928030b543c9f59af3193855ef5a6fcc8ab6858513dca340edb",
+      "task_id": "TASK-0094",
+      "uri": "local://evidence/kernel-evidence/EVD-7bcb0325248424f2.json"
+    },
+    {
+      "created_at": "2026-07-06T08:49:58.970237Z",
+      "created_by": "agent:workflow-b-supervisor",
+      "evidence_id": "EVD-8d1b315ca26e1e33",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-8d1b315ca26e1e33.json",
+      "refs": [
+        "ART-TASK-0094-0002",
+        "GATERUN-8d1b315ca26e1e33",
+        "GEXEC-8068ad6231a9464f"
+      ],
+      "sha256": "21166a17b6585ca9506b056b756c13c1d7d7de7d88578290979b672e108627c7",
+      "task_id": "TASK-0094",
+      "uri": "local://evidence/kernel-evidence/EVD-8d1b315ca26e1e33.json"
+    },
+    {
+      "created_at": "2026-07-06T08:49:58.973228Z",
+      "created_by": "agent:workflow-b-supervisor",
+      "evidence_id": "EVD-b9ff4eb99d7e6d33",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-b9ff4eb99d7e6d33.json",
+      "refs": [
+        "ART-TASK-0094-0003",
+        "GATERUN-b9ff4eb99d7e6d33",
+        "GEXEC-8068ad6231a9464f"
+      ],
+      "sha256": "f8274ad74d86f124210d3e55914ed5cd99172e9bb093a29f81d6d9ddcccd70f6",
+      "task_id": "TASK-0094",
+      "uri": "local://evidence/kernel-evidence/EVD-b9ff4eb99d7e6d33.json"
+    },
+    {
+      "evidence_id": "EVD-TASK-0094-0001",
+      "task_id": "TASK-0094",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-5.json",
+      "uri": "local://evidence/evidence-gate-report-5.json",
+      "sha256": "0db63c41385eabf0e9020080b8f013beef4916612f3510d14e94c8ee20ede016",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-06T08:49:59.033783Z",
+      "refs": [
+        "ART-TASK-0094-0005",
+        "EVD-7bcb0325248424f2",
+        "EVD-8d1b315ca26e1e33",
+        "EVD-b9ff4eb99d7e6d33"
+      ]
+    }
+  ],
   "schema_version": "awkp/0.1",
-  "task_id": "TASK-0094",
-  "evidence": []
+  "task_id": "TASK-0094"
 }

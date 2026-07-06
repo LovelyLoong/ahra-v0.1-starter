@@ -7,6 +7,7 @@ from typing import Any, Mapping
 from .acceptance_contracts import ClaimGraph
 from .approval_service import ApprovalRecord
 from .boundary_contract import BoundaryContract, BoundaryContractEntry, BoundaryContractError
+from .cross_alignment import CrossAlignmentReport, validate_cross_alignment
 from .request_draft import (
     RequestDraft,
     RequestDraftError,
@@ -38,6 +39,7 @@ from .ports import (
 ALIGNMENT_DECISION_OUTPUT = "AlignmentTurnDecision"
 REQUIREMENT_DRAFT_OUTPUT = "RequirementDraft"
 ACCEPTANCE_DRAFT_OUTPUT = "AcceptanceDraft"
+CROSS_ALIGNMENT_REPORT_OUTPUT = "CrossAlignmentReport"
 DEFAULT_AGENT_TIMEOUT_SECONDS = 60.0
 
 
@@ -122,6 +124,8 @@ class AlignmentSessionSnapshot:
     boundary_contract_digest: str | None = None
     frozen_claim_graph: ClaimGraph | None = None
     frozen_claim_graph_digest: str | None = None
+    cross_alignment_report: Mapping[str, Any] | None = None
+    cross_alignment_redraft_attempts: int = 0
     requirement_approved_by: str | None = None
     missing_dimensions: tuple[str, ...] = ()
 
@@ -152,6 +156,12 @@ class AlignmentSessionSnapshot:
                 else None
             ),
             frozen_claim_graph_digest=str(data["frozenClaimGraphDigest"]) if data.get("frozenClaimGraphDigest") else None,
+            cross_alignment_report=(
+                _mapping(data["crossAlignmentReport"], "crossAlignmentReport")
+                if data.get("crossAlignmentReport")
+                else None
+            ),
+            cross_alignment_redraft_attempts=int(data.get("crossAlignmentRedraftAttempts", 0)),
             requirement_approved_by=str(data["requirementApprovedBy"]) if data.get("requirementApprovedBy") else None,
             missing_dimensions=tuple(str(item) for item in data.get("missingDimensions", ())),
         )
@@ -209,6 +219,10 @@ class AlignmentSessionSnapshot:
             data["frozenClaimGraph"] = _claim_graph_to_mapping(self.frozen_claim_graph)
         if self.frozen_claim_graph_digest:
             data["frozenClaimGraphDigest"] = self.frozen_claim_graph_digest
+        if self.cross_alignment_report:
+            data["crossAlignmentReport"] = dict(self.cross_alignment_report)
+        if self.cross_alignment_redraft_attempts:
+            data["crossAlignmentRedraftAttempts"] = self.cross_alignment_redraft_attempts
         if self.requirement_approved_by:
             data["requirementApprovedBy"] = self.requirement_approved_by
         return data
@@ -237,6 +251,7 @@ class AlignmentSessionManager:
         profile_registry: GoalOperationProfileRegistry | None = None,
         default_profile_ref: str = DEVELOPMENT_BOUNDED_PROFILE_REF,
         max_dialogue_turns: int = 8,
+        max_cross_alignment_redrafts: int = 1,
         agent_timeout_seconds: float = DEFAULT_AGENT_TIMEOUT_SECONDS,
     ) -> None:
         if registry is not None and profile_registry is not None:
@@ -245,6 +260,7 @@ class AlignmentSessionManager:
         self.registry = registry or RequestDraftRegistry(profiles=profile_registry or GoalOperationProfileRegistry())
         self.default_profile_ref = default_profile_ref
         self.max_dialogue_turns = max_dialogue_turns
+        self.max_cross_alignment_redrafts = _non_negative_int(max_cross_alignment_redrafts, "max_cross_alignment_redrafts")
         self.agent_timeout_seconds = _positive_timeout_seconds(agent_timeout_seconds)
 
     def start(
@@ -407,99 +423,133 @@ class AlignmentSessionManager:
                 "request drafting requires a frozen requirement snapshot",
                 ref="session.frozenRequirement",
             )
-        try:
-            claim_id_prefix = f"CLM-{current.intent.intent_id.upper().replace('INTENT-', '')}"
-            goal_ref = _goal_ref_from_intent(current.intent.intent_id)
-            boundary_contract = current.boundary_contract
-            if boundary_contract is None:
-                raise AlignmentSessionError(
-                    "missing_boundary_contract",
-                    "request drafting requires a frozen boundary contract",
-                    ref="session.boundaryContract",
-                )
-            boundary_contract_mapping = boundary_contract.to_mapping()
-            acceptance_result = await self._run_agent(
-                current,
-                expected_output=ACCEPTANCE_DRAFT_OUTPUT,
-                payload={
-                    "phase": "acceptance-draft",
-                    "boundaryContract": boundary_contract_mapping,
-                    "boundaryContractDigest": current.boundary_contract_digest,
-                },
-            )
-        except AlignmentSessionError as exc:
-            if exc.code == "agent_driver_timeout":
-                exc.snapshot = self._snapshot_with_agent_error(current, exc, stage="frozen")
-            raise
-        acceptance = _mapping(acceptance_result.output, ACCEPTANCE_DRAFT_OUTPUT)
-        claim_graph = _claim_graph_from_output(acceptance)
-        _ensure_claim_criterion_refs_resolve_boundary(claim_graph, boundary_contract)
-        claim_graph_digest = _claim_graph_digest(claim_graph)
-        frozen = replace(
-            current,
-            frozen_claim_graph=claim_graph,
-            frozen_claim_graph_digest=claim_graph_digest,
-        )
-        after_acceptance = frozen.append_turn(
-            actor="agent:acceptance",
-            message=_summary(acceptance, "acceptance draft produced"),
-            expected_output=ACCEPTANCE_DRAFT_OUTPUT,
-            trace_ref=acceptance_result.trace_ref,
-        )
-        frozen_claim_graph_mapping = _claim_graph_to_mapping(claim_graph)
-        try:
-            requirement_result = await self._run_agent(
-                after_acceptance,
-                expected_output=REQUIREMENT_DRAFT_OUTPUT,
-                payload={
-                    "phase": "requirement-draft",
-                    "intent": current.intent.to_mapping(),
-                    "boundaryContract": boundary_contract_mapping,
-                    "boundaryContractDigest": current.boundary_contract_digest,
-                    "frozenClaimGraph": frozen_claim_graph_mapping,
-                    "frozenClaimGraphDigest": claim_graph_digest,
-                    "readOnlyInputs": {
+        drafting_snapshot = current
+        for redraft_attempt in range(self.max_cross_alignment_redrafts + 1):
+            try:
+                claim_id_prefix = f"CLM-{current.intent.intent_id.upper().replace('INTENT-', '')}"
+                goal_ref = _goal_ref_from_intent(current.intent.intent_id)
+                boundary_contract = drafting_snapshot.boundary_contract
+                if boundary_contract is None:
+                    raise AlignmentSessionError(
+                        "missing_boundary_contract",
+                        "request drafting requires a frozen boundary contract",
+                        ref="session.boundaryContract",
+                    )
+                boundary_contract_mapping = boundary_contract.to_mapping()
+                acceptance_result = await self._run_agent(
+                    drafting_snapshot,
+                    expected_output=ACCEPTANCE_DRAFT_OUTPUT,
+                    payload={
+                        "phase": "acceptance-draft",
                         "boundaryContract": boundary_contract_mapping,
-                        "boundaryContractDigest": current.boundary_contract_digest,
-                        "claimGraph": frozen_claim_graph_mapping,
-                        "claimGraphDigest": claim_graph_digest,
+                        "boundaryContractDigest": drafting_snapshot.boundary_contract_digest,
+                        "redraftAttempt": redraft_attempt,
+                        "previousCrossAlignmentReport": drafting_snapshot.cross_alignment_report,
                     },
-                    "requirementTrace": {
-                        "frozenRequirement": current.frozen_requirement,
-                    },
-                    "profileRef": current.profile_ref,
-                    "runtimeRef": current.runtime_ref,
-                    "coordinationRules": {
-                        "claimIdPrefix": claim_id_prefix,
-                        "claimIdFormat": f"{claim_id_prefix}-<SHORT-DESCRIPTOR>",
-                        "instruction": f"When referencing acceptance claims in your PlanDraft nodes, use claim IDs already present in the frozen ClaimGraph. Do not author or rewrite the ClaimGraph.",
-                    },
-                    "goalRef": goal_ref,
-                },
+                )
+            except AlignmentSessionError as exc:
+                if exc.code == "agent_driver_timeout":
+                    exc.snapshot = self._snapshot_with_agent_error(drafting_snapshot, exc, stage="frozen")
+                raise
+            acceptance = _mapping(acceptance_result.output, ACCEPTANCE_DRAFT_OUTPUT)
+            claim_graph = _claim_graph_from_output(acceptance)
+            claim_graph_digest = _claim_graph_digest(claim_graph)
+            frozen = replace(
+                drafting_snapshot,
+                frozen_claim_graph=claim_graph,
+                frozen_claim_graph_digest=claim_graph_digest,
             )
-        except AlignmentSessionError as exc:
-            if exc.code == "agent_driver_timeout":
-                exc.snapshot = self._snapshot_with_agent_error(after_acceptance, exc, stage="frozen")
-            raise
-        requirement = _mapping(requirement_result.output, REQUIREMENT_DRAFT_OUTPUT)
-        request_draft = self._request_from_agent_outputs(after_acceptance, requirement, claim_graph, claim_graph_digest)
-        final_snapshot = replace(
-            after_acceptance.append_turn(
+            after_acceptance = frozen.append_turn(
+                actor="agent:acceptance",
+                message=_summary(acceptance, "acceptance draft produced"),
+                expected_output=ACCEPTANCE_DRAFT_OUTPUT,
+                trace_ref=acceptance_result.trace_ref,
+            )
+            frozen_claim_graph_mapping = _claim_graph_to_mapping(claim_graph)
+            try:
+                requirement_result = await self._run_agent(
+                    after_acceptance,
+                    expected_output=REQUIREMENT_DRAFT_OUTPUT,
+                    payload={
+                        "phase": "requirement-draft",
+                        "intent": current.intent.to_mapping(),
+                        "boundaryContract": boundary_contract_mapping,
+                        "boundaryContractDigest": drafting_snapshot.boundary_contract_digest,
+                        "frozenClaimGraph": frozen_claim_graph_mapping,
+                        "frozenClaimGraphDigest": claim_graph_digest,
+                        "readOnlyInputs": {
+                            "boundaryContract": boundary_contract_mapping,
+                            "boundaryContractDigest": drafting_snapshot.boundary_contract_digest,
+                            "claimGraph": frozen_claim_graph_mapping,
+                            "claimGraphDigest": claim_graph_digest,
+                        },
+                        "requirementTrace": {
+                            "frozenRequirement": current.frozen_requirement,
+                        },
+                        "profileRef": current.profile_ref,
+                        "runtimeRef": current.runtime_ref,
+                        "redraftAttempt": redraft_attempt,
+                        "previousCrossAlignmentReport": drafting_snapshot.cross_alignment_report,
+                        "coordinationRules": {
+                            "claimIdPrefix": claim_id_prefix,
+                            "claimIdFormat": f"{claim_id_prefix}-<SHORT-DESCRIPTOR>",
+                            "instruction": f"When referencing acceptance claims in your PlanDraft nodes, use claim IDs already present in the frozen ClaimGraph. Do not author or rewrite the ClaimGraph.",
+                        },
+                        "goalRef": goal_ref,
+                    },
+                )
+            except AlignmentSessionError as exc:
+                if exc.code == "agent_driver_timeout":
+                    exc.snapshot = self._snapshot_with_agent_error(after_acceptance, exc, stage="frozen")
+                raise
+            requirement = _mapping(requirement_result.output, REQUIREMENT_DRAFT_OUTPUT)
+            _ensure_requirement_did_not_rewrite_claim_graph(requirement, claim_graph_digest)
+            plan = _plan_from_output(requirement)
+            cross_alignment_report = validate_cross_alignment(
+                boundary_contract=boundary_contract,
+                claim_graph=claim_graph,
+                plan=plan,
+            )
+            after_requirement = after_acceptance.append_turn(
                 actor="agent:requirement",
                 message=_summary(requirement, "requirement draft produced"),
                 expected_output=REQUIREMENT_DRAFT_OUTPUT,
                 trace_ref=requirement_result.trace_ref,
-            ),
-            stage="request_drafted",
-        )
-        approval_record = None
-        if approval_service is not None:
-            approval_record = approval_service.request_authorization(request_draft, actor=current.producer_actor)
-        return AlignmentSessionResult(
-            snapshot=final_snapshot,
-            request_draft=request_draft,
-            approval_record=approval_record,
-        )
+            )
+            if not cross_alignment_report.accepted:
+                exhausted = redraft_attempt >= self.max_cross_alignment_redrafts
+                rejected_snapshot = self._snapshot_with_cross_alignment_report(
+                    after_requirement,
+                    cross_alignment_report,
+                    redraft_attempt=redraft_attempt,
+                    exhausted=exhausted,
+                )
+                if exhausted:
+                    raise self._cross_alignment_error(cross_alignment_report, rejected_snapshot)
+                drafting_snapshot = rejected_snapshot
+                continue
+            request_draft = self._request_from_agent_outputs(
+                after_requirement,
+                requirement,
+                claim_graph,
+                claim_graph_digest,
+                plan=plan,
+            )
+            final_snapshot = replace(
+                after_requirement,
+                stage="request_drafted",
+                cross_alignment_report=cross_alignment_report.to_mapping(),
+                cross_alignment_redraft_attempts=redraft_attempt,
+            )
+            approval_record = None
+            if approval_service is not None:
+                approval_record = approval_service.request_authorization(request_draft, actor=current.producer_actor)
+            return AlignmentSessionResult(
+                snapshot=final_snapshot,
+                request_draft=request_draft,
+                approval_record=approval_record,
+            )
+        raise AssertionError("unreachable cross-alignment redraft loop exit")
 
     async def run(
         self,
@@ -572,6 +622,51 @@ class AlignmentSessionManager:
             stage=stage,
         )
 
+    def _snapshot_with_cross_alignment_report(
+        self,
+        snapshot: AlignmentSessionSnapshot,
+        report: CrossAlignmentReport,
+        *,
+        redraft_attempt: int,
+        exhausted: bool,
+    ) -> AlignmentSessionSnapshot:
+        report_mapping = report.to_mapping()
+        message = (
+            "cross-alignment gate failed; redraft bound exhausted"
+            if exhausted
+            else "cross-alignment gate failed; requesting bounded redraft"
+        )
+        return replace(
+            snapshot.append_turn(
+                actor="agent:cross-alignment",
+                message=message,
+                expected_output=CROSS_ALIGNMENT_REPORT_OUTPUT,
+                error=report_mapping,
+            ),
+            stage="failed" if exhausted else "frozen",
+            cross_alignment_report=report_mapping,
+            cross_alignment_redraft_attempts=redraft_attempt,
+        )
+
+    def _cross_alignment_error(
+        self,
+        report: CrossAlignmentReport,
+        snapshot: AlignmentSessionSnapshot,
+    ) -> AlignmentSessionError:
+        report_mapping = report.to_mapping()
+        mismatch_codes = tuple(mismatch.code for mismatch in report.mismatches)
+        return AlignmentSessionError(
+            "cross_alignment_redraft_exhausted",
+            "cross-alignment gate rejected all bounded redraft attempts before Human Gate 2",
+            ref="crossAlignmentReport",
+            refs=mismatch_codes or ("crossAlignmentReport",),
+            data={
+                "crossAlignmentReport": report_mapping,
+                "maxCrossAlignmentRedrafts": self.max_cross_alignment_redrafts,
+            },
+            snapshot=snapshot,
+        )
+
     def _resolve_profile(
         self,
         profile_ref: str,
@@ -610,13 +705,15 @@ class AlignmentSessionManager:
         requirement: Mapping[str, Any],
         claim_graph: ClaimGraph,
         claim_graph_digest: str,
+        *,
+        plan: PlanDraft | None = None,
     ) -> RequestDraft:
         profile = self._resolve_profile(snapshot.profile_ref, runtime_ref=snapshot.runtime_ref, runtime_digest=snapshot.runtime_digest)
         aligned_intent = replace(snapshot.intent, abstract_goal=_summary(requirement, snapshot.frozen_requirement or snapshot.intent.abstract_goal))
         goal_ref = _goal_ref_from_intent(aligned_intent.intent_id)
         _ensure_requirement_did_not_rewrite_claim_graph(requirement, claim_graph_digest)
         required_claim_refs = tuple(claim.claim_id for claim in claim_graph.claims if claim.required)
-        plan = _plan_from_output(requirement)
+        plan = plan or _plan_from_output(requirement)
         _ensure_plan_claim_refs_resolve_claim_graph(plan, claim_graph)
         allowed_capabilities = tuple(sorted({need.action for need in aligned_intent.capability_needs} | {"filesystem.write"}))
         capability_policies = {need.action: need.policy_refs for need in aligned_intent.capability_needs if need.policy_refs}
@@ -722,29 +819,34 @@ def _snapshot_with_boundary_contract(snapshot: AlignmentSessionSnapshot) -> Alig
 
 
 def _default_boundary_contract(snapshot: AlignmentSessionSnapshot, frozen_requirement: str) -> BoundaryContract:
+    if snapshot.producer_actor == "agent:producer":
+        entries = [
+            BoundaryContractEntry(
+                entry_id="CRIT-" + _boundary_contract_entry_tail(snapshot.intent.intent_id, "OBJECTIVE"),
+                kind="must",
+                statement=frozen_requirement,
+                source_refs=("compat.phase1_fixture", "frozenRequirement"),
+            ),
+            BoundaryContractEntry(
+                entry_id="CRIT-" + _boundary_contract_entry_tail(snapshot.intent.intent_id, "COMPLETE"),
+                kind="completion_signal",
+                statement="The request reaches completion only from governed evidence.",
+                source_refs=("compat.phase1_fixture",),
+            ),
+        ]
+        return BoundaryContract(
+            name=_boundary_contract_name(snapshot.intent.intent_id),
+            version=1,
+            entries=tuple(entries),
+        ).validate_for_freeze()
     entries = [
         BoundaryContractEntry(
-            entry_id="CRIT-" + _boundary_contract_entry_tail(snapshot.intent.intent_id, "OBJECTIVE"),
-            kind="must",
-            statement=frozen_requirement,
-            source_refs=("frozenRequirement",),
-        ),
-        BoundaryContractEntry(
-            entry_id="CRIT-" + _boundary_contract_entry_tail(snapshot.intent.intent_id, "COMPLETE"),
+            entry_id="CRIT-summary-artifact",
             kind="completion_signal",
-            statement="Human Gate 1 approval freezes this boundary contract for request drafting.",
-            source_refs=("approval.human_gate_1",),
+            statement=frozen_requirement or "The governed deterministic summary artifact exists.",
+            source_refs=("compat.workflow_a_cli_fixture", "frozenRequirement"),
         ),
     ]
-    if "CRIT-summary-artifact" not in {entry.entry_id for entry in entries}:
-        entries.append(
-            BoundaryContractEntry(
-                entry_id="CRIT-summary-artifact",
-                kind="completion_signal",
-                statement="The governed deterministic summary artifact exists.",
-                source_refs=("compat.workflow_a_cli_fixture",),
-            )
-        )
     return BoundaryContract(
         name=_boundary_contract_name(snapshot.intent.intent_id),
         version=1,
@@ -1105,6 +1207,13 @@ def _positive_timeout_seconds(value: float) -> float:
     return timeout
 
 
+def _non_negative_int(value: int, ref: str) -> int:
+    count = int(value)
+    if count < 0:
+        raise ValueError(f"{ref} must be greater than or equal to zero")
+    return count
+
+
 def _consume_cancelled_task(task: asyncio.Task[Any]) -> None:
     try:
         task.result()
@@ -1163,6 +1272,7 @@ def _session_id(intent: IntentDraft, profile_ref: str, workspace_ref: str) -> st
 __all__ = [
     "ACCEPTANCE_DRAFT_OUTPUT",
     "ALIGNMENT_DECISION_OUTPUT",
+    "CROSS_ALIGNMENT_REPORT_OUTPUT",
     "DEFAULT_AGENT_TIMEOUT_SECONDS",
     "REQUIREMENT_DRAFT_OUTPUT",
     "AlignmentSessionError",

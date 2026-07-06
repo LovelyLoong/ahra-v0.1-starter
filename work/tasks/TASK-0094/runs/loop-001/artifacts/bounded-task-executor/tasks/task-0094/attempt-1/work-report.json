@@ -1,0 +1,15 @@
+{
+  "summary": "Implemented TASK-0094 cross-alignment gate: added deterministic validator and unit coverage, wired it into AlignmentSession before RequestDraft authorization with structured snapshot reports and bounded redrafts, and updated the workflow architecture note.",
+  "changed_files": [
+    "docs/architecture/intent-alignment-workflow.md",
+    "src/ahra/alignment_session.py",
+    "src/ahra/cross_alignment.py",
+    "tests/test_alignment_session.py",
+    "tests/test_cross_alignment.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py"
+  ],
+  "known_risks": [],
+  "unresolved_items": []
+}
