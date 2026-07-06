@@ -1,0 +1,67 @@
+{
+  "verdict": "pass",
+  "summary": "All listed acceptance criteria have explicit evidence, and the patch stays within the granted write boundary.",
+  "criteria": [
+    {
+      "criterion": "CLM-TASK-0092",
+      "passed": true,
+      "evidence": "Patch adds the BoundaryContract schema/example, frozen domain model, AlignmentSession snapshot integration, and focused tests; evidence.policy reports no violations; the required check passed with exit_code 0.",
+      "concerns": [
+        "The report notes an earlier failed check run, but the deterministic evidence includes the required command rerun passing."
+      ]
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: contracts/schemas/boundary-contract.schema.json",
+      "passed": true,
+      "evidence": "Artifact existence check for contracts/schemas/boundary-contract.schema.json passed, and patch adds 169 lines.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: examples/records/boundary-contract.json",
+      "passed": true,
+      "evidence": "Artifact existence check for examples/records/boundary-contract.json passed, and patch adds a BoundaryContract example record.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/alignment_session.py",
+      "passed": true,
+      "evidence": "Artifact existence check for src/ahra/alignment_session.py passed, and patch records boundaryContract plus boundaryContractDigest in snapshots and draft payloads.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/boundary_contract.py",
+      "passed": true,
+      "evidence": "Artifact existence check for src/ahra/boundary_contract.py passed, and patch adds frozen BoundaryContract and BoundaryContractEntry domain objects with freeze validation.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_alignment_session.py",
+      "passed": true,
+      "evidence": "Artifact existence check for tests/test_alignment_session.py passed, and patch adds AlignmentSession assertions for boundary contract digest propagation and open_question rejection.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_boundary_contract.py",
+      "passed": true,
+      "evidence": "Artifact existence check for tests/test_boundary_contract.py passed, and patch adds tests for schema example validation plus freeze rejection of open questions, duplicate IDs, and unknown kinds.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: boundary-contract-change",
+      "passed": true,
+      "evidence": "WorkReport.changed_files lists the six granted artifacts, evidence.policy.changed_files matches, and patch_text contains the code-change artifact content.",
+      "concerns": []
+    },
+    {
+      "criterion": "Run uv run python -B scripts/check.py and record it in WorkReport.verification_commands_run",
+      "passed": true,
+      "evidence": "WorkReport.verification_commands_run records uv run python -B scripts/check.py, and deterministic evidence shows the granted process.exec check passed with exit_code 0 after running 345 tests.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [],
+  "non_blocking_issues": [
+    "WorkReport records the same verification command twice and notes one earlier failed run; the accepted deterministic evidence still contains a successful required run."
+  ],
+  "confidence": 0.88
+}

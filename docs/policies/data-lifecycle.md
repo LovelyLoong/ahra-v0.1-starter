@@ -40,3 +40,9 @@ Evidence is required until EvidenceGate approval. After approval, evidence is ar
 # Completion distillation
 
 After completion, facts land in `docs/` and process lands in `archive/`. Distilled facts must describe the durable project truth; process records must preserve how the task was executed, reviewed, and approved without becoming the active authority.
+
+Loop notes, temporary module records, generated WorkflowIR files, and short
+task-local scripts are run byproducts unless separately promoted. At the end of
+a run, a distillation step may create a durable lesson or module proposal under
+`docs/` only when it includes provenance, applicability, non-applicability, and
+evidence references. Raw notes do not become project truth by existing alone.

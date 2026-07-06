@@ -6,6 +6,7 @@ from typing import Any, Mapping
 
 from .acceptance_contracts import ClaimGraph
 from .approval_service import ApprovalRecord
+from .boundary_contract import BoundaryContract, BoundaryContractEntry, BoundaryContractError
 from .request_draft import (
     RequestDraft,
     RequestDraftError,
@@ -117,6 +118,8 @@ class AlignmentSessionSnapshot:
     stage: str = "dialogue"
     turns: tuple[AlignmentSessionTurn, ...] = ()
     frozen_requirement: str | None = None
+    boundary_contract: BoundaryContract | None = None
+    boundary_contract_digest: str | None = None
     requirement_approved_by: str | None = None
     missing_dimensions: tuple[str, ...] = ()
 
@@ -135,6 +138,12 @@ class AlignmentSessionSnapshot:
             stage=str(data.get("stage") or "dialogue"),
             turns=tuple(AlignmentSessionTurn.from_mapping(_mapping(item, "turn")) for item in data.get("turns", ())),
             frozen_requirement=str(data["frozenRequirement"]) if data.get("frozenRequirement") else None,
+            boundary_contract=(
+                BoundaryContract.from_mapping(_mapping(data["boundaryContract"], "boundaryContract"))
+                if data.get("boundaryContract")
+                else None
+            ),
+            boundary_contract_digest=str(data["boundaryContractDigest"]) if data.get("boundaryContractDigest") else None,
             requirement_approved_by=str(data["requirementApprovedBy"]) if data.get("requirementApprovedBy") else None,
             missing_dimensions=tuple(str(item) for item in data.get("missingDimensions", ())),
         )
@@ -184,6 +193,10 @@ class AlignmentSessionSnapshot:
         }
         if self.frozen_requirement:
             data["frozenRequirement"] = self.frozen_requirement
+        if self.boundary_contract:
+            data["boundaryContract"] = self.boundary_contract.to_mapping()
+        if self.boundary_contract_digest:
+            data["boundaryContractDigest"] = self.boundary_contract_digest
         if self.requirement_approved_by:
             data["requirementApprovedBy"] = self.requirement_approved_by
         return data
@@ -311,6 +324,11 @@ class AlignmentSessionManager:
                 "converged alignment turn must include frozenRequirement",
                 ref="agentOutput.frozenRequirement",
             )
+        boundary_contract: BoundaryContract | None = None
+        boundary_contract_digest: str | None = None
+        if converged:
+            boundary_contract = _boundary_contract_from_decision(decision, after_user, frozen_requirement or agent_message)
+            boundary_contract_digest = boundary_contract.digest()
         after_agent = after_user.append_turn(
             actor="agent:alignment",
             message=agent_message,
@@ -321,6 +339,8 @@ class AlignmentSessionManager:
             after_agent,
             stage="awaiting_requirement_approval" if converged else "awaiting_user",
             frozen_requirement=frozen_requirement or after_agent.frozen_requirement,
+            boundary_contract=boundary_contract or after_agent.boundary_contract,
+            boundary_contract_digest=boundary_contract_digest or after_agent.boundary_contract_digest,
             missing_dimensions=_string_tuple(decision.get("missingDimensions") or decision.get("missing_dimensions")),
         )
 
@@ -351,7 +371,8 @@ class AlignmentSessionManager:
                 ref="approval.actor",
                 refs=(actor,),
             )
-        return replace(current, stage="frozen", requirement_approved_by=actor)
+        frozen = _snapshot_with_boundary_contract(current)
+        return replace(frozen, stage="frozen", requirement_approved_by=actor)
 
     async def draft_request(
         self,
@@ -360,6 +381,8 @@ class AlignmentSessionManager:
         approval_service: ApprovalServicePort | None = None,
     ) -> AlignmentSessionResult:
         current = self.resume_from_snapshot(snapshot)
+        if current.stage == "frozen":
+            current = _snapshot_with_boundary_contract(current)
         if current.stage == "awaiting_requirement_approval":
             raise AlignmentSessionError(
                 "requirement_not_approved",
@@ -381,7 +404,11 @@ class AlignmentSessionManager:
                 payload={
                     "phase": "requirement-draft",
                     "intent": current.intent.to_mapping(),
-                    "frozenRequirement": current.frozen_requirement,
+                    "boundaryContract": current.boundary_contract.to_mapping() if current.boundary_contract else None,
+                    "boundaryContractDigest": current.boundary_contract_digest,
+                    "requirementTrace": {
+                        "frozenRequirement": current.frozen_requirement,
+                    },
                     "profileRef": current.profile_ref,
                     "runtimeRef": current.runtime_ref,
                     "coordinationRules": {
@@ -398,7 +425,11 @@ class AlignmentSessionManager:
                 payload={
                     "phase": "acceptance-draft",
                     "intent": current.intent.to_mapping(),
-                    "frozenRequirement": current.frozen_requirement,
+                    "boundaryContract": current.boundary_contract.to_mapping() if current.boundary_contract else None,
+                    "boundaryContractDigest": current.boundary_contract_digest,
+                    "requirementTrace": {
+                        "frozenRequirement": current.frozen_requirement,
+                    },
                     "profileRef": current.profile_ref,
                     "runtimeRef": current.runtime_ref,
                     "coordinationRules": {
@@ -602,6 +633,130 @@ class AlignmentSessionManager:
         )
 
 
+def _boundary_contract_from_decision(
+    decision: Mapping[str, Any],
+    snapshot: AlignmentSessionSnapshot,
+    frozen_requirement: str,
+) -> BoundaryContract:
+    data = decision.get("boundaryContract") or decision.get("boundary_contract")
+    try:
+        if data is None:
+            return _default_boundary_contract(snapshot, frozen_requirement)
+        return BoundaryContract.freeze(_mapping(data, "agentOutput.boundaryContract"))
+    except BoundaryContractError as exc:
+        raise AlignmentSessionError(
+            exc.code,
+            exc.message,
+            ref=f"agentOutput.boundaryContract.{exc.ref}",
+            refs=exc.refs,
+        ) from exc
+
+
+def _snapshot_with_boundary_contract(snapshot: AlignmentSessionSnapshot) -> AlignmentSessionSnapshot:
+    try:
+        boundary_contract = snapshot.boundary_contract or _default_boundary_contract(
+            snapshot,
+            snapshot.frozen_requirement or snapshot.intent.abstract_goal,
+        )
+        boundary_contract = boundary_contract.validate_for_freeze()
+        digest = boundary_contract.digest()
+    except BoundaryContractError as exc:
+        raise AlignmentSessionError(
+            exc.code,
+            exc.message,
+            ref=f"session.boundaryContract.{exc.ref}",
+            refs=exc.refs,
+        ) from exc
+    if snapshot.boundary_contract_digest and snapshot.boundary_contract_digest != digest:
+        raise AlignmentSessionError(
+            "boundary_contract_digest_mismatch",
+            "stored boundary contract digest does not match the typed contract",
+            ref="session.boundaryContractDigest",
+            refs=(snapshot.boundary_contract_digest, digest),
+        )
+    return replace(snapshot, boundary_contract=boundary_contract, boundary_contract_digest=digest)
+
+
+def _default_boundary_contract(snapshot: AlignmentSessionSnapshot, frozen_requirement: str) -> BoundaryContract:
+    return BoundaryContract(
+        name=_boundary_contract_name(snapshot.intent.intent_id),
+        version=1,
+        entries=(
+            BoundaryContractEntry(
+                entry_id="BCE-MUST-" + _boundary_contract_entry_tail(snapshot.intent.intent_id, "OBJECTIVE"),
+                kind="must",
+                statement=frozen_requirement,
+                source_refs=("frozenRequirement",),
+            ),
+            BoundaryContractEntry(
+                entry_id="BCE-COMPLETE-" + _boundary_contract_entry_tail(snapshot.intent.intent_id, "SIGNAL"),
+                kind="completion_signal",
+                statement="Human Gate 1 approval freezes this boundary contract for request drafting.",
+                source_refs=("approval.human_gate_1",),
+            ),
+        ),
+    ).validate_for_freeze()
+
+
+def _boundary_contract_name(intent_id: str) -> str:
+    cleaned = "".join(char.lower() if char.isalnum() else "-" for char in intent_id)
+    cleaned = cleaned.strip("-") or "alignment"
+    if cleaned.startswith("intent-"):
+        cleaned = cleaned.removeprefix("intent-")
+    return ("boundary-" + cleaned)[:63].rstrip("-")
+
+
+def _boundary_contract_entry_tail(intent_id: str, fallback: str) -> str:
+    cleaned = "".join(char if char.isalnum() else "-" for char in intent_id.upper())
+    cleaned = cleaned.removeprefix("INTENT-").strip("-")
+    if not cleaned:
+        return fallback
+    return f"{cleaned}-{fallback}"
+
+
+def _boundary_contract_output_schema() -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": True,
+        "required": ["apiVersion", "kind", "metadata", "spec"],
+        "properties": {
+            "apiVersion": {"type": "string", "const": "ahra.dev/v1alpha1"},
+            "kind": {"type": "string", "const": "BoundaryContract"},
+            "metadata": {
+                "type": "object",
+                "required": ["name", "version"],
+                "properties": {
+                    "name": {"type": "string", "minLength": 1},
+                    "version": {"type": "integer", "minimum": 1},
+                },
+            },
+            "spec": {
+                "type": "object",
+                "required": ["entries"],
+                "properties": {
+                    "entries": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "required": ["id", "kind", "statement"],
+                            "properties": {
+                                "id": {"type": "string", "minLength": 1},
+                                "kind": {
+                                    "type": "string",
+                                    "enum": ["must", "must_not", "completion_signal", "free_zone", "open_question"],
+                                },
+                                "statement": {"type": "string", "minLength": 1},
+                                "sourceRefs": {"type": "array", "items": {"type": "string"}},
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    }
+
+
 def _output_contract(expected_output: str) -> AgentOutputContract:
     schema: dict[str, Any]
     if expected_output == ALIGNMENT_DECISION_OUTPUT:
@@ -613,6 +768,7 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
                 "message": {"type": "string", "minLength": 1},
                 "converged": {"type": "boolean"},
                 "frozenRequirement": {"type": "string"},
+                "boundaryContract": _boundary_contract_output_schema(),
                 "missingDimensions": {"type": "array", "items": {"type": "string"}},
             },
         }

@@ -1,0 +1,95 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0091",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-06T02:26:26.510673Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Verifier maps TASK-0091 acceptance criteria to the succeeded Workflow B GoalExecution kernel EvidenceV2/GateRun records.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "IsolatedGitWorkspaceProvider.finalize_execution_workspace removes the isolated worktree directory and prunes its git worktree registration after successful propagation, and retains the worktree when propagation fails, covered by tests in tests/test_git_ops.py.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-eb2ac552ca8ad1e2",
+        "EVD-d4e76e0f94c5c768",
+        "EVD-a44279e2c4ba216a"
+      ],
+      "notes": "Kernel task gate and independent semantic-review gate passed for the workspace cleanup implementation and tests."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "A repository-hygiene test in tests/ fails when any completed task directory under work/tasks contains development-worktrees residue, and passes against the current tree.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-eb2ac552ca8ad1e2",
+        "EVD-d4e76e0f94c5c768",
+        "EVD-a44279e2c4ba216a"
+      ],
+      "notes": "Kernel task gate and semantic-review evidence cover the completed-task worktree hygiene test."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "docs/policies/data-lifecycle.md defines the four task-data retention tiers (contract, authority, evidence, run byproducts) with their lifecycles and the completion-distillation rule (facts land in docs/, process lands in archive/), and is linked from docs/policies/index.md.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-eb2ac552ca8ad1e2",
+        "EVD-d4e76e0f94c5c768",
+        "EVD-a44279e2c4ba216a"
+      ],
+      "notes": "Kernel task gate and semantic-review evidence cover the data lifecycle policy document and index link."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The change is produced by a Workflow B development-bounded GoalExecution with kernel-derived completion, then approved through the AWKP EvidenceGate by an independent verifier.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-d4e76e0f94c5c768",
+        "EVD-a44279e2c4ba216a"
+      ],
+      "notes": "The existing GoalExecution succeeded with current completion evidence, and this bridge run supplies the independent AWKP EvidenceGate review."
+    }
+  ],
+  "commands": [
+    {
+      "command_id": "CMD-task-0091-test",
+      "command": "uv run python -B scripts/check.py --test",
+      "status": "passed",
+      "criterion_indices": [
+        1,
+        2,
+        3
+      ],
+      "evidence_refs": [
+        "EVD-eb2ac552ca8ad1e2"
+      ]
+    }
+  ],
+  "semantic_reviews": [
+    {
+      "review_id": "SEM-TASK-0091-0001",
+      "status": "passed",
+      "reviewer": "agent:independent-verifier",
+      "criterion_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "changed_files": [
+        "docs/policies/data-lifecycle.md",
+        "docs/policies/index.md",
+        "src/ahra/reference_runner/git_ops.py",
+        "tests/test_git_ops.py",
+        "tests/test_repo_hygiene.py"
+      ],
+      "changed_files_sha256": "sha256:890e80f0720e61fec68df480eca310e11b2f8cc05d620e6b104fabefc783871e",
+      "verified_changed_files_sha256": "sha256:890e80f0720e61fec68df480eca310e11b2f8cc05d620e6b104fabefc783871e",
+      "evidence_refs": [
+        "EVD-d4e76e0f94c5c768"
+      ]
+    }
+  ]
+}

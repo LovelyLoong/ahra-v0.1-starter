@@ -1,0 +1,19 @@
+{
+  "summary": "Added BoundaryContract schema/example, frozen domain parsing and freeze validation, and AlignmentSession snapshot storage of the typed boundary contract plus sha256 digest while retaining prose as trace.",
+  "changed_files": [
+    "contracts/schemas/boundary-contract.schema.json",
+    "examples/records/boundary-contract.json",
+    "src/ahra/alignment_session.py",
+    "src/ahra/boundary_contract.py",
+    "tests/test_alignment_session.py",
+    "tests/test_boundary_contract.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py",
+    "uv run python -B scripts/check.py"
+  ],
+  "known_risks": [
+    "The first check run returned exit code 1 from a single test_phase1_comprehensive network-goal status mismatch; the immediate rerun of the same command passed."
+  ],
+  "unresolved_items": []
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0092",
+  "verifier": "agent:independent-verifier",
+  "decision": "approve",
+  "summary": "Verifier maps TASK-0092 acceptance criteria to the succeeded Workflow B loop-002 GoalExecution kernel EvidenceV2/GateRun records.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-bc5da08462e31eff",
+        "EVD-fbaf1b0a128b960e",
+        "EVD-839cfb1ebc0314e1"
+      ],
+      "command_refs": [
+        "CMD-task-0092-check"
+      ],
+      "notes": "Workflow B added the boundary-contract schema and example record; deterministic evidence shows scripts/check.py passed, including scripts/lint_contracts.py."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-bc5da08462e31eff",
+        "EVD-fbaf1b0a128b960e",
+        "EVD-839cfb1ebc0314e1"
+      ],
+      "command_refs": [
+        "CMD-task-0092-check"
+      ],
+      "notes": "Workflow B added BoundaryContract domain parsing and freeze validation with unit coverage for open_question, duplicate IDs, and unknown kinds."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-bc5da08462e31eff",
+        "EVD-fbaf1b0a128b960e",
+        "EVD-839cfb1ebc0314e1"
+      ],
+      "command_refs": [
+        "CMD-task-0092-check"
+      ],
+      "notes": "Workflow B updated AlignmentSession snapshots to carry the typed boundary contract and digest while retaining the prose requirement as trace, with focused tests."
+    },
+    {
+      "criterion_index": 4,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-bc5da08462e31eff",
+        "EVD-fbaf1b0a128b960e",
+        "EVD-839cfb1ebc0314e1"
+      ],
+      "notes": "Workflow B loop-002 GoalExecution succeeded with kernel-derived completion evidence; this report supplies the independent AWKP EvidenceGate review."
+    }
+  ],
+  "commands": [
+    {
+      "command_id": "CMD-task-0092-check",
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "criterion_indices": [
+        1,
+        2,
+        3
+      ],
+      "evidence_refs": [
+        "EVD-bc5da08462e31eff"
+      ]
+    }
+  ],
+  "semantic_reviews": [
+    {
+      "review_id": "SEM-TASK-0092-0001",
+      "status": "passed",
+      "reviewer": "agent:independent-verifier",
+      "criterion_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "changed_files": [
+        "contracts/schemas/boundary-contract.schema.json",
+        "examples/records/boundary-contract.json",
+        "src/ahra/alignment_session.py",
+        "src/ahra/boundary_contract.py",
+        "tests/test_alignment_session.py",
+        "tests/test_boundary_contract.py"
+      ],
+      "changed_files_sha256": "sha256:53d0edc18dda6b885725f0e1e5f4718b9427b3520efd2a21ae55c3a25d31897c",
+      "verified_changed_files_sha256": "sha256:53d0edc18dda6b885725f0e1e5f4718b9427b3520efd2a21ae55c3a25d31897c",
+      "evidence_refs": [
+        "EVD-fbaf1b0a128b960e"
+      ]
+    }
+  ]
+}

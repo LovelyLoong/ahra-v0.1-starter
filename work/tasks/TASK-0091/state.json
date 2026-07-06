@@ -2,15 +2,26 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0091",
   "context_id": "CTX-self-hosting-loop",
-  "state": "ready",
-  "state_version": 0,
-  "attempt": 0,
+  "state": "completed",
+  "state_version": 4,
+  "attempt": 1,
   "owner": null,
   "lease": null,
-  "next_action": "Task skeleton created; claim the task before producing evidence.",
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "pause_reason": null,
   "blockers": [],
-  "artifact_refs": [],
-  "evidence_refs": [],
-  "updated_at": "2026-07-03T01:44:32.527669Z"
+  "artifact_refs": [
+    "ART-TASK-0091-0001",
+    "ART-TASK-0091-0002",
+    "ART-TASK-0091-0003",
+    "ART-TASK-0091-0004",
+    "ART-TASK-0091-0005"
+  ],
+  "evidence_refs": [
+    "EVD-a44279e2c4ba216a",
+    "EVD-d4e76e0f94c5c768",
+    "EVD-eb2ac552ca8ad1e2",
+    "EVD-TASK-0091-0001"
+  ],
+  "updated_at": "2026-07-06T02:26:26.510673Z"
 }

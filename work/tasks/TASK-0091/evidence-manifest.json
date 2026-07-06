@@ -1,5 +1,71 @@
 {
+  "evidence": [
+    {
+      "created_at": "2026-07-06T02:26:26.412719Z",
+      "created_by": "agent:state-reconciler",
+      "evidence_id": "EVD-a44279e2c4ba216a",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-a44279e2c4ba216a.json",
+      "refs": [
+        "ART-TASK-0091-0001",
+        "GATERUN-a44279e2c4ba216a",
+        "GEXEC-187a468033890487"
+      ],
+      "sha256": "24247f92a39d10a5e2d6a71f9825738a0c1d21cc9dd8e4facafa810b029945eb",
+      "task_id": "TASK-0091",
+      "uri": "local://evidence/kernel-evidence/EVD-a44279e2c4ba216a.json"
+    },
+    {
+      "created_at": "2026-07-06T02:26:26.414750Z",
+      "created_by": "agent:state-reconciler",
+      "evidence_id": "EVD-d4e76e0f94c5c768",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-d4e76e0f94c5c768.json",
+      "refs": [
+        "ART-TASK-0091-0002",
+        "GATERUN-d4e76e0f94c5c768",
+        "GEXEC-187a468033890487"
+      ],
+      "sha256": "c86e28a66cbc0f6494f9abb9e31c8d861f43b23de2d68eee3f3929a91b80c764",
+      "task_id": "TASK-0091",
+      "uri": "local://evidence/kernel-evidence/EVD-d4e76e0f94c5c768.json"
+    },
+    {
+      "created_at": "2026-07-06T02:26:26.423753Z",
+      "created_by": "agent:state-reconciler",
+      "evidence_id": "EVD-eb2ac552ca8ad1e2",
+      "kind": "kernel_evidence_v2",
+      "media_type": "application/json",
+      "name": "EVD-eb2ac552ca8ad1e2.json",
+      "refs": [
+        "ART-TASK-0091-0003",
+        "GATERUN-eb2ac552ca8ad1e2",
+        "GEXEC-187a468033890487"
+      ],
+      "sha256": "f1689d22481a238ac6e6bdca3c08bce27e27b02fb98e0dfd25bea29e7cc6de97",
+      "task_id": "TASK-0091",
+      "uri": "local://evidence/kernel-evidence/EVD-eb2ac552ca8ad1e2.json"
+    },
+    {
+      "evidence_id": "EVD-TASK-0091-0001",
+      "task_id": "TASK-0091",
+      "kind": "evidence_gate_report",
+      "name": "evidence-gate-report-4.json",
+      "uri": "local://evidence/evidence-gate-report-4.json",
+      "sha256": "dbbd9257dee64d64b66a00ad9817662a5d8decd3800916bfb16b8b2da086804d",
+      "media_type": "application/json",
+      "created_by": "agent:independent-verifier",
+      "created_at": "2026-07-06T02:26:26.510673Z",
+      "refs": [
+        "ART-TASK-0091-0005",
+        "EVD-a44279e2c4ba216a",
+        "EVD-d4e76e0f94c5c768",
+        "EVD-eb2ac552ca8ad1e2"
+      ]
+    }
+  ],
   "schema_version": "awkp/0.1",
-  "task_id": "TASK-0091",
-  "evidence": []
+  "task_id": "TASK-0091"
 }

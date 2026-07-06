@@ -1,0 +1,38 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "BoundaryContract",
+  "metadata": {
+    "name": "alignment-session-boundary",
+    "version": 1
+  },
+  "spec": {
+    "entries": [
+      {
+        "id": "BCE-MUST-LOCAL-ARTIFACT",
+        "kind": "must",
+        "statement": "The implementation must write the requested artifact inside the local workspace.",
+        "sourceRefs": [
+          "intent.abstractGoal"
+        ]
+      },
+      {
+        "id": "BCE-MUST-NOT-CHANGE-SCRIPTS",
+        "kind": "must_not",
+        "statement": "The implementation must not edit files outside the granted write boundary.",
+        "sourceRefs": [
+          "task.policy.allowed_globs"
+        ]
+      },
+      {
+        "id": "BCE-COMPLETE-EVIDENCE",
+        "kind": "completion_signal",
+        "statement": "Completion is signaled by the required artifact existing and passing the registered verification gate."
+      },
+      {
+        "id": "BCE-FREE-LOCAL-DESIGN",
+        "kind": "free_zone",
+        "statement": "The implementation may choose internal names and helper structure within the granted files."
+      }
+    ]
+  }
+}

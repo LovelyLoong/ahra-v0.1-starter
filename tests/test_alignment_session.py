@@ -64,9 +64,16 @@ class AlignmentSessionManagerTests(unittest.TestCase):
             resumed.frozen_requirement,
             "Write one governed deterministic summary artifact in the local workspace.",
         )
+        self.assertIsNotNone(resumed.boundary_contract)
+        self.assertEqual(resumed.boundary_contract_digest, resumed.boundary_contract.digest())
+        self.assertEqual(
+            resumed.to_mapping()["boundaryContract"]["spec"]["entries"][0]["kind"],
+            "must",
+        )
         approved = manager.approve_requirement(resumed, actor="human:maintainer")
         self.assertEqual(approved.stage, "frozen")
         self.assertEqual(approved.requirement_approved_by, "human:maintainer")
+        self.assertEqual(approved.boundary_contract_digest, approved.boundary_contract.digest())
 
     def test_convergence_outputs_untrusted_request_draft(self) -> None:
         driver = FakeAlignmentDriver()
@@ -84,6 +91,12 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         self.assertIn(REQUIREMENT_DRAFT_OUTPUT, [call.expected_output for call in driver.calls])
         self.assertIn(ACCEPTANCE_DRAFT_OUTPUT, [call.expected_output for call in driver.calls])
         self.assertFalse(hasattr(result.request_draft, "to_goal_execution_request_mapping"))
+        requirement_call = next(call for call in driver.calls if call.expected_output == REQUIREMENT_DRAFT_OUTPUT)
+        self.assertEqual(requirement_call.payload["boundaryContractDigest"], snapshot.boundary_contract_digest)
+        self.assertEqual(
+            requirement_call.payload["requirementTrace"]["frozenRequirement"],
+            "Write one governed deterministic summary artifact in the local workspace.",
+        )
 
     def test_run_emits_request_draft_after_explicit_requirement_approval(self) -> None:
         driver = FakeAlignmentDriver()
@@ -139,6 +152,17 @@ class AlignmentSessionManagerTests(unittest.TestCase):
             manager.approve_requirement(snapshot, actor="agent:alignment")
 
         self.assertEqual(raised.exception.code, "requirement_approval_requires_human")
+
+    def test_converged_boundary_contract_rejects_open_questions(self) -> None:
+        driver = FakeAlignmentDriver(boundary_contract_output=_boundary_contract_output(include_open_question=True))
+        manager = AlignmentSessionManager(driver)
+        snapshot = manager.start(_intent())
+        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            asyncio.run(manager.advance(snapshot, "Freeze with an unresolved question."))
+
+        self.assertEqual(raised.exception.code, "open_question_not_freezable")
 
     def test_draft_request_requests_contract_authorization(self) -> None:
         driver = FakeAlignmentDriver()
@@ -251,11 +275,13 @@ class FakeAlignmentDriver:
         *,
         requirement_output: dict[str, object] | None = None,
         acceptance_output: dict[str, object] | None = None,
+        boundary_contract_output: dict[str, object] | None = None,
     ) -> None:
         self.calls: list[AgentRunRequest] = []
         self.alignment_turns = 0
         self.requirement_output = requirement_output
         self.acceptance_output = acceptance_output
+        self.boundary_contract_output = boundary_contract_output
 
     async def run(self, request: AgentRunRequest) -> AgentRunResult:
         self.calls.append(request)
@@ -274,6 +300,7 @@ class FakeAlignmentDriver:
                     "message": "Requirement boundary frozen.",
                     "converged": True,
                     "frozenRequirement": "Write one governed deterministic summary artifact in the local workspace.",
+                    "boundaryContract": self.boundary_contract_output or _boundary_contract_output(),
                     "missingDimensions": [],
                 }
             )
@@ -403,6 +430,50 @@ def _acceptance_output() -> dict[str, object]:
                     }
                 ],
             },
+        },
+    }
+
+
+def _boundary_contract_output(*, include_open_question: bool = False) -> dict[str, object]:
+    entries: list[dict[str, object]] = [
+        {
+            "id": "BCE-MUST-SUMMARY",
+            "kind": "must",
+            "statement": "Write one governed deterministic summary artifact in the local workspace.",
+        },
+        {
+            "id": "BCE-MUST-NOT-OUTSIDE-WORKSPACE",
+            "kind": "must_not",
+            "statement": "Do not write outside the configured local workspace.",
+        },
+        {
+            "id": "BCE-COMPLETE-SUMMARY",
+            "kind": "completion_signal",
+            "statement": "The governed deterministic summary artifact exists.",
+        },
+        {
+            "id": "BCE-FREE-INTERNAL-STEPS",
+            "kind": "free_zone",
+            "statement": "Internal implementation steps may vary within the bounded task contract.",
+        },
+    ]
+    if include_open_question:
+        entries.append(
+            {
+                "id": "BCE-QUESTION-SCOPE",
+                "kind": "open_question",
+                "statement": "The artifact location remains unresolved.",
+            }
+        )
+    return {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "BoundaryContract",
+        "metadata": {
+            "name": "alignment-session-test-boundary",
+            "version": 1,
+        },
+        "spec": {
+            "entries": entries,
         },
     }
 

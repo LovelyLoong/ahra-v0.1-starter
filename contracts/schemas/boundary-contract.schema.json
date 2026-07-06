@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ahra.dev/schemas/boundary-contract.v1alpha1.json",
+  "title": "AHRA BoundaryContract",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[A-Za-z0-9_.-]+$": {}
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "const": "ahra.dev/v1alpha1"
+    },
+    "kind": {
+      "const": "BoundaryContract"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,62}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "entries"
+      ],
+      "properties": {
+        "entries": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "x-uniqueBy": "id",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/mustEntry"
+              },
+              {
+                "$ref": "#/$defs/mustNotEntry"
+              },
+              {
+                "$ref": "#/$defs/completionSignalEntry"
+              },
+              {
+                "$ref": "#/$defs/freeZoneEntry"
+              },
+              {
+                "$ref": "#/$defs/openQuestionEntry"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "completionSignalEntry": {
+      "$ref": "#/$defs/entry",
+      "properties": {
+        "kind": {
+          "const": "completion_signal"
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[A-Za-z0-9_.-]+$": {}
+      },
+      "required": [
+        "id",
+        "kind",
+        "statement"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/entryId"
+        },
+        "kind": {
+          "$ref": "#/$defs/entryKind"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "entryId": {
+      "type": "string",
+      "pattern": "^BCE-[A-Za-z0-9][A-Za-z0-9._-]{1,127}$"
+    },
+    "entryKind": {
+      "enum": [
+        "must",
+        "must_not",
+        "completion_signal",
+        "free_zone",
+        "open_question"
+      ]
+    },
+    "freeZoneEntry": {
+      "$ref": "#/$defs/entry",
+      "properties": {
+        "kind": {
+          "const": "free_zone"
+        }
+      }
+    },
+    "mustEntry": {
+      "$ref": "#/$defs/entry",
+      "properties": {
+        "kind": {
+          "const": "must"
+        }
+      }
+    },
+    "mustNotEntry": {
+      "$ref": "#/$defs/entry",
+      "properties": {
+        "kind": {
+          "const": "must_not"
+        }
+      }
+    },
+    "openQuestionEntry": {
+      "$ref": "#/$defs/entry",
+      "properties": {
+        "kind": {
+          "const": "open_question"
+        }
+      }
+    }
+  }
+}
