@@ -23,6 +23,7 @@ from ahra.reference_runner.bounded_task import (
     BOUNDED_TASK_EXECUTOR_RELEASE,
     BoundedTaskExecutor,
     SEMANTIC_REVIEW_REQUIRED_FAILURE,
+    _execution_policy_decision_for_node,
     _execution_policy_for_node,
     _task_from_request,
     build_standard_harness_compatibility_request,
@@ -161,6 +162,45 @@ class NodeExecutorTests(unittest.TestCase):
             self.assertEqual(effective.run_deadline_seconds, 300)
             self.assertEqual(effective.idle_timeout_seconds, 300)
             self.assertLessEqual(effective.heartbeat_interval_seconds, effective.idle_timeout_seconds)
+
+    def test_bounded_task_agent_policy_uses_estimate_before_long_hard_cap(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            task = TaskSpec(
+                id="adaptive-budget",
+                title="Adaptive budget",
+                objective="Update the bounded workflow with tests.",
+                acceptance_criteria=("criterion A", "criterion B", "criterion C"),
+                requirements=("Preserve audit evidence.", "Run the full check."),
+                checks=(
+                    CheckSpec(
+                        name="full check",
+                        argv=("uv", "run", "python", "-B", "scripts/check.py"),
+                        timeout_seconds=300,
+                    ),
+                ),
+            )
+            _plan, node = compatibility_plan_for_task(task=task, workspace=repo, run_id="RUN-adaptive-budget")
+            node = replace(
+                node,
+                timeout_seconds=7200,
+                budget=replace(node.budget, max_wall_seconds=7200),
+            )
+            base = ExecutionPolicy(
+                startup_timeout_seconds=120,
+                idle_timeout_seconds=900,
+                heartbeat_interval_seconds=60,
+                attempt_wall_timeout_seconds=7200,
+                run_deadline_seconds=7200,
+            )
+
+            effective, decision = _execution_policy_decision_for_node(base, node, task=task)
+
+            self.assertLess(decision["softDeadlineSeconds"], 7200)
+            self.assertEqual(decision["softDeadlineSeconds"], decision["estimatedSeconds"] * 2)
+            self.assertEqual(effective.attempt_wall_timeout_seconds, decision["softDeadlineSeconds"])
+            self.assertEqual(effective.run_deadline_seconds, decision["hardDeadlineSeconds"])
+            self.assertEqual(decision["effectivePolicy"]["attemptWallTimeoutSeconds"], effective.attempt_wall_timeout_seconds)
 
     def test_bounded_task_honors_node_retry_policy_max_attempts_one(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

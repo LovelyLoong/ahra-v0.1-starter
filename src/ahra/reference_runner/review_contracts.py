@@ -6,9 +6,9 @@ from dataclasses import replace
 from .models import GoalReviewResult, GoalSpec, ReviewResult, ReviewVerdict, TaskSpec
 
 
-def enforce_task_review_contract(task: TaskSpec, review: ReviewResult) -> ReviewResult:
+def task_review_contract_violations(task: TaskSpec, review: ReviewResult) -> tuple[str, ...]:
     if review.verdict != ReviewVerdict.PASS:
-        return review
+        return ()
 
     expected = set(task.acceptance_criteria)
     assessed = [item.criterion for item in review.criteria]
@@ -29,6 +29,11 @@ def enforce_task_review_contract(task: TaskSpec, review: ReviewResult) -> Review
     if review.blocking_issues:
         violations.append("Reviewer returned PASS with blocking issues")
 
+    return tuple(sorted(set(violations)))
+
+
+def enforce_task_review_contract(task: TaskSpec, review: ReviewResult) -> ReviewResult:
+    violations = task_review_contract_violations(task, review)
     if not violations:
         return review
 

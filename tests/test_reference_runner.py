@@ -186,8 +186,14 @@ class PlanningDriver(AgentDriver):
 
 
 class ReviewerContractRetryDriver(AgentDriver):
-    def __init__(self, *, invalid_review_responses: int) -> None:
+    def __init__(
+        self,
+        *,
+        invalid_review_responses: int = 0,
+        contract_violation_responses: int = 0,
+    ) -> None:
         self.invalid_review_responses = invalid_review_responses
+        self.contract_violation_responses = contract_violation_responses
         self.executor_calls = 0
         self.reviewer_calls = 0
 
@@ -207,6 +213,21 @@ class ReviewerContractRetryDriver(AgentDriver):
                     details=("<root>: 'verdict' is a required property",),
                 )
             task = request.payload["task"]
+            if self.reviewer_calls <= self.invalid_review_responses + self.contract_violation_responses:
+                return AgentRunResult(
+                    output=ReviewResult(
+                        verdict=ReviewVerdict.PASS,
+                        summary="Criterion is supported but the criterion key is too specific.",
+                        criteria=(
+                            CriterionAssessment(
+                                criterion=f"{task.acceptance_criteria[0]} - implementation detail",
+                                passed=True,
+                                evidence="Deterministic check passed.",
+                            ),
+                        ),
+                        confidence=0.9,
+                    )
+                )
             return AgentRunResult(
                 output=ReviewResult(
                     verdict=ReviewVerdict.PASS,
@@ -1073,6 +1094,44 @@ class StandardHarnessTests(unittest.TestCase):
             ]
             event_types = {event["type"] for event in events}
             self.assertIn("dev.ahra.workflow.reviewer_output_invalid.v1", event_types)
+            manifest = json.loads((artifact_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
+            names = {record["name"] for record in manifest["artifacts"]}
+            self.assertIn("review-output-contract-error-1.json", names)
+
+    def test_reviewer_pass_contract_retry_does_not_rerun_executor(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            driver = ReviewerContractRetryDriver(contract_violation_responses=1)
+            result = asyncio.run(
+                TaskHarness(driver).run_task(
+                    task=_task(),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-review-pass-contract-retry",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+            self.assertEqual(result.status, WorkflowOutcome.ACCEPTED)
+            self.assertEqual(driver.executor_calls, 1)
+            self.assertEqual(driver.reviewer_calls, 2)
+            artifact_dir = Path(result.artifact_dir)
+            events = [
+                json.loads(line)
+                for line in (artifact_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            invalid_events = [
+                event
+                for event in events
+                if event["type"] == "dev.ahra.workflow.reviewer_output_invalid.v1"
+            ]
+            self.assertEqual(len(invalid_events), 1)
+            self.assertTrue(
+                any(
+                    "Reviewer omitted acceptance criteria" in detail
+                    for detail in invalid_events[0]["data"]["details"]
+                )
+            )
             manifest = json.loads((artifact_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
             names = {record["name"] for record in manifest["artifacts"]}
             self.assertIn("review-output-contract-error-1.json", names)

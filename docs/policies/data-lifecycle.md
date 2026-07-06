@@ -46,3 +46,10 @@ task-local scripts are run byproducts unless separately promoted. At the end of
 a run, a distillation step may create a durable lesson or module proposal under
 `docs/` only when it includes provenance, applicability, non-applicability, and
 evidence references. Raw notes do not become project truth by existing alone.
+
+For dynamically synthesized workflows, workflow drafts and self-adjustments also
+stay in task-local storage during execution. Only a run that completes normally
+and reaches its confirmed acceptance condition may distill its workflow shape
+into a project-local Skill under `skills/workflows/`. The distillation pass must
+filter out one-off context, temporary paths, stale assumptions, and unsuccessful
+attempts before writing the reusable Skill artifact.

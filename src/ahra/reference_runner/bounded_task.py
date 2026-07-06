@@ -275,7 +275,29 @@ class BoundedTaskExecutor:
                 message=node_result.message,
             ), node_result
 
-        execution_policy = _execution_policy_for_node(self.execution_policy, request.node)
+        execution_policy, policy_decision = _execution_policy_decision_for_node(
+            self.execution_policy,
+            request.node,
+            task=task,
+        )
+        self.store.write_artifact(
+            f"nodes/{request.node.node_id}/execution-policy-decision.json",
+            policy_decision,
+            task_id=task.id,
+            kind="execution_policy_decision",
+            media_type="application/json",
+            created_by=f"node-executor:{self.release_ref}",
+            input_refs=[request.plan.plan_id, request.node.node_id, request.run_id],
+        )
+        self.store.event(
+            "execution_policy_decided",
+            run_id=request.run_id,
+            node_id=request.node.node_id,
+            task_id=task.id,
+            estimated_seconds=policy_decision["estimatedSeconds"],
+            soft_deadline_seconds=policy_decision["softDeadlineSeconds"],
+            hard_deadline_seconds=policy_decision["hardDeadlineSeconds"],
+        )
         task_result = await TaskHarness(
             self.driver,
             workspace_provider=self.workspace_provider,
@@ -343,6 +365,7 @@ class BoundedTaskExecutor:
                 "commit": task_result.commit,
                 "semanticReviewEnabled": semantic_review_enabled,
                 "executionPolicy": _execution_policy_dict(execution_policy),
+                "executionPolicyDecision": policy_decision,
             },
         )
         node_artifact = self.store.write_artifact(
@@ -373,19 +396,42 @@ class BoundedTaskExecutor:
         return task_result, node_result
 
 
-def _execution_policy_for_node(base: ExecutionPolicy, node: PlanNodeIR) -> ExecutionPolicy:
+def _execution_policy_for_node(
+    base: ExecutionPolicy,
+    node: PlanNodeIR,
+    *,
+    task: TaskSpec | None = None,
+) -> ExecutionPolicy:
+    policy, _ = _execution_policy_decision_for_node(base, node, task=task)
+    return policy
+
+
+def _execution_policy_decision_for_node(
+    base: ExecutionPolicy,
+    node: PlanNodeIR,
+    *,
+    task: TaskSpec | None = None,
+) -> tuple[ExecutionPolicy, dict[str, Any]]:
     max_attempts = min(base.max_attempts, max(1, node.retry_policy.max_attempts))
     base = replace(base, max_attempts=max_attempts)
     budget_seconds = _node_wall_timeout_seconds(node)
-    if budget_seconds is None:
-        return base
-    budget_seconds = max(1, int(budget_seconds))
-    attempt_wall_timeout_seconds = min(base.attempt_wall_timeout_seconds, budget_seconds)
-    run_deadline_seconds = min(base.run_deadline_seconds, budget_seconds)
+    hard_cap_seconds = max(1, int(budget_seconds or base.run_deadline_seconds))
+    estimated_seconds = _estimate_node_execution_seconds(task, node)
+    soft_deadline_seconds = min(
+        hard_cap_seconds,
+        max(base.startup_timeout_seconds, estimated_seconds * 2),
+    )
+    hard_deadline_seconds = min(
+        hard_cap_seconds,
+        max(soft_deadline_seconds, estimated_seconds * 4),
+    )
+    attempt_wall_timeout_seconds = min(base.attempt_wall_timeout_seconds, soft_deadline_seconds)
+    run_deadline_seconds = min(base.run_deadline_seconds, hard_deadline_seconds)
+    run_deadline_seconds = max(run_deadline_seconds, attempt_wall_timeout_seconds)
     idle_timeout_seconds = min(base.idle_timeout_seconds, attempt_wall_timeout_seconds)
     heartbeat_interval_seconds = min(base.heartbeat_interval_seconds, idle_timeout_seconds)
     startup_timeout_seconds = min(base.startup_timeout_seconds, attempt_wall_timeout_seconds)
-    return replace(
+    policy = replace(
         base,
         startup_timeout_seconds=startup_timeout_seconds,
         idle_timeout_seconds=idle_timeout_seconds,
@@ -393,6 +439,45 @@ def _execution_policy_for_node(base: ExecutionPolicy, node: PlanNodeIR) -> Execu
         attempt_wall_timeout_seconds=attempt_wall_timeout_seconds,
         run_deadline_seconds=run_deadline_seconds,
     )
+    decision = {
+        "schema_version": "ahra/execution-policy-decision/0.1",
+        "strategy": "deterministic-task-estimate-v1",
+        "nodeId": node.node_id,
+        "estimatedSeconds": estimated_seconds,
+        "softDeadlineSeconds": soft_deadline_seconds,
+        "hardDeadlineSeconds": hard_deadline_seconds,
+        "nodeBudgetSeconds": budget_seconds,
+        "basePolicy": _execution_policy_dict(base),
+        "effectivePolicy": _execution_policy_dict(policy),
+        "rationale": (
+            "Use a deterministic task-size estimate; interrupt an Agent phase at "
+            "roughly twice the estimate while retaining a larger hard run deadline."
+        ),
+    }
+    return policy, decision
+
+
+def _estimate_node_execution_seconds(task: TaskSpec | None, node: PlanNodeIR) -> int:
+    seconds = 300
+    if task is not None:
+        seconds += 45 * len(task.acceptance_criteria)
+        seconds += 30 * len(task.requirements)
+        for check in task.checks:
+            command = " ".join(check.argv)
+            if check.argv and check.argv[0] == INTERNAL_ARTIFACT_EXISTS_COMMAND:
+                seconds += 15
+            elif "scripts/check.py" in command:
+                seconds += max(600, min(check.timeout_seconds * 2, 900))
+            else:
+                seconds += min(max(check.timeout_seconds, 60), 300)
+    else:
+        seconds += 45 * len(node.claim_refs)
+        seconds += 30 * len(node.expected_outputs)
+
+    seconds += 60 * len(_literal_artifact_paths(_filesystem_write_resources(node)))
+    if _semantic_review_declared(node):
+        seconds += 300
+    return max(300, min(seconds, 3600))
 
 
 def _node_wall_timeout_seconds(node: PlanNodeIR) -> int | None:

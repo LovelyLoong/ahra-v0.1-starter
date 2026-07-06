@@ -124,7 +124,7 @@ DEVELOPMENT_BOUNDED_NODE_BUDGET = PlanBudget(
     max_model_calls=10,
     max_tool_calls=50,
     max_spawned_nodes=0,
-    max_wall_seconds=2100,
+    max_wall_seconds=7200,
     max_cost_usd=1.0,
 )
 

@@ -53,3 +53,8 @@ only authority for project facts.
 Skill changes that alter workflow behavior are treated as proposed operating
 method changes. They require evidence that the new behavior improves outcomes
 without weakening protected rules.
+
+A Skill distilled from a successful dynamic workflow is a reusable operating
+method, not proof that the same method applies everywhere. It must carry
+applicability, non-applicability, protected-boundary notes, and evidence refs
+from the completed run that produced it.

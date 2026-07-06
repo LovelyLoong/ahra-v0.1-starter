@@ -33,7 +33,7 @@ from .models import (
     to_jsonable,
 )
 from .policy import ChangeSummary, evaluate_policy
-from .review_contracts import enforce_task_review_contract
+from .review_contracts import enforce_task_review_contract, task_review_contract_violations
 from .runtime import LocalRuntimeProvider
 from .store import ReferenceRunStore
 
@@ -1016,6 +1016,14 @@ class TaskHarness:
                     workspace_ref=workspace_ref,
                     checkpoint=checkpoint,
                 )
+                violations = task_review_contract_violations(task, review)
+                if violations:
+                    raise AgentOutputContractError(
+                        "ReviewResult",
+                        "reviewer PASS did not satisfy deterministic acceptance-criteria coverage",
+                        raw_output=to_jsonable(review),
+                        details=violations,
+                    )
                 review = enforce_task_review_contract(task, review)
                 store.event(
                     "reviewer_finished",

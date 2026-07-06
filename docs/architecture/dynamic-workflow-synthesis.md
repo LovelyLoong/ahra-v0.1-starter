@@ -39,6 +39,7 @@ User Goal
   -> execution with task-local modules allowed
   -> verification and review
   -> lesson distillation back into docs
+  -> successful workflow distillation into `skills/workflows/`
   -> optional module or Skill improvement proposal
 ```
 
@@ -238,9 +239,11 @@ for this task:
 - terminal states: succeeded, failed, blocked, interrupted, or needs human
   input.
 
-WorkflowIR is stored with the run evidence. It becomes reusable only after a
-separate distillation step promotes its lessons or modules into docs or module
-catalogs.
+WorkflowIR is stored with the run evidence. During execution, workflow drafts,
+loop notes, temporary scripts, and self-adjustments remain task-local run
+byproducts. WorkflowIR becomes reusable only after a separate successful-run
+distillation step promotes its lessons, modules, or workflow shape into docs,
+module catalogs, or a project-local Skill under `skills/workflows/`.
 
 ## Module Catalog
 
@@ -308,6 +311,28 @@ of the run, a distiller summarizes:
 
 Only distilled lessons with provenance enter `docs/`. Process traces and bulky
 run byproducts remain evidence or archive material.
+
+## Workflow Skill Distillation
+
+When a synthesized workflow completes normally and reaches its confirmed
+acceptance condition, the run must produce a project-local Skill artifact under
+`skills/workflows/` that captures the reusable operating method. This is the
+workflow equivalent of lesson distillation: raw execution material stays in the
+task-local temporary area, then a final filtering pass extracts only the
+reusable pattern.
+
+The distilled Skill must record:
+
+- the goal and task family it applies to;
+- the workflow topology that actually succeeded;
+- modules, gates, verifier or review steps, and loop limits used;
+- required preconditions and protected boundaries;
+- reuse conditions and non-reuse conditions;
+- evidence references proving the workflow completed normally.
+
+Failed, blocked, interrupted, abandoned, or not-yet-accepted workflows must not
+produce reusable Skills. They may still leave lessons, anti-patterns, evidence,
+or rejected Skill material for later analysis.
 
 ## Skill Improvement
 

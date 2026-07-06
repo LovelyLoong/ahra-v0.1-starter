@@ -36,6 +36,7 @@ Authority update
   -> WorkflowIR validation
   -> Loop-style self-verifiable execution profile
   -> lesson distillation into docs
+  -> successful workflow distillation into `skills/workflows/`
   -> module promotion
   -> Skill improvement validation
 ```
@@ -147,7 +148,21 @@ Authority update
   applicability, non-applicability, and evidence refs.
 - Bulky process traces remain archive or evidence; durable facts land in docs.
 
-## SG-DWS-8: Module and Skill evolution
+## SG-DWS-8: Workflow Skill distillation
+
+- A synthesized workflow that completes normally and reaches its confirmed
+  acceptance condition must emit a project-local Skill artifact under
+  `skills/workflows/` describing the reusable workflow pattern.
+- During execution, workflow self-adjustments, loop notes, temporary scripts,
+  and generated WorkflowIR remain task-local byproducts.
+- The distillation pass filters the task-local material before writing the
+  reusable Skill, including applicability, non-applicability, required modules,
+  gates, loop limits, protected boundaries, and evidence refs.
+- Failed, blocked, interrupted, abandoned, or not-yet-accepted runs cannot
+  create reusable Skills; they may only create lessons, anti-patterns,
+  evidence, or rejected Skill material.
+
+## SG-DWS-9: Module and Skill evolution
 
 - Repeatedly useful task-local modules can be proposed as candidate reusable
   modules.
