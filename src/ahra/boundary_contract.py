@@ -123,6 +123,10 @@ class BoundaryContract:
     def digest(self) -> str:
         return canonical_fingerprint(self.to_mapping())
 
+    @property
+    def entry_ids(self) -> frozenset[str]:
+        return frozenset(entry.entry_id for entry in self.entries)
+
     def to_mapping(self) -> dict[str, Any]:
         return {
             "apiVersion": self.api_version,

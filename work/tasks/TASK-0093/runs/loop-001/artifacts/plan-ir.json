@@ -1,0 +1,130 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:8468cd739cc3f4f463b8e0d5c7c848525d053cfca90361d671699b99660448c5",
+    "planId": "PLAN-a2c93c1a17003a78",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:0093bbbb0093cccc0093dddd0093eeee0093ffff0093aaaa0093bbbb0093cccc",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-task-0093",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:0093aaaa0093bbbb0093cccc0093dddd0093eeee0093ffff0093aaaa0093bbbb",
+    "goalRef": "GOAL-LOOP-0093",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 10,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 50,
+          "maxWallSeconds": 2100
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:14f133c16e8f1111f52d3cd35ca02d71220215aaf439c90664697be5b08bbe03",
+            "resources": [
+              "src/ahra/alignment_session.py",
+              "src/ahra/boundary_contract.py",
+              "tests/test_alignment_session.py"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "grantDigest": "sha256:7129566cf0d099711d23e52e35c90791bf79f15bb3f549d751f99314bff20722",
+            "resources": [
+              "uv run python -B scripts/check.py"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0093"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "serial-drafting-change",
+            "schemaRef": "ahra/artifact/code-change/0.1"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+        ],
+        "gateRefs": [
+          "GATE-task-0093",
+          "GATE-task-0093-semantic-review"
+        ],
+        "id": "NODE-task-0093",
+        "inputRefs": [
+          "input/loop-0093@sha256:0093cccc0093dddd0093eeee0093ffff0093aaaa0093bbbb0093cccc0093dddd"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Implement TASK-0093 acceptance criteria in\nsrc/ahra/alignment_session.py. 1) draft_request runs the Acceptance\nAgent first, reading only the frozen boundary contract; every Claim\ncriterionRefs entry must reference a boundary entry ID; capture the\nClaimGraph sha256 digest in the session snapshot before the\nRequirement Agent is invoked. 2) The Requirement Agent payload\nincludes the boundary contract and the frozen ClaimGraph as\nread-only input; the accepted RequestDraft ClaimGraph must be\nbyte-identical to the frozen digest, and any divergence rejects the\ndraft as untrusted input. 3) A PlanDraft node claimRef that does not\nresolve to a claim ID in the frozen ClaimGraph rejects the draft\nwith a structured error naming the unresolved refs. Cover all three\nbehaviors with tests in tests/test_alignment_session.py. Run\nuv run python -B scripts/check.py and record it in\nWorkReport.verification_commands_run.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 2100
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0093"
+        ],
+        "dependsOn": [
+          "NODE-task-0093"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0093"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify acceptance-first serial drafting, ClaimGraph digest freeze, and claimRef resolution rejection are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ]
+  }
+}

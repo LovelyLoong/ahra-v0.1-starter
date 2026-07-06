@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import unittest
 from pathlib import Path
 
@@ -97,6 +98,83 @@ class AlignmentSessionManagerTests(unittest.TestCase):
             requirement_call.payload["requirementTrace"]["frozenRequirement"],
             "Write one governed deterministic summary artifact in the local workspace.",
         )
+
+    def test_draft_request_runs_acceptance_first_and_freezes_claim_graph_for_requirement(self) -> None:
+        driver = FakeAlignmentDriver()
+        manager = AlignmentSessionManager(driver)
+        snapshot = _frozen_snapshot(manager)
+
+        result = asyncio.run(manager.draft_request(snapshot))
+
+        draft_calls = [
+            call.expected_output
+            for call in driver.calls
+            if call.expected_output in {ACCEPTANCE_DRAFT_OUTPUT, REQUIREMENT_DRAFT_OUTPUT}
+        ]
+        self.assertEqual(draft_calls, [ACCEPTANCE_DRAFT_OUTPUT, REQUIREMENT_DRAFT_OUTPUT])
+        acceptance_call = next(call for call in driver.calls if call.expected_output == ACCEPTANCE_DRAFT_OUTPUT)
+        self.assertEqual(set(acceptance_call.payload), {"phase", "boundaryContract", "boundaryContractDigest"})
+        self.assertEqual(acceptance_call.payload["boundaryContractDigest"], snapshot.boundary_contract_digest)
+
+        requirement_call = next(call for call in driver.calls if call.expected_output == REQUIREMENT_DRAFT_OUTPUT)
+        frozen_claim_graph = result.request_draft.to_mapping()["spec"]["claimGraph"]
+        self.assertEqual(requirement_call.payload["frozenClaimGraph"], frozen_claim_graph)
+        self.assertEqual(requirement_call.payload["frozenClaimGraphDigest"], result.request_draft.claim_graph_digest)
+        self.assertEqual(requirement_call.payload["readOnlyInputs"]["claimGraph"], frozen_claim_graph)
+        self.assertEqual(result.snapshot.frozen_claim_graph_digest, result.request_draft.claim_graph_digest)
+
+        restored = AlignmentSessionSnapshot.from_mapping(result.snapshot.to_mapping())
+        self.assertEqual(restored.frozen_claim_graph_digest, result.snapshot.frozen_claim_graph_digest)
+
+    def test_acceptance_claim_criterion_refs_must_resolve_to_boundary_entries(self) -> None:
+        acceptance_output = copy.deepcopy(_acceptance_output())
+        acceptance_output["claimGraph"]["spec"]["claims"][0]["criterionRefs"] = ["CRIT-summary-artifact"]
+        driver = FakeAlignmentDriver(acceptance_output=acceptance_output)
+        manager = AlignmentSessionManager(driver)
+        snapshot = _frozen_snapshot(manager)
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            asyncio.run(manager.draft_request(snapshot))
+
+        self.assertEqual(raised.exception.code, "unresolved_boundary_criterion_refs")
+        self.assertEqual(raised.exception.ref, "claimGraph.spec.claims[].criterionRefs")
+        self.assertEqual(raised.exception.refs, ("CRIT-summary-artifact",))
+        self.assertEqual(
+            raised.exception.data["claimCriterionRefs"],
+            {"CLAIM-summary-artifact": ["CRIT-summary-artifact"]},
+        )
+
+    def test_requirement_output_falsey_present_claim_graph_divergence_is_rejected(self) -> None:
+        requirement_output = copy.deepcopy(_requirement_output())
+        requirement_output["claimGraph"] = {}
+        driver = FakeAlignmentDriver(requirement_output=requirement_output)
+        manager = AlignmentSessionManager(driver)
+        snapshot = _frozen_snapshot(manager)
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            asyncio.run(manager.draft_request(snapshot))
+
+        self.assertEqual(raised.exception.code, "frozen_claim_graph_digest_mismatch")
+        self.assertEqual(raised.exception.ref, "RequirementDraft.claimGraph")
+        self.assertEqual(
+            raised.exception.data["actualClaimGraphDigest"],
+            "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        )
+
+    def test_plan_draft_claim_ref_must_resolve_to_frozen_claim_graph(self) -> None:
+        requirement_output = copy.deepcopy(_requirement_output())
+        requirement_output["planDraft"]["spec"]["nodes"][0]["claimRefs"] = ["CLAIM-missing"]
+        driver = FakeAlignmentDriver(requirement_output=requirement_output)
+        manager = AlignmentSessionManager(driver)
+        snapshot = _frozen_snapshot(manager)
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            asyncio.run(manager.draft_request(snapshot))
+
+        self.assertEqual(raised.exception.code, "unresolved_plan_claim_refs")
+        self.assertEqual(raised.exception.ref, "planDraft.spec.nodes[].claimRefs")
+        self.assertEqual(raised.exception.refs, ("CLAIM-missing",))
+        self.assertEqual(raised.exception.data["nodeClaimRefs"], {"NODE-write-summary": ["CLAIM-missing"]})
 
     def test_run_emits_request_draft_after_explicit_requirement_approval(self) -> None:
         driver = FakeAlignmentDriver()
@@ -421,7 +499,7 @@ def _acceptance_output() -> dict[str, object]:
                         "id": "CLAIM-summary-artifact",
                         "type": "functional",
                         "statement": "A deterministic summary artifact is produced in the local workspace.",
-                        "criterionRefs": ["CRIT-summary-artifact"],
+                        "criterionRefs": ["BCE-COMPLETE-SUMMARY"],
                         "dependsOn": [],
                         "riskLevel": "R1",
                         "required": True,

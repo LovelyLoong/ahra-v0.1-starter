@@ -1,0 +1,181 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GoalExecutionRequest",
+  "metadata": {
+    "idempotencyKey": "loop:task-0093:serial-drafting:4",
+    "name": "loop-task-0093-serial-drafting-loop-004",
+    "requestId": "GREQ-LOOP-0093-RERUN-004"
+  },
+  "spec": {
+    "artifactDir": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0093\\runs\\loop-004\\artifacts",
+    "execution": {
+      "branch": "main",
+      "maxConcurrency": 1,
+      "maxRepairCycles": 0
+    },
+    "executor": {
+      "adapterRef": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    "gateRunner": {
+      "adapterRef": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "goal": {
+      "claimGraphDigest": "sha256:0093bbbb0093cccc0093dddd0093eeee0093ffff0093aaaa0093bbbb0093cccc",
+      "claimGraphRef": "claim-graph/loop-0093",
+      "goalDigest": "sha256:0093aaaa0093bbbb0093cccc0093dddd0093eeee0093ffff0093aaaa0093bbbb",
+      "goalRef": "GOAL-LOOP-0093",
+      "requiredClaimRefs": [
+        "CLM-GOAL-COMPLETE",
+        "CLM-TASK-0093"
+      ]
+    },
+    "planDraft": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanDraft",
+      "metadata": {
+        "goalId": "GOAL-LOOP-0093",
+        "proposedBy": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "spec": {
+        "nodes": [
+          {
+            "budgetRequest": {
+              "maxCostUsd": 1.0,
+              "maxModelCalls": 10,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 50,
+              "maxWallSeconds": 2100
+            },
+            "capabilityRequests": [
+              {
+                "capability": "filesystem.write",
+                "resources": [
+                  "src/ahra/alignment_session.py",
+                  "src/ahra/boundary_contract.py",
+                  "tests/test_alignment_session.py",
+                  "tests/test_workflow_a_cli.py"
+                ]
+              },
+              {
+                "capability": "process.exec",
+                "resources": [
+                  "uv run python -B scripts/check.py"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLM-TASK-0093"
+            ],
+            "dependsOn": [],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [
+                  "NODE-goal-verification"
+                ],
+                "name": "serial-drafting-change",
+                "schemaRef": "ahra/artifact/code-change/0.1"
+              }
+            ],
+            "gateRefs": [
+              "GATE-task-0093",
+              "GATE-task-0093-semantic-review"
+            ],
+            "id": "NODE-task-0093",
+            "inputRefs": [
+              "input/loop-0093@sha256:0093cccc0093dddd0093eeee0093ffff0093aaaa0093bbbb0093cccc0093dddd",
+              "work/tasks/TASK-0093/runs/loop-001/artifacts/bounded-task-executor/tasks/task-0093/attempt-1/review.json",
+              "work/tasks/TASK-0093/runs/loop-001/artifacts/bounded-task-executor/tasks/task-0093/terminal-failure.json",
+              "work/tasks/TASK-0093/runs/loop-002/artifacts/bounded-task-executor/tasks/task-0093/attempt-1/review.json",
+              "work/tasks/TASK-0093/runs/loop-002/artifacts/bounded-task-executor/tasks/task-0093/attempt-1/work-report.json",
+              "work/tasks/TASK-0093/runs/loop-002/artifacts/bounded-task-executor/tasks/task-0093/terminal-failure.json",
+              "work/tasks/TASK-0093/runs/loop-003/artifacts/bounded-task-executor/tasks/task-0093/attempt-1/deterministic-evidence.json",
+              "work/tasks/TASK-0093/runs/loop-003/artifacts/bounded-task-executor/tasks/task-0093/attempt-1/work-report.json",
+              "work/tasks/TASK-0093/runs/loop-003/artifacts/bounded-task-executor/tasks/task-0093/terminal-failure.json"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Implement TASK-0093 acceptance criteria in\nsrc/ahra/alignment_session.py and any needed helpers already granted\nfor this task. 1) draft_request runs the Acceptance Agent first,\nreading only the frozen boundary contract; every Claim criterionRefs\nentry must reference a boundary entry ID; capture the ClaimGraph\nsha256 digest in the session snapshot before the Requirement Agent\nis invoked. 2) The Requirement Agent payload includes the boundary\ncontract and the frozen ClaimGraph as read-only input; the accepted\nRequestDraft ClaimGraph must be byte-identical to the frozen digest,\nand any divergence rejects the draft as untrusted input. This guard\nmust detect present falsey values such as an empty claimGraph mapping\ninstead of treating them as absent. 3) A PlanDraft node claimRef that\ndoes not resolve to a claim ID in the frozen ClaimGraph rejects the\ndraft with a structured error naming the unresolved refs. Cover all\nthree behaviors with tests in tests/test_alignment_session.py,\nincluding the falsey-present claimGraph divergence case from\nloop-001 review. Prefer the loop-002 patch because it passed the full\nuv run python -B scripts/check.py command; do not reintroduce the\nloop-003 deterministic failure. If the final behavior legitimately\nchanges Workflow A CLI timeout evidence from RequirementDraft to\nAcceptanceDraft, update tests/test_workflow_a_cli.py consistently.\nPreserve the loop-002 fix if it is still correct.\nThe Workflow B Task reviewer contract requires ReviewResult.criteria\nto include an item whose criterion field is exactly CLM-TASK-0093;\nthe reviewer may add supplemental criteria, but must not omit that\nexact criterion. Run uv run python -B scripts/check.py and record it\nin WorkReport.verification_commands_run.\n",
+            "retryPolicy": {
+              "idempotencyKeyRequired": true,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "mutating",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 2100
+          },
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 1,
+              "maxWallSeconds": 60
+            },
+            "capabilityRequests": [],
+            "claimRefs": [
+              "CLM-GOAL-COMPLETE",
+              "CLM-TASK-0093"
+            ],
+            "dependsOn": [
+              "NODE-task-0093"
+            ],
+            "expectedOutputs": [],
+            "gateRefs": [
+              "GATE-goal-complete"
+            ],
+            "id": "NODE-goal-verification",
+            "inputRefs": [
+              "NODE-task-0093"
+            ],
+            "nodeType": "goal_verification",
+            "objective": "Verify acceptance-first serial drafting, ClaimGraph digest freeze, Requirement Agent ClaimGraph divergence rejection including falsey-present values, and claimRef resolution rejection are present and consistent.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": true,
+            "timeoutSeconds": 60
+          }
+        ],
+        "rationale": "Workflow A v2, step 2 of 3 (ADR-0010). Per work/tasks/TASK-0093/task.md:\ndraft_request must become acceptance-first serial - Acceptance Agent\ndrafts the ClaimGraph from the frozen boundary contract, the ClaimGraph\nis digest-frozen, then the Requirement Agent drafts the PlanDraft with\nread-only visibility of the frozen ClaimGraph. HEAD includes the\nTASK-0092 boundary-contract baseline commit 73fd451. Loop-002 produced\nan implementation that passed uv run python -B scripts/check.py, but the\nTask reviewer omitted the exact CLM-TASK-0093 criterion label. Loop-003\nthen exposed a narrower test-sync issue by changing behavior that made\ntests/test_workflow_a_cli.py still expect RequirementDraft for a timeout\nthat is now acceptance-first. This loop-004 run should prefer the\nloop-002 implementation shape where it remains correct, preserve full\ntest pass, and ensure the reviewer assesses the exact CLM-TASK-0093\ncriterion string in ReviewResult.\n"
+      }
+    },
+    "planner": {
+      "adapterRef": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "profileRef": "profile/development-bounded",
+    "registry": {
+      "allowedCapabilities": [
+        "filesystem.write",
+        "process.exec"
+      ],
+      "gateDefinitions": [],
+      "gateRefs": {
+        "GATE-goal-complete": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "GATE-task-0093": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "GATE-task-0093-semantic-review": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "nodeTypes": {
+        "bounded_task": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "goal_verification": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "runtimeRefs": {
+        "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    },
+    "runtime": {
+      "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "store": {
+      "kind": "sqlite",
+      "path": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0093\\runs\\loop-004\\goal-control.sqlite3"
+    },
+    "workspaceRef": "E:\\ahra-v0.1-starter"
+  }
+}

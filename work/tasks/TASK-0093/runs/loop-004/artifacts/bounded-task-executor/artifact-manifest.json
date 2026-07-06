@@ -1,0 +1,60 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0093",
+  "artifacts": [
+    {
+      "artifact_id": "ART-1aec8ef62c1549269389a44e734c7e40",
+      "task_id": "task-0093",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/task-0093/attempt-1/patch.diff",
+      "sha256": "a7951d793a4641f3b7090cc9ff289c8f652b6fe1ecbd56020adc7c46067805fe",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-06T07:17:16.766261Z",
+      "input_refs": [
+        "task-0093",
+        "NRUN-ed29e38e3d6a762d"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-ae0f24a624fe40888945657c50e826ff",
+      "task_id": "task-0093",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/task-0093/attempt-1/work-report.json",
+      "sha256": "edf58b2b48e692794aa6c90cf5b14f815d6f7084548591f23e3f6ca6ed1dc8a0",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-06T07:17:16.768254Z",
+      "input_refs": [
+        "task-0093",
+        "NRUN-ed29e38e3d6a762d"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-c7003a8919b84a5d93eaaa29cec252ee",
+      "task_id": "task-0093",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-task-0093/node-run.json",
+      "sha256": "e1e734f81365c3fad481e444b76dfdb71964b5128f67a07a97506a8bd736de0c",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-06T07:17:53.440026Z",
+      "input_refs": [
+        "PLAN-1dec277a28e68d11",
+        "NODE-task-0093",
+        "NRUN-ed29e38e3d6a762d"
+      ],
+      "evidence_refs": [
+        "EVD-ebb7658cbea84c6f8f3449c5bab55cba"
+      ],
+      "supersedes": null
+    }
+  ]
+}

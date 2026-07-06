@@ -1,0 +1,109 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanDraft",
+  "metadata": {
+    "goalId": "GOAL-LOOP-0093",
+    "proposedBy": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "spec": {
+    "nodes": [
+      {
+        "budgetRequest": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 10,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 50,
+          "maxWallSeconds": 2100
+        },
+        "capabilityRequests": [
+          {
+            "capability": "filesystem.write",
+            "resources": [
+              "src/ahra/alignment_session.py",
+              "src/ahra/boundary_contract.py",
+              "tests/test_alignment_session.py"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "resources": [
+              "uv run python -B scripts/check.py"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0093"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "serial-drafting-change",
+            "schemaRef": "ahra/artifact/code-change/0.1"
+          }
+        ],
+        "gateRefs": [
+          "GATE-task-0093",
+          "GATE-task-0093-semantic-review"
+        ],
+        "id": "NODE-task-0093",
+        "inputRefs": [
+          "input/loop-0093@sha256:0093cccc0093dddd0093eeee0093ffff0093aaaa0093bbbb0093cccc0093dddd",
+          "work/tasks/TASK-0093/runs/loop-001/artifacts/bounded-task-executor/tasks/task-0093/attempt-1/review.json",
+          "work/tasks/TASK-0093/runs/loop-001/artifacts/bounded-task-executor/tasks/task-0093/terminal-failure.json"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Implement TASK-0093 acceptance criteria in\nsrc/ahra/alignment_session.py and any needed helpers already granted\nfor this task. 1) draft_request runs the Acceptance Agent first,\nreading only the frozen boundary contract; every Claim criterionRefs\nentry must reference a boundary entry ID; capture the ClaimGraph\nsha256 digest in the session snapshot before the Requirement Agent\nis invoked. 2) The Requirement Agent payload includes the boundary\ncontract and the frozen ClaimGraph as read-only input; the accepted\nRequestDraft ClaimGraph must be byte-identical to the frozen digest,\nand any divergence rejects the draft as untrusted input. This guard\nmust detect present falsey values such as an empty claimGraph mapping\ninstead of treating them as absent. 3) A PlanDraft node claimRef that\ndoes not resolve to a claim ID in the frozen ClaimGraph rejects the\ndraft with a structured error naming the unresolved refs. Cover all\nthree behaviors with tests in tests/test_alignment_session.py,\nincluding the falsey-present claimGraph divergence case from\nloop-001 review. Run uv run python -B scripts/check.py and record it\nin WorkReport.verification_commands_run.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 2100
+      },
+      {
+        "budgetRequest": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "capabilityRequests": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0093"
+        ],
+        "dependsOn": [
+          "NODE-task-0093"
+        ],
+        "expectedOutputs": [],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0093"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify acceptance-first serial drafting, ClaimGraph digest freeze, Requirement Agent ClaimGraph divergence rejection including falsey-present values, and claimRef resolution rejection are present and consistent.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ],
+    "rationale": "Workflow A v2, step 2 of 3 (ADR-0010). Per work/tasks/TASK-0093/task.md:\ndraft_request must become acceptance-first serial - Acceptance Agent\ndrafts the ClaimGraph from the frozen boundary contract, the ClaimGraph\nis digest-frozen, then the Requirement Agent drafts the PlanDraft with\nread-only visibility of the frozen ClaimGraph. HEAD includes the\nTASK-0092 boundary-contract baseline commit 73fd451. This loop-002 run\nmust also address the loop-001 semantic-review rejection: a Requirement\nAgent claimGraph key that is present but falsey, including an empty\nmapping, must still be validated and rejected when its digest diverges\nfrom the frozen ClaimGraph.\n"
+  }
+}

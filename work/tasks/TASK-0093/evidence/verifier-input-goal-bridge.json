@@ -1,0 +1,97 @@
+{
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "task_id": "TASK-0093",
+  "verifier": "agent:independent-verifier",
+  "decision": "approve",
+  "summary": "Verifier maps TASK-0093 acceptance criteria to the succeeded Workflow B loop-004 GoalExecution kernel EvidenceV2/GateRun records.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-12fb34d633d1ae1f",
+        "EVD-89ad6b4c043493aa",
+        "EVD-9c1b674f0ff3f315"
+      ],
+      "command_refs": [
+        "CMD-task-0093-check"
+      ],
+      "notes": "Workflow B loop-004 runs AcceptanceDraft before RequirementDraft, freezes the ClaimGraph digest in the session snapshot before RequirementDraft, and validates Claim criterionRefs against boundary entry IDs with focused tests."
+    },
+    {
+      "criterion_index": 2,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-12fb34d633d1ae1f",
+        "EVD-89ad6b4c043493aa",
+        "EVD-9c1b674f0ff3f315"
+      ],
+      "command_refs": [
+        "CMD-task-0093-check"
+      ],
+      "notes": "Workflow B loop-004 passes the boundary contract and frozen ClaimGraph as read-only RequirementDraft input and rejects RequirementDraft ClaimGraph divergence, including present falsey claimGraph values."
+    },
+    {
+      "criterion_index": 3,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-12fb34d633d1ae1f",
+        "EVD-89ad6b4c043493aa",
+        "EVD-9c1b674f0ff3f315"
+      ],
+      "command_refs": [
+        "CMD-task-0093-check"
+      ],
+      "notes": "Workflow B loop-004 rejects PlanDraft node claimRefs that do not resolve to frozen ClaimGraph claim IDs and reports unresolved refs through structured errors."
+    },
+    {
+      "criterion_index": 4,
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-12fb34d633d1ae1f",
+        "EVD-89ad6b4c043493aa",
+        "EVD-9c1b674f0ff3f315"
+      ],
+      "notes": "Workflow B loop-004 GoalExecution GEXEC-16dd68a086f28320 succeeded with kernel-derived completion, deterministic checks, and semantic review before this independent AWKP EvidenceGate review."
+    }
+  ],
+  "commands": [
+    {
+      "command_id": "CMD-task-0093-check",
+      "command": "uv run python -B scripts/check.py",
+      "status": "passed",
+      "criterion_indices": [
+        1,
+        2,
+        3
+      ],
+      "evidence_refs": [
+        "EVD-12fb34d633d1ae1f"
+      ]
+    }
+  ],
+  "semantic_reviews": [
+    {
+      "review_id": "SEM-TASK-0093-0001",
+      "status": "passed",
+      "reviewer": "agent:independent-verifier",
+      "criterion_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "changed_files": [
+        "src/ahra/alignment_session.py",
+        "src/ahra/boundary_contract.py",
+        "tests/test_alignment_session.py",
+        "tests/test_workflow_a_cli.py"
+      ],
+      "changed_files_sha256": "sha256:510b851394330ce50c946fca309890862c8a247a3a365c1eea43bdb7e36e24fa",
+      "verified_changed_files_sha256": "sha256:510b851394330ce50c946fca309890862c8a247a3a365c1eea43bdb7e36e24fa",
+      "evidence_refs": [
+        "EVD-89ad6b4c043493aa"
+      ]
+    }
+  ]
+}

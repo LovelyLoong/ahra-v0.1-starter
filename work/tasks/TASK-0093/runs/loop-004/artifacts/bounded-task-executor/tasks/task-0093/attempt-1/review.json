@@ -1,0 +1,45 @@
+{
+  "verdict": "pass",
+  "summary": "All listed acceptance criteria have explicit evidence in the work report, policy evidence, deterministic checks, and patch. The patch implements acceptance-first drafting, freezes and digests the ClaimGraph before RequirementDraft, rejects falsey-present ClaimGraph divergence, validates PlanDraft claimRefs against frozen claims, and includes targeted tests plus the required full check run.",
+  "criteria": [
+    {
+      "criterion": "CLM-TASK-0093",
+      "passed": true,
+      "evidence": "Patch changes src/ahra/alignment_session.py to run ACCEPTANCE_DRAFT_OUTPUT before REQUIREMENT_DRAFT_OUTPUT, pass only boundaryContract/boundaryContractDigest to AcceptanceDraft, store frozenClaimGraph/frozenClaimGraphDigest in the snapshot, pass frozenClaimGraph/readOnlyInputs to RequirementDraft, reject RequirementDraft claimGraph/claim_graph divergence including present falsey values, and reject unresolved PlanDraft claimRefs. tests/test_alignment_session.py adds tests for acceptance-first freeze, boundary criterionRefs, falsey-present claimGraph divergence, and unresolved plan claimRefs. Deterministic evidence shows uv run python -B scripts/check.py exited 0 with these tests passing.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/alignment_session.py",
+      "passed": true,
+      "evidence": "Artifact existence check for src/ahra/alignment_session.py passed with exit_code 0, and patch excerpt shows substantive modifications to AlignmentSessionSnapshot, draft_request, RequestDraft assembly, and validation helpers.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/boundary_contract.py",
+      "passed": true,
+      "evidence": "Artifact existence check for src/ahra/boundary_contract.py passed with exit_code 0, and patch excerpt shows the added BoundaryContract.entry_ids helper.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_alignment_session.py",
+      "passed": true,
+      "evidence": "Artifact existence check for tests/test_alignment_session.py passed with exit_code 0, and patch excerpt shows added TASK-0093 regression tests. Deterministic output reports the relevant test_alignment_session cases passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_workflow_a_cli.py",
+      "passed": true,
+      "evidence": "Artifact existence check for tests/test_workflow_a_cli.py passed with exit_code 0, and patch excerpt shows the Workflow A timeout expectation updated from RequirementDraft to AcceptanceDraft. Deterministic output reports test_draft_timeout_writes_structured_resumable_snapshot passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: serial-drafting-change",
+      "passed": true,
+      "evidence": "WorkReport.changed_files lists only the four granted files, policy evidence reports those same changed files with no violations, and patch_text provides the serial drafting code change. WorkReport.verification_commands_run records uv run python -B scripts/check.py, matching the required verification command, and deterministic evidence shows it passed.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [],
+  "non_blocking_issues": [],
+  "confidence": 0.89
+}

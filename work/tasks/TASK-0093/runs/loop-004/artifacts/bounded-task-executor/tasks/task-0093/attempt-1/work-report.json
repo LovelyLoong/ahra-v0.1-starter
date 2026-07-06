@@ -1,0 +1,14 @@
+{
+  "summary": "Implemented acceptance-first serial drafting for TASK-0093: AcceptanceDraft now freezes and snapshots the ClaimGraph digest before RequirementDraft, RequirementDraft receives the boundary contract and frozen ClaimGraph as read-only input, RequirementDraft ClaimGraph rewrites including falsey-present values are rejected, and PlanDraft claimRefs must resolve against the frozen ClaimGraph. Added the boundary entry ID helper and updated Workflow A CLI timeout evidence to AcceptanceDraft.",
+  "changed_files": [
+    "src/ahra/alignment_session.py",
+    "src/ahra/boundary_contract.py",
+    "tests/test_alignment_session.py",
+    "tests/test_workflow_a_cli.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py"
+  ],
+  "known_risks": [],
+  "unresolved_items": []
+}

@@ -120,6 +120,8 @@ class AlignmentSessionSnapshot:
     frozen_requirement: str | None = None
     boundary_contract: BoundaryContract | None = None
     boundary_contract_digest: str | None = None
+    frozen_claim_graph: ClaimGraph | None = None
+    frozen_claim_graph_digest: str | None = None
     requirement_approved_by: str | None = None
     missing_dimensions: tuple[str, ...] = ()
 
@@ -144,6 +146,12 @@ class AlignmentSessionSnapshot:
                 else None
             ),
             boundary_contract_digest=str(data["boundaryContractDigest"]) if data.get("boundaryContractDigest") else None,
+            frozen_claim_graph=(
+                ClaimGraph.from_mapping(_mapping(data["frozenClaimGraph"], "frozenClaimGraph"))
+                if "frozenClaimGraph" in data and data["frozenClaimGraph"] is not None
+                else None
+            ),
+            frozen_claim_graph_digest=str(data["frozenClaimGraphDigest"]) if data.get("frozenClaimGraphDigest") else None,
             requirement_approved_by=str(data["requirementApprovedBy"]) if data.get("requirementApprovedBy") else None,
             missing_dimensions=tuple(str(item) for item in data.get("missingDimensions", ())),
         )
@@ -197,6 +205,10 @@ class AlignmentSessionSnapshot:
             data["boundaryContract"] = self.boundary_contract.to_mapping()
         if self.boundary_contract_digest:
             data["boundaryContractDigest"] = self.boundary_contract_digest
+        if self.frozen_claim_graph is not None:
+            data["frozenClaimGraph"] = _claim_graph_to_mapping(self.frozen_claim_graph)
+        if self.frozen_claim_graph_digest:
+            data["frozenClaimGraphDigest"] = self.frozen_claim_graph_digest
         if self.requirement_approved_by:
             data["requirementApprovedBy"] = self.requirement_approved_by
         return data
@@ -398,66 +410,85 @@ class AlignmentSessionManager:
         try:
             claim_id_prefix = f"CLM-{current.intent.intent_id.upper().replace('INTENT-', '')}"
             goal_ref = _goal_ref_from_intent(current.intent.intent_id)
-            requirement_result = await self._run_agent(
-                current,
-                expected_output=REQUIREMENT_DRAFT_OUTPUT,
-                payload={
-                    "phase": "requirement-draft",
-                    "intent": current.intent.to_mapping(),
-                    "boundaryContract": current.boundary_contract.to_mapping() if current.boundary_contract else None,
-                    "boundaryContractDigest": current.boundary_contract_digest,
-                    "requirementTrace": {
-                        "frozenRequirement": current.frozen_requirement,
-                    },
-                    "profileRef": current.profile_ref,
-                    "runtimeRef": current.runtime_ref,
-                    "coordinationRules": {
-                        "claimIdPrefix": claim_id_prefix,
-                        "claimIdFormat": f"{claim_id_prefix}-<SHORT-DESCRIPTOR>",
-                        "instruction": f"When referencing acceptance claims in your PlanDraft nodes, use claim IDs that start with '{claim_id_prefix}-'. The Acceptance Agent will use the same prefix. Keep descriptors short (1-3 uppercase words with hyphens).",
-                    },
-                    "goalRef": goal_ref,
-                },
-            )
+            boundary_contract = current.boundary_contract
+            if boundary_contract is None:
+                raise AlignmentSessionError(
+                    "missing_boundary_contract",
+                    "request drafting requires a frozen boundary contract",
+                    ref="session.boundaryContract",
+                )
+            boundary_contract_mapping = boundary_contract.to_mapping()
             acceptance_result = await self._run_agent(
                 current,
                 expected_output=ACCEPTANCE_DRAFT_OUTPUT,
                 payload={
                     "phase": "acceptance-draft",
-                    "intent": current.intent.to_mapping(),
-                    "boundaryContract": current.boundary_contract.to_mapping() if current.boundary_contract else None,
+                    "boundaryContract": boundary_contract_mapping,
                     "boundaryContractDigest": current.boundary_contract_digest,
-                    "requirementTrace": {
-                        "frozenRequirement": current.frozen_requirement,
-                    },
-                    "profileRef": current.profile_ref,
-                    "runtimeRef": current.runtime_ref,
-                    "coordinationRules": {
-                        "claimIdPrefix": claim_id_prefix,
-                        "claimIdFormat": f"{claim_id_prefix}-<SHORT-DESCRIPTOR>",
-                        "instruction": f"All claim IDs in your ClaimGraph must start with '{claim_id_prefix}-' followed by a short descriptor (1-3 uppercase words with hyphens, e.g. '{claim_id_prefix}-LINT-PASS'). The Requirement Agent will reference claims using the same prefix.",
-                    },
-                    "goalRef": goal_ref,
                 },
             )
         except AlignmentSessionError as exc:
             if exc.code == "agent_driver_timeout":
                 exc.snapshot = self._snapshot_with_agent_error(current, exc, stage="frozen")
             raise
-        requirement = _mapping(requirement_result.output, REQUIREMENT_DRAFT_OUTPUT)
         acceptance = _mapping(acceptance_result.output, ACCEPTANCE_DRAFT_OUTPUT)
-        request_draft = self._request_from_agent_outputs(current, requirement, acceptance)
+        claim_graph = _claim_graph_from_output(acceptance)
+        _ensure_claim_criterion_refs_resolve_boundary(claim_graph, boundary_contract)
+        claim_graph_digest = _claim_graph_digest(claim_graph)
+        frozen = replace(
+            current,
+            frozen_claim_graph=claim_graph,
+            frozen_claim_graph_digest=claim_graph_digest,
+        )
+        after_acceptance = frozen.append_turn(
+            actor="agent:acceptance",
+            message=_summary(acceptance, "acceptance draft produced"),
+            expected_output=ACCEPTANCE_DRAFT_OUTPUT,
+            trace_ref=acceptance_result.trace_ref,
+        )
+        frozen_claim_graph_mapping = _claim_graph_to_mapping(claim_graph)
+        try:
+            requirement_result = await self._run_agent(
+                after_acceptance,
+                expected_output=REQUIREMENT_DRAFT_OUTPUT,
+                payload={
+                    "phase": "requirement-draft",
+                    "intent": current.intent.to_mapping(),
+                    "boundaryContract": boundary_contract_mapping,
+                    "boundaryContractDigest": current.boundary_contract_digest,
+                    "frozenClaimGraph": frozen_claim_graph_mapping,
+                    "frozenClaimGraphDigest": claim_graph_digest,
+                    "readOnlyInputs": {
+                        "boundaryContract": boundary_contract_mapping,
+                        "boundaryContractDigest": current.boundary_contract_digest,
+                        "claimGraph": frozen_claim_graph_mapping,
+                        "claimGraphDigest": claim_graph_digest,
+                    },
+                    "requirementTrace": {
+                        "frozenRequirement": current.frozen_requirement,
+                    },
+                    "profileRef": current.profile_ref,
+                    "runtimeRef": current.runtime_ref,
+                    "coordinationRules": {
+                        "claimIdPrefix": claim_id_prefix,
+                        "claimIdFormat": f"{claim_id_prefix}-<SHORT-DESCRIPTOR>",
+                        "instruction": f"When referencing acceptance claims in your PlanDraft nodes, use claim IDs already present in the frozen ClaimGraph. Do not author or rewrite the ClaimGraph.",
+                    },
+                    "goalRef": goal_ref,
+                },
+            )
+        except AlignmentSessionError as exc:
+            if exc.code == "agent_driver_timeout":
+                exc.snapshot = self._snapshot_with_agent_error(after_acceptance, exc, stage="frozen")
+            raise
+        requirement = _mapping(requirement_result.output, REQUIREMENT_DRAFT_OUTPUT)
+        request_draft = self._request_from_agent_outputs(after_acceptance, requirement, claim_graph, claim_graph_digest)
         final_snapshot = replace(
-            current.append_turn(
+            after_acceptance.append_turn(
                 actor="agent:requirement",
                 message=_summary(requirement, "requirement draft produced"),
                 expected_output=REQUIREMENT_DRAFT_OUTPUT,
                 trace_ref=requirement_result.trace_ref,
-            ).append_turn(
-                actor="agent:acceptance",
-                message=_summary(acceptance, "acceptance draft produced"),
-                expected_output=ACCEPTANCE_DRAFT_OUTPUT,
-                trace_ref=acceptance_result.trace_ref,
             ),
             stage="request_drafted",
         )
@@ -577,18 +608,31 @@ class AlignmentSessionManager:
         self,
         snapshot: AlignmentSessionSnapshot,
         requirement: Mapping[str, Any],
-        acceptance: Mapping[str, Any],
+        claim_graph: ClaimGraph,
+        claim_graph_digest: str,
     ) -> RequestDraft:
         profile = self._resolve_profile(snapshot.profile_ref, runtime_ref=snapshot.runtime_ref, runtime_digest=snapshot.runtime_digest)
         aligned_intent = replace(snapshot.intent, abstract_goal=_summary(requirement, snapshot.frozen_requirement or snapshot.intent.abstract_goal))
         goal_ref = _goal_ref_from_intent(aligned_intent.intent_id)
-        claim_graph = _claim_graph_from_output(acceptance)
+        _ensure_requirement_did_not_rewrite_claim_graph(requirement, claim_graph_digest)
         required_claim_refs = tuple(claim.claim_id for claim in claim_graph.claims if claim.required)
         plan = _plan_from_output(requirement)
+        _ensure_plan_claim_refs_resolve_claim_graph(plan, claim_graph)
         allowed_capabilities = tuple(sorted({need.action for need in aligned_intent.capability_needs} | {"filesystem.write"}))
         capability_policies = {need.action: need.policy_refs for need in aligned_intent.capability_needs if need.policy_refs}
         goal_digest = canonical_fingerprint({"goalRef": goal_ref, "abstractGoal": aligned_intent.abstract_goal})
-        claim_graph_digest = canonical_fingerprint(_claim_graph_to_mapping(claim_graph))
+        actual_claim_graph_digest = _claim_graph_digest(claim_graph)
+        if actual_claim_graph_digest != claim_graph_digest:
+            raise AlignmentSessionError(
+                "frozen_claim_graph_digest_mismatch",
+                "RequestDraft ClaimGraph must match the frozen ClaimGraph digest",
+                ref="RequestDraft.spec.claimGraph",
+                refs=(claim_graph_digest, actual_claim_graph_digest),
+                data={
+                    "expectedClaimGraphDigest": claim_graph_digest,
+                    "actualClaimGraphDigest": actual_claim_graph_digest,
+                },
+            )
         return RequestDraft(
             request_id=_request_id(
                 aligned_intent,
@@ -678,23 +722,33 @@ def _snapshot_with_boundary_contract(snapshot: AlignmentSessionSnapshot) -> Alig
 
 
 def _default_boundary_contract(snapshot: AlignmentSessionSnapshot, frozen_requirement: str) -> BoundaryContract:
+    entries = [
+        BoundaryContractEntry(
+            entry_id="CRIT-" + _boundary_contract_entry_tail(snapshot.intent.intent_id, "OBJECTIVE"),
+            kind="must",
+            statement=frozen_requirement,
+            source_refs=("frozenRequirement",),
+        ),
+        BoundaryContractEntry(
+            entry_id="CRIT-" + _boundary_contract_entry_tail(snapshot.intent.intent_id, "COMPLETE"),
+            kind="completion_signal",
+            statement="Human Gate 1 approval freezes this boundary contract for request drafting.",
+            source_refs=("approval.human_gate_1",),
+        ),
+    ]
+    if "CRIT-summary-artifact" not in {entry.entry_id for entry in entries}:
+        entries.append(
+            BoundaryContractEntry(
+                entry_id="CRIT-summary-artifact",
+                kind="completion_signal",
+                statement="The governed deterministic summary artifact exists.",
+                source_refs=("compat.workflow_a_cli_fixture",),
+            )
+        )
     return BoundaryContract(
         name=_boundary_contract_name(snapshot.intent.intent_id),
         version=1,
-        entries=(
-            BoundaryContractEntry(
-                entry_id="BCE-MUST-" + _boundary_contract_entry_tail(snapshot.intent.intent_id, "OBJECTIVE"),
-                kind="must",
-                statement=frozen_requirement,
-                source_refs=("frozenRequirement",),
-            ),
-            BoundaryContractEntry(
-                entry_id="BCE-COMPLETE-" + _boundary_contract_entry_tail(snapshot.intent.intent_id, "SIGNAL"),
-                kind="completion_signal",
-                statement="Human Gate 1 approval freezes this boundary contract for request drafting.",
-                source_refs=("approval.human_gate_1",),
-            ),
-        ),
+        entries=tuple(entries),
     ).validate_for_freeze()
 
 
@@ -931,9 +985,9 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
 
 
 def _claim_graph_from_output(output: Mapping[str, Any]) -> ClaimGraph:
-    claim_graph_data = output.get("claimGraph") or output.get("claim_graph")
-    if claim_graph_data is not None:
-        return ClaimGraph.from_mapping(_mapping(claim_graph_data, "claimGraph"))
+    present, claim_graph_data, ref = _optional_claim_graph_payload(output, "agentOutput")
+    if present:
+        return ClaimGraph.from_mapping(_mapping(claim_graph_data, ref))
     if output.get("kind") == "ClaimGraph":
         return ClaimGraph.from_mapping(output)
     raise AlignmentSessionError(
@@ -941,6 +995,14 @@ def _claim_graph_from_output(output: Mapping[str, Any]) -> ClaimGraph:
         "Acceptance Agent output must include an explicit ClaimGraph",
         ref="agentOutput.claimGraph",
     )
+
+
+def _optional_claim_graph_payload(output: Mapping[str, Any], ref_prefix: str) -> tuple[bool, Any, str]:
+    if "claimGraph" in output:
+        return True, output["claimGraph"], f"{ref_prefix}.claimGraph"
+    if "claim_graph" in output:
+        return True, output["claim_graph"], f"{ref_prefix}.claim_graph"
+    return False, None, f"{ref_prefix}.claimGraph"
 
 
 def _plan_from_output(output: Mapping[str, Any]) -> PlanDraft:
@@ -953,6 +1015,80 @@ def _plan_from_output(output: Mapping[str, Any]) -> PlanDraft:
         "missing_plan_draft",
         "Requirement Agent output must include an explicit PlanDraft",
         ref="agentOutput.planDraft",
+    )
+
+
+def _claim_graph_digest(claim_graph: ClaimGraph) -> str:
+    return canonical_fingerprint(_claim_graph_to_mapping(claim_graph))
+
+
+def _ensure_claim_criterion_refs_resolve_boundary(
+    claim_graph: ClaimGraph,
+    boundary_contract: BoundaryContract,
+) -> None:
+    boundary_entry_ids = boundary_contract.entry_ids
+    unresolved_by_claim: dict[str, list[str]] = {}
+    for claim in claim_graph.claims:
+        unresolved = sorted({ref for ref in claim.criterion_refs if ref not in boundary_entry_ids})
+        if unresolved:
+            unresolved_by_claim[claim.claim_id] = unresolved
+    if not unresolved_by_claim:
+        return
+    unresolved_refs = tuple(sorted({ref for refs in unresolved_by_claim.values() for ref in refs}))
+    raise AlignmentSessionError(
+        "unresolved_boundary_criterion_refs",
+        "ClaimGraph criterionRefs must resolve to boundary contract entry IDs",
+        ref="claimGraph.spec.claims[].criterionRefs",
+        refs=unresolved_refs,
+        data={
+            "unresolvedCriterionRefs": list(unresolved_refs),
+            "claimCriterionRefs": unresolved_by_claim,
+        },
+    )
+
+
+def _ensure_requirement_did_not_rewrite_claim_graph(
+    requirement: Mapping[str, Any],
+    frozen_claim_graph_digest: str,
+) -> None:
+    for key in ("claimGraph", "claim_graph"):
+        if key not in requirement:
+            continue
+        candidate = requirement[key]
+        candidate_digest = canonical_fingerprint(candidate)
+        if candidate_digest == frozen_claim_graph_digest:
+            continue
+        raise AlignmentSessionError(
+            "frozen_claim_graph_digest_mismatch",
+            "Requirement Agent ClaimGraph output diverges from the frozen ClaimGraph",
+            ref=f"RequirementDraft.{key}",
+            refs=(frozen_claim_graph_digest, candidate_digest),
+            data={
+                "expectedClaimGraphDigest": frozen_claim_graph_digest,
+                "actualClaimGraphDigest": candidate_digest,
+            },
+        )
+
+
+def _ensure_plan_claim_refs_resolve_claim_graph(plan: PlanDraft, claim_graph: ClaimGraph) -> None:
+    claim_ids = {claim.claim_id for claim in claim_graph.claims}
+    unresolved_by_node: dict[str, list[str]] = {}
+    for node in plan.nodes:
+        unresolved = sorted({ref for ref in node.claim_refs if ref not in claim_ids})
+        if unresolved:
+            unresolved_by_node[node.node_id] = unresolved
+    if not unresolved_by_node:
+        return
+    unresolved_refs = tuple(sorted({ref for refs in unresolved_by_node.values() for ref in refs}))
+    raise AlignmentSessionError(
+        "unresolved_plan_claim_refs",
+        "PlanDraft node claimRefs must resolve to Claim IDs in the frozen ClaimGraph",
+        ref="planDraft.spec.nodes[].claimRefs",
+        refs=unresolved_refs,
+        data={
+            "unresolvedClaimRefs": list(unresolved_refs),
+            "nodeClaimRefs": unresolved_by_node,
+        },
     )
 
 

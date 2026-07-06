@@ -1,0 +1,72 @@
+{
+  "verdict": "fail",
+  "summary": "Reviewer output failed the deterministic review contract. Original summary: All listed acceptance criteria and the detailed TASK-0093 behavior have explicit patch, report, and deterministic evidence. The implementation stays within the granted files and the required verification command is recorded as passed.",
+  "criteria": [
+    {
+      "criterion": "CLM-TASK-0093 behavior: Acceptance Agent runs before Requirement Agent and reads only the frozen boundary contract.",
+      "passed": true,
+      "evidence": "Patch changes draft_request to invoke ACCEPTANCE_DRAFT_OUTPUT before REQUIREMENT_DRAFT_OUTPUT, with the acceptance payload containing only phase, boundaryContract, and boundaryContractDigest; tests assert drafting call order and absence of intent and requirementTrace in the acceptance payload.",
+      "concerns": []
+    },
+    {
+      "criterion": "Every Claim criterionRefs entry references a boundary entry ID before Requirement Agent invocation.",
+      "passed": true,
+      "evidence": "Patch adds BoundaryContract.entry_ids and _ensure_claim_criterion_refs_resolve_boundary, called immediately after Acceptance Agent output parsing and before Requirement Agent invocation; test_claim_criterion_refs_must_resolve_to_boundary_entries_before_requirement_agent verifies unresolved refs stop before the requirement call.",
+      "concerns": []
+    },
+    {
+      "criterion": "Frozen ClaimGraph sha256 digest is captured in the session snapshot before Requirement Agent invocation and passed to Requirement Agent as read-only input.",
+      "passed": true,
+      "evidence": "Patch adds frozen_claim_graph and frozen_claim_graph_digest to AlignmentSessionSnapshot, computes _claim_graph_digest after acceptance output, stores both before invoking Requirement Agent, and includes frozenClaimGraph/frozenClaimGraphDigest plus readOnlyInputs in the requirement payload; tests assert snapshot digest persistence and readOnlyInputs contents.",
+      "concerns": []
+    },
+    {
+      "criterion": "Requirement Agent ClaimGraph divergence, including falsey present claimGraph values, rejects the draft as untrusted input.",
+      "passed": true,
+      "evidence": "Patch adds _ensure_requirement_did_not_rewrite_claim_graph using key-presence checks rather than truthiness, so an empty mapping is hashed and compared; tests cover rewritten claimGraph and empty claimGraph cases with frozen_claim_graph_digest_mismatch.",
+      "concerns": []
+    },
+    {
+      "criterion": "PlanDraft node claimRef values must resolve to claim IDs in the frozen ClaimGraph, with structured unresolved ref errors.",
+      "passed": true,
+      "evidence": "Patch adds _ensure_plan_claim_refs_resolve_claim_graph, raising unresolved_plan_claim_refs with unresolvedClaimRefs and nodeClaimRefs data; test_plan_claim_refs_must_resolve_to_frozen_claim_graph verifies the structured error names the missing ref and node.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/alignment_session.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for src/ahra/alignment_session.py passed with exit_code 0, and patch text shows substantive changes in this file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/boundary_contract.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for src/ahra/boundary_contract.py passed with exit_code 0, and patch text shows the new entry_ids property in this file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_alignment_session.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check for tests/test_alignment_session.py passed with exit_code 0, and patch text shows new TASK-0093 regression tests in this file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: serial-drafting-change",
+      "passed": true,
+      "evidence": "WorkReport.changed_files lists the three granted files, policy evidence reports only those files changed with no violations, and patch_text contains the delivered code-change diff.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required verification command was run and recorded: uv run python -B scripts/check.py",
+      "passed": true,
+      "evidence": "WorkReport.verification_commands_run records uv run python -B scripts/check.py; deterministic check evidence for the same command completed with exit_code 0 and status passed after 349 tests.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [
+    "Reviewer PASS contains unpassed criteria: ['CLM-TASK-0093']",
+    "Reviewer omitted acceptance criteria: ['CLM-TASK-0093']"
+  ],
+  "non_blocking_issues": [],
+  "confidence": 0.9
+}

@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ahra.alignment_session import AlignmentSessionError, REQUIREMENT_DRAFT_OUTPUT
+from ahra.alignment_session import ACCEPTANCE_DRAFT_OUTPUT, AlignmentSessionError
 from ahra.ports import AgentRunRequest, AgentRunResult
 from ahra.workflow_a_cli import (
     WorkflowAFixtureDriver,
@@ -51,7 +51,7 @@ class WorkflowACliTests(unittest.TestCase):
                 )
 
             self.assertEqual(raised.exception.code, "agent_driver_timeout")
-            self.assertEqual(raised.exception.to_dict()["data"]["expectedOutput"], REQUIREMENT_DRAFT_OUTPUT)
+            self.assertEqual(raised.exception.to_dict()["data"]["expectedOutput"], ACCEPTANCE_DRAFT_OUTPUT)
             self.assertFalse(request_draft.exists())
 
             snapshot = read_snapshot(session_path=session)["snapshot"]

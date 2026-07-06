@@ -1,0 +1,64 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0093",
+  "evidence": [
+    {
+      "evidence_id": "EVD-f8096f8e4d3247ec9a9e780ca9c649e3",
+      "task_id": "task-0093",
+      "kind": "deterministic_gate",
+      "name": "deterministic-evidence.json",
+      "uri": "local://tasks/task-0093/attempt-1/deterministic-evidence.json",
+      "sha256": "34af8628add70abb13871fe1cb02af0087473c460557c1ab8ba4f54f2d2822d7",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-06T07:02:56.583589Z",
+      "refs": [
+        "ART-cbddbbf2726c43f59c70a912bbb0d5b2",
+        "ART-1afab9e81c774120bbe86d5ce3e7fa2d"
+      ]
+    },
+    {
+      "evidence_id": "EVD-a854808864f145babcf637ff6b9780a8",
+      "task_id": "task-0093",
+      "kind": "semantic_review",
+      "name": "review.json",
+      "uri": "local://tasks/task-0093/attempt-1/review.json",
+      "sha256": "a7c595fbd129720bb08378453d88c330bb558d5442c63396d51dd82b6ba4e5bb",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-06T07:02:56.586579Z",
+      "refs": [
+        "EVD-f8096f8e4d3247ec9a9e780ca9c649e3"
+      ]
+    },
+    {
+      "evidence_id": "EVD-a58fc409abba477889b2a72146a365b3",
+      "task_id": "task-0093",
+      "kind": "terminal_failure",
+      "name": "terminal-failure.json",
+      "uri": "local://tasks/task-0093/terminal-failure.json",
+      "sha256": "ff8aabf1e159d8cb965bf1dbe5962e386e2803c8808661307e29fa22f991e0b9",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-06T07:02:56.591563Z",
+      "refs": [
+        "ART-38d6d997da484cc291132d04f3f611fb"
+      ]
+    },
+    {
+      "evidence_id": "EVD-174cc09d17324b96a016ea56bff64598",
+      "task_id": "task-0093",
+      "kind": "node_gate_summary",
+      "name": "node-gates.json",
+      "uri": "local://nodes/NODE-task-0093/node-gates.json",
+      "sha256": "e3648c4e74f6db3e6b6691381af8b341ba705082b6c4466aef8ff9e8febab31d",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-06T07:02:56.595550Z",
+      "refs": [
+        "NODE-task-0093",
+        "PLAN-cd10b091f2328c21"
+      ]
+    }
+  ]
+}

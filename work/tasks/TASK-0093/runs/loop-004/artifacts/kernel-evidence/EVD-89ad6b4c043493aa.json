@@ -1,0 +1,62 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "Evidence",
+  "metadata": {
+    "evidenceId": "EVD-89ad6b4c043493aa"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLM-TASK-0093"
+    ],
+    "confidence": "verified",
+    "dependencies": [],
+    "dependencyScope": "complete",
+    "environment": {
+      "policyDigest": "sha256:9b64794badd43e9690d0cb6847ee26fd9ba52950743eedd6381606c529c43a94",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:8533c368ed0af81f3f65b5ea49810c325f5823df4e62501fa2990152f69a0855",
+      "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "fingerprint": "sha256:c42555618705619b00ffb381cbb6037864c5d75283660d3338e5dae92510d245",
+    "gateDefinitionDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "gateRef": "GATE-task-0093-semantic-review",
+    "gateRunId": "GATERUN-89ad6b4c043493aa",
+    "refs": [
+      "verifier:agent:independent-verifier",
+      "GATERUN-89ad6b4c043493aa"
+    ],
+    "result": "passed",
+    "subjects": [
+      {
+        "digest": "sha256:5a738d51c27d49dfec5f546419934514222dec4860012e3c0b4b0ec34ee2c1e0",
+        "ref": "ART-1aec8ef62c1549269389a44e734c7e40"
+      },
+      {
+        "digest": "sha256:f133078656e3735cb04f88a47dff0b52a8723270f04f5068cd9224e83ece00ec",
+        "ref": "ART-ae0f24a624fe40888945657c50e826ff"
+      },
+      {
+        "digest": "sha256:73343ab3aadfb1c3a702d9264ab4300be34a34de76875dbcf6f65de96fe2dceb",
+        "ref": "ART-c7003a8919b84a5d93eaaa29cec252ee"
+      },
+      {
+        "digest": "sha256:06818b5ef5818defdcc77b12775bf5ecf9b6315dd9ce1d8382994005b0f84e2e",
+        "ref": "EVD-3016cee24d424c19b4f1d535c16cb221"
+      },
+      {
+        "digest": "sha256:a072730f6066e8aae79ead6496aba487ee55ce88ef63f1923238989cc066274a",
+        "ref": "EVD-ebb7658cbea84c6f8f3449c5bab55cba"
+      },
+      {
+        "digest": "sha256:7a74496f74cc40a3ed7e4a9c237e2e44791ed3dc624c2ee526e20fb20852456a",
+        "ref": "EVD-ed2175e9fa8a400db9bb5b285c98806a"
+      }
+    ],
+    "supersedes": [],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

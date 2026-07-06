@@ -1,0 +1,54 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "NodeRun",
+  "metadata": {
+    "nodeRunId": "NRUN-841a8b0c60584129b173afca083a0f9d",
+    "planId": "PLAN-62526ef81d70b0ec",
+    "nodeId": "NODE-task-0093",
+    "executorRelease": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "spec": {
+    "nodeType": "bounded_task",
+    "status": "rejected",
+    "artifactRefs": [
+      "ART-7fb37689751b414ab9dd10b3aabc3718",
+      "ART-80c6000ffc8d46449eb9c57635f322d6",
+      "ART-dbc622f83a8841219ea3eb2986a59ece"
+    ],
+    "evidenceRefs": [
+      "EVD-93a40e86ab114688ac92a4d37b014752",
+      "EVD-5767d12c0bbf47e6987e1f902ec52685",
+      "EVD-afa355caa5ab4dffabfa5867ac58b270",
+      "EVD-ae00c87bb3f54577990e3811cf81cb06"
+    ],
+    "gateRefs": [
+      "GATE-task-0093",
+      "GATE-task-0093-semantic-review"
+    ],
+    "terminalFailureRefs": [
+      "tasks/task-0093/terminal-failure.json"
+    ],
+    "taskCompletedStateUpdateAttempted": false,
+    "usage": {
+      "modelCalls": 2,
+      "toolCalls": 2,
+      "spawnedNodes": 0,
+      "costUsd": 0.0
+    },
+    "message": "Task exhausted its bounded attempts; failed work was preserved in the workspace.",
+    "details": {
+      "taskId": "task-0093",
+      "taskStatus": "rejected",
+      "commit": null,
+      "semanticReviewEnabled": true,
+      "executionPolicy": {
+        "maxAttempts": 1,
+        "startupTimeoutSeconds": 120,
+        "idleTimeoutSeconds": 900,
+        "heartbeatIntervalSeconds": 60,
+        "attemptWallTimeoutSeconds": 2100,
+        "runDeadlineSeconds": 2100
+      }
+    }
+  }
+}
