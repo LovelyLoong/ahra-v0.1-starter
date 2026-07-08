@@ -1,0 +1,12 @@
+{
+  "approvalId": "APR-1d7c7ad449e4232f",
+  "decidedAt": "2026-07-08T08:43:33.407062Z",
+  "decisionBy": "human:maintainer",
+  "intentId": "INTENT-AHRA-ADOPTION-MODEL",
+  "producerActor": "agent:alignment-session",
+  "reason": "Human Gate 2 approved after reviewing the human-readable Gate 2 brief.",
+  "requestId": "REQ-1d7c7ad449e4232f",
+  "requestedAt": "2026-07-08T08:43:33.407062Z",
+  "requestedBy": "agent:alignment-session",
+  "status": "approved"
+}

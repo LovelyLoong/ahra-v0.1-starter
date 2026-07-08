@@ -1,0 +1,312 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: phase1-ahra-adoption-model
+  requestId: REQ-1d7c7ad449e4232f
+  idempotencyKey: phase1-ahra-adoption-model-001
+spec:
+  profileRef: profile/development-bounded
+  workspaceRef: E:\ahra-v0.1-starter
+  artifactDir: E:\ahra-v0.1-starter\artifacts\workflow-a-adoption-plan\20260708T000000-0700\workflow-b-artifacts
+  store:
+    kind: sqlite
+    path: E:\ahra-v0.1-starter\artifacts\workflow-a-adoption-plan\20260708T000000-0700\goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-AHRA-ADOPTION-MODEL-ALIGNED
+    goalDigest: sha256:90587d5671a65afc2551b70868305f2213db122c6c223233a6af2f66a7edc7d3
+    claimGraphRef: null
+    claimGraphDigest: sha256:d2c5253815ca9724a25b2bdb5e02eaa3eea0746ad12d6ec8038ffb1248c30f63
+    requiredClaimRefs:
+    - CLAIM-001
+    - CLAIM-002
+    - CLAIM-003
+    - CLAIM-004
+    - CLAIM-005
+    - CLAIM-006
+    - CLAIM-007
+    - CLAIM-008
+    - CLAIM-009
+    - CLAIM-010
+    - CLAIM-011
+    - CLAIM-012
+    - CLAIM-013
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-alignment-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
+      GATE-alignment-objective: sha256:3333333333333333333333333333333333333333333333333333333333333333
+    gateDefinitions: []
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+    - filesystem.write
+  execution:
+    maxRepairCycles: 0
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-AHRA-ADOPTION-MODEL-ALIGNED
+      proposedBy: planner
+    spec:
+      rationale: 'The plan is limited to the approved Human Gate 1 boundary: a concrete
+        architecture and rollout plan suitable for later AWKP tasks or Workflow B
+        GoalExecutionRequests, preserving AHRA package/runtime ownership, minimal
+        target-project overlay ownership, policy authority separation, strict init/adopt/doctor
+        scope, and explicit Human Gate 2 authorization before implementation.'
+      nodes:
+      - id: NODE-adoption-architecture-plan
+        nodeType: bounded_task
+        objective: Draft the concrete AHRA adoption architecture plan, explicitly
+          separating installable AHRA package and CLI responsibilities from target-project-owned
+          governance overlay responsibilities, with no implementation code.
+        claimRefs:
+        - CLAIM-001
+        - CLAIM-002
+        - CLAIM-003
+        - CLAIM-011
+        dependsOn: []
+        inputRefs:
+        - boundaryContractDigest:sha256:d1691ad7f083453ec6f8a788ae672b5483c4fd15bf8ee3634cddac6913b1be56
+        - claimGraphDigest:sha256:d2c5253815ca9724a25b2bdb5e02eaa3eea0746ad12d6ec8038ffb1248c30f63
+        - docs/architecture/authority-map.md
+        - docs/architecture/component-inventory.json
+        - docs/architecture/framework-entrypoints.md
+        - docs/architecture/intent-alignment-workflow.md
+        - docs/policies/component-lifecycle.md
+        expectedOutputs:
+        - name: adoption-architecture-plan
+          schemaRef: architecture-plan
+          consumerNodeRefs:
+          - NODE-adoption-rollout-plan
+          - NODE-terminal-alignment-verification
+          artifactRequired: true
+          deliveryRole: planner
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - docs/architecture/ahra-adoption-model.md
+          riskLevel: R2
+        gateRefs:
+        - GATE-alignment-objective
+        budgetRequest:
+          maxModelCalls: 3
+          maxToolCalls: 3
+          maxSpawnedNodes: 0
+          maxWallSeconds: 900
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        sideEffect: documentation_only
+        terminalGoalVerification: false
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        timeoutSeconds: 900
+      - id: NODE-policy-and-overlay-boundary
+        nodeType: bounded_task
+        objective: 'Define the policy and project overlay boundary: AHRA foundation
+          invariants from the installed AHRA version, machine-enforced project policy
+          in .ahra/policy.yaml, and human-readable explanation under docs/policies
+          without enforcement authority.'
+        claimRefs:
+        - CLAIM-005
+        - CLAIM-006
+        - CLAIM-009
+        dependsOn:
+        - NODE-adoption-architecture-plan
+        inputRefs:
+        - boundaryContractDigest:sha256:d1691ad7f083453ec6f8a788ae672b5483c4fd15bf8ee3634cddac6913b1be56
+        - docs/architecture/authority-map.md
+        - docs/policies/component-lifecycle.md
+        expectedOutputs:
+        - name: policy-authority-and-overlay-map
+          schemaRef: policy-authority-map
+          consumerNodeRefs:
+          - NODE-init-adopt-doctor-contract
+          - NODE-terminal-alignment-verification
+          artifactRequired: true
+          deliveryRole: planner
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - .ahra/project-template.yaml
+          - docs/policies/project-adoption-policy.md
+          riskLevel: R2
+        gateRefs:
+        - GATE-alignment-objective
+        budgetRequest:
+          maxModelCalls: 2
+          maxToolCalls: 3
+          maxSpawnedNodes: 0
+          maxWallSeconds: 900
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        sideEffect: documentation_only
+        terminalGoalVerification: false
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        timeoutSeconds: 900
+      - id: NODE-init-adopt-doctor-contract
+        nodeType: bounded_task
+        objective: 'Specify the exact project init, adopt, and doctor behavior: init
+          creates only the approved minimal overlay, adopt reports conflicts non-destructively,
+          and doctor validates AHRA overlay health only without running target project
+          business tests.'
+        claimRefs:
+        - CLAIM-004
+        - CLAIM-005
+        - CLAIM-007
+        - CLAIM-008
+        - CLAIM-010
+        dependsOn:
+        - NODE-policy-and-overlay-boundary
+        inputRefs:
+        - NODE-adoption-architecture-plan:adoption-architecture-plan
+        - NODE-policy-and-overlay-boundary:policy-authority-and-overlay-map
+        - boundaryContractDigest:sha256:d1691ad7f083453ec6f8a788ae672b5483c4fd15bf8ee3634cddac6913b1be56
+        expectedOutputs:
+        - name: init-adopt-doctor-command-contract
+          schemaRef: command-contract
+          consumerNodeRefs:
+          - NODE-adoption-rollout-plan
+          - NODE-terminal-alignment-verification
+          artifactRequired: true
+          deliveryRole: planner
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - .ahra/project-template.yaml
+          - docs/architecture/ahra-adoption-model.md
+          riskLevel: R2
+        gateRefs:
+        - GATE-alignment-objective
+        budgetRequest:
+          maxModelCalls: 2
+          maxToolCalls: 3
+          maxSpawnedNodes: 0
+          maxWallSeconds: 900
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        sideEffect: documentation_only
+        terminalGoalVerification: false
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        timeoutSeconds: 900
+      - id: NODE-adoption-rollout-plan
+        nodeType: bounded_task
+        objective: Draft the bounded rollout plan and Human Gate 2 authorization checklist
+          for later implementation tasks covering documentation, templates, project
+          config, CLI init/adopt/doctor behavior, and tests, while surfacing unresolved
+          policy decisions instead of choosing them silently.
+        claimRefs:
+        - CLAIM-001
+        - CLAIM-012
+        - CLAIM-013
+        dependsOn:
+        - NODE-adoption-architecture-plan
+        - NODE-init-adopt-doctor-contract
+        inputRefs:
+        - NODE-adoption-architecture-plan:adoption-architecture-plan
+        - NODE-init-adopt-doctor-contract:init-adopt-doctor-command-contract
+        - boundaryContractDigest:sha256:d1691ad7f083453ec6f8a788ae672b5483c4fd15bf8ee3634cddac6913b1be56
+        - intent.spec.capabilityNeeds
+        expectedOutputs:
+        - name: rollout-plan-and-human-gate-2-checklist
+          schemaRef: rollout-plan
+          consumerNodeRefs:
+          - NODE-terminal-alignment-verification
+          artifactRequired: true
+          deliveryRole: planner
+        capabilityRequests:
+        - capability: filesystem.write
+          resources:
+          - docs/architecture/ahra-adoption-model.md
+          riskLevel: R2
+        gateRefs:
+        - GATE-alignment-objective
+        budgetRequest:
+          maxModelCalls: 2
+          maxToolCalls: 3
+          maxSpawnedNodes: 0
+          maxWallSeconds: 900
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        sideEffect: documentation_only
+        terminalGoalVerification: false
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        timeoutSeconds: 900
+      - id: NODE-terminal-alignment-verification
+        nodeType: goal_verification
+        objective: Verify that the produced adoption architecture and rollout plan
+          satisfies every frozen claim and boundary entry in scope, uses only registered
+          gates and runtime references, does not introduce implementation scope, and
+          identifies Human Gate 2 approval needs before implementation.
+        claimRefs:
+        - CLAIM-001
+        - CLAIM-002
+        - CLAIM-003
+        - CLAIM-004
+        - CLAIM-005
+        - CLAIM-006
+        - CLAIM-007
+        - CLAIM-008
+        - CLAIM-009
+        - CLAIM-010
+        - CLAIM-011
+        - CLAIM-012
+        - CLAIM-013
+        dependsOn:
+        - NODE-adoption-architecture-plan
+        - NODE-adoption-rollout-plan
+        - NODE-init-adopt-doctor-contract
+        - NODE-policy-and-overlay-boundary
+        inputRefs:
+        - NODE-adoption-architecture-plan:adoption-architecture-plan
+        - NODE-adoption-rollout-plan:rollout-plan-and-human-gate-2-checklist
+        - NODE-init-adopt-doctor-contract:init-adopt-doctor-command-contract
+        - NODE-policy-and-overlay-boundary:policy-authority-and-overlay-map
+        - previousCrossAlignmentReport:CROSSALIGN-bbb847f14a3d908e
+        expectedOutputs:
+        - name: terminal-alignment-verification-report
+          schemaRef: alignment-verification-report
+          consumerNodeRefs: []
+          artifactRequired: true
+          deliveryRole: verifier
+        capabilityRequests: []
+        gateRefs:
+        - GATE-alignment-complete
+        budgetRequest:
+          maxModelCalls: 2
+          maxToolCalls: 2
+          maxSpawnedNodes: 0
+          maxWallSeconds: 600
+          maxCostUsd: 0.0
+        retryPolicy:
+          maxAttempts: 1
+          retryableFailureClasses: []
+          idempotencyKeyRequired: false
+        sideEffect: none
+        terminalGoalVerification: true
+        runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        timeoutSeconds: 600

@@ -436,6 +436,7 @@ class AlignmentSessionManager:
                         ref="session.boundaryContract",
                     )
                 boundary_contract_mapping = boundary_contract.to_mapping()
+                admission_contract = _draft_admission_contract(self.registry, drafting_snapshot, current.intent)
                 acceptance_result = await self._run_agent(
                     drafting_snapshot,
                     expected_output=ACCEPTANCE_DRAFT_OUTPUT,
@@ -443,6 +444,7 @@ class AlignmentSessionManager:
                         "phase": "acceptance-draft",
                         "boundaryContract": boundary_contract_mapping,
                         "boundaryContractDigest": drafting_snapshot.boundary_contract_digest,
+                        "admissionContract": admission_contract,
                         "redraftAttempt": redraft_attempt,
                         "previousCrossAlignmentReport": drafting_snapshot.cross_alignment_report,
                     },
@@ -477,11 +479,13 @@ class AlignmentSessionManager:
                         "boundaryContractDigest": drafting_snapshot.boundary_contract_digest,
                         "frozenClaimGraph": frozen_claim_graph_mapping,
                         "frozenClaimGraphDigest": claim_graph_digest,
+                        "admissionContract": admission_contract,
                         "readOnlyInputs": {
                             "boundaryContract": boundary_contract_mapping,
                             "boundaryContractDigest": drafting_snapshot.boundary_contract_digest,
                             "claimGraph": frozen_claim_graph_mapping,
                             "claimGraphDigest": claim_graph_digest,
+                            "admissionContract": admission_contract,
                         },
                         "requirementTrace": {
                             "frozenRequirement": current.frozen_requirement,
@@ -998,11 +1002,11 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
                                                 "type": "object",
                                                 "required": ["maxModelCalls", "maxToolCalls"],
                                                 "properties": {
-                                                    "maxModelCalls": {"type": "integer"},
-                                                    "maxToolCalls": {"type": "integer"},
-                                                    "maxSpawnedNodes": {"type": "integer"},
-                                                    "maxWallSeconds": {"type": "integer"},
-                                                    "maxCostUsd": {"type": "number"},
+                                                    "maxModelCalls": {"type": "integer", "minimum": 1},
+                                                    "maxToolCalls": {"type": "integer", "minimum": 1},
+                                                    "maxSpawnedNodes": {"type": "integer", "minimum": 0},
+                                                    "maxWallSeconds": {"type": "integer", "minimum": 1},
+                                                    "maxCostUsd": {"type": "number", "minimum": 0},
                                                 },
                                             },
                                             "retryPolicy": {
@@ -1084,6 +1088,38 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
     else:
         raise ValueError(f"unsupported alignment output contract: {expected_output}")
     return AgentOutputContract(name=expected_output, schema=schema, example=None)
+
+
+def _draft_admission_contract(
+    registry: RequestDraftRegistry,
+    snapshot: AlignmentSessionSnapshot,
+    intent: IntentDraft,
+) -> dict[str, Any]:
+    allowed_capabilities = sorted({need.action for need in intent.capability_needs} | {"filesystem.write"})
+    return {
+        "registeredNodeTypes": dict(sorted(registry.node_type_digests.items())),
+        "registeredGateRefs": dict(sorted(registry.gate_ref_digests.items())),
+        "registeredRuntimeRefs": {snapshot.runtime_ref: snapshot.runtime_digest},
+        "allowedCapabilities": allowed_capabilities,
+        "claimGraphRules": [
+            "Every Claim criterionRefs entry must reference a frozen boundary-contract entry of kind must, must_not, or completion_signal.",
+            "Claims must not reference free_zone boundary entries.",
+            "Claim gateRefs must be empty or use only keys from registeredGateRefs.",
+            "Do not invent HumanGate-1, HumanGate-2, planning gates, review gates, or any other gate name.",
+            "Human approval is represented by approvalRequired: true; it is not represented by a gateRef.",
+            "Every required Claim must either set approvalRequired: true or use at least one registered gateRef.",
+        ],
+        "planDraftRules": [
+            "Every PlanDraft nodeType must be one of the registeredNodeTypes keys.",
+            "Use bounded_task for normal planning or documentation work; use goal_verification only for terminal goal verification.",
+            "Every PlanDraft node gateRefs entry must use only keys from registeredGateRefs.",
+            "Every PlanDraft node must include at least one registered gateRef.",
+            "Do not invent HumanGate-1, HumanGate-2, planning, analysis, or human_gate node types.",
+            "Every budgetRequest.maxModelCalls and budgetRequest.maxToolCalls must be positive integers greater than or equal to 1.",
+            "Every budgetRequest.maxSpawnedNodes must be a non-negative integer.",
+            "Only request capabilities listed in allowedCapabilities.",
+        ],
+    }
 
 
 def _claim_graph_from_output(output: Mapping[str, Any]) -> ClaimGraph:

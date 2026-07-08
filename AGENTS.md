@@ -84,3 +84,14 @@ python -m ahra.cli goal start <development-request.yaml> --allow-development-age
 python -m ahra.cli fixture dynamic-repair --fixture tests/fixtures/dynamic-goal-project --report <report.json>
 make check
 ```
+
+<!-- evolver-evolution-memory -->
+## Evolution Memory (Evolver)
+
+This project uses evolver for self-evolution. Hooks automatically:
+1. Run quietly at session start and load recent evolution memory when useful
+2. Detect evolution signals during file edits
+3. Record outcomes at session end
+
+Use Evolver context only when it is directly relevant. Do not narrate routine Evolver checks, hook status, or empty recall/search results to the user.
+Signals: log_error, perf_bottleneck, user_feature_request, capability_gap, deployment_issue, test_failure.

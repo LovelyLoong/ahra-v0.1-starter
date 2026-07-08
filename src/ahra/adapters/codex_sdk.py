@@ -208,6 +208,16 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
             "the supplied alignment-session output contract exactly. Use the "
             "contract field names as written; do not wrap the object in another key."
         )
+        if isinstance(request.payload, dict) and "admissionContract" in request.payload:
+            role_instruction += (
+                " Treat payload.admissionContract as a hard admission boundary: "
+                "use only its registeredNodeTypes, registeredGateRefs, "
+                "registeredRuntimeRefs, and allowedCapabilities. Do not invent "
+                "node types, gate refs, runtime refs, or capability names. "
+                "Human approval is represented by approvalRequired true, not by "
+                "a synthetic HumanGate gateRef. Budgets must use positive "
+                "maxModelCalls and maxToolCalls."
+            )
 
     return (
         "You are an AHRA AgentDriver adapter.\n"

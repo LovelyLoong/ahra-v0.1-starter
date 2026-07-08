@@ -1,0 +1,764 @@
+{
+  "artifactDir": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-adoption-plan\\20260708T000000-0700\\workflow-b-artifacts",
+  "boundaryContract": {
+    "apiVersion": "ahra.dev/v1alpha1",
+    "kind": "BoundaryContract",
+    "metadata": {
+      "name": "ahra-adoption-model-human-gate-1",
+      "version": 1
+    },
+    "spec": {
+      "entries": [
+        {
+          "id": "BC-001",
+          "kind": "must",
+          "sourceRefs": [
+            "intent.spec.constraints.output-form",
+            "session.turns[1].message",
+            "session.turns[3].message"
+          ],
+          "statement": "The next deliverable must be a concrete architecture and rollout plan suitable for later translation into AWKP tasks or Workflow B GoalExecutionRequests, not implementation code."
+        },
+        {
+          "id": "BC-002",
+          "kind": "must",
+          "sourceRefs": [
+            "intent.spec.constraints.core-boundary",
+            "frozenRequirement"
+          ],
+          "statement": "AHRA runtime, reusable workflow logic, validators, and generic CLI commands must be reused through the installable AHRA package and CLI rather than copied into target projects."
+        },
+        {
+          "id": "BC-003",
+          "kind": "must",
+          "sourceRefs": [
+            "intent.spec.constraints.project-overlay",
+            "session.turns[3].message"
+          ],
+          "statement": "Target projects must own only a minimal local governance overlay: AGENTS.md routing, work/task state, project authority docs, project policies, machine-readable AHRA project and policy config, and project-local skills."
+        },
+        {
+          "id": "BC-004",
+          "kind": "must",
+          "sourceRefs": [
+            "session.turns[3].message"
+          ],
+          "statement": "Project init and adopt must be separate commands: init creates the minimal overlay for new projects, while adopt is non-destructive for existing projects and reports conflicts instead of overwriting them."
+        },
+        {
+          "id": "BC-005",
+          "kind": "must",
+          "sourceRefs": [
+            "session.turns[3].message"
+          ],
+          "statement": "The generated project overlay surface must be exactly AGENTS.md, .ahra/project.yaml, .ahra/policy.yaml, work/index.md, work/tasks/.gitkeep, docs/architecture/authority-map.md, docs/policies/project-policy.md, and .agents/skills/README.md."
+        },
+        {
+          "id": "BC-006",
+          "kind": "must",
+          "sourceRefs": [
+            "session.turns[3].message",
+            "intent.spec.constraints.policy-placement"
+          ],
+          "statement": ".ahra/policy.yaml must be the machine-executed project policy authority; docs/policies/*.md must remain human-readable explanation only and must not be treated as the enforcement source."
+        },
+        {
+          "id": "BC-007",
+          "kind": "must",
+          "sourceRefs": [
+            "session.turns[3].message",
+            "intent.spec.constraints.init-surface"
+          ],
+          "statement": "Adoption templates must be packaged inside the AHRA package for now and must contain only project overlay skeleton files, not workflow runtime, AHRA source, legacy workflow modules, fixtures, or archive history."
+        },
+        {
+          "id": "BC-008",
+          "kind": "must",
+          "sourceRefs": [
+            "session.turns[3].message"
+          ],
+          "statement": "Doctor must be strict for AHRA overlay health only and must not run target project business tests by default."
+        },
+        {
+          "id": "BC-009",
+          "kind": "must",
+          "sourceRefs": [
+            "intent.spec.constraints.policy-placement",
+            "session.turns[3].message"
+          ],
+          "statement": "The plan must preserve the split between AHRA foundation invariants supplied by the installed AHRA version, project human-readable policy overlays under docs/policies, and machine-enforced project policy under .ahra."
+        },
+        {
+          "id": "BC-010",
+          "kind": "must_not",
+          "sourceRefs": [
+            "intent.spec.constraints.must-not",
+            "frozenRequirement"
+          ],
+          "statement": "The plan must not promote experimental Workflow A or any non-default component to a default route."
+        },
+        {
+          "id": "BC-011",
+          "kind": "must_not",
+          "sourceRefs": [
+            "intent.spec.constraints.must-not"
+          ],
+          "statement": "The plan must not claim AHRA is already a production-grade distributed orchestrator for arbitrary projects."
+        },
+        {
+          "id": "BC-012",
+          "kind": "must_not",
+          "sourceRefs": [
+            "intent.spec.constraints.human-gates",
+            "session.turns[3].message"
+          ],
+          "statement": "The plan must not silently choose unresolved product or project policy after Human Gate 1; any later policy expansion beyond this boundary requires explicit Human Gate approval."
+        },
+        {
+          "id": "BC-013",
+          "kind": "completion_signal",
+          "sourceRefs": [
+            "intent.spec.constraints.completion-signal",
+            "session.turns[3].message"
+          ],
+          "statement": "Human Gate 1 is complete when the maintainer approves this boundary contract and a later planning increment can produce the concrete adoption architecture and rollout plan without open boundary questions."
+        },
+        {
+          "id": "BC-014",
+          "kind": "free_zone",
+          "sourceRefs": [
+            "checklist.allowed free zones"
+          ],
+          "statement": "Within this boundary, the later plan may choose document section structure, naming of internal plan subsections, and sequencing of rollout milestones, provided it does not add files, commands, policy authority, runtime defaults, or implementation scope beyond the approved boundary."
+        },
+        {
+          "id": "BC-015",
+          "kind": "free_zone",
+          "sourceRefs": [
+            "intent.spec.capabilityNeeds",
+            "intent.spec.constraints.human-gates"
+          ],
+          "statement": "Within this boundary, the later plan may recommend bounded follow-up AWKP tasks or Workflow B GoalExecutionRequests for docs, policy templates, project config, CLI init/adopt/doctor behavior, and tests, but those tasks still require Human Gate 2 authorization before implementation."
+        }
+      ]
+    }
+  },
+  "boundaryContractDigest": "sha256:d1691ad7f083453ec6f8a788ae672b5483c4fd15bf8ee3634cddac6913b1be56",
+  "crossAlignmentReport": {
+    "apiVersion": "ahra.dev/v1alpha1",
+    "kind": "CrossAlignmentReport",
+    "metadata": {
+      "reportId": "CROSSALIGN-23ca9ca01133cde4",
+      "validator": "ahra-cross-alignment/0.1"
+    },
+    "spec": {
+      "boundaryContractRef": "ahra-adoption-model-human-gate-1",
+      "claimGraphRef": "GOAL-AHRA-ADOPTION-MODEL-ALIGNED",
+      "mismatches": [],
+      "planRef": "GOAL-AHRA-ADOPTION-MODEL-ALIGNED",
+      "result": "accepted"
+    }
+  },
+  "frozenClaimGraph": {
+    "apiVersion": "ahra.dev/v1alpha1",
+    "kind": "ClaimGraph",
+    "metadata": {
+      "goalId": "GOAL-AHRA-ADOPTION-MODEL-ALIGNED",
+      "name": "ahra-adoption-model-aligned",
+      "version": 1
+    },
+    "spec": {
+      "claims": [
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-001"
+          ],
+          "dependsOn": [],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-001",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "architecture-plan",
+            "rollout-plan"
+          ],
+          "riskLevel": "R2",
+          "statement": "The next accepted deliverable is limited to a concrete architecture and rollout plan that can later be translated into AWKP tasks or Workflow B GoalExecutionRequests, with no implementation code in this increment.",
+          "type": "governance"
+        },
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-002"
+          ],
+          "dependsOn": [],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-002",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "architecture-boundary",
+            "package-boundary"
+          ],
+          "riskLevel": "R3",
+          "statement": "The plan keeps AHRA runtime, reusable workflow logic, validators, and generic CLI commands in the installable AHRA package and CLI rather than copying them into target projects.",
+          "type": "structural"
+        },
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-003"
+          ],
+          "dependsOn": [
+            "CLAIM-002"
+          ],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-003",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "overlay-boundary",
+            "ownership-map"
+          ],
+          "riskLevel": "R3",
+          "statement": "The plan defines target-project ownership as a minimal local governance overlay only: AGENTS.md routing, work and task state, project authority docs, project policies, machine-readable AHRA project and policy config, and project-local skills.",
+          "type": "structural"
+        },
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-004"
+          ],
+          "dependsOn": [
+            "CLAIM-003"
+          ],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-004",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "command-contract",
+            "conflict-policy"
+          ],
+          "riskLevel": "R2",
+          "statement": "The plan keeps project init and adopt as separate commands: init creates the minimal overlay for new projects, while adopt is non-destructive for existing projects and reports conflicts instead of overwriting them.",
+          "type": "functional"
+        },
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-005"
+          ],
+          "dependsOn": [
+            "CLAIM-003"
+          ],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-005",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "file-surface-list"
+          ],
+          "riskLevel": "R3",
+          "statement": "The generated project overlay surface is exactly AGENTS.md, .ahra/project.yaml, .ahra/policy.yaml, work/index.md, work/tasks/.gitkeep, docs/architecture/authority-map.md, docs/policies/project-policy.md, and .agents/skills/README.md.",
+          "type": "structural"
+        },
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-006"
+          ],
+          "dependsOn": [
+            "CLAIM-005"
+          ],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-006",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "policy-authority-map"
+          ],
+          "riskLevel": "R3",
+          "statement": ".ahra/policy.yaml is treated as the machine-executed project policy authority, while docs/policies/*.md remains human-readable explanation and is not the enforcement source.",
+          "type": "governance"
+        },
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-007"
+          ],
+          "dependsOn": [
+            "CLAIM-002",
+            "CLAIM-005"
+          ],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-007",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "template-scope",
+            "package-asset-boundary"
+          ],
+          "riskLevel": "R2",
+          "statement": "Adoption templates are planned as packaged AHRA package assets containing only project overlay skeleton files, excluding workflow runtime, AHRA source, legacy workflow modules, fixtures, and archive history.",
+          "type": "structural"
+        },
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-008"
+          ],
+          "dependsOn": [],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-008",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "doctor-scope"
+          ],
+          "riskLevel": "R2",
+          "statement": "Doctor behavior is strict for AHRA overlay health only and does not run target project business tests by default.",
+          "type": "operational"
+        },
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-009"
+          ],
+          "dependsOn": [
+            "CLAIM-002",
+            "CLAIM-006"
+          ],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-009",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "authority-split"
+          ],
+          "riskLevel": "R3",
+          "statement": "The plan preserves the split between AHRA foundation invariants supplied by the installed AHRA version, project human-readable policy overlays under docs/policies, and machine-enforced project policy under .ahra.",
+          "type": "governance"
+        },
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-010"
+          ],
+          "dependsOn": [],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-010",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "default-route-check"
+          ],
+          "riskLevel": "R3",
+          "statement": "The plan does not promote experimental Workflow A or any non-default component to a default route.",
+          "type": "governance"
+        },
+        {
+          "approvalRequired": false,
+          "criterionRefs": [
+            "BC-011"
+          ],
+          "dependsOn": [],
+          "gateRefs": [
+            "GATE-alignment-objective"
+          ],
+          "id": "CLAIM-011",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "claim-scope-review"
+          ],
+          "riskLevel": "R2",
+          "statement": "The plan does not claim AHRA is already a production-grade distributed orchestrator for arbitrary projects.",
+          "type": "quality"
+        },
+        {
+          "approvalRequired": true,
+          "criterionRefs": [
+            "BC-012"
+          ],
+          "dependsOn": [],
+          "gateRefs": [],
+          "id": "CLAIM-012",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "human-approval-escalation"
+          ],
+          "riskLevel": "R3",
+          "statement": "Any policy expansion beyond this approved boundary after Human Gate 1 is escalated for explicit human approval instead of being silently chosen by the planner.",
+          "type": "governance"
+        },
+        {
+          "approvalRequired": true,
+          "criterionRefs": [
+            "BC-013"
+          ],
+          "dependsOn": [],
+          "gateRefs": [],
+          "id": "CLAIM-013",
+          "required": true,
+          "requiredEvidenceKinds": [
+            "maintainer-approval"
+          ],
+          "riskLevel": "R3",
+          "statement": "Human Gate 1 is accepted only when the maintainer approves the boundary contract and the later planning increment can produce the concrete adoption architecture and rollout plan without open boundary questions.",
+          "type": "governance"
+        }
+      ],
+      "goalRef": "GOAL-AHRA-ADOPTION-MODEL-ALIGNED"
+    }
+  },
+  "frozenClaimGraphDigest": "sha256:d2c5253815ca9724a25b2bdb5e02eaa3eea0746ad12d6ec8038ffb1248c30f63",
+  "frozenRequirement": "Produce a concrete architecture and rollout plan for AHRA adoption before implementation. The plan must keep AHRA runtime, reusable workflows, validators, and generic CLI behavior in the installable AHRA package/CLI; keep target projects limited to a minimal governance overlay; split foundation policy, project human-readable policy, and machine-enforced project policy; define init/adopt/doctor file surfaces; avoid copying AHRA source, legacy workflow modules, fixtures, or archive history into target projects by default; avoid promoting experimental Workflow A or any non-default component to a default route; and stop for human approval at Human Gate 1 and Human Gate 2.",
+  "intent": {
+    "apiVersion": "ahra.dev/v1alpha1",
+    "kind": "IntentDraft",
+    "metadata": {
+      "intentId": "INTENT-AHRA-ADOPTION-MODEL",
+      "name": "ahra-adoption-model"
+    },
+    "spec": {
+      "abstractGoal": "Turn the emerging AHRA adoption idea into a concrete, reviewable plan for how AHRA should be used by other AI Agent projects and, later, by external users. The plan must separate reusable AHRA runtime/workflow capabilities from target-project-owned governance files, define the minimum project initialization/adoption surface, and identify decisions that require human approval before implementation.",
+      "capabilityNeeds": [
+        {
+          "action": "filesystem.write",
+          "reason": "A later implementation increment may add docs, policy templates, project template config, CLI init/adopt/doctor commands, and tests.",
+          "resources": [
+            "docs/architecture/ahra-adoption-model.md",
+            "docs/policies/project-adoption-policy.md",
+            ".ahra/project-template.yaml",
+            "src/ahra/cli.py",
+            "tests/test_project_init.py"
+          ],
+          "riskLevel": "R2"
+        }
+      ],
+      "constraints": [
+        {
+          "key": "output-form",
+          "required": true,
+          "value": "Produce a concrete architecture and rollout plan, not implementation code yet. The plan should be suitable for later translation into AWKP tasks or Workflow B GoalExecutionRequests."
+        },
+        {
+          "key": "core-boundary",
+          "required": true,
+          "value": "AHRA runtime, reusable workflow logic, validators, and generic CLI commands should be reused through the AHRA package/CLI instead of being copied into each target project."
+        },
+        {
+          "key": "project-overlay",
+          "required": true,
+          "value": "Target projects should own only their local governance overlay: AGENTS routing, work/task state, project authority docs, project policies, machine-readable AHRA project configuration, and project-local skills."
+        },
+        {
+          "key": "policy-placement",
+          "required": true,
+          "value": "Separate foundation policies supplied by the AHRA version from project-specific policy overlays. Human-readable project policies should live under docs/policies, while machine-enforced project policy should live under .ahra or another explicit machine-readable configuration surface."
+        },
+        {
+          "key": "init-surface",
+          "required": true,
+          "value": "Define the minimum ahra project init/adopt/doctor surface and the exact files it creates or validates. Do not propose copying AHRA source code, legacy workflow modules, fixtures, or archive history into target projects by default."
+        },
+        {
+          "key": "must-not",
+          "required": true,
+          "value": "Do not promote experimental Workflow A or any non-default component to a default route. Do not claim AHRA is already a production-grade distributed orchestrator for arbitrary projects."
+        },
+        {
+          "key": "human-gates",
+          "required": true,
+          "value": "Stop at Human Gate 1 for boundary approval and at Human Gate 2 for final request authorization. The agent must surface open questions and tradeoffs instead of silently choosing project/product policy."
+        },
+        {
+          "key": "completion-signal",
+          "required": true,
+          "value": "The Workflow A session reaches a Human Gate 1 boundary proposal with no hidden gray-zone assumptions, including a short list of open decisions the human must approve or reject before implementation."
+        }
+      ],
+      "context": {
+        "authorityRefs": [
+          "docs/architecture/authority-map.md",
+          "docs/architecture/framework-entrypoints.md",
+          "docs/architecture/component-inventory.json",
+          "docs/architecture/intent-alignment-workflow.md",
+          "docs/policies/component-lifecycle.md"
+        ],
+        "profileRef": "profile/development-bounded",
+        "workflowRef": "docs/architecture/intent-alignment-workflow.md"
+      },
+      "priorityHint": "P1",
+      "requester": "human:maintainer",
+      "riskHint": "R2"
+    }
+  },
+  "missingDimensions": [],
+  "producerActor": "agent:alignment-session",
+  "profileRef": "profile/development-bounded",
+  "requirementApprovedBy": "human:maintainer",
+  "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "sessionId": "ASESS-2dd5eb2ab0ca3e4f",
+  "stage": "request_drafted",
+  "storePath": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-adoption-plan\\20260708T000000-0700\\goal-control.sqlite3",
+  "turns": [
+    {
+      "actor": "human:maintainer",
+      "index": 1,
+      "message": "We need to formalize AHRA's future adoption model. My current direction is: AHRA core runtime/workflows/validators should be reused via installable package and CLI, not copied into every target project. Each target AI Agent project should get only a minimal local governance overlay: AGENTS.md routing, work/tasks state, docs/architecture authority map, docs/policies for human-readable project policy, .ahra machine-readable project/policy config, and project-local skills. Policy should be split into AHRA foundation invariants from the installed version, project policy overlays in docs/policies, and machine-enforced policy in .ahra. I want a concrete plan first, not code implementation yet. Surface any open decisions or tradeoffs for Human Gate approval, especially project init/adopt/doctor scope, exact generated files, policy placement, package vs template boundary, and how not to accidentally promote experimental Workflow A to a default route."
+    },
+    {
+      "actor": "agent:alignment",
+      "expectedOutput": "AlignmentTurnDecision",
+      "index": 2,
+      "message": "Human Gate 1 boundary proposal is ready for maintainer approval. This planner turn did not create or modify files because the supplied runtime is read_only and the requested output is an AlignmentTurnDecision. Approve or reject the boundaryContract entries and resolve the open_question entries before any implementation task is authorized."
+    },
+    {
+      "actor": "human:maintainer",
+      "index": 3,
+      "message": "Resolve all missing dimensions as follows. Init/adopt: split them; init creates a minimal overlay for new projects, adopt is non-destructive for existing projects and reports conflicts instead of overwriting. Generated overlay: AGENTS.md, .ahra/project.yaml, .ahra/policy.yaml, work/index.md, work/tasks/.gitkeep, docs/architecture/authority-map.md, docs/policies/project-policy.md, .agents/skills/README.md. Policy authority: .ahra/policy.yaml is the machine-executed authority; docs/policies/*.md is human explanation only. Templates: packaged inside the AHRA package for now; templates are only project overlay skeleton files, not workflow runtime or AHRA source. Doctor: strict for AHRA overlay health only; do not run business tests by default. Please produce a converged Human Gate 1 boundary proposal with no open questions."
+    },
+    {
+      "actor": "agent:alignment",
+      "expectedOutput": "AlignmentTurnDecision",
+      "index": 4,
+      "message": "Human Gate 1 boundary proposal is converged. All previously missing dimensions have been resolved by the maintainer; this planner turn remains proposal-only under read_only runtime and does not authorize implementation or file modification."
+    },
+    {
+      "actor": "agent:acceptance",
+      "expectedOutput": "AcceptanceDraft",
+      "index": 5,
+      "message": "Acceptance draft for Human Gate 1 boundary contract sha256:d1691ad7f083453ec6f8a788ae672b5483c4fd15bf8ee3634cddac6913b1be56. No implementation, file creation, shell verification, or policy expansion is claimed; the only proposed next step is a bounded planning increment that translates the approved boundary into adoption architecture and rollout tasks for later Human Gate 2 authorization."
+    },
+    {
+      "actor": "agent:requirement",
+      "expectedOutput": "RequirementDraft",
+      "index": 6,
+      "message": "Bounded RequirementDraft for GOAL-AHRA-ADOPTION-MODEL-ALIGNED. The draft proposes a planning-only sequence that produces an AHRA adoption architecture and rollout plan, preserves the Human Gate 1 boundary contract, avoids implementation code, and requires Human Gate 2 before any file-writing or CLI/test implementation work."
+    },
+    {
+      "actor": "agent:cross-alignment",
+      "error": {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "CrossAlignmentReport",
+        "metadata": {
+          "reportId": "CROSSALIGN-2fcb36f53ca0d9d0",
+          "validator": "ahra-cross-alignment/0.1"
+        },
+        "spec": {
+          "boundaryContractRef": "ahra-adoption-model-human-gate-1",
+          "claimGraphRef": "ASESS-2dd5eb2ab0ca3e4f:AcceptanceDraft:5",
+          "mismatches": [
+            {
+              "code": "free-zone-criterion-ref",
+              "data": {
+                "claimCriterionRefs": {
+                  "ACCEPT-003": [
+                    "BC-015"
+                  ],
+                  "ACCEPT-006": [
+                    "BC-014",
+                    "BC-015"
+                  ]
+                }
+              },
+              "message": "Claims must not cite free_zone boundary entries as acceptance criteria",
+              "ref": "claimGraph.spec.claims[].criterionRefs",
+              "refs": [
+                "BC-014",
+                "BC-015"
+              ]
+            }
+          ],
+          "planRef": "GOAL-AHRA-ADOPTION-MODEL-ALIGNED",
+          "result": "rejected"
+        }
+      },
+      "expectedOutput": "CrossAlignmentReport",
+      "index": 7,
+      "message": "cross-alignment gate failed; requesting bounded redraft"
+    },
+    {
+      "actor": "agent:acceptance",
+      "expectedOutput": "AcceptanceDraft",
+      "index": 8,
+      "message": "Acceptance draft redrafted from BoundaryContract ahra-adoption-model-human-gate-1 version 1. The claim graph removes free_zone criterion references from the prior rejected attempt and limits acceptance criteria to mandatory, must_not, and completion-signal boundary entries for a later architecture and rollout planning increment."
+    },
+    {
+      "actor": "agent:requirement",
+      "expectedOutput": "RequirementDraft",
+      "index": 9,
+      "message": "Read-only RequirementDraft for GOAL-AHRA-ADOPTION-MODEL-ALIGNED. No files are created or modified in this planner step because the runtime sandbox is read_only and the role is planner-only. The draft proposes bounded follow-up planning nodes only, ending at Human Gate 2 authorization before implementation."
+    },
+    {
+      "actor": "agent:request-admission",
+      "error": {
+        "accepted": false,
+        "planDigest": null,
+        "rejections": [
+          {
+            "code": "invalid-budget",
+            "message": "maxToolCalls must be positive",
+            "ref": "PLAN-AHRA-ADOPTION-ARCHITECTURE"
+          },
+          {
+            "code": "invalid-budget",
+            "message": "maxToolCalls must be positive",
+            "ref": "PLAN-AHRA-ADOPTION-BOUNDARY-REVIEW"
+          },
+          {
+            "code": "invalid-budget",
+            "message": "maxToolCalls must be positive",
+            "ref": "PLAN-AHRA-ADOPTION-HUMAN-GATE-2"
+          },
+          {
+            "code": "invalid-budget",
+            "message": "maxToolCalls must be positive",
+            "ref": "PLAN-AHRA-ADOPTION-INIT-ADOPT-DOCTOR"
+          },
+          {
+            "code": "invalid-budget",
+            "message": "maxToolCalls must be positive",
+            "ref": "PLAN-AHRA-ADOPTION-POLICY-SPLIT"
+          },
+          {
+            "code": "invalid-budget",
+            "message": "maxToolCalls must be positive",
+            "ref": "PLAN-AHRA-ADOPTION-ROLLOUT"
+          },
+          {
+            "code": "unregistered-gate-ref",
+            "message": "PLAN-AHRA-ADOPTION-ARCHITECTURE references unregistered Gate HumanGate-1",
+            "ref": "PLAN-AHRA-ADOPTION-ARCHITECTURE"
+          },
+          {
+            "code": "unregistered-gate-ref",
+            "message": "PLAN-AHRA-ADOPTION-BOUNDARY-REVIEW references unregistered Gate HumanGate-1",
+            "ref": "PLAN-AHRA-ADOPTION-BOUNDARY-REVIEW"
+          },
+          {
+            "code": "unregistered-gate-ref",
+            "message": "PLAN-AHRA-ADOPTION-HUMAN-GATE-2 references unregistered Gate HumanGate-2",
+            "ref": "PLAN-AHRA-ADOPTION-HUMAN-GATE-2"
+          },
+          {
+            "code": "unregistered-gate-ref",
+            "message": "PLAN-AHRA-ADOPTION-INIT-ADOPT-DOCTOR references unregistered Gate HumanGate-1",
+            "ref": "PLAN-AHRA-ADOPTION-INIT-ADOPT-DOCTOR"
+          },
+          {
+            "code": "unregistered-gate-ref",
+            "message": "PLAN-AHRA-ADOPTION-POLICY-SPLIT references unregistered Gate HumanGate-1",
+            "ref": "PLAN-AHRA-ADOPTION-POLICY-SPLIT"
+          },
+          {
+            "code": "unregistered-gate-ref",
+            "message": "PLAN-AHRA-ADOPTION-ROLLOUT references unregistered Gate HumanGate-1",
+            "ref": "PLAN-AHRA-ADOPTION-ROLLOUT"
+          },
+          {
+            "code": "unregistered-node-type",
+            "message": "node type planning is not registered",
+            "ref": "PLAN-AHRA-ADOPTION-ARCHITECTURE"
+          },
+          {
+            "code": "unregistered-node-type",
+            "message": "node type analysis is not registered",
+            "ref": "PLAN-AHRA-ADOPTION-BOUNDARY-REVIEW"
+          },
+          {
+            "code": "unregistered-node-type",
+            "message": "node type human_gate is not registered",
+            "ref": "PLAN-AHRA-ADOPTION-HUMAN-GATE-2"
+          },
+          {
+            "code": "unregistered-node-type",
+            "message": "node type planning is not registered",
+            "ref": "PLAN-AHRA-ADOPTION-INIT-ADOPT-DOCTOR"
+          },
+          {
+            "code": "unregistered-node-type",
+            "message": "node type planning is not registered",
+            "ref": "PLAN-AHRA-ADOPTION-POLICY-SPLIT"
+          },
+          {
+            "code": "unregistered-node-type",
+            "message": "node type planning is not registered",
+            "ref": "PLAN-AHRA-ADOPTION-ROLLOUT"
+          },
+          {
+            "code": "unregistered_gate_ref",
+            "message": "ACCEPT-001 references unregistered gate",
+            "ref": "HumanGate-1"
+          },
+          {
+            "code": "unregistered_gate_ref",
+            "message": "ACCEPT-002 references unregistered gate",
+            "ref": "HumanGate-1"
+          },
+          {
+            "code": "unregistered_gate_ref",
+            "message": "ACCEPT-003 references unregistered gate",
+            "ref": "HumanGate-1"
+          },
+          {
+            "code": "unregistered_gate_ref",
+            "message": "ACCEPT-004 references unregistered gate",
+            "ref": "HumanGate-1"
+          },
+          {
+            "code": "unregistered_gate_ref",
+            "message": "ACCEPT-005 references unregistered gate",
+            "ref": "HumanGate-1"
+          },
+          {
+            "code": "unregistered_gate_ref",
+            "message": "ACCEPT-006 references unregistered gate",
+            "ref": "HumanGate-1"
+          },
+          {
+            "code": "unregistered_gate_ref",
+            "message": "ACCEPT-007 references unregistered gate",
+            "ref": "HumanGate-1"
+          },
+          {
+            "code": "unregistered_gate_ref",
+            "message": "ACCEPT-008 references unregistered gate",
+            "ref": "HumanGate-1"
+          }
+        ],
+        "requestId": "REQ-ddee460ea82fa4ed",
+        "schema_version": "ahra/request-draft-admission/0.1"
+      },
+      "expectedOutput": "RequestDraftAdmission",
+      "index": 10,
+      "message": "RequestDraft admission rejected before Gate 2 authorization."
+    },
+    {
+      "actor": "agent:acceptance",
+      "expectedOutput": "AcceptanceDraft",
+      "index": 11,
+      "message": "Acceptance draft for Human Gate 1 boundary approval and the later bounded planning increment. No files were modified because this planner run is read-only and the AcceptanceDraft contract contains only summary and claimGraph."
+    },
+    {
+      "actor": "agent:requirement",
+      "expectedOutput": "RequirementDraft",
+      "index": 12,
+      "message": "PlanDraft proposes bounded documentation and planning tasks only: produce the AHRA adoption architecture and rollout plan, define policy and overlay boundaries, define init/adopt/doctor surfaces, surface Human Gate decisions, then run terminal alignment verification. No implementation work is included."
+    }
+  ],
+  "workspaceRef": "E:\\ahra-v0.1-starter"
+}

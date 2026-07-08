@@ -120,11 +120,20 @@ class AlignmentSessionManagerTests(unittest.TestCase):
                 "phase",
                 "boundaryContract",
                 "boundaryContractDigest",
+                "admissionContract",
                 "redraftAttempt",
                 "previousCrossAlignmentReport",
             },
         )
         self.assertEqual(acceptance_call.payload["boundaryContractDigest"], snapshot.boundary_contract_digest)
+        self.assertEqual(
+            set(acceptance_call.payload["admissionContract"]["registeredNodeTypes"]),
+            {"bounded_task", "goal_verification"},
+        )
+        self.assertEqual(
+            set(acceptance_call.payload["admissionContract"]["registeredGateRefs"]),
+            {"GATE-alignment-objective", "GATE-alignment-complete"},
+        )
         self.assertEqual(acceptance_call.payload["redraftAttempt"], 0)
         self.assertIsNone(acceptance_call.payload["previousCrossAlignmentReport"])
 
@@ -133,6 +142,10 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         self.assertEqual(requirement_call.payload["frozenClaimGraph"], frozen_claim_graph)
         self.assertEqual(requirement_call.payload["frozenClaimGraphDigest"], result.request_draft.claim_graph_digest)
         self.assertEqual(requirement_call.payload["readOnlyInputs"]["claimGraph"], frozen_claim_graph)
+        self.assertEqual(
+            requirement_call.payload["readOnlyInputs"]["admissionContract"],
+            requirement_call.payload["admissionContract"],
+        )
         self.assertEqual(result.snapshot.frozen_claim_graph_digest, result.request_draft.claim_graph_digest)
 
         restored = AlignmentSessionSnapshot.from_mapping(result.snapshot.to_mapping())

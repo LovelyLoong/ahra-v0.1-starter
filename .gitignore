@@ -12,3 +12,4 @@ work/tasks/**/evidence/real-agent-pilot/**/workspace/
 work/tasks/**/evidence/debug-mode-b/**/workspace/
 **/development-worktrees/
 .claude/
+.evolver/

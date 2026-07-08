@@ -1,0 +1,89 @@
+apiVersion: ahra.dev/v1alpha1
+kind: IntentDraft
+metadata:
+  intentId: INTENT-AHRA-ADOPTION-MODEL
+  name: ahra-adoption-model
+spec:
+  abstractGoal: >-
+    Turn the emerging AHRA adoption idea into a concrete, reviewable plan for
+    how AHRA should be used by other AI Agent projects and, later, by external
+    users. The plan must separate reusable AHRA runtime/workflow capabilities
+    from target-project-owned governance files, define the minimum project
+    initialization/adoption surface, and identify decisions that require human
+    approval before implementation.
+  constraints:
+    - key: output-form
+      value: >-
+        Produce a concrete architecture and rollout plan, not implementation
+        code yet. The plan should be suitable for later translation into AWKP
+        tasks or Workflow B GoalExecutionRequests.
+      required: true
+    - key: core-boundary
+      value: >-
+        AHRA runtime, reusable workflow logic, validators, and generic CLI
+        commands should be reused through the AHRA package/CLI instead of being
+        copied into each target project.
+      required: true
+    - key: project-overlay
+      value: >-
+        Target projects should own only their local governance overlay: AGENTS
+        routing, work/task state, project authority docs, project policies,
+        machine-readable AHRA project configuration, and project-local skills.
+      required: true
+    - key: policy-placement
+      value: >-
+        Separate foundation policies supplied by the AHRA version from
+        project-specific policy overlays. Human-readable project policies should
+        live under docs/policies, while machine-enforced project policy should
+        live under .ahra or another explicit machine-readable configuration
+        surface.
+      required: true
+    - key: init-surface
+      value: >-
+        Define the minimum ahra project init/adopt/doctor surface and the exact
+        files it creates or validates. Do not propose copying AHRA source code,
+        legacy workflow modules, fixtures, or archive history into target
+        projects by default.
+      required: true
+    - key: must-not
+      value: >-
+        Do not promote experimental Workflow A or any non-default component to
+        a default route. Do not claim AHRA is already a production-grade
+        distributed orchestrator for arbitrary projects.
+      required: true
+    - key: human-gates
+      value: >-
+        Stop at Human Gate 1 for boundary approval and at Human Gate 2 for
+        final request authorization. The agent must surface open questions and
+        tradeoffs instead of silently choosing project/product policy.
+      required: true
+    - key: completion-signal
+      value: >-
+        The Workflow A session reaches a Human Gate 1 boundary proposal with no
+        hidden gray-zone assumptions, including a short list of open decisions
+        the human must approve or reject before implementation.
+      required: true
+  capabilityNeeds:
+    - action: filesystem.write
+      resources:
+        - docs/architecture/ahra-adoption-model.md
+        - docs/policies/project-adoption-policy.md
+        - .ahra/project-template.yaml
+        - src/ahra/cli.py
+        - tests/test_project_init.py
+      reason: >-
+        A later implementation increment may add docs, policy templates,
+        project template config, CLI init/adopt/doctor commands, and tests.
+      riskLevel: R2
+  context:
+    profileRef: profile/development-bounded
+    authorityRefs:
+      - docs/architecture/authority-map.md
+      - docs/architecture/framework-entrypoints.md
+      - docs/architecture/component-inventory.json
+      - docs/architecture/intent-alignment-workflow.md
+      - docs/policies/component-lifecycle.md
+    workflowRef: docs/architecture/intent-alignment-workflow.md
+  priorityHint: P1
+  riskHint: R2
+  requester: human:maintainer
