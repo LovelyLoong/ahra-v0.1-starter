@@ -1,0 +1,14 @@
+{
+  "summary": "Applied the documentation-only TASK-0089 closeout: corrected the archive digest wording and final-state split, clarified TASK-0090 A+B as a governance/work-selection rule, preserved workflow-a as explicit non-default routing, and kept alignment-session-manager experimental/default_visible false while recording TASK-0090 route proof separately from component promotion.",
+  "changed_files": [
+    "docs/architecture/component-inventory.json",
+    "docs/architecture/framework-entrypoints.md",
+    "docs/roadmaps/development-program-overview.md",
+    "work/index.md"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --lint"
+  ],
+  "known_risks": [],
+  "unresolved_items": []
+}

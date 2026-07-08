@@ -150,6 +150,10 @@ From TASK-0090 onward, new work defaults to Workflow A intake/alignment followed
 by Workflow B execution/verification. Any manual path must be recorded as a loop
 defect.
 
+This is a governance/work selection rule for newly admitted work. It is not a
+component-lifecycle promotion of Workflow A or approval to make `workflow-a` a
+default-visible component.
+
 This rule does not lower any task acceptance criteria, EvidenceGate authority,
 or sequencing dependency. The TASK-0085 kernel-boundary bootstrap exception
 remains the only named exception: Workflow B is structurally forbidden from

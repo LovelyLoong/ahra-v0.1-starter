@@ -1,0 +1,77 @@
+diff --git a/docs/architecture/component-inventory.json b/docs/architecture/component-inventory.json
+index f86ce8f..62fd5cb 100644
+--- a/docs/architecture/component-inventory.json
++++ b/docs/architecture/component-inventory.json
+@@ -1127,19 +1127,19 @@
+       "side_effects": "calls injected AgentDriver; writes explicit session/request/approval files only when workflow-a CLI path is invoked; produces untrusted RequestDraft until ApprovalService Gate 2 freezes under human actor",
+       "artifact_evidence": "TASK-0077, EVD-808a23cf72ea2ddc, EVD-e17537aeed441163, EVD-TASK-0077-0003; TASK-0078, TASK-0079, TASK-0080, TASK-0081, and TASK-0082 completed by EvidenceGate.",
+       "compatibility_scope": "First Workflow A checkpoint and experimental CLI only; non-default until explicit component-lifecycle promotion approves default visibility.",
+-      "promotion_status": "TASK-0083 readiness audit keeps this component experimental because default-visible promotion still lacks non-fixture Workflow A to Workflow B consumer evidence.",
++      "promotion_status": "TASK-0083 readiness audit keeps this component experimental and default_visible false. TASK-0090 proves the explicit Workflow A plus Workflow B work route for new work, but that is a governance/work-selection rule and not component-lifecycle promotion or default-visible approval for workflow-a.",
+       "promotion_blockers": [
+-        "No EvidenceGate-approved non-fixture Workflow A lifecycle run yet proves that an authorized workflow-a GoalExecutionRequest is consumed by Workflow B through goal validate, goal plan, and goal start.",
++        "TASK-0090 route proof is scoped to explicit Workflow A plus Workflow B work selection and does not approve replacing the explicit experimental workflow-a surface with a default-visible route.",
+         "No component-lifecycle promotion task has approved replacing the explicit experimental workflow-a surface with a default-visible route."
+       ],
+       "promotion_criteria": [
+         "TASK-0079 completed by EvidenceGate proving development-bounded code-change output requires independent semantic/code-review evidence.",
+         "TASK-0080 completed by EvidenceGate proving Workflow A dogfood artifact/store paths are task-scoped.",
+         "TASK-0081 completed by EvidenceGate proving workflow-a lifecycle start/advance/snapshot/approve-requirement/draft/admit/authorize preserves Human Gate 1 and ApprovalService Gate 2.",
+-        "A promotion task must add EvidenceGate-approved non-fixture Workflow A to Workflow B consumer evidence before default_visible can become true.",
++        "A promotion task must decide whether TASK-0090's explicit A+B work-route proof is sufficient consumer evidence for component promotion before default_visible can become true.",
+         "The promotion task must update this inventory and framework entrypoints with an explicit default-route approval boundary before any default-route claim."
+       ],
+-      "x-status-note": "TASK-0078 requires explicit Requirement-Agent PlanDraft and Acceptance-Agent ClaimGraph and wires Human Gate 1 plus ApprovalService Gate 2. TASK-0081 adds explicit experimental workflow-a CLI lifecycle. TASK-0083 records that default-visible promotion is not yet supported by non-fixture Workflow A to Workflow B consumer evidence."
++      "x-status-note": "TASK-0078 requires explicit Requirement-Agent PlanDraft and Acceptance-Agent ClaimGraph and wires Human Gate 1 plus ApprovalService Gate 2. TASK-0081 adds explicit experimental workflow-a CLI lifecycle. TASK-0083 records that default-visible promotion is not yet supported. TASK-0090 records an explicit A+B work route separately from component promotion."
+     }
+ 
+   ]
+diff --git a/docs/architecture/framework-entrypoints.md b/docs/architecture/framework-entrypoints.md
+index 3403ed5..861ffc8 100644
+--- a/docs/architecture/framework-entrypoints.md
++++ b/docs/architecture/framework-entrypoints.md
+@@ -119,7 +119,7 @@ been removed.
+ 
+ `ahra workflow-a ...` is an explicit experimental lifecycle for ADR-0009 intent alignment sessions only. It exposes `start`, `advance`, `snapshot`, `approve-requirement`, `draft`, `admit`, and `authorize` so local operators can exercise Workflow A products without placing `component:alignment-session-manager` on the default execution path.
+ 
+-Default routing must not call `workflow-a` implicitly. `workflow-a draft` requires Human Gate 1 before RequestDraft creation, and `workflow-a authorize` uses ApprovalService Gate 2 to freeze a GoalExecutionRequest only for a human approval actor. Promotion to default-visible requires EvidenceGate-completed prerequisite tasks for the independent semantic/code-review gate, task-scoped dogfood paths, and Workflow A CLI lifecycle, plus EvidenceGate-approved non-fixture proof that an authorized Workflow A request is consumed by Workflow B through `goal validate`, `goal plan`, and `goal start`. Until that evidence exists, `workflow-a` remains explicit experimental surface only.
++Default routing must not call `workflow-a` implicitly. Explicit `workflow-a` use under the TASK-0090 Workflow A plus B procedure is a governed work-selection path and does not make `workflow-a` an implicit CLI default route. `workflow-a draft` requires Human Gate 1 before RequestDraft creation, and `workflow-a authorize` uses ApprovalService Gate 2 to freeze a GoalExecutionRequest only for a human approval actor. Promotion to default-visible requires EvidenceGate-completed prerequisite tasks for the independent semantic/code-review gate, task-scoped dogfood paths, and Workflow A CLI lifecycle, plus EvidenceGate-approved non-fixture proof that an authorized Workflow A request is consumed by Workflow B through `goal validate`, `goal plan`, and `goal start`. TASK-0090 proves that explicit A+B work route separately from component promotion; until a component-lifecycle promotion task approves default visibility, `workflow-a` remains explicit experimental surface only.
+ 
+ # Regression Dynamic Fixture
+ 
+diff --git a/docs/roadmaps/development-program-overview.md b/docs/roadmaps/development-program-overview.md
+index 7fbee29..cab6385 100644
+--- a/docs/roadmaps/development-program-overview.md
++++ b/docs/roadmaps/development-program-overview.md
+@@ -150,6 +150,10 @@ From TASK-0090 onward, new work defaults to Workflow A intake/alignment followed
+ by Workflow B execution/verification. Any manual path must be recorded as a loop
+ defect.
+ 
++This is a governance/work selection rule for newly admitted work. It is not a
++component-lifecycle promotion of Workflow A or approval to make `workflow-a` a
++default-visible component.
++
+ This rule does not lower any task acceptance criteria, EvidenceGate authority,
+ or sequencing dependency. The TASK-0085 kernel-boundary bootstrap exception
+ remains the only named exception: Workflow B is structurally forbidden from
+diff --git a/work/index.md b/work/index.md
+index e1dfab2..19a36f8 100644
+--- a/work/index.md
++++ b/work/index.md
+@@ -56,10 +56,11 @@ them explicitly.
+ 
+ ## Archived Tasks
+ 
+-80 completed tasks (TASK-0001 through TASK-0080) have been archived to
++TASK-0001 through TASK-0080 are archived task records under
+ `archive/work/tasks/` with their contract, authority state, evidence, and
+-handoffs preserved byte-identical. Git history remains the audit authority.
++handoffs preserved byte-identical. Their final states split into completed=71
++and canceled=9. Git history remains the audit authority.
+ 
+-| Range | Count | Archive location |
+-|---|---:|---|
+-| TASK-0001 to TASK-0080 | 80 | [archive/work/tasks/](../archive/work/tasks/) |
++| Range | Records | Final state split | Archive location |
++|---|---:|---|---|
++| TASK-0001 to TASK-0080 | 80 | completed=71, canceled=9 | [archive/work/tasks/](../archive/work/tasks/) |

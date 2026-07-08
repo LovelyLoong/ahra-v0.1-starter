@@ -1,0 +1,76 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "NodeRun",
+  "metadata": {
+    "nodeRunId": "NRUN-3174bc9ea44a462fa2a7a92372ca358d",
+    "planId": "PLAN-e11682224d81ad4c",
+    "nodeId": "NODE-task-0089-closeout",
+    "executorRelease": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "spec": {
+    "nodeType": "bounded_task",
+    "status": "accepted",
+    "artifactRefs": [
+      "ART-40fe723160f141a8be67b2ffb3e19bc0",
+      "ART-824182827de0474fa095b2a02aead909",
+      "ART-67d4b3a457334160b1a900e707b4e6c0"
+    ],
+    "evidenceRefs": [
+      "EVD-fdfa78c47a17426491659018751185dc",
+      "EVD-5ec48bf17bb94b26874e9c79ed94ad28",
+      "EVD-e295807c79ba4957891ec9dfa14ead9a"
+    ],
+    "gateRefs": [
+      "GATE-task-0089-closeout"
+    ],
+    "terminalFailureRefs": [],
+    "taskCompletedStateUpdateAttempted": false,
+    "usage": {
+      "modelCalls": 1,
+      "toolCalls": 2,
+      "spawnedNodes": 0,
+      "costUsd": 0.0
+    },
+    "message": "Task passed deterministic and independent semantic gates.",
+    "details": {
+      "taskId": "task-0089-closeout",
+      "taskStatus": "accepted",
+      "commit": "950a55e7e2894addf3e73809ff79fe05a1b9321a",
+      "semanticReviewEnabled": false,
+      "executionPolicy": {
+        "maxAttempts": 1,
+        "startupTimeoutSeconds": 120,
+        "idleTimeoutSeconds": 900,
+        "heartbeatIntervalSeconds": 60,
+        "attemptWallTimeoutSeconds": 1800,
+        "runDeadlineSeconds": 1800
+      },
+      "executionPolicyDecision": {
+        "schema_version": "ahra/execution-policy-decision/0.1",
+        "strategy": "deterministic-task-estimate-v1",
+        "nodeId": "NODE-task-0089-closeout",
+        "estimatedSeconds": 1680,
+        "softDeadlineSeconds": 1800,
+        "hardDeadlineSeconds": 1800,
+        "nodeBudgetSeconds": 1800,
+        "basePolicy": {
+          "maxAttempts": 1,
+          "startupTimeoutSeconds": 120,
+          "idleTimeoutSeconds": 900,
+          "heartbeatIntervalSeconds": 60,
+          "attemptWallTimeoutSeconds": 3600,
+          "runDeadlineSeconds": 7200
+        },
+        "effectivePolicy": {
+          "maxAttempts": 1,
+          "startupTimeoutSeconds": 120,
+          "idleTimeoutSeconds": 900,
+          "heartbeatIntervalSeconds": 60,
+          "attemptWallTimeoutSeconds": 1800,
+          "runDeadlineSeconds": 1800
+        },
+        "rationale": "Use a deterministic task-size estimate; interrupt an Agent phase at roughly twice the estimate while retaining a larger hard run deadline."
+      }
+    }
+  }
+}

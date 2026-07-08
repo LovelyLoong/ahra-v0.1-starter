@@ -1,0 +1,152 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: task-0089-closeout-and-workflow-boundary
+  requestId: GREQ-TASK-0089-CLOSEOUT-LOOP-002
+  idempotencyKey: task-0089-closeout-loop-002
+spec:
+  profileRef: profile/development-bounded
+  workspaceRef: ../../../../..
+  artifactDir: artifacts
+  store:
+    kind: sqlite
+    path: goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-TASK-0089-CLOSEOUT
+    goalDigest: sha256:0089eeee0089eeee0089eeee0089eeee0089eeee0089eeee0089eeee0089eeee
+    claimGraphRef: claim-graph/task-0089-closeout
+    claimGraphDigest: sha256:0089ffff0089ffff0089ffff0089ffff0089ffff0089ffff0089ffff0089ffff
+    requiredClaimRefs:
+      - CLM-TASK-0089-CLOSEOUT
+      - CLM-GOAL-COMPLETE
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-task-0089-closeout: sha256:3333333333333333333333333333333333333333333333333333333333333333
+      GATE-goal-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+      - filesystem.write
+      - process.exec
+  execution:
+    maxRepairCycles: 0
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-TASK-0089-CLOSEOUT
+      proposedBy: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    spec:
+      rationale: >
+        Close the residual TASK-0089 governance gap with a bounded Workflow B
+        increment instead of replaying the oversized archive move. The run fixes
+        the archived task state summary and makes the Workflow A plus B default
+        rule consistent with component-lifecycle promotion boundaries.
+      nodes:
+        - id: NODE-task-0089-closeout
+          nodeType: bounded_task
+          objective: >
+            Make the smallest documentation-only closeout for TASK-0089:
+            1. In work/index.md, correct the archived-task summary so it says
+               TASK-0001 through TASK-0080 are archived task records, not 80
+               completed tasks, and include the final-state split
+               completed=71 and canceled=9 in the archive digest table.
+            2. In docs/roadmaps/development-program-overview.md, clarify that
+               the TASK-0090 Workflow A plus B default is a governance/work
+               selection rule for new work, not component-lifecycle promotion
+               of Workflow A.
+            3. In docs/architecture/framework-entrypoints.md, clarify that
+               explicit workflow-a use under the TASK-0090 A+B procedure does
+               not make workflow-a an implicit CLI default route.
+            4. In docs/architecture/component-inventory.json, keep
+               component:alignment-session-manager experimental/default_visible
+               false while recording that TASK-0090 proves the explicit A+B
+               work route separately from component promotion.
+            5. Run uv run python -B scripts/check.py --lint and record it in
+               WorkReport.verification_commands_run.
+            Do not edit TASK-0089 state.json or events.jsonl directly, and do
+            not mark TASK-0089 completed.
+          claimRefs:
+            - CLM-TASK-0089-CLOSEOUT
+          dependsOn: []
+          inputRefs:
+            - work/tasks/TASK-0089/task.md
+            - work/tasks/TASK-0089/state.json
+            - work/tasks/TASK-0089/evidence/evidence-gate-report-3.json
+            - docs/roadmaps/development-program-overview.md
+            - docs/architecture/framework-entrypoints.md
+            - docs/architecture/component-inventory.json
+            - work/index.md
+          expectedOutputs:
+            - name: task-0089-closeout-docs
+              schemaRef: ahra/artifact/doc-change/0.1
+              consumerNodeRefs:
+                - NODE-goal-verification
+              artifactRequired: true
+          capabilityRequests:
+            - capability: filesystem.write
+              resources:
+                - work/index.md
+                - docs/roadmaps/development-program-overview.md
+                - docs/architecture/framework-entrypoints.md
+                - docs/architecture/component-inventory.json
+            - capability: process.exec
+              resources:
+                - uv run python -B scripts/check.py --lint
+          gateRefs:
+            - GATE-task-0089-closeout
+          runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+          budgetRequest:
+            maxModelCalls: 10
+            maxToolCalls: 50
+            maxSpawnedNodes: 0
+            maxWallSeconds: 1800
+            maxCostUsd: 1.0
+          retryPolicy:
+            maxAttempts: 1
+            retryableFailureClasses: []
+            idempotencyKeyRequired: true
+          timeoutSeconds: 1800
+          sideEffect: mutating
+        - id: NODE-goal-verification
+          nodeType: goal_verification
+          objective: Verify the TASK-0089 closeout documentation is present and the goal is complete.
+          claimRefs:
+            - CLM-TASK-0089-CLOSEOUT
+            - CLM-GOAL-COMPLETE
+          dependsOn:
+            - NODE-task-0089-closeout
+          inputRefs:
+            - NODE-task-0089-closeout
+          expectedOutputs: []
+          capabilityRequests: []
+          gateRefs:
+            - GATE-goal-complete
+          runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+          budgetRequest:
+            maxModelCalls: 1
+            maxToolCalls: 1
+            maxSpawnedNodes: 0
+            maxWallSeconds: 60
+            maxCostUsd: 0.0
+          retryPolicy:
+            maxAttempts: 1
+            retryableFailureClasses: []
+            idempotencyKeyRequired: false
+          timeoutSeconds: 60
+          sideEffect: idempotent
+          terminalGoalVerification: true

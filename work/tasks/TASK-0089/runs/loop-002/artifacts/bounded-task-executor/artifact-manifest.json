@@ -1,0 +1,78 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "task-0089-closeout",
+  "artifacts": [
+    {
+      "artifact_id": "ART-40fe723160f141a8be67b2ffb3e19bc0",
+      "task_id": "task-0089-closeout",
+      "kind": "execution_policy_decision",
+      "name": "execution-policy-decision.json",
+      "uri": "local://nodes/NODE-task-0089-closeout/execution-policy-decision.json",
+      "sha256": "1e34abbba28cb393ff6a2a782cf790c2368e1441a49645f10cb79e2895e1f951",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-08T03:44:15.256214Z",
+      "input_refs": [
+        "PLAN-e11682224d81ad4c",
+        "NODE-task-0089-closeout",
+        "NRUN-601a1fcca85bb235"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-824182827de0474fa095b2a02aead909",
+      "task_id": "task-0089-closeout",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/task-0089-closeout/attempt-1/patch.diff",
+      "sha256": "9f30bd6122ea4a8df7b0d76dbb541ff930d45d1d58d2e50eaaddd810dc485b34",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-08T03:48:37.226413Z",
+      "input_refs": [
+        "task-0089-closeout",
+        "NRUN-601a1fcca85bb235"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-67d4b3a457334160b1a900e707b4e6c0",
+      "task_id": "task-0089-closeout",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/task-0089-closeout/attempt-1/work-report.json",
+      "sha256": "8321a950d1543109fb8bfe4efd9d2ab22c2b2620578c533e8eabc10a526a44ec",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-08T03:48:37.229403Z",
+      "input_refs": [
+        "task-0089-closeout",
+        "NRUN-601a1fcca85bb235"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-94aac2af698a470cab693eecde5bcfdf",
+      "task_id": "task-0089-closeout",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-task-0089-closeout/node-run.json",
+      "sha256": "a6b629b0cdacd05ddf0c42fa1724eae4dd5003fb0952438cda2feb49a8b45fa0",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-08T03:48:37.773266Z",
+      "input_refs": [
+        "PLAN-e11682224d81ad4c",
+        "NODE-task-0089-closeout",
+        "NRUN-601a1fcca85bb235"
+      ],
+      "evidence_refs": [
+        "EVD-e295807c79ba4957891ec9dfa14ead9a"
+      ],
+      "supersedes": null
+    }
+  ]
+}

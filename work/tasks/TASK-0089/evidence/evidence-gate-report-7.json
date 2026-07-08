@@ -1,0 +1,53 @@
+{
+  "schema_version": "ahra/evidence-gate-report/0.1",
+  "task_id": "TASK-0089",
+  "generated_by": "ahra.evidence_gate",
+  "verifier": "agent:independent-verifier",
+  "generated_at": "2026-07-08T03:56:03.828888Z",
+  "decision": "approve",
+  "target_state": "completed",
+  "summary": "Verifier accepts TASK-0089 after loop-002 supplied kernel-derived Workflow B completion for the remaining blocker and corrected the archive digest / Workflow A+B boundary documentation.",
+  "criteria": [
+    {
+      "criterion_index": 1,
+      "criterion": "work/tasks contains only TASK-0081 and later; TASK-0001 through TASK-0080 directories are moved unmodified to archive/work/tasks/ with state.json and events.jsonl byte-identical.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0089-0001"
+      ],
+      "notes": "The previous manifest-backed evidence records the TASK-0001 through TASK-0080 archive move and byte-identical state/events preservation."
+    },
+    {
+      "criterion_index": 2,
+      "criterion": "work/index.md lists live tasks plus a one-line digest table for archived tasks with their final state, and every remaining relative link resolves.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0089-0001",
+        "EVD-31c774704a07d61d"
+      ],
+      "notes": "The original archive digest evidence is preserved, and loop-002 kernel evidence covers the corrected work/index.md wording and final-state split."
+    },
+    {
+      "criterion_index": 3,
+      "criterion": "Documents with authority-map status superseded or archived are moved to archive/docs/, the authority map and docs/index.md are updated, and uv run python -B scripts/check.py --lint passes.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-TASK-0089-0001",
+        "EVD-31c774704a07d61d"
+      ],
+      "notes": "The prior evidence covers the superseded/archived document move and lint pass; loop-002 reran the lint check through Workflow B after the closeout documentation edits."
+    },
+    {
+      "criterion_index": 4,
+      "criterion": "The change is produced by a Workflow B development-bounded GoalExecution with kernel-derived completion, then approved through the AWKP EvidenceGate by an independent verifier.",
+      "status": "passed",
+      "evidence_refs": [
+        "EVD-31c774704a07d61d",
+        "EVD-ddf346f2207d38a6"
+      ],
+      "notes": "GoalExecution GEXEC-ce4e139586765683 succeeded under profile/development-bounded, materialized kernel EvidenceV2/GateRun records, and is being bridged to AWKP for independent EvidenceGate approval."
+    }
+  ],
+  "commands": [],
+  "semantic_reviews": []
+}

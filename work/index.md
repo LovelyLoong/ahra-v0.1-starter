@@ -47,7 +47,7 @@ them explicitly.
 | [TASK-0086](tasks/TASK-0086/task.md) | completed | unassigned | 9 | Completed by EvidenceGate verifier approval. |
 | [TASK-0087](tasks/TASK-0087/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
 | [TASK-0088](tasks/TASK-0088/task.md) | completed | unassigned | 12 | Completed by EvidenceGate verifier approval. |
-| [TASK-0089](tasks/TASK-0089/task.md) | changes_requested | unassigned | 3 | Address EvidenceGate verifier findings and return to review. |
+| [TASK-0089](tasks/TASK-0089/task.md) | completed | unassigned | 7 | Completed by EvidenceGate verifier approval. |
 | [TASK-0090](tasks/TASK-0090/task.md) | completed | unassigned | 8 | Completed by EvidenceGate verifier approval. |
 | [TASK-0091](tasks/TASK-0091/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
 | [TASK-0092](tasks/TASK-0092/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
@@ -56,10 +56,11 @@ them explicitly.
 
 ## Archived Tasks
 
-80 completed tasks (TASK-0001 through TASK-0080) have been archived to
+TASK-0001 through TASK-0080 are archived task records under
 `archive/work/tasks/` with their contract, authority state, evidence, and
-handoffs preserved byte-identical. Git history remains the audit authority.
+handoffs preserved byte-identical. Their final states split into completed=71
+and canceled=9. Git history remains the audit authority.
 
-| Range | Count | Archive location |
-|---|---:|---|
-| TASK-0001 to TASK-0080 | 80 | [archive/work/tasks/](../archive/work/tasks/) |
+| Range | Records | Final state split | Archive location |
+|---|---:|---|---|
+| TASK-0001 to TASK-0080 | 80 | completed=71, canceled=9 | [archive/work/tasks/](../archive/work/tasks/) |

@@ -1127,19 +1127,19 @@
       "side_effects": "calls injected AgentDriver; writes explicit session/request/approval files only when workflow-a CLI path is invoked; produces untrusted RequestDraft until ApprovalService Gate 2 freezes under human actor",
       "artifact_evidence": "TASK-0077, EVD-808a23cf72ea2ddc, EVD-e17537aeed441163, EVD-TASK-0077-0003; TASK-0078, TASK-0079, TASK-0080, TASK-0081, and TASK-0082 completed by EvidenceGate.",
       "compatibility_scope": "First Workflow A checkpoint and experimental CLI only; non-default until explicit component-lifecycle promotion approves default visibility.",
-      "promotion_status": "TASK-0083 readiness audit keeps this component experimental because default-visible promotion still lacks non-fixture Workflow A to Workflow B consumer evidence.",
+      "promotion_status": "TASK-0083 readiness audit keeps this component experimental and default_visible false. TASK-0090 proves the explicit Workflow A plus Workflow B work route for new work, but that is a governance/work-selection rule and not component-lifecycle promotion or default-visible approval for workflow-a.",
       "promotion_blockers": [
-        "No EvidenceGate-approved non-fixture Workflow A lifecycle run yet proves that an authorized workflow-a GoalExecutionRequest is consumed by Workflow B through goal validate, goal plan, and goal start.",
+        "TASK-0090 route proof is scoped to explicit Workflow A plus Workflow B work selection and does not approve replacing the explicit experimental workflow-a surface with a default-visible route.",
         "No component-lifecycle promotion task has approved replacing the explicit experimental workflow-a surface with a default-visible route."
       ],
       "promotion_criteria": [
         "TASK-0079 completed by EvidenceGate proving development-bounded code-change output requires independent semantic/code-review evidence.",
         "TASK-0080 completed by EvidenceGate proving Workflow A dogfood artifact/store paths are task-scoped.",
         "TASK-0081 completed by EvidenceGate proving workflow-a lifecycle start/advance/snapshot/approve-requirement/draft/admit/authorize preserves Human Gate 1 and ApprovalService Gate 2.",
-        "A promotion task must add EvidenceGate-approved non-fixture Workflow A to Workflow B consumer evidence before default_visible can become true.",
+        "A promotion task must decide whether TASK-0090's explicit A+B work-route proof is sufficient consumer evidence for component promotion before default_visible can become true.",
         "The promotion task must update this inventory and framework entrypoints with an explicit default-route approval boundary before any default-route claim."
       ],
-      "x-status-note": "TASK-0078 requires explicit Requirement-Agent PlanDraft and Acceptance-Agent ClaimGraph and wires Human Gate 1 plus ApprovalService Gate 2. TASK-0081 adds explicit experimental workflow-a CLI lifecycle. TASK-0083 records that default-visible promotion is not yet supported by non-fixture Workflow A to Workflow B consumer evidence."
+      "x-status-note": "TASK-0078 requires explicit Requirement-Agent PlanDraft and Acceptance-Agent ClaimGraph and wires Human Gate 1 plus ApprovalService Gate 2. TASK-0081 adds explicit experimental workflow-a CLI lifecycle. TASK-0083 records that default-visible promotion is not yet supported. TASK-0090 records an explicit A+B work route separately from component promotion."
     }
 
   ]

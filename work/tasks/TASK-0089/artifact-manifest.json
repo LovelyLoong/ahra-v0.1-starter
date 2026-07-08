@@ -1,17 +1,94 @@
 {
-  "schema_version": "awkp/0.1",
-  "task_id": "TASK-0089",
   "artifacts": [
     {
       "artifact_id": "ART-TASK-0089-0001",
+      "created_at": "2026-07-06T02:27:29.953431Z",
+      "created_by": "agent:independent-verifier",
+      "evidence_refs": [
+        "EVD-TASK-0089-0002"
+      ],
+      "input_refs": [
+        "task.md",
+        "state.json",
+        "artifact-manifest.json",
+        "evidence-manifest.json"
+      ],
+      "kind": "evidence_gate_report",
+      "media_type": "application/json",
+      "name": "evidence-gate-report-3.json",
+      "sha256": "53e5a0e6865e4d0cd141c0692a305376b85d80760c16cbd6de9e017f3cbb56f1",
+      "supersedes": null,
+      "task_id": "TASK-0089",
+      "uri": "local://evidence/evidence-gate-report-3.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0089-0002",
+      "created_at": "2026-07-08T03:56:03.780138Z",
+      "created_by": "agent:workflow-b-producer",
+      "evidence_refs": [
+        "EVD-31c774704a07d61d"
+      ],
+      "input_refs": [
+        "work\\tasks\\TASK-0089\\runs\\loop-002\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0089\\runs\\loop-002\\artifacts",
+        "GEXEC-ce4e139586765683"
+      ],
+      "kind": "kernel_gate_run_v2",
+      "media_type": "application/json",
+      "name": "GATERUN-31c774704a07d61d.json",
+      "sha256": "c17bb5d4beaa7e2710e86f25ebde0f1534e3942cbddaf89cb6a48c8e5382ad7f",
+      "supersedes": null,
+      "task_id": "TASK-0089",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-31c774704a07d61d.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0089-0003",
+      "created_at": "2026-07-08T03:56:03.782131Z",
+      "created_by": "agent:workflow-b-producer",
+      "evidence_refs": [
+        "EVD-ddf346f2207d38a6"
+      ],
+      "input_refs": [
+        "work\\tasks\\TASK-0089\\runs\\loop-002\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0089\\runs\\loop-002\\artifacts",
+        "GEXEC-ce4e139586765683"
+      ],
+      "kind": "kernel_gate_run_v2",
+      "media_type": "application/json",
+      "name": "GATERUN-ddf346f2207d38a6.json",
+      "sha256": "bf4562742cc9f43ee5b4080be415f6b6341d4201bd95ac346c5ab96cd2a19317",
+      "supersedes": null,
+      "task_id": "TASK-0089",
+      "uri": "local://evidence/kernel-gate-runs/GATERUN-ddf346f2207d38a6.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0089-0004",
+      "created_at": "2026-07-08T03:56:03.782131Z",
+      "created_by": "agent:workflow-b-producer",
+      "evidence_refs": [],
+      "input_refs": [
+        "work\\tasks\\TASK-0089\\runs\\loop-002\\goal-control.sqlite3",
+        "work\\tasks\\TASK-0089\\runs\\loop-002\\artifacts",
+        "GEXEC-ce4e139586765683"
+      ],
+      "kind": "goal_awkp_association",
+      "media_type": "application/json",
+      "name": "goal-awkp-association-GEXEC-ce4e139586765683.json",
+      "sha256": "8fd3bb51b396dfcdfad79e8753e1af5bc3626e9531df6a09f969d4af238d9000",
+      "supersedes": null,
+      "task_id": "TASK-0089",
+      "uri": "local://evidence/goal-awkp-association-GEXEC-ce4e139586765683.json"
+    },
+    {
+      "artifact_id": "ART-TASK-0089-0005",
       "task_id": "TASK-0089",
       "kind": "evidence_gate_report",
-      "name": "evidence-gate-report-3.json",
-      "uri": "local://evidence/evidence-gate-report-3.json",
-      "sha256": "53e5a0e6865e4d0cd141c0692a305376b85d80760c16cbd6de9e017f3cbb56f1",
+      "name": "evidence-gate-report-7.json",
+      "uri": "local://evidence/evidence-gate-report-7.json",
+      "sha256": "e5d7e56405d79ed2d517876c4989ad6d3ed5bc5e2a7854c41aaaeeffa2749c85",
       "media_type": "application/json",
       "created_by": "agent:independent-verifier",
-      "created_at": "2026-07-06T02:27:29.953431Z",
+      "created_at": "2026-07-08T03:56:03.828888Z",
       "input_refs": [
         "task.md",
         "state.json",
@@ -19,9 +96,11 @@
         "evidence-manifest.json"
       ],
       "evidence_refs": [
-        "EVD-TASK-0089-0002"
+        "EVD-TASK-0089-0003"
       ],
       "supersedes": null
     }
-  ]
+  ],
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0089"
 }

@@ -1,0 +1,26 @@
+{
+  "schema_version": "ahra/node-gate-summary/0.1",
+  "plan_id": "PLAN-e11682224d81ad4c",
+  "node_id": "NODE-task-0089-closeout",
+  "node_type": "bounded_task",
+  "gate_refs": [
+    "GATE-task-0089-closeout"
+  ],
+  "l0_gates": [],
+  "semantic_review_enabled": false,
+  "status": "accepted",
+  "attempts": [
+    {
+      "attempt": 1,
+      "deterministicPassed": true,
+      "requiredChecksPassed": true,
+      "checkExecutionStatus": "completed",
+      "checkSkipReason": null,
+      "agentReportedVerificationCommands": [
+        "uv run python -B scripts/check.py --lint"
+      ],
+      "reviewVerdict": "pass",
+      "error": null
+    }
+  ]
+}

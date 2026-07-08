@@ -1,0 +1,135 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:ede30147bb611ecb3bfe46e56cc83c695f967f6e022e83b2e71f331071a4174d",
+    "planId": "PLAN-e11682224d81ad4c",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:0089ffff0089ffff0089ffff0089ffff0089ffff0089ffff0089ffff0089ffff",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-task-0089-closeout",
+        "targetNodeRef": "NODE-goal-verification"
+      }
+    ],
+    "goalDigest": "sha256:0089eeee0089eeee0089eeee0089eeee0089eeee0089eeee0089eeee0089eeee",
+    "goalRef": "GOAL-TASK-0089-CLOSEOUT",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 10,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 50,
+          "maxWallSeconds": 1800
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:b08664ee9084ab6180f390f1c10d3d50ab61fee1e90f9335ad2e47571be904c0",
+            "resources": [
+              "docs/architecture/component-inventory.json",
+              "docs/architecture/framework-entrypoints.md",
+              "docs/roadmaps/development-program-overview.md",
+              "work/index.md"
+            ]
+          },
+          {
+            "capability": "process.exec",
+            "grantDigest": "sha256:b42b5c183ca6cfb6f98403968ad4481ce6f8421813638b1b10b84ca77aca87a2",
+            "resources": [
+              "uv run python -B scripts/check.py --lint"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLM-TASK-0089-CLOSEOUT"
+        ],
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-goal-verification"
+            ],
+            "name": "task-0089-closeout-docs",
+            "schemaRef": "ahra/artifact/doc-change/0.1"
+          }
+        ],
+        "gateDigests": [
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        ],
+        "gateRefs": [
+          "GATE-task-0089-closeout"
+        ],
+        "id": "NODE-task-0089-closeout",
+        "inputRefs": [
+          "docs/architecture/component-inventory.json",
+          "docs/architecture/framework-entrypoints.md",
+          "docs/roadmaps/development-program-overview.md",
+          "work/index.md",
+          "work/tasks/TASK-0089/evidence/evidence-gate-report-3.json",
+          "work/tasks/TASK-0089/state.json",
+          "work/tasks/TASK-0089/task.md"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Make the smallest documentation-only closeout for TASK-0089: 1. In work/index.md, correct the archived-task summary so it says\n   TASK-0001 through TASK-0080 are archived task records, not 80\n   completed tasks, and include the final-state split\n   completed=71 and canceled=9 in the archive digest table.\n2. In docs/roadmaps/development-program-overview.md, clarify that\n   the TASK-0090 Workflow A plus B default is a governance/work\n   selection rule for new work, not component-lifecycle promotion\n   of Workflow A.\n3. In docs/architecture/framework-entrypoints.md, clarify that\n   explicit workflow-a use under the TASK-0090 A+B procedure does\n   not make workflow-a an implicit CLI default route.\n4. In docs/architecture/component-inventory.json, keep\n   component:alignment-session-manager experimental/default_visible\n   false while recording that TASK-0090 proves the explicit A+B\n   work route separately from component promotion.\n5. Run uv run python -B scripts/check.py --lint and record it in\n   WorkReport.verification_commands_run.\nDo not edit TASK-0089 state.json or events.jsonl directly, and do not mark TASK-0089 completed.\n",
+        "retryPolicy": {
+          "idempotencyKeyRequired": true,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "mutating",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 1800
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLM-GOAL-COMPLETE",
+          "CLM-TASK-0089-CLOSEOUT"
+        ],
+        "dependsOn": [
+          "NODE-task-0089-closeout"
+        ],
+        "expectedOutputs": [],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+        ],
+        "gateRefs": [
+          "GATE-goal-complete"
+        ],
+        "id": "NODE-goal-verification",
+        "inputRefs": [
+          "NODE-task-0089-closeout"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the TASK-0089 closeout documentation is present and the goal is complete.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "idempotent",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 60
+      }
+    ]
+  }
+}
