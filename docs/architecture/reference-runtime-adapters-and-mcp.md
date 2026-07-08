@@ -165,24 +165,24 @@ The starter MCP server implementation has been deleted. It is no longer a
 legacy optional adapter surface in this repository. Historical ADRs and task
 evidence may mention the old stdio wrapper, but those references are trace-only.
 
-The current operation route is Mode C plus Goal CLI plus Skill.
+The current operation route is Mode C plus Goal CLI plus repository
+documentation. No project-local Skill is currently active.
 
 # Legacy Agent Operation
 
-For the current default path, use `framework-entrypoints.md` and
-`skills/ahra-dynamic-kernel/SKILL.md`.
+For the current default path, use `framework-entrypoints.md`, `AGENTS.md`, and
+the Goal CLI commands documented there.
 
 For an explicit legacy workflow compatibility request, an agent should use this
 order:
 
-1. Load the local AHRA workflow-runner skill.
-2. Validate the request schema.
-3. Load workflow modules.
-4. Resolve driver adapters.
-5. Start or resume through the hidden legacy workflow compatibility CLI group.
-6. When a task is in review, inspect AWKP task state and invoke EvidenceGate
+1. Validate the request schema.
+2. Load workflow modules.
+3. Resolve driver adapters.
+4. Start or resume through the hidden legacy workflow compatibility CLI group.
+5. When a task is in review, inspect AWKP task state and invoke EvidenceGate
    with a verifier report.
-7. Report factual run status and artifact/evidence locations.
+6. Report factual run status and artifact/evidence locations.
 
 The launch agent remains an operator. It is not automatically the driver
 unless a driver adapter explicitly represents it.

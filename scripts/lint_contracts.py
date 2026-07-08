@@ -62,8 +62,8 @@ DEFAULT_DOC_PATHS = [
     ROOT / "README.md",
     ROOT / "AGENTS.md",
     ROOT / "docs/architecture/framework-entrypoints.md",
-    ROOT / "skills/ahra-dynamic-kernel/SKILL.md",
 ]
+ACTIVE_LOCAL_SKILL_PATHS: list[Path] = []
 FORBIDDEN_DEFAULT_DOC_SNIPPETS = [
     "uv run ahra workflow",
     "ahra workflow start",
@@ -170,12 +170,20 @@ def _check_default_exposure() -> int:
         print("ERROR default CLI help exposes legacy workflow command")
 
     for path in DEFAULT_DOC_PATHS:
+        if not path.exists():
+            failures += 1
+            print(f"ERROR default documentation path is missing: {path.relative_to(ROOT)}")
+            continue
         text = path.read_text(encoding="utf-8")
         lowered = text.lower()
         for snippet in FORBIDDEN_DEFAULT_DOC_SNIPPETS:
             if snippet.lower() in lowered:
                 failures += 1
                 print(f"ERROR {path.relative_to(ROOT)} contains default-route legacy snippet: {snippet}")
+    for path in ACTIVE_LOCAL_SKILL_PATHS:
+        if not path.exists():
+            failures += 1
+            print(f"ERROR active local Skill is missing: {path.relative_to(ROOT)}")
     return failures
 
 
@@ -213,6 +221,11 @@ def _check_component_inventory() -> int:
         if component.get("default_visible") and lifecycle_class not in {"core", "adapter"}:
             failures += 1
             print(f"ERROR {component_id} is default-visible but not core/adapter")
+        if component.get("default_visible") and component.get("kind") == "skill":
+            for rel_path in component.get("paths") or []:
+                if str(rel_path).endswith("/SKILL.md") and not (ROOT / str(rel_path)).exists():
+                    failures += 1
+                    print(f"ERROR {component_id} default-visible Skill path is missing: {rel_path}")
 
         if lifecycle_class == "core":
             missing = sorted(field for field in CORE_REQUIRED_FIELDS if not component.get(field))

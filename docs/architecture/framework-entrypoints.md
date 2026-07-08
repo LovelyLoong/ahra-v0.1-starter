@@ -9,7 +9,6 @@ owner: team:platform
 source_refs:
   - ../../AGENTS.md
   - ../../README.md
-  - ../../skills/ahra-dynamic-kernel/SKILL.md
   - component-inventory.json
 evidence_refs: [EVD-TASK-0051-0003]
 confidence: reviewed
@@ -21,7 +20,13 @@ tags: [architecture, entrypoint, cli, skill, dynamic-kernel]
 # Summary
 
 The default foundation entrypoint is **Mode C real-Agent pilot runner plus the
-generic Goal CLI, the dynamic-kernel Skill, and repository documentation**.
+generic Goal CLI and repository documentation**.
+
+No project-local Skill is currently active. The previous local Skill entrypoints
+were retired during the Evolver-backed Skill replacement transition. A new
+project-local Skill becomes part of the default operation surface only after it
+is produced, reviewed, and registered in `AGENTS.md` and the component
+inventory.
 
 The current default real-Agent path is local and bounded. It runs Mode C through
 one generic M1 `GoalExecutionRequest` with a real Planner and real bounded

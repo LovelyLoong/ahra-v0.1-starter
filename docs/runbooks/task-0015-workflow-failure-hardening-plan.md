@@ -11,7 +11,6 @@ source_refs:
   - ../../.runtime/TASK-0015-supervision-summary-20260624T1735.md
   - ../architecture/agent-drivers-and-workflow-invocation.md
   - ../architecture/reference-runtime-adapters-and-mcp.md
-  - ../../skills/ahra-workflow-runner/SKILL.md
 evidence_refs: []
 confidence: reviewed
 last_verified_at: 2026-06-24T00:00:00Z
@@ -28,6 +27,10 @@ boundary.
 
 The fourth observed issue, long reviewer phases and richer heartbeat or
 stop-and-harvest support, is intentionally out of scope for this plan.
+
+The earlier local workflow-runner Skill referenced by this draft has been
+retired during the project-local Skill replacement transition. This runbook is
+trace material unless a replacement Skill is produced, reviewed, and registered.
 
 # Goals
 

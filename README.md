@@ -85,8 +85,8 @@ git diff --check
 - `contracts/schemas/`：AHRA 跨语言契约。
 - `schemas/`：AWKP 工作治理层 schema。
 - `src/ahra/`：当前 Python 参考实现。
-- `skills/ahra-dynamic-kernel/SKILL.md`：当前默认动态内核操作 Skill。
-- `skills/ahra-workflow-runner/SKILL.md`：legacy workflow compatibility Skill。
+- `skills/`：项目局部 Skill 的受控产物目录；当前没有 active
+  project-local Skill，后续 Skill 由 Evolver-backed distillation/review 通过后再注册。
 
 ## Runtime Layers
 
@@ -95,7 +95,7 @@ git diff --check
 1. **工作治理层**：Task、State、Event、Artifact、Evidence、Handoff、Lease 和 EvidenceGate。
 2. **动态内核层**：Goal/Claim/Gate、Evidence v2、PlanDraft/PlanIR、Capability、Scheduler、Defect、Completion。
 3. **适配器层**：NodeExecutor、Planner、AgentDriver、runtime/profile 等 Port 的可替换实现。
-4. **操作入口层**：CLI、动态内核 Skill、文档读序和本地检查命令。
+4. **操作入口层**：CLI、文档读序、本地检查命令，以及经审查注册后的项目局部 Skill。
 
 旧 workflow runner 仍可作为兼容路径被显式调用，但不再是默认推荐入口，也不再接收新默认路线能力。
 

@@ -153,8 +153,7 @@
       "consumers": [
         "local operator",
         "AGENTS.md",
-        "README.md",
-        "skills/ahra-dynamic-kernel/SKILL.md"
+        "README.md"
       ],
       "tests": [
         "tests/test_workflow_sequence.py",
@@ -869,31 +868,27 @@
     {
       "id": "skill:ahra-dynamic-kernel",
       "kind": "skill",
-      "lifecycle_class": "core",
-      "default_visible": true,
+      "lifecycle_class": "archived",
+      "default_visible": false,
       "owner": "team:platform",
       "review_after": "2026-09-25T00:00:00Z",
-      "paths": [
-        "skills/ahra-dynamic-kernel/SKILL.md"
-      ],
+      "paths": [],
       "serves": [
-        "OperationEntrypoint",
-        "Evidence",
-        "CompletionDecision"
+        "HistoricalOperationEntrypoint"
       ],
       "entrypoints": [
-        "local Skill routing"
+        "retired local Skill routing"
       ],
       "consumers": [
-        "AGENTS.md",
-        "local agents"
+        "historical task trace"
       ],
       "tests": [
         "scripts/lint_contracts.py"
       ],
       "security_class": "operational instruction only",
       "side_effects": "none",
-      "artifact_evidence": "commands and reports produced by the referenced CLI"
+      "artifact_evidence": "historical commands and reports produced by the referenced CLI before Skill retirement",
+      "trace_location": "git history before the Evolver-backed project-local Skill replacement transition"
     },
     {
       "id": "adapter:codex-sdk-driver",

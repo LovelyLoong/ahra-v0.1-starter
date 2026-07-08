@@ -21,7 +21,7 @@ tags: [architecture]
 | Concept | Purpose |
 |---|---|
 | [Architecture authority map](authority-map.md) | Single active owner for each live dynamic-kernel architecture concept |
-| [Framework entrypoints](framework-entrypoints.md) | Current Mode C plus Goal CLI plus dynamic-kernel Skill operation path |
+| [Framework entrypoints](framework-entrypoints.md) | Current Mode C plus Goal CLI plus repository documentation operation path |
 | [Component inventory](component-inventory.json) | Current component lifecycle and default exposure inventory |
 | [Governed dynamic Agent kernel](dynamic-agent-kernel.md) | Acceptance-first dynamic execution architecture for the current fixture-scoped path |
 | [Verification system v2](verification-system.md) | Claim, Gate, Evidence validity, Defect, and selective reverification model |
