@@ -1,0 +1,12 @@
+{
+  "approvalId": "APR-6b82a03a770049b7",
+  "decidedAt": "2026-07-08T02:27:12.872512Z",
+  "decisionBy": "human:maintainer",
+  "intentId": "INTENT-TASK-0090-BINDING-RULE",
+  "producerActor": "agent:alignment-session",
+  "reason": "Gate 2 authorization for TASK-0090 fresh Workflow A loop-005 after RequestDraftAdmission accepted.",
+  "requestId": "REQ-6b82a03a770049b7",
+  "requestedAt": "2026-07-08T02:27:12.872512Z",
+  "requestedBy": "agent:alignment-session",
+  "status": "approved"
+}

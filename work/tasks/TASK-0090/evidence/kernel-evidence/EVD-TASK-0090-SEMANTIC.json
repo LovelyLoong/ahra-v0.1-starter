@@ -1,0 +1,79 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "Evidence",
+  "metadata": {
+    "evidenceId": "EVD-TASK-0090-SEMANTIC"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLM-TASK-0090"
+    ],
+    "confidence": "verified",
+    "dependencies": [],
+    "dependencyScope": "complete",
+    "environment": {
+      "policyDigest": "sha256:7fb7b551bbb0d060876a449f4ac3b3f308164d01642221ca3b01c519eb424a82",
+      "relevantEnvironmentDigest": "sha256:0e65b3d027841d844517148096dbe8f37bdfcd129d6f6d84a55662960ed15e20",
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:e3431f08397a393e42d6091d6b7d0690d5aae8141420c417893451db00d92dc2",
+      "verifierReleaseDigest": "sha256:87ad63bdcf054b82fdb3f832d7a90cd0b91cceaa55e440791a411d379bcd2bc7"
+    },
+    "fingerprint": "sha256:efc28a2b0ba6f198e42e61e09ef3701c166fe69417f6b32d5cfda9669697ab5e",
+    "gateDefinitionDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "gateRef": "GATE-task-0090-semantic-review",
+    "gateRunId": "GATERUN-TASK-0090-SEMANTIC",
+    "refs": [
+      "ART-TASK-0090-0010",
+      "verifier:agent:semantic-reviewer",
+      "GATERUN-TASK-0090-SEMANTIC"
+    ],
+    "result": "passed",
+    "subjects": [
+      {
+        "digest": "sha256:9caa8353f53e705836c3a434dfaace6a2907648d951cd7f4363f9bdbcd405a1a",
+        "ref": "ART-TASK-0090-0001"
+      },
+      {
+        "digest": "sha256:d2e562781712c3c42ca09014524177af918607f03efa6d30b80d9f63317d0f87",
+        "ref": "ART-TASK-0090-0002"
+      },
+      {
+        "digest": "sha256:2b95f9d61e66993068e99796b109a0c6dc762c343eaa4b81115b83f3adbfbcc0",
+        "ref": "ART-TASK-0090-0003"
+      },
+      {
+        "digest": "sha256:17564132b41cef074d7e5c3761490439b881b1ac512b8ef92a63998dadba6ce6",
+        "ref": "ART-TASK-0090-0004"
+      },
+      {
+        "digest": "sha256:336793ed36bc87eca713dc0781f7de7b31df89e53a71240d001fea05758259e3",
+        "ref": "ART-TASK-0090-0005"
+      },
+      {
+        "digest": "sha256:399b141ee245739398c55b8ee1604e54116a9c08e70384dcf99a6fdf5c2892c6",
+        "ref": "ART-TASK-0090-0006"
+      },
+      {
+        "digest": "sha256:13fbf0f0eba9b571bc960f226bc4406453fc461c0806d90f1e6474a3f905a2c8",
+        "ref": "ART-TASK-0090-0007"
+      },
+      {
+        "digest": "sha256:ee57a38f13b1dc6c7ce0896a34587ec1c800497219d515c73f82ad058d694063",
+        "ref": "ART-TASK-0090-0008"
+      },
+      {
+        "digest": "sha256:8e3f45545b35529650b315e91b11a2342cb9e45cbbc38c9daef464c4a1ce2993",
+        "ref": "ART-TASK-0090-0009"
+      },
+      {
+        "digest": "sha256:f0eb5c76ea93038eaf22ff959553dfe479537b149e67f9c5fe555760676b4fa9",
+        "ref": "ART-TASK-0090-0010"
+      }
+    ],
+    "supersedes": [],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

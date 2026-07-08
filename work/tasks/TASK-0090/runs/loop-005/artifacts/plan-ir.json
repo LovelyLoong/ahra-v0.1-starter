@@ -1,0 +1,174 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "PlanIR",
+  "metadata": {
+    "digest": "sha256:8f0ea716eac51e565f62e771300b0ae6a51dadc84575ae40d462ffd714f0290b",
+    "planId": "PLAN-89d23799091e1459",
+    "version": 1
+  },
+  "spec": {
+    "claimGraphDigest": "sha256:fbdbc16c2f53c3087af9acac6e888907de3c623e3c9c9fdecbef1a0c2d427f85",
+    "compilerVersion": "ahra-plan-compiler/0.1",
+    "edges": [
+      {
+        "sourceNodeRef": "NODE-TASK-0090-BINDING-RULE-IMPLEMENT",
+        "targetNodeRef": "NODE-TASK-0090-BINDING-RULE-VERIFY"
+      }
+    ],
+    "goalDigest": "sha256:eaf10f4e70ff3d00a72a00507a1a165403fd65f74609689f6f0ae312d994bbde",
+    "goalRef": "GOAL-TASK-0090-BINDING-RULE-ALIGNED",
+    "nodes": [
+      {
+        "budget": {
+          "maxCostUsd": 0.25,
+          "maxModelCalls": 3,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 3,
+          "maxWallSeconds": 600
+        },
+        "canonicalOrder": 0,
+        "capabilityGrants": [
+          {
+            "approvalRefs": [
+              "TASK-0090-SCOPE"
+            ],
+            "capability": "filesystem.write",
+            "grantDigest": "sha256:4bb8b33726e5fbf232e7cc8777ea81e450286982204816539ef27c6d5615da90",
+            "resources": [
+              "docs/roadmaps/development-program-overview.md"
+            ]
+          },
+          {
+            "approvalRefs": [
+              "TASK-0090-COMPLETION"
+            ],
+            "capability": "process.exec",
+            "grantDigest": "sha256:b4c2bff1179c5268688ac932e44786819e61325dc965ca457997c40a05a548a4",
+            "resources": [
+              "uv run python -B scripts/check.py --lint"
+            ]
+          }
+        ],
+        "claimRefs": [
+          "CLAIM-TASK-0090-CAPABILITY-BOUNDS",
+          "CLAIM-TASK-0090-COMMAND-GATE-COMPLETION",
+          "CLAIM-TASK-0090-DISCOVERABLE-BINDING-SECTION",
+          "CLAIM-TASK-0090-NO-ACCEPTANCE-WEAKENING",
+          "CLAIM-TASK-0090-SINGLE-DOC-SCOPE",
+          "CLAIM-TASK-0090-WORKFLOW-A-B-DEFAULT-RULE"
+        ],
+        "compensationRef": "COMPENSATE-TASK-0090-REVERT-SINGLE-DOC-EDIT",
+        "dependsOn": [],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-TASK-0090-BINDING-RULE-VERIFY"
+            ],
+            "deliveryRole": "implementation_evidence",
+            "name": "work_report",
+            "schemaRef": "schemas/work-report.v1.json"
+          },
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [
+              "NODE-TASK-0090-BINDING-RULE-VERIFY"
+            ],
+            "deliveryRole": "verification_evidence",
+            "name": "lint_result",
+            "schemaRef": "schemas/process-result.v1.json"
+          }
+        ],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        ],
+        "gateRefs": [
+          "GATE-alignment-complete",
+          "GATE-alignment-objective"
+        ],
+        "id": "NODE-TASK-0090-BINDING-RULE-IMPLEMENT",
+        "inputRefs": [
+          "BoundaryContract:task-0090-binding-rule@sha256:5ef8c8224d5f3283e5131ae2e278ad558f17357ed24bd9163017d43e466a3030",
+          "ClaimGraph:TASK-0090@sha256:fbdbc16c2f53c3087af9acac6e888907de3c623e3c9c9fdecbef1a0c2d427f85",
+          "IntentDraft:INTENT-TASK-0090-BINDING-RULE",
+          "docs/roadmaps/development-program-overview.md"
+        ],
+        "nodeType": "bounded_task",
+        "objective": "Edit only docs/roadmaps/development-program-overview.md to add one standalone top-level binding-rule section stating that new work defaults to the Workflow A plus B loop and that any manual path must be recorded as a loop defect, while preserving existing acceptance criteria, sequencing rule, and kernel-boundary bootstrap exception; then run uv run python -B scripts/check.py --lint and report changed_files and lint exit evidence.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "bounded_documentation_edit",
+        "terminalGoalVerification": false,
+        "timeoutSeconds": 600
+      },
+      {
+        "budget": {
+          "maxCostUsd": 0.1,
+          "maxModelCalls": 2,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 300
+        },
+        "canonicalOrder": 1,
+        "capabilityGrants": [],
+        "claimRefs": [
+          "CLAIM-TASK-0090-ADMISSION-AND-VALIDATION",
+          "CLAIM-TASK-0090-CAPABILITY-BOUNDS",
+          "CLAIM-TASK-0090-COMMAND-GATE-COMPLETION",
+          "CLAIM-TASK-0090-DISCOVERABLE-BINDING-SECTION",
+          "CLAIM-TASK-0090-GATE-REFS",
+          "CLAIM-TASK-0090-NO-ACCEPTANCE-WEAKENING",
+          "CLAIM-TASK-0090-PLAN-SHAPE",
+          "CLAIM-TASK-0090-POSITIVE-BUDGETS",
+          "CLAIM-TASK-0090-SINGLE-DOC-SCOPE",
+          "CLAIM-TASK-0090-WORKFLOW-A-B-DEFAULT-RULE"
+        ],
+        "dependsOn": [
+          "NODE-TASK-0090-BINDING-RULE-IMPLEMENT"
+        ],
+        "expectedOutputs": [
+          {
+            "artifactRequired": true,
+            "consumerNodeRefs": [],
+            "deliveryRole": "terminal_goal_verification",
+            "name": "goal_verification_report",
+            "schemaRef": "schemas/goal-verification-report.v1.json"
+          }
+        ],
+        "gateDigests": [
+          "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        ],
+        "gateRefs": [
+          "GATE-alignment-complete",
+          "GATE-alignment-objective"
+        ],
+        "id": "NODE-TASK-0090-BINDING-RULE-VERIFY",
+        "inputRefs": [
+          "BoundaryContract:task-0090-binding-rule@sha256:5ef8c8224d5f3283e5131ae2e278ad558f17357ed24bd9163017d43e466a3030",
+          "ClaimGraph:TASK-0090@sha256:fbdbc16c2f53c3087af9acac6e888907de3c623e3c9c9fdecbef1a0c2d427f85",
+          "NODE-TASK-0090-BINDING-RULE-IMPLEMENT.lint_result",
+          "NODE-TASK-0090-BINDING-RULE-IMPLEMENT.work_report"
+        ],
+        "nodeType": "goal_verification",
+        "objective": "Verify the implementation evidence proves the single-document scope, discoverable normative binding-rule section, no acceptance weakening, allowed gate refs, allowed capabilities, admission and validation readiness, positive budgets, and command-gate completion for TASK-0090.",
+        "retryPolicy": {
+          "idempotencyKeyRequired": false,
+          "maxAttempts": 1,
+          "retryableFailureClasses": []
+        },
+        "runtimeDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "sideEffect": "none",
+        "terminalGoalVerification": true,
+        "timeoutSeconds": 300
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "summary": "Added a standalone top-level binding-rule section to docs/roadmaps/development-program-overview.md. The section makes Workflow A intake/alignment plus Workflow B execution/verification the default for new work from TASK-0090 onward, requires any manual path to be recorded as a loop defect, and preserves acceptance criteria, EvidenceGate authority, sequencing dependencies, and the TASK-0085 kernel-boundary bootstrap exception.",
+  "changed_files": [
+    "docs/roadmaps/development-program-overview.md"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --lint (exit 0; AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s))"
+  ],
+  "known_risks": [
+    "uv emitted non-fatal environment/setup warnings during lint: VIRTUAL_ENV mismatch and hardlink fallback."
+  ],
+  "unresolved_items": []
+}

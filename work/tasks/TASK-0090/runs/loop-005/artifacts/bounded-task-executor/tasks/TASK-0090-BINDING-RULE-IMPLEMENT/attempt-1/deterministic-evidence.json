@@ -1,0 +1,55 @@
+{
+  "policy": {
+    "changed_files": [
+      "docs/roadmaps/development-program-overview.md"
+    ],
+    "sensitive_files": [],
+    "violations": [],
+    "added_lines": 13,
+    "deleted_lines": 2
+  },
+  "checks": [
+    {
+      "name": "required artifact exists: docs/roadmaps/development-program-overview.md",
+      "argv": [
+        "ahra.internal.artifact_exists.v1",
+        "docs/roadmaps/development-program-overview.md"
+      ],
+      "required": true,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 0.0,
+      "stdout": "",
+      "stderr": "",
+      "status": "passed",
+      "failure_class": null
+    },
+    {
+      "name": "granted process.exec: uv run python -B scripts/check.py --lint",
+      "argv": [
+        "uv",
+        "run",
+        "python",
+        "-B",
+        "scripts/check.py",
+        "--lint"
+      ],
+      "required": true,
+      "exit_code": 0,
+      "timed_out": false,
+      "duration_seconds": 3.812,
+      "stdout": "+ E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0090\\runs\\loop-005\\artifacts\\development-worktrees\\GEXEC-27cbd14a6f513d3d\\development-bounded-c93f4291\\.venv\\Scripts\\python.exe scripts/lint_contracts.py\nAWKP lint: 0 error(s), 0 warning(s)\nOK    examples/agents/repository-maintainer.yaml\nOK    examples/tools/git-apply-patch.yaml\nOK    examples/runtimes/local-worktree.yaml\nOK    examples/workflows/repository-maintenance.yaml\nOK    examples/workflows/phase1-sequence.yaml\nOK    examples/workflow_modules/standard-harness.yaml\nOK    examples/workflow_modules/loop-engineering.yaml\nOK    examples/workflow_runs/fixtures/standard-task.yaml\nOK    examples/workflow_runs/fixtures/loop-goal.yaml\nOK    examples/workflow_runs/fixtures/loop-resume.yaml\nOK    examples/workflow_runs/runnable/standard-task-codex.yaml\nOK    examples/records/run.json\nOK    examples/records/memory.json\nOK    examples/records/context-manifest.json\nOK    examples/records/policy-decision.json\nOK    examples/records/capability-request.json\nOK    examples/records/capability-grant.json\nOK    examples/records/capability-audit-record.json\nOK    examples/records/approval.json\nOK    examples/records/event.json\nOK    examples/records/goal-contract.json\nOK    examples/intents/phase1-example-intent.yaml\nOK    examples/m1/goal-run-request.yaml\nOK    examples/records/claim-graph.json\nOK    examples/records/gate-definition.json\nOK    examples/records/gate-plan.json\nOK    examples/records/evidence-v2.json\nOK    examples/records/gate-run-v2.json\nOK    examples/records/evidence-status-event.json\nOK    examples/records/verification-trigger.json\nOK    examples/records/verification-selection.json\nOK    examples/records/verification-result.json\nOK    examples/records/gate-execution-request.json\nOK    examples/records/gate-execution-result.json\nOK    examples/records/verification-execution-report.json\nOK    examples/records/defect-record.json\nOK    examples/records/node-run.json\nOK    examples/records/plan-draft.json\nOK    examples/records/plan-ir.json\nOK    examples/records/plan-patch.json\nOK    examples/records/plan-validation-report.json\nAHRA lint: 0 failure(s)\n",
+      "stderr": "warning: `VIRTUAL_ENV=E:\\ahra-v0.1-starter\\.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead\n",
+      "status": "passed",
+      "failure_class": null
+    }
+  ],
+  "check_execution_status": "completed",
+  "check_skip_reason": null,
+  "agent_reported_verification_commands": [
+    "uv run python -B scripts/check.py --lint (exit 0; AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s))"
+  ],
+  "verification_mutated_workspace": false,
+  "verification_mutation_files": [],
+  "patch_excerpt": "diff --git a/docs/roadmaps/development-program-overview.md b/docs/roadmaps/development-program-overview.md\nindex ce11b2c..7fbee29 100644\n--- a/docs/roadmaps/development-program-overview.md\n+++ b/docs/roadmaps/development-program-overview.md\n@@ -142,8 +142,19 @@ Structure: one bootstrap exception, then everything runs through Workflow B.\n Execution rule: 0086..0089 are executed by Workflow B alone through the\n pre-authored requests `examples/goals/task-0086..0089-*.yaml`; each request's\n declared filesystem.write resources are its write scope under the 0085\n-admission. Binding rule from 0090 onward: new work defaults to the A plus B\n-loop, and any manual path must be recorded as a loop defect.\n+admission. The standalone binding rule below applies from 0090 onward.\n+\n+# Binding rule - Workflow A plus B default\n+\n+From TASK-0090 onward, new work defaults to Workflow A intake/alignment followed\n+by Workflow B execution/verification. Any manual path must be recorded as a loop\n+defect.\n+\n+This rule does not lower any task acceptance criteria, EvidenceGate authority,\n+or sequencing dependency. The TASK-0085 kernel-boundary bootstrap exception\n+remains the only named exception: Workflow B is structurally forbidden from\n+editing its own kernel boundary, and that manual path is still recorded as a\n+loop defect.\n \n # Increment G - Dynamic workflow synthesis\n \n"
+}

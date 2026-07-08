@@ -66,6 +66,22 @@ class KernelEvidenceIndex:
     gate_runs: dict[str, dict[str, Any]]
 
 
+@dataclass(frozen=True, slots=True)
+class EvidenceGateReviewRequirementReport:
+    task_id: str
+    requires_semantic_reviews: bool
+    profile_refs: tuple[str, ...]
+    missing_inputs: tuple[str, ...]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "task_id": self.task_id,
+            "requires_semantic_reviews": self.requires_semantic_reviews,
+            "profile_refs": list(self.profile_refs),
+            "missing_inputs": list(self.missing_inputs),
+        }
+
+
 def evaluate_task_gate(
     task: str | Path,
     *,
@@ -294,6 +310,51 @@ def inspect_task(task: str | Path, *, work_root: str | Path = "work") -> dict[st
     if event_path.exists():
         result["events"] = _load_events(event_path)
     return result
+
+
+def resolve_review_requirements(
+    task: str | Path,
+    *,
+    work_root: str | Path = "work",
+    profile_refs: Iterable[str] = (),
+    report_paths: Iterable[str | Path] = (),
+) -> EvidenceGateReviewRequirementReport:
+    task_dir = _resolve_task_dir(task, work_root)
+    task_id = task_dir.name
+    task_path = task_dir / "task.md"
+    effective_profile_refs = {str(ref) for ref in profile_refs}
+    if not effective_profile_refs:
+        artifact_manifest_path = task_dir / "artifact-manifest.json"
+        if artifact_manifest_path.exists():
+            artifact_manifest = _load_manifest(artifact_manifest_path, "artifacts", task_id)
+            effective_profile_refs = _associated_goal_profile_refs(task_dir, artifact_manifest)
+
+    declares_code_change = _task_declares_code_change(task_path)
+    missing_inputs: list[str] = []
+    if declares_code_change and "" in effective_profile_refs:
+        missing_inputs.append("goal_awkp_association.profileRef")
+
+    requires_semantic_reviews = (
+        declares_code_change
+        and DEVELOPMENT_BOUNDED_PROFILE_REF in effective_profile_refs
+    )
+    if requires_semantic_reviews:
+        for report_path in report_paths:
+            path = Path(report_path)
+            report = _load_json(path)
+            decision = str(report.get("decision") or "").strip()
+            if decision != "approve":
+                continue
+            semantic_reviews = report.get("semantic_reviews")
+            if not isinstance(semantic_reviews, list) or not semantic_reviews:
+                missing_inputs.append(f"{path}#semantic_reviews")
+
+    return EvidenceGateReviewRequirementReport(
+        task_id=task_id,
+        requires_semantic_reviews=requires_semantic_reviews,
+        profile_refs=tuple(sorted(effective_profile_refs)),
+        missing_inputs=tuple(missing_inputs),
+    )
 
 
 def parse_acceptance_criteria(path: Path) -> list[AcceptanceCriterion]:

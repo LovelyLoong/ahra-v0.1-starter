@@ -18,6 +18,7 @@ from .awkp_state_writer import AwkpTaskStateWriter
 from .capabilities import CapabilityAdmissionService, CapabilityScope, LocalRuntimeGateway, RuntimeCapabilityProfile
 from .acceptance_contracts import Claim, ClaimGraph, ClaimType, GateDefinition, RiskLevel
 from .domain import utc_now
+from .evidence_gate import resolve_review_requirements
 from .evidence_v2 import DigestRef, EvidenceEnvironment, EvidenceV2, GateRunV2, canonical_fingerprint
 from .node_executor import (
     NodeExecutionRequest,
@@ -442,6 +443,19 @@ class GoalAwkpBridge:
 
         task_dir = _awkp_task_dir_for_bridge(request.task, self.work_root)
         task_id = _task_id_from_awkp_state(task_dir)
+        review_requirements = resolve_review_requirements(
+            task_dir,
+            work_root=self.work_root,
+            profile_refs=(str(goal.budget_summary.get("profileRef") or ""),),
+            report_paths=request.report_paths,
+        )
+        if review_requirements.missing_inputs:
+            missing = ", ".join(review_requirements.missing_inputs)
+            raise GoalOperationError(
+                "missing_awkp_review_requirement",
+                f"Goal-to-AWKP bridge verifier report is missing required EvidenceGate review inputs: {missing}",
+                refs=review_requirements.missing_inputs,
+            )
         prefix = request.idempotency_key_prefix or f"{task_id}:goal-awkp-bridge:{goal.goal_execution_id}"
         materialized = _materialize_goal_awkp_bridge(
             task_dir=task_dir,

@@ -18,6 +18,7 @@ from ahra.evidence_gate import EvidenceGateError, evaluate_task_gate, inspect_ta
 from ahra.goal_operations import GoalAwkpBridge, GoalAwkpBridgeRequest, GoalOperationError, GoalOperationService
 from ahra.orchestrator import AwkpTaskOrchestrationRequest, AwkpTaskReviewOrchestrator
 from ahra.ports import AgentDriverRegistry, AgentRole, AgentRunRequest, AgentRunResult
+from ahra.workflow_a_cli import RequestDraftAdmissionError
 
 
 class FixtureDriver:
@@ -95,6 +96,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(raw_argv)
     try:
         result = _dispatch(args)
+    except RequestDraftAdmissionError as exc:
+        _print({"ok": False, **exc.to_error_dict()}, stream=sys.stderr)
+        return 2
     except AlignmentSessionError as exc:
         _print({"ok": False, "error": exc.to_dict()}, stream=sys.stderr)
         return 2

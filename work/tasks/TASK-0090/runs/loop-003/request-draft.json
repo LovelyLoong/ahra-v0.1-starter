@@ -1,0 +1,380 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "RequestDraft",
+  "metadata": {
+    "idempotencyKey": "phase1-task-0090-binding-rule-001",
+    "intentId": "INTENT-TASK-0090-BINDING-RULE",
+    "name": "phase1-task-0090-binding-rule",
+    "producerActor": "agent:alignment-session",
+    "requestId": "REQ-4b826f43f85325f3"
+  },
+  "spec": {
+    "artifactDir": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0090\\runs\\loop-003\\artifacts",
+    "capabilityPolicies": {},
+    "claimGraph": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "ClaimGraph",
+      "metadata": {
+        "goalId": "task-0090-binding-rule",
+        "name": "task-0090-binding-rule",
+        "version": 1
+      },
+      "spec": {
+        "claims": [
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "must-single-doc-change"
+            ],
+            "dependsOn": [],
+            "gateRefs": [
+              "scope-diff-gate"
+            ],
+            "id": "claim-single-doc-scope",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "git_diff",
+              "work_report_changed_files"
+            ],
+            "riskLevel": "R2",
+            "statement": "The implementation changes only docs/roadmaps/development-program-overview.md and does not touch code, schemas, or any other document.",
+            "type": "governance"
+          },
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "must-standalone-binding-rule-section",
+              "completion-distinct-section"
+            ],
+            "dependsOn": [
+              "claim-single-doc-scope"
+            ],
+            "gateRefs": [
+              "distinct-section-gate"
+            ],
+            "id": "claim-standalone-binding-rule-section",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "document_excerpt",
+              "markdown_structure_check"
+            ],
+            "riskLevel": "R1",
+            "statement": "docs/roadmaps/development-program-overview.md contains one clearly headed top-level Markdown section that is immediately recognizable as a binding rule.",
+            "type": "structural"
+          },
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "must-state-default-loop"
+            ],
+            "dependsOn": [
+              "claim-standalone-binding-rule-section"
+            ],
+            "gateRefs": [
+              "normative-default-loop-gate"
+            ],
+            "id": "claim-default-workflow-a-b-loop",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "document_excerpt"
+            ],
+            "riskLevel": "R2",
+            "statement": "The new binding-rule section normatively states that new work defaults to the Workflow A plus B loop from TASK-0090 onward.",
+            "type": "governance"
+          },
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "must-state-manual-path-defect"
+            ],
+            "dependsOn": [
+              "claim-standalone-binding-rule-section"
+            ],
+            "gateRefs": [
+              "manual-path-defect-gate"
+            ],
+            "id": "claim-manual-path-loop-defect",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "document_excerpt"
+            ],
+            "riskLevel": "R2",
+            "statement": "The new binding-rule section normatively states that any manual path must be recorded as a loop defect.",
+            "type": "governance"
+          },
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "must-not-weaken-existing-rules"
+            ],
+            "dependsOn": [
+              "claim-single-doc-scope",
+              "claim-standalone-binding-rule-section",
+              "claim-default-workflow-a-b-loop",
+              "claim-manual-path-loop-defect"
+            ],
+            "gateRefs": [
+              "non-regression-doc-gate"
+            ],
+            "id": "claim-existing-rules-preserved",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "before_after_document_review",
+              "git_diff"
+            ],
+            "riskLevel": "R2",
+            "statement": "The change does not weaken, delete, or contradict existing acceptance criteria, the sequencing rule, or the kernel-boundary bootstrap exception.",
+            "type": "governance"
+          },
+          {
+            "approvalRequired": false,
+            "criterionRefs": [
+              "completion-lint-gate"
+            ],
+            "dependsOn": [
+              "claim-single-doc-scope",
+              "claim-existing-rules-preserved"
+            ],
+            "gateRefs": [
+              "lint-gate"
+            ],
+            "id": "claim-lint-passes",
+            "required": true,
+            "requiredEvidenceKinds": [
+              "command_exit_code",
+              "command_output"
+            ],
+            "riskLevel": "R1",
+            "statement": "uv run python -B scripts/check.py --lint exits 0 after the documentation change.",
+            "type": "quality"
+          }
+        ],
+        "goalRef": "task-0090-binding-rule"
+      }
+    },
+    "execution": {
+      "branch": "main",
+      "maxConcurrency": 1,
+      "maxRepairCycles": 0
+    },
+    "executor": {
+      "adapterRef": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    "gateRunner": {
+      "adapterRef": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "goal": {
+      "claimGraphDigest": "sha256:f42a07fdc4c22c9aa8f8ff35d599e7672d27469d6f5b77ba93af995941d0d0c6",
+      "goalDigest": "sha256:bacf8f8c0d38034de774d75ae4ea672cd9bd8c72728b0c3b82547001e94d8f7a",
+      "goalRef": "GOAL-TASK-0090-BINDING-RULE-ALIGNED",
+      "requiredClaimRefs": [
+        "claim-single-doc-scope",
+        "claim-standalone-binding-rule-section",
+        "claim-default-workflow-a-b-loop",
+        "claim-manual-path-loop-defect",
+        "claim-existing-rules-preserved",
+        "claim-lint-passes"
+      ]
+    },
+    "planDraft": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanDraft",
+      "metadata": {
+        "goalId": "GOAL-TASK-0090-BINDING-RULE-ALIGNED",
+        "proposedBy": "planner"
+      },
+      "spec": {
+        "nodes": [
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.25,
+              "maxModelCalls": 2,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 6,
+              "maxWallSeconds": 600
+            },
+            "capabilityRequests": [
+              {
+                "approvalRefs": [
+                  "must-single-doc-change"
+                ],
+                "capability": "filesystem.write",
+                "resources": [
+                  "docs/roadmaps/development-program-overview.md"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "claim-default-workflow-a-b-loop",
+              "claim-existing-rules-preserved",
+              "claim-manual-path-loop-defect",
+              "claim-single-doc-scope",
+              "claim-standalone-binding-rule-section"
+            ],
+            "dependsOn": [],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [
+                  "NODE-TASK-0090-VERIFY-BINDING-RULE"
+                ],
+                "deliveryRole": "producer",
+                "name": "WorkReport",
+                "schemaRef": "ahra://schemas/WorkReport"
+              },
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [
+                  "NODE-TASK-0090-VERIFY-BINDING-RULE"
+                ],
+                "deliveryRole": "producer",
+                "name": "DocumentExcerpt",
+                "schemaRef": "ahra://schemas/DocumentExcerpt"
+              }
+            ],
+            "gateRefs": [
+              "distinct-section-gate",
+              "manual-path-defect-gate",
+              "non-regression-doc-gate",
+              "normative-default-loop-gate",
+              "scope-diff-gate"
+            ],
+            "id": "NODE-TASK-0090-EDIT-BINDING-RULE",
+            "inputRefs": [
+              "boundaryContractDigest:sha256:6749ed996938585f79f22ef069de6710b9475c2309d84b03cee4324bb1e831e8",
+              "claimGraphDigest:sha256:f42a07fdc4c22c9aa8f8ff35d599e7672d27469d6f5b77ba93af995941d0d0c6",
+              "docs/roadmaps/development-program-overview.md",
+              "intent.spec.constraints"
+            ],
+            "nodeType": "implementation",
+            "objective": "Edit only docs/roadmaps/development-program-overview.md to add one standalone top-level Markdown section clearly recognizable as a binding rule, normatively stating that new work defaults to the Workflow A plus B loop from TASK-0090 onward and that any manual path must be recorded as a loop defect, without weakening or contradicting existing rules.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "docs-only-single-file-edit",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 600
+          },
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.25,
+              "maxModelCalls": 2,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 8,
+              "maxWallSeconds": 600
+            },
+            "capabilityRequests": [
+              {
+                "approvalRefs": [
+                  "must-single-doc-change"
+                ],
+                "capability": "filesystem.read",
+                "resources": [
+                  "docs/roadmaps/development-program-overview.md"
+                ],
+                "riskLevel": "R0"
+              },
+              {
+                "approvalRefs": [
+                  "scope-diff-gate"
+                ],
+                "capability": "git.diff",
+                "resources": [
+                  "docs/roadmaps/development-program-overview.md"
+                ],
+                "riskLevel": "R0"
+              },
+              {
+                "approvalRefs": [
+                  "completion-lint-gate"
+                ],
+                "capability": "process.exec",
+                "resources": [
+                  "uv run python -B scripts/check.py --lint"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "claim-default-workflow-a-b-loop",
+              "claim-existing-rules-preserved",
+              "claim-lint-passes",
+              "claim-manual-path-loop-defect",
+              "claim-single-doc-scope",
+              "claim-standalone-binding-rule-section"
+            ],
+            "dependsOn": [
+              "NODE-TASK-0090-EDIT-BINDING-RULE"
+            ],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [],
+                "deliveryRole": "verifier",
+                "name": "VerificationReport",
+                "schemaRef": "ahra://schemas/VerificationReport"
+              }
+            ],
+            "gateRefs": [
+              "distinct-section-gate",
+              "lint-gate",
+              "manual-path-defect-gate",
+              "non-regression-doc-gate",
+              "normative-default-loop-gate",
+              "scope-diff-gate"
+            ],
+            "id": "NODE-TASK-0090-VERIFY-BINDING-RULE",
+            "inputRefs": [
+              "NODE-TASK-0090-EDIT-BINDING-RULE:DocumentExcerpt",
+              "NODE-TASK-0090-EDIT-BINDING-RULE:WorkReport",
+              "docs/roadmaps/development-program-overview.md"
+            ],
+            "nodeType": "verification",
+            "objective": "Verify the TASK-0090 documentation change by confirming the diff is limited to docs/roadmaps/development-program-overview.md, WorkReport.changed_files reports only that file, the new section is distinct and normative, existing acceptance criteria, sequencing rule, and kernel-boundary bootstrap exception remain non-contradicted, and uv run python -B scripts/check.py --lint exits 0.",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "verification-only",
+            "terminalGoalVerification": true,
+            "timeoutSeconds": 600
+          }
+        ],
+        "rationale": "The goal is a single governed documentation change with command-gate verification. Two nodes are sufficient and necessary: an executor for the one-file edit and WorkReport, then a verifier for independent evidence and lint-gate results."
+      }
+    },
+    "planner": {
+      "adapterRef": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "profileRef": "profile/development-bounded",
+    "registry": {
+      "allowedCapabilities": [
+        "filesystem.write"
+      ],
+      "gateRefs": {
+        "GATE-alignment-complete": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "GATE-alignment-objective": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "nodeTypes": {
+        "bounded_task": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "goal_verification": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "runtimeRefs": {
+        "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    },
+    "runtime": {
+      "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "store": {
+      "kind": "sqlite",
+      "path": "E:\\ahra-v0.1-starter\\work\\tasks\\TASK-0090\\runs\\loop-003\\goal-control.sqlite3"
+    },
+    "workspaceRef": "E:\\ahra-v0.1-starter"
+  }
+}

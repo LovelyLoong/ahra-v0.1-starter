@@ -1,0 +1,27 @@
+{
+  "schema_version": "ahra/node-gate-summary/0.1",
+  "plan_id": "PLAN-89d23799091e1459",
+  "node_id": "NODE-TASK-0090-BINDING-RULE-IMPLEMENT",
+  "node_type": "bounded_task",
+  "gate_refs": [
+    "GATE-alignment-complete",
+    "GATE-alignment-objective"
+  ],
+  "l0_gates": [],
+  "semantic_review_enabled": false,
+  "status": "accepted",
+  "attempts": [
+    {
+      "attempt": 1,
+      "deterministicPassed": true,
+      "requiredChecksPassed": true,
+      "checkExecutionStatus": "completed",
+      "checkSkipReason": null,
+      "agentReportedVerificationCommands": [
+        "uv run python -B scripts/check.py --lint (exit 0; AWKP lint: 0 error(s), 0 warning(s); AHRA lint: 0 failure(s))"
+      ],
+      "reviewVerdict": "pass",
+      "error": null
+    }
+  ]
+}

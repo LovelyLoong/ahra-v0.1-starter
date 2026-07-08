@@ -23,7 +23,7 @@ source_refs:
 - tasks/TASK-0094/state.json
 evidence_refs: []
 confidence: verified
-last_verified_at: 2026-07-06T04:37:21Z
+last_verified_at: 2026-07-08T02:51:46Z
 review_after: 2026-09-25T00:00:00Z
 tags: [work, tasks, dynamic-kernel]
 ---
@@ -48,7 +48,7 @@ them explicitly.
 | [TASK-0087](tasks/TASK-0087/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
 | [TASK-0088](tasks/TASK-0088/task.md) | completed | unassigned | 12 | Completed by EvidenceGate verifier approval. |
 | [TASK-0089](tasks/TASK-0089/task.md) | changes_requested | unassigned | 3 | Address EvidenceGate verifier findings and return to review. |
-| [TASK-0090](tasks/TASK-0090/task.md) | working | agent:alignment-session | 2 | Do not resume TASK-0090 now. Build and verify the redesigned Workflow A path first, then retry TASK-0090 from fresh artifacts or explicit re-authorization. |
+| [TASK-0090](tasks/TASK-0090/task.md) | completed | unassigned | 8 | Completed by EvidenceGate verifier approval. |
 | [TASK-0091](tasks/TASK-0091/task.md) | completed | unassigned | 4 | Completed by EvidenceGate verifier approval. |
 | [TASK-0092](tasks/TASK-0092/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |
 | [TASK-0093](tasks/TASK-0093/task.md) | completed | unassigned | 6 | Completed by EvidenceGate verifier approval. |

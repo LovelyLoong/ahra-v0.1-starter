@@ -1,0 +1,88 @@
+{
+  "commands": [
+    {
+      "changed_files": [
+        "docs/roadmaps/development-program-overview.md"
+      ],
+      "changed_files_sha256": "sha256:449bb067437fc5ae32a6319cc983083c7a7479673bba18fbffaf07e16822ca14",
+      "command": "uv run python -B scripts/check.py --lint",
+      "command_id": "CMD-task-0090-lint",
+      "criterion_indices": [
+        1,
+        3
+      ],
+      "evidence_refs": [
+        "EVD-a8fd9751dbc03592"
+      ],
+      "status": "passed",
+      "verified_changed_files_sha256": "sha256:449bb067437fc5ae32a6319cc983083c7a7479673bba18fbffaf07e16822ca14"
+    }
+  ],
+  "criteria": [
+    {
+      "command_refs": [
+        "CMD-task-0090-lint"
+      ],
+      "criterion_index": 1,
+      "evidence_refs": [
+        "EVD-TASK-0090-SEMANTIC",
+        "EVD-a8fd9751dbc03592",
+        "EVD-36bcd8b47e76cb49",
+        "EVD-1606db0a410a67ea",
+        "EVD-78ec0e0092efbce5"
+      ],
+      "notes": "Task-level artifact manifest attaches the real-driver Workflow A transcript/session, RequestDraft, human authorization, frozen GoalExecutionRequest, admit report, goal validate report, and Workflow B execution reports; Workflow A admit accepted and goal validate passed.",
+      "status": "passed"
+    },
+    {
+      "criterion_index": 2,
+      "evidence_refs": [
+        "EVD-TASK-0090-SEMANTIC",
+        "EVD-a8fd9751dbc03592",
+        "EVD-36bcd8b47e76cb49",
+        "EVD-1606db0a410a67ea",
+        "EVD-78ec0e0092efbce5"
+      ],
+      "notes": "Workflow B GoalExecution GEXEC-27cbd14a6f513d3d succeeded with kernel-derived completion and no dialogue-content gate assertion; this report requests, but does not pre-claim, independent AWKP EvidenceGate approval.",
+      "status": "passed"
+    },
+    {
+      "command_refs": [
+        "CMD-task-0090-lint"
+      ],
+      "criterion_index": 3,
+      "evidence_refs": [
+        "EVD-TASK-0090-SEMANTIC",
+        "EVD-a8fd9751dbc03592",
+        "EVD-36bcd8b47e76cb49"
+      ],
+      "notes": "The patch adds the standalone development-program binding rule: new work defaults to Workflow A plus Workflow B and manual paths are recorded as loop defects, while preserving acceptance criteria, EvidenceGate authority, sequencing dependencies, and the TASK-0085 exception.",
+      "status": "passed"
+    }
+  ],
+  "decision": "approve",
+  "schema_version": "ahra/evidence-gate-input/0.1",
+  "semantic_reviews": [
+    {
+      "changed_files": [
+        "docs/roadmaps/development-program-overview.md"
+      ],
+      "changed_files_sha256": "sha256:449bb067437fc5ae32a6319cc983083c7a7479673bba18fbffaf07e16822ca14",
+      "criterion_indices": [
+        1,
+        2,
+        3
+      ],
+      "evidence_refs": [
+        "EVD-TASK-0090-SEMANTIC"
+      ],
+      "review_id": "SEM-TASK-0090-0001",
+      "reviewer": "agent:semantic-reviewer",
+      "status": "passed",
+      "verified_changed_files_sha256": "sha256:449bb067437fc5ae32a6319cc983083c7a7479673bba18fbffaf07e16822ca14"
+    }
+  ],
+  "summary": "Verifier maps TASK-0090 acceptance criteria to fresh Workflow A loop-005 artifacts, succeeded Workflow B GoalExecution kernel evidence, and independent semantic review evidence.",
+  "task_id": "TASK-0090",
+  "verifier": "agent:independent-verifier"
+}

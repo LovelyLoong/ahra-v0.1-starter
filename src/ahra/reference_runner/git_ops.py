@@ -334,6 +334,7 @@ class IsolatedGitWorkspaceProvider:
         finally:
             run_git(source, "branch", "-D", workspace.branch, check=False)
             run_git(source, "worktree", "prune", check=False)
+            self._prune_empty_worktree_dirs(workspace.path)
 
     def resolve_path(self, workspace_ref: str) -> str:
         return str(Path(workspace_ref).resolve())
@@ -404,6 +405,22 @@ class IsolatedGitWorkspaceProvider:
         if any(fnmatch.fnmatch(normalized, pattern.replace("\\", "/")) for pattern in self.denied_globs):
             return False
         return any(fnmatch.fnmatch(normalized, pattern.replace("\\", "/")) for pattern in self.allowed_globs)
+
+    def _prune_empty_worktree_dirs(self, removed_workspace: Path) -> None:
+        root = self.worktree_root.resolve()
+        path = removed_workspace.resolve().parent
+        while True:
+            try:
+                path.relative_to(root)
+            except ValueError:
+                return
+            try:
+                path.rmdir()
+            except OSError:
+                return
+            if path == root:
+                return
+            path = path.parent
 
     @staticmethod
     def _is_inside(path: Path, root: Path) -> bool:

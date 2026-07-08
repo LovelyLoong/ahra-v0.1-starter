@@ -417,6 +417,15 @@ Bridge a completed GoalExecution.
     return task_dir
 
 
+def _mark_task_as_code_change(task_dir: Path) -> None:
+    task_md = (task_dir / "task.md").read_text(encoding="utf-8")
+    task_md = task_md.replace(
+        "output_contract: []",
+        'output_contract:\n  - kind: "ahra/artifact/code-change/0.1"',
+    )
+    (task_dir / "task.md").write_text(task_md, encoding="utf-8")
+
+
 def _command_evidence_ref(artifact_dir: Path) -> str:
     for path in sorted((artifact_dir / "kernel-evidence").glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -526,6 +535,7 @@ class GoalOperationCliTests(unittest.TestCase):
             self.assertEqual(result["goalStatus"], "succeeded")
             self.assertFalse(result["executionWorkspacePreserved"])
             self.assertFalse(Path(result["executionWorkspaceRef"]).exists())
+            self.assertFalse((root / ".ahra" / "artifacts" / "development-worktrees").exists())
             self.assertTrue((root / "workspace" / "alignment_stub.py").exists())
             self.assertIn(("uv", "run", "python", "-B", "scripts/check.py"), runtime.commands)
 
@@ -1067,6 +1077,67 @@ class GoalOperationCliTests(unittest.TestCase):
                     )
                 )
 
+            self.assertEqual((task_dir / "state.json").read_text(encoding="utf-8"), before_state)
+            self.assertEqual((task_dir / "events.jsonl").read_text(encoding="utf-8"), before_events)
+            self.assertEqual((task_dir / "artifact-manifest.json").read_text(encoding="utf-8"), before_artifacts)
+            self.assertEqual((task_dir / "evidence-manifest.json").read_text(encoding="utf-8"), before_evidence)
+
+    def test_goal_awkp_bridge_rejects_missing_semantic_review_before_state_write(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            task_dir = _write_bridge_task(root)
+            _mark_task_as_code_change(task_dir)
+            goal_root = root / "goal"
+            request_path = _write_development_request(goal_root, target_path="alignment_bridge.py")
+            start_result = GoalOperationService(
+                real_executor_driver=DevelopmentWriterDriver(),
+                real_executor_runtime_provider=CapturingRuntimeProvider(),
+            ).start(request_path)
+            self.assertEqual(start_result["goalStatus"], "succeeded")
+            report_path = root / "missing-semantic-review.json"
+            report_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "ahra/evidence-gate-input/0.1",
+                        "task_id": "TASK-BRIDGE",
+                        "verifier": "agent:verifier",
+                        "decision": "approve",
+                        "summary": "Verifier report intentionally lacks semantic_reviews.",
+                        "criteria": [
+                            {
+                                "criterion_index": 1,
+                                "status": "passed",
+                                "evidence_refs": ["EVD-placeholder"],
+                            }
+                        ],
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            before_state = (task_dir / "state.json").read_text(encoding="utf-8")
+            before_events = (task_dir / "events.jsonl").read_text(encoding="utf-8")
+            before_artifacts = (task_dir / "artifact-manifest.json").read_text(encoding="utf-8")
+            before_evidence = (task_dir / "evidence-manifest.json").read_text(encoding="utf-8")
+
+            with self.assertRaisesRegex(GoalOperationError, "semantic_reviews") as raised:
+                GoalAwkpBridge(work_root=root / "work").run(
+                    GoalAwkpBridgeRequest(
+                        goal_execution_id=start_result["goalExecutionId"],
+                        task="TASK-BRIDGE",
+                        work_root=root / "work",
+                        expected_task_version=1,
+                        producer_actor="agent:producer",
+                        verifier_actor="agent:verifier",
+                        fencing_token="FENCE-bridge",
+                        report_paths=(report_path,),
+                        db_path=goal_root / ".ahra" / "goal-control.sqlite3",
+                        artifact_dir=goal_root / ".ahra" / "artifacts",
+                    )
+                )
+
+            self.assertEqual(raised.exception.code, "missing_awkp_review_requirement")
             self.assertEqual((task_dir / "state.json").read_text(encoding="utf-8"), before_state)
             self.assertEqual((task_dir / "events.jsonl").read_text(encoding="utf-8"), before_events)
             self.assertEqual((task_dir / "artifact-manifest.json").read_text(encoding="utf-8"), before_artifacts)

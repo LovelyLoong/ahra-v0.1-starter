@@ -1,0 +1,60 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateRun",
+  "metadata": {
+    "gateRunId": "GATERUN-1606db0a410a67ea"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLAIM-TASK-0090-ADMISSION-AND-VALIDATION",
+      "CLAIM-TASK-0090-CAPABILITY-BOUNDS",
+      "CLAIM-TASK-0090-COMMAND-GATE-COMPLETION",
+      "CLAIM-TASK-0090-DISCOVERABLE-BINDING-SECTION",
+      "CLAIM-TASK-0090-GATE-REFS",
+      "CLAIM-TASK-0090-NO-ACCEPTANCE-WEAKENING",
+      "CLAIM-TASK-0090-PLAN-SHAPE",
+      "CLAIM-TASK-0090-POSITIVE-BUDGETS",
+      "CLAIM-TASK-0090-SINGLE-DOC-SCOPE",
+      "CLAIM-TASK-0090-WORKFLOW-A-B-DEFAULT-RULE"
+    ],
+    "command": [
+      "deterministic-gate-runner",
+      "GATE-alignment-complete"
+    ],
+    "completedAt": "2026-07-08T02:30:31.477921Z",
+    "decisionAt": null,
+    "dependencies": [
+      {
+        "digest": "sha256:ed2c02b438938c84ea27fccdfdc532ab39f6b4edf4881f04c2d22fb57e5360c0",
+        "ref": "EVD-a8fd9751dbc03592"
+      },
+      {
+        "digest": "sha256:cb19c6aa4d06752ada038a24febb5cb8cb3aab87564c21e3f683fa4b0064c07e",
+        "ref": "EVD-36bcd8b47e76cb49"
+      }
+    ],
+    "environment": {
+      "policyDigest": "sha256:9b64794badd43e9690d0cb6847ee26fd9ba52950743eedd6381606c529c43a94",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:a538c72519f5509ff24fbd519220cae7c01696b987c9f3e88f1dd3ea1aa16ccb",
+      "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "evidenceRef": "EVD-1606db0a410a67ea",
+    "fingerprint": "sha256:e6ed66ff345bb6e5c847825d0512eb6c225b107dc53476261226f5473afa7b92",
+    "gateDefinitionDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "gateRef": "GATE-alignment-complete",
+    "result": "passed",
+    "startedAt": "2026-07-08T02:30:31.477921Z",
+    "subjects": [
+      {
+        "digest": "sha256:06b81087436c1a6e9c185ceb139f35645206a2be5a3a828a3f5d67f5f6e8954a",
+        "ref": "GATE-alignment-complete"
+      }
+    ],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

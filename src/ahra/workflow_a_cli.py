@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -22,6 +23,42 @@ from .ports import AgentDriver, AgentRunRequest, AgentRunResult
 from .request_draft import RequestDraft
 from .request_admission import RequestDraftAdmission
 from .validation import load_document
+
+
+class RequestDraftAdmissionError(ValueError):
+    def __init__(
+        self,
+        *,
+        request_id: str,
+        admission: Mapping[str, Any],
+        session_path: Path,
+        request_draft_path: Path,
+    ) -> None:
+        self.request_id = request_id
+        self.admission = dict(admission)
+        self.session_path = session_path
+        self.request_draft_path = request_draft_path
+        rejections = self.admission.get("rejections", [])
+        codes = [
+            str(item.get("code"))
+            for item in rejections
+            if isinstance(item, Mapping) and item.get("code")
+        ]
+        self.codes = tuple(codes)
+        message = f"RequestDraft admission rejected {request_id}"
+        if codes:
+            message = f"{message}: {', '.join(codes)}"
+        super().__init__(message)
+
+    def to_error_dict(self) -> dict[str, Any]:
+        return {
+            "code": "request_draft_admission_rejected",
+            "error": str(self),
+            "refs": list(self.codes),
+            "sessionPath": str(self.session_path),
+            "requestDraftPath": str(self.request_draft_path),
+            "admission": dict(self.admission),
+        }
 
 
 class WorkflowAFixtureDriver:
@@ -127,23 +164,45 @@ async def draft_request(
     timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
     manager = _manager(driver, timeout_seconds=timeout_seconds)
-    approval_service = ApprovalService() if approval_path is not None else None
     try:
-        result = await manager.draft_request(_load_snapshot(session_path), approval_service=approval_service)
+        result = await manager.draft_request(_load_snapshot(session_path), approval_service=None)
     except AlignmentSessionError as exc:
         _write_error_snapshot(session_path, exc)
         raise
+    admission = RequestDraftAdmission().evaluate(result.request_draft).to_dict()
+    if not admission["accepted"]:
+        rejected_snapshot = replace(
+            result.snapshot.append_turn(
+                actor="agent:request-admission",
+                message="RequestDraft admission rejected before Gate 2 authorization.",
+                expected_output="RequestDraftAdmission",
+                error=admission,
+            ),
+            stage="frozen",
+        )
+        _write_json(session_path, rejected_snapshot.to_mapping())
+        _write_json(request_draft_path, result.request_draft.to_mapping())
+        raise RequestDraftAdmissionError(
+            request_id=result.request_draft.request_id,
+            admission=admission,
+            session_path=session_path,
+            request_draft_path=request_draft_path,
+        )
+
     _write_json(session_path, result.snapshot.to_mapping())
     _write_json(request_draft_path, result.request_draft.to_mapping())
     payload: dict[str, Any] = {
         "sessionPath": str(session_path),
         "requestDraftPath": str(request_draft_path),
         "requestDraft": result.request_draft.to_mapping(),
+        "admission": admission,
     }
     if approval_path is not None:
-        if result.approval_record is None:
-            raise RuntimeError("ApprovalService did not return an approval record")
-        approval_mapping = result.approval_record.to_dict()
+        approval_record = ApprovalService().request_authorization(
+            result.request_draft,
+            actor=result.snapshot.producer_actor,
+        )
+        approval_mapping = approval_record.to_dict()
         _write_json(approval_path, approval_mapping)
         payload["approvalPath"] = str(approval_path)
         payload["approval"] = approval_mapping
@@ -380,6 +439,7 @@ def _fixture_acceptance_output() -> dict[str, Any]:
 
 __all__ = [
     "WorkflowAFixtureDriver",
+    "RequestDraftAdmissionError",
     "admit_request",
     "advance_session",
     "approve_requirement",

@@ -1,0 +1,63 @@
+{
+  "verdict": "pass",
+  "summary": "Semantic review was skipped because no semantic review gate was declared.",
+  "criteria": [
+    {
+      "criterion": "CLAIM-TASK-0090-CAPABILITY-BOUNDS",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "CLAIM-TASK-0090-COMMAND-GATE-COMPLETION",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "CLAIM-TASK-0090-DISCOVERABLE-BINDING-SECTION",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "CLAIM-TASK-0090-NO-ACCEPTANCE-WEAKENING",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "CLAIM-TASK-0090-SINGLE-DOC-SCOPE",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "CLAIM-TASK-0090-WORKFLOW-A-B-DEFAULT-RULE",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: docs/roadmaps/development-program-overview.md",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: work_report",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: lint_result",
+      "passed": true,
+      "evidence": "Deterministic L0 gates passed.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [],
+  "non_blocking_issues": [],
+  "confidence": 1.0
+}

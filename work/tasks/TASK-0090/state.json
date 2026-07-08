@@ -2,23 +2,28 @@
   "schema_version": "awkp/0.1",
   "task_id": "TASK-0090",
   "context_id": "CTX-self-hosting-loop",
-  "state": "working",
-  "state_version": 2,
+  "state": "completed",
+  "state_version": 8,
   "attempt": 1,
-  "owner": "agent:alignment-session",
-  "lease": {
-    "holder": "agent:alignment-session",
-    "fencing_token": "FENCE-32a37b6d9ea149e29fddf3bc8e23bfeb",
-    "acquired_at": "2026-07-03T03:58:34.702415Z",
-    "heartbeat_at": "2026-07-03T03:58:34.702415Z",
-    "expires_at": null
-  },
-  "next_action": "Do not resume TASK-0090 now. Build and verify the redesigned Workflow A path first, then retry TASK-0090 from fresh artifacts or explicit re-authorization.",
+  "owner": null,
+  "lease": null,
+  "next_action": "Completed by EvidenceGate verifier approval.",
   "pause_reason": null,
-  "blockers": [
-    "TASK-0090 is intentionally suspended until the redesigned Workflow A from TASK-0091 through TASK-0094 is available; existing loop-001/loop-002 run files are trace-only and must not be reused as completion evidence."
+  "blockers": [],
+  "artifact_refs": [
+    "ART-TASK-0090-0012",
+    "ART-TASK-0090-0013",
+    "ART-TASK-0090-0014",
+    "ART-TASK-0090-0015",
+    "ART-TASK-0090-0016",
+    "ART-TASK-0090-0017"
   ],
-  "artifact_refs": [],
-  "evidence_refs": [],
-  "updated_at": "2026-07-06T02:47:33.338048Z"
+  "evidence_refs": [
+    "EVD-1606db0a410a67ea",
+    "EVD-36bcd8b47e76cb49",
+    "EVD-78ec0e0092efbce5",
+    "EVD-a8fd9751dbc03592",
+    "EVD-TASK-0090-0001"
+  ],
+  "updated_at": "2026-07-08T02:51:46.121497Z"
 }

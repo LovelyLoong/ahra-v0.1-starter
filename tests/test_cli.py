@@ -345,6 +345,7 @@ class CliTests(unittest.TestCase):
         )
             self.assertEqual(draft_code, 0)
             self.assertEqual(draft_payload["result"]["approval"]["status"], "waiting_auth")
+            self.assertTrue(draft_payload["result"]["admission"]["accepted"])
             self.assertEqual(Path(draft_payload["result"]["requestDraft"]["spec"]["artifactDir"]), expected_artifacts)
             self.assertTrue(request_draft.exists())
             self.assertTrue(approval.exists())

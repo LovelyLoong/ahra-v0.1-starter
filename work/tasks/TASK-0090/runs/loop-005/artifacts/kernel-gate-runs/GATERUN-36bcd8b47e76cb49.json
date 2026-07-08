@@ -1,0 +1,71 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateRun",
+  "metadata": {
+    "gateRunId": "GATERUN-36bcd8b47e76cb49"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLAIM-TASK-0090-CAPABILITY-BOUNDS",
+      "CLAIM-TASK-0090-COMMAND-GATE-COMPLETION",
+      "CLAIM-TASK-0090-DISCOVERABLE-BINDING-SECTION",
+      "CLAIM-TASK-0090-NO-ACCEPTANCE-WEAKENING",
+      "CLAIM-TASK-0090-SINGLE-DOC-SCOPE",
+      "CLAIM-TASK-0090-WORKFLOW-A-B-DEFAULT-RULE"
+    ],
+    "command": [
+      "deterministic-gate-runner",
+      "GATE-alignment-objective"
+    ],
+    "completedAt": "2026-07-08T02:30:28.981897Z",
+    "decisionAt": null,
+    "dependencies": [],
+    "environment": {
+      "policyDigest": "sha256:9b64794badd43e9690d0cb6847ee26fd9ba52950743eedd6381606c529c43a94",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:a538c72519f5509ff24fbd519220cae7c01696b987c9f3e88f1dd3ea1aa16ccb",
+      "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "evidenceRef": "EVD-36bcd8b47e76cb49",
+    "fingerprint": "sha256:c308d22df9bd1723a9f8763e738a98fa87d40a9e81a92e6eea025a58ee458d4a",
+    "gateDefinitionDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "gateRef": "GATE-alignment-objective",
+    "result": "passed",
+    "startedAt": "2026-07-08T02:30:28.981897Z",
+    "subjects": [
+      {
+        "digest": "sha256:8e0d7d75c9aae4ee9b61f2568270c2e9e4c057b3df53ed4f2067d8ea19934bc5",
+        "ref": "ART-240606d6c8a24896b5a372c1ce8f6888"
+      },
+      {
+        "digest": "sha256:4824831c38fbc6d1c5738b7521ed4e518e93d4e81e3e216e45aa172e414aad51",
+        "ref": "ART-a5c543f94f36480ca7eb05dddce911f3"
+      },
+      {
+        "digest": "sha256:7174e1911ac7a9f4cb9adc014f609d5e6b4fc3dc8786780ce071a37d0cfb08bc",
+        "ref": "ART-ab5b0e0f4bd34e38a2fc9c2ab423af84"
+      },
+      {
+        "digest": "sha256:ebf7768885e83b1721b0d319d1706aab36681809107e3f9e2a4076389fb76b82",
+        "ref": "ART-fda05f53c0e4441296a3f290cd894a2c"
+      },
+      {
+        "digest": "sha256:fa1601e23760287c845e9b030706c9ade46137170bcc76ca627325b2e1a413d3",
+        "ref": "EVD-2155066717cc4eeca1bba18c35543506"
+      },
+      {
+        "digest": "sha256:b635413bca8a325e94dffb1c76a05adc0131a3036aafd2be5848ef901e2860a7",
+        "ref": "EVD-565fb6867d2c413e983c581aea3e17e1"
+      },
+      {
+        "digest": "sha256:fc1e05c48c11d68155f0c871d45b57a6ea2d7a865bb739bf4717a80436d68d9f",
+        "ref": "EVD-75e38b28bf96458d940bd265f4a2a814"
+      }
+    ],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

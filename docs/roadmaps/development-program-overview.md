@@ -142,8 +142,19 @@ Structure: one bootstrap exception, then everything runs through Workflow B.
 Execution rule: 0086..0089 are executed by Workflow B alone through the
 pre-authored requests `examples/goals/task-0086..0089-*.yaml`; each request's
 declared filesystem.write resources are its write scope under the 0085
-admission. Binding rule from 0090 onward: new work defaults to the A plus B
-loop, and any manual path must be recorded as a loop defect.
+admission. The standalone binding rule below applies from 0090 onward.
+
+# Binding rule - Workflow A plus B default
+
+From TASK-0090 onward, new work defaults to Workflow A intake/alignment followed
+by Workflow B execution/verification. Any manual path must be recorded as a loop
+defect.
+
+This rule does not lower any task acceptance criteria, EvidenceGate authority,
+or sequencing dependency. The TASK-0085 kernel-boundary bootstrap exception
+remains the only named exception: Workflow B is structurally forbidden from
+editing its own kernel boundary, and that manual path is still recorded as a
+loop defect.
 
 # Increment G - Dynamic workflow synthesis
 

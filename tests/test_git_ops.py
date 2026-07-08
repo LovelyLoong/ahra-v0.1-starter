@@ -116,6 +116,7 @@ class IsolatedGitWorkspaceProviderTests(unittest.TestCase):
 
             self.assertEqual((repo / "value.txt").read_text(encoding="utf-8"), "2\n")
             self.assertFalse(execution_path.exists())
+            self.assertFalse((root / "development-worktrees").exists())
             self.assertFalse(_worktree_list_contains(repo, execution_path))
 
     def test_finalize_retains_worktree_when_propagation_fails(self) -> None:

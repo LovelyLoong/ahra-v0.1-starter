@@ -1,0 +1,26 @@
+{
+  "schema_version": "ahra/execution-policy-decision/0.1",
+  "strategy": "deterministic-task-estimate-v1",
+  "nodeId": "NODE-TASK-0090-BINDING-RULE-IMPLEMENT",
+  "estimatedSeconds": 1530,
+  "softDeadlineSeconds": 600,
+  "hardDeadlineSeconds": 600,
+  "nodeBudgetSeconds": 600,
+  "basePolicy": {
+    "maxAttempts": 1,
+    "startupTimeoutSeconds": 120,
+    "idleTimeoutSeconds": 900,
+    "heartbeatIntervalSeconds": 60,
+    "attemptWallTimeoutSeconds": 3600,
+    "runDeadlineSeconds": 7200
+  },
+  "effectivePolicy": {
+    "maxAttempts": 1,
+    "startupTimeoutSeconds": 120,
+    "idleTimeoutSeconds": 600,
+    "heartbeatIntervalSeconds": 60,
+    "attemptWallTimeoutSeconds": 600,
+    "runDeadlineSeconds": 600
+  },
+  "rationale": "Use a deterministic task-size estimate; interrupt an Agent phase at roughly twice the estimate while retaining a larger hard run deadline."
+}

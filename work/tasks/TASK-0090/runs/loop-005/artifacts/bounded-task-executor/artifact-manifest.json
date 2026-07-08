@@ -1,0 +1,78 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "TASK-0090-BINDING-RULE-IMPLEMENT",
+  "artifacts": [
+    {
+      "artifact_id": "ART-240606d6c8a24896b5a372c1ce8f6888",
+      "task_id": "TASK-0090-BINDING-RULE-IMPLEMENT",
+      "kind": "execution_policy_decision",
+      "name": "execution-policy-decision.json",
+      "uri": "local://nodes/NODE-TASK-0090-BINDING-RULE-IMPLEMENT/execution-policy-decision.json",
+      "sha256": "5bc031c90ee13af305d5febce3d5759130b909c9470505f5f7fca26db2700c26",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-08T02:28:06.174257Z",
+      "input_refs": [
+        "PLAN-89d23799091e1459",
+        "NODE-TASK-0090-BINDING-RULE-IMPLEMENT",
+        "NRUN-78cd432b21308bd1"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-fda05f53c0e4441296a3f290cd894a2c",
+      "task_id": "TASK-0090-BINDING-RULE-IMPLEMENT",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/TASK-0090-BINDING-RULE-IMPLEMENT/attempt-1/patch.diff",
+      "sha256": "8e3f45545b35529650b315e91b11a2342cb9e45cbbc38c9daef464c4a1ce2993",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-08T02:30:24.572363Z",
+      "input_refs": [
+        "TASK-0090-BINDING-RULE-IMPLEMENT",
+        "NRUN-78cd432b21308bd1"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-a5c543f94f36480ca7eb05dddce911f3",
+      "task_id": "TASK-0090-BINDING-RULE-IMPLEMENT",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/TASK-0090-BINDING-RULE-IMPLEMENT/attempt-1/work-report.json",
+      "sha256": "ee57a38f13b1dc6c7ce0896a34587ec1c800497219d515c73f82ad058d694063",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-08T02:30:24.573349Z",
+      "input_refs": [
+        "TASK-0090-BINDING-RULE-IMPLEMENT",
+        "NRUN-78cd432b21308bd1"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-ab5b0e0f4bd34e38a2fc9c2ab423af84",
+      "task_id": "TASK-0090-BINDING-RULE-IMPLEMENT",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-TASK-0090-BINDING-RULE-IMPLEMENT/node-run.json",
+      "sha256": "a2ec2031cc219c26c0fa25fa3ee3114029594734ff4b3c85fe059bf94b6b11df",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-08T02:30:25.098589Z",
+      "input_refs": [
+        "PLAN-89d23799091e1459",
+        "NODE-TASK-0090-BINDING-RULE-IMPLEMENT",
+        "NRUN-78cd432b21308bd1"
+      ],
+      "evidence_refs": [
+        "EVD-2155066717cc4eeca1bba18c35543506"
+      ],
+      "supersedes": null
+    }
+  ]
+}
