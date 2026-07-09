@@ -123,6 +123,18 @@ class PolicyFailingSelfReportedVerificationDriver(AgentDriver):
         raise AssertionError(f"unexpected role after deterministic policy failure: {request.role}")
 
 
+class NumericBackupArtifactDriver(FakeDriver):
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        result = await super().run(request)
+        if request.role == AgentRole.EXECUTOR:
+            workspace = Path(str(request.workspace_ref))
+            (workspace / "value.py~1234").write_text(
+                (workspace / "value.py").read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+        return result
+
+
 class PrepublishingAwkpDriver(FakeDriver):
     async def run(self, request: AgentRunRequest) -> AgentRunResult:
         result = await super().run(request)
@@ -843,6 +855,39 @@ class StandardHarnessTests(unittest.TestCase):
             for record in (*manifest["artifacts"], *evidence_manifest["evidence"]):
                 self.assertRegex(record["sha256"], r"^[a-f0-9]{64}$")
                 self.assertTrue(record["uri"].startswith("local://"))
+
+    def test_task_harness_cleans_duplicate_numeric_backup_artifacts_before_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = _init_repo(Path(temp))
+            result = asyncio.run(
+                TaskHarness(NumericBackupArtifactDriver()).run_task(
+                    task=_task(),
+                    workspace_ref=str(repo),
+                    branch="test-branch",
+                    run_id="RUN-transient-backup-cleanup",
+                    store=FileRunStore(Path(temp) / "artifacts"),
+                )
+            )
+
+            self.assertEqual(result.status, WorkflowOutcome.ACCEPTED)
+            self.assertFalse((repo / "value.py~1234").exists())
+            attempt = result.attempts[0]
+            self.assertIsNotNone(attempt.deterministic)
+            assert attempt.deterministic is not None
+            self.assertEqual(attempt.deterministic.policy.changed_files, ("value.py",))
+            artifact_dir = Path(result.artifact_dir)
+            events = [
+                json.loads(line)
+                for line in (artifact_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            cleanup_events = [
+                event
+                for event in events
+                if event["type"] == "dev.ahra.workflow.transient_tool_artifacts_cleaned.v1"
+            ]
+            self.assertEqual(len(cleanup_events), 1)
+            self.assertEqual(cleanup_events[0]["data"]["files"], ["value.py~1234"])
 
     def test_policy_failure_marks_agent_reported_verification_as_unverified(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

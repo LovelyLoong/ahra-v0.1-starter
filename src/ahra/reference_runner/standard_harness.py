@@ -589,6 +589,14 @@ class TaskHarness:
                 store.event("executor_finished", task_id=task.id, attempt=attempt_number)
 
                 store.event("deterministic_gate_started", task_id=task.id, attempt=attempt_number)
+                self._cleanup_transient_tool_artifacts(
+                    store=store,
+                    task=task,
+                    workspace_ref=workspace_ref,
+                    checkpoint=checkpoint,
+                    attempt_number=attempt_number,
+                    phase="pre-check-policy",
+                )
                 pre_evidence, full_patch = self.collect_evidence(
                     workspace_ref=workspace_ref,
                     checkpoint=checkpoint,
@@ -607,6 +615,14 @@ class TaskHarness:
                         required_checks_passed=all(
                             check.passed for check in check_results if check.required
                         ),
+                    )
+                    self._cleanup_transient_tool_artifacts(
+                        store=store,
+                        task=task,
+                        workspace_ref=workspace_ref,
+                        checkpoint=checkpoint,
+                        attempt_number=attempt_number,
+                        phase="post-check-policy",
                     )
                     evidence, full_patch = self.collect_evidence(
                         workspace_ref=workspace_ref,
@@ -1147,6 +1163,37 @@ class TaskHarness:
             return tuple(self.workspace_provider.changed_files(workspace_ref, checkpoint))
         except Exception:
             return ()
+
+    def _cleanup_transient_tool_artifacts(
+        self,
+        *,
+        store: ReferenceRunStore,
+        task: TaskSpec,
+        workspace_ref: str,
+        checkpoint: str,
+        attempt_number: int,
+        phase: str,
+    ) -> tuple[str, ...]:
+        cleanup = getattr(self.workspace_provider, "cleanup_transient_tool_artifacts", None)
+        if cleanup is None:
+            return ()
+        try:
+            removed = tuple(cleanup(workspace_ref, checkpoint))
+        except Exception:
+            return ()
+        if removed:
+            store.event(
+                "transient_tool_artifacts_cleaned",
+                task_id=task.id,
+                attempt=attempt_number,
+                phase=phase,
+                files=removed,
+                reason=(
+                    "removed untracked numeric-suffix backup files identical to "
+                    "their target files before deterministic evidence collection"
+                ),
+            )
+        return removed
 
     def _with_write_capability_violations(
         self,

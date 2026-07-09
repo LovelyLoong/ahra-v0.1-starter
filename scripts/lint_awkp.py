@@ -25,6 +25,20 @@ REQUIRED_WORK_ITEM_KEYS = {
 }
 ERRORS: list[str] = []
 WARNINGS: list[str] = []
+GENERATED_MARKDOWN_DIRS = {
+    ".ahra",
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".tox",
+    ".venv",
+    "artifacts",
+    "build",
+    "dist",
+    "node_modules",
+    "__pycache__",
+}
 
 
 def is_proposed_task_draft(path: Path) -> bool:
@@ -48,6 +62,14 @@ def is_task_run_artifact(path: Path) -> bool:
     # tree, so treat "runs" at any depth below the task dir as run byproduct
     # rather than authored content.
     return "runs" in parts[3:]
+
+
+def is_generated_markdown_path(path: Path) -> bool:
+    try:
+        rel = path.relative_to(ROOT)
+    except ValueError:
+        return False
+    return any(part in GENERATED_MARKDOWN_DIRS for part in rel.parts)
 
 
 def err(path: Path, message: str) -> None:
@@ -265,7 +287,7 @@ def lint_tasks() -> None:
 def lint_relative_links() -> None:
     pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
     for path in ROOT.rglob("*.md"):
-        if is_task_run_artifact(path):
+        if is_task_run_artifact(path) or is_generated_markdown_path(path):
             continue
         text = path.read_text(encoding="utf-8")
         for target in pattern.findall(text):

@@ -9,6 +9,8 @@ from ahra.reference_runner.git_ops import (
     GitError,
     IsolatedGitWorkspaceProvider,
     WorktreeManager,
+    changed_files,
+    cleanup_transient_tool_artifacts,
     fast_forward,
 )
 
@@ -68,6 +70,33 @@ class WorktreeManagerTests(unittest.TestCase):
             self.assertEqual((repo / "value.txt").read_text(encoding="utf-8"), "2\n")
             with self.assertRaisesRegex(GitError, "uncommitted changes"):
                 fast_forward(repo, workspace.branch)
+
+    def test_cleanup_removes_untracked_numeric_backup_duplicate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            repo = _init_repo(root)
+            (repo / "value.txt").write_text("2\n", encoding="utf-8")
+            (repo / "value.txt~1234").write_text("2\n", encoding="utf-8")
+
+            removed = cleanup_transient_tool_artifacts(repo)
+
+            self.assertEqual(removed, ("value.txt~1234",))
+            self.assertFalse((repo / "value.txt~1234").exists())
+            self.assertEqual(changed_files(repo, _git(repo, "rev-parse", "HEAD")), ("value.txt",))
+
+    def test_cleanup_keeps_numeric_backup_with_distinct_content(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            repo = _init_repo(root)
+            (repo / "value.txt").write_text("2\n", encoding="utf-8")
+            (repo / "value.txt~1234").write_text("backup\n", encoding="utf-8")
+
+            removed = cleanup_transient_tool_artifacts(repo)
+
+            self.assertEqual(removed, ())
+            self.assertTrue((repo / "value.txt~1234").exists())
+            files = changed_files(repo, _git(repo, "rev-parse", "HEAD"))
+            self.assertEqual(files, ("value.txt", "value.txt~1234"))
 
     def test_generated_branch_names_do_not_collide_on_shared_prefix(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

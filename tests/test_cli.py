@@ -203,6 +203,18 @@ def _lint_generated_awkp_root(root: Path) -> tuple[list[str], list[str]]:
     return module.ERRORS, module.WARNINGS
 
 
+def _lint_relative_links_root(root: Path) -> tuple[list[str], list[str]]:
+    spec = importlib.util.spec_from_file_location("lint_awkp_links_test", ROOT / "scripts" / "lint_awkp.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.ROOT = root
+    module.ERRORS = []
+    module.WARNINGS = []
+    module.lint_relative_links()
+    return module.ERRORS, module.WARNINGS
+
+
 class CliTests(unittest.TestCase):
     def test_default_help_hides_legacy_workflow_group(self) -> None:
         help_text = cli._build_parser().format_help()
@@ -216,6 +228,24 @@ class CliTests(unittest.TestCase):
         self.assertIn("workflow-a", help_text)
         self.assertIn("workflow-sequence", help_text)
         self.assertNotIn("Legacy workflow compatibility commands", help_text)
+
+    def test_awkp_relative_link_lint_skips_generated_environment_markdown(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            vendor = root / ".venv" / "Lib" / "site-packages" / "pkg"
+            vendor.mkdir(parents=True)
+            (vendor / "SKILL.md").write_text("[missing](missing.yml)\n", encoding="utf-8")
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "authored.md").write_text("[missing](missing.md)\n", encoding="utf-8")
+
+            errors, warnings = _lint_relative_links_root(root)
+
+            self.assertEqual(warnings, [])
+            self.assertEqual(
+                errors,
+                [f"{Path('docs') / 'authored.md'}: broken relative link: missing.md"],
+            )
 
     def test_workflow_a_cli_lifecycle_requires_human_gates(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

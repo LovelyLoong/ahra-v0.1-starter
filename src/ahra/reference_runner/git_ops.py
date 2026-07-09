@@ -145,6 +145,68 @@ def add_intent_to_add(repo: Path) -> None:
     run_git(repo, "add", "-N", "--", ".", check=False)
 
 
+_NUMERIC_SUFFIX_BACKUP_RE = re.compile(r"^(.+)~\d+$")
+
+
+def cleanup_transient_tool_artifacts(repo: Path) -> tuple[str, ...]:
+    """Remove untracked numeric-suffix backup files that duplicate their target.
+
+    Some patch/edit tools can leave files such as ``component.json~1234`` beside
+    the real file after a failed cleanup. These files are not task output; keep
+    them fail-closed unless they can be proven to be an untracked duplicate of
+    the current target file.
+    """
+    root = repo.resolve()
+    removed: list[str] = []
+    for relative_path in _uncommitted_numeric_backup_candidates(root):
+        backup = (root / relative_path).resolve()
+        target = (root / _backup_target_path(relative_path)).resolve()
+        if not _path_inside(backup, root) or not _path_inside(target, root):
+            continue
+        if not backup.is_file() or not target.is_file():
+            continue
+        try:
+            if backup.read_bytes() != target.read_bytes():
+                continue
+            backup.unlink()
+        except OSError:
+            continue
+        run_git(root, "reset", "-q", "--", relative_path.as_posix(), check=False)
+        removed.append(relative_path.as_posix())
+    return tuple(removed)
+
+
+def _uncommitted_numeric_backup_candidates(repo: Path) -> tuple[Path, ...]:
+    output = run_git(repo, "status", "--porcelain=v1", "-z", "--untracked-files=all").stdout
+    candidates: list[Path] = []
+    for record in output.split("\0"):
+        if not record:
+            continue
+        status = record[:2]
+        if status not in {"??", " A"}:
+            continue
+        path_text = record[3:]
+        path = Path(path_text)
+        if _NUMERIC_SUFFIX_BACKUP_RE.match(path.name):
+            candidates.append(path)
+    return tuple(candidates)
+
+
+def _backup_target_path(path: Path) -> Path:
+    match = _NUMERIC_SUFFIX_BACKUP_RE.match(path.name)
+    if match is None:
+        return path
+    return path.with_name(match.group(1))
+
+
+def _path_inside(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
 def changed_files(repo: Path, checkpoint: str) -> tuple[str, ...]:
     add_intent_to_add(repo)
     output = run_git(repo, "diff", "--name-only", checkpoint, "--").stdout
@@ -256,6 +318,9 @@ class LocalGitWorkspaceProvider:
     def changed_files(self, workspace_ref: str, checkpoint: str) -> list[str]:
         return list(changed_files(Path(workspace_ref), checkpoint))
 
+    def cleanup_transient_tool_artifacts(self, workspace_ref: str, checkpoint: str) -> list[str]:
+        return list(cleanup_transient_tool_artifacts(Path(workspace_ref)))
+
     def numstat(self, workspace_ref: str, checkpoint: str) -> tuple[int, int]:
         return numstat(Path(workspace_ref), checkpoint)
 
@@ -344,6 +409,9 @@ class IsolatedGitWorkspaceProvider:
 
     def changed_files(self, workspace_ref: str, checkpoint: str) -> list[str]:
         return list(changed_files(Path(workspace_ref), checkpoint))
+
+    def cleanup_transient_tool_artifacts(self, workspace_ref: str, checkpoint: str) -> list[str]:
+        return list(cleanup_transient_tool_artifacts(Path(workspace_ref)))
 
     def numstat(self, workspace_ref: str, checkpoint: str) -> tuple[int, int]:
         return numstat(Path(workspace_ref), checkpoint)
