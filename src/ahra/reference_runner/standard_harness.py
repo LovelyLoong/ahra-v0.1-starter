@@ -22,6 +22,7 @@ from .models import (
     CriterionAssessment,
     DeterministicEvidence,
     ExecutionPolicy,
+    ExpectedOutputDelivery,
     PolicyEvidence,
     ReviewResult,
     ReviewVerdict,
@@ -148,6 +149,11 @@ def _deterministic_failure_review(evidence: DeterministicEvidence) -> ReviewResu
         for check in evidence.checks
         if check.required and not check.passed
     )
+    blockers.extend(
+        f"Expected output not delivered: {output.name}"
+        for output in evidence.expected_outputs
+        if output.artifact_required and not output.delivered
+    )
     if evidence.check_execution_status != "completed":
         blockers.append(
             evidence.check_skip_reason
@@ -267,6 +273,161 @@ def _with_agent_reported_verification(
         evidence,
         agent_reported_verification_commands=tuple(report.verification_commands_run),
     )
+
+
+def _with_expected_output_deliveries(
+    evidence: DeterministicEvidence,
+    *,
+    task: TaskSpec,
+    report: WorkReport,
+    patch_record: dict,
+    report_record: dict,
+    deterministic_evidence_uri: str,
+) -> DeterministicEvidence:
+    if not task.expected_outputs:
+        return evidence
+    deliveries = tuple(
+        _expected_output_delivery(
+            output=output,
+            report=report,
+            evidence=evidence,
+            patch_record=patch_record,
+            report_record=report_record,
+            deterministic_evidence_uri=deterministic_evidence_uri,
+        )
+        for output in task.expected_outputs
+    )
+    return replace(evidence, expected_outputs=deliveries)
+
+
+def _expected_output_delivery(
+    *,
+    output,
+    report: WorkReport,
+    evidence: DeterministicEvidence,
+    patch_record: dict,
+    report_record: dict,
+    deterministic_evidence_uri: str,
+) -> ExpectedOutputDelivery:
+    schema_ref = output.schema_ref or ""
+    schema = schema_ref.lower()
+    changed_files = tuple(_unique_strings((*evidence.policy.changed_files, *report.changed_files)))
+    if _is_change_output_schema(schema):
+        delivered = bool(changed_files) and evidence.policy.passed
+        return ExpectedOutputDelivery(
+            name=output.name,
+            schema_ref=schema_ref,
+            delivery_role=output.delivery_role,
+            artifact_required=output.artifact_required,
+            delivered=delivered,
+            status="delivered" if delivered else "missing_code_change_patch",
+            artifact_refs=(str(patch_record["artifact_id"]),) if delivered else (),
+            paths=(str(patch_record["uri"]),) if delivered else (),
+            summary=(
+                "Mapped to patch.diff because the output schema is a code/doc change "
+                f"artifact and the deterministic policy observed {len(changed_files)} changed file(s)."
+            ),
+        )
+    if _is_test_evidence_output_schema(schema):
+        delivered = (
+            evidence.check_execution_status == "completed"
+            and evidence.required_checks_passed
+            and bool(evidence.checks)
+        )
+        return ExpectedOutputDelivery(
+            name=output.name,
+            schema_ref=schema_ref,
+            delivery_role=output.delivery_role,
+            artifact_required=output.artifact_required,
+            delivered=delivered,
+            status="delivered" if delivered else "missing_required_check_evidence",
+            evidence_refs=(),
+            paths=(deterministic_evidence_uri,) if delivered else (),
+            summary=(
+                "Mapped to deterministic-evidence.json because the output schema is "
+                f"test evidence and {len(evidence.checks)} deterministic check record(s) were captured."
+            ),
+        )
+    if output.delivery_role == "evidence":
+        delivered = evidence.check_execution_status == "completed" and evidence.required_checks_passed
+        return ExpectedOutputDelivery(
+            name=output.name,
+            schema_ref=schema_ref,
+            delivery_role=output.delivery_role,
+            artifact_required=output.artifact_required,
+            delivered=delivered,
+            status="delivered" if delivered else "missing_evidence_record",
+            paths=(deterministic_evidence_uri,) if delivered else (),
+            summary="Mapped to deterministic-evidence.json because deliveryRole is evidence.",
+        )
+    if output.artifact_required:
+        delivered = bool(changed_files) and evidence.policy.passed
+        return ExpectedOutputDelivery(
+            name=output.name,
+            schema_ref=schema_ref,
+            delivery_role=output.delivery_role,
+            artifact_required=output.artifact_required,
+            delivered=delivered,
+            status="delivered" if delivered else "missing_artifact_mapping",
+            artifact_refs=(str(patch_record["artifact_id"]), str(report_record["artifact_id"])) if delivered else (),
+            paths=(str(patch_record["uri"]), str(report_record["uri"])) if delivered else (),
+            summary=(
+                "Mapped to patch.diff and work-report.json as the bounded-task "
+                "artifact delivery record; semantic review still judges content."
+            ),
+        )
+    return ExpectedOutputDelivery(
+        name=output.name,
+        schema_ref=schema_ref,
+        delivery_role=output.delivery_role,
+        artifact_required=output.artifact_required,
+        delivered=True,
+        status="not_required",
+        artifact_refs=(str(report_record["artifact_id"]),),
+        paths=(str(report_record["uri"]),),
+        summary="ArtifactRequired is false; WorkReport records the non-artifact output surface.",
+    )
+
+
+def _expected_output_manifest_payload(
+    *,
+    task: TaskSpec,
+    run_id: str,
+    attempt_number: int,
+    evidence: DeterministicEvidence,
+    deterministic_record: dict,
+) -> dict[str, object]:
+    return {
+        "schema_version": "ahra/expected-output-delivery-manifest/0.1",
+        "task_id": task.id,
+        "run_id": run_id,
+        "attempt": attempt_number,
+        "summary": "PlanIR expectedOutputs mapped to concrete bounded-task artifacts or evidence.",
+        "deterministic_evidence_ref": deterministic_record["evidence_id"],
+        "outputs": [to_jsonable(output) for output in evidence.expected_outputs],
+    }
+
+
+def _is_change_output_schema(schema_ref: str) -> bool:
+    return schema_ref in {
+        "ahra/artifact/code-change/0.1",
+        "ahra/artifact/doc-change/0.1",
+    }
+
+
+def _is_test_evidence_output_schema(schema_ref: str) -> bool:
+    return schema_ref == "ahra/artifact/test-evidence/0.1" or schema_ref.endswith("/test-evidence/0.1")
+
+
+def _unique_strings(items: tuple[str, ...]) -> tuple[str, ...]:
+    seen: set[str] = set()
+    unique: list[str] = []
+    for item in items:
+        value = str(item)
+        if value and value not in seen:
+            unique.append(value)
+            seen.add(value)
+    return tuple(unique)
 
 
 class TaskHarness:
@@ -465,20 +626,6 @@ class TaskHarness:
                         ),
                     )
                 evidence = _with_agent_reported_verification(evidence, report)
-                store.event(
-                    "deterministic_gate_finished",
-                    task_id=task.id,
-                    attempt=attempt_number,
-                    passed=evidence.passed,
-                    policy_passed=evidence.policy.passed,
-                    required_checks_passed=evidence.required_checks_passed,
-                    check_execution_status=evidence.check_execution_status,
-                    check_skip_reason=evidence.check_skip_reason,
-                    agent_reported_verification_command_count=len(
-                        evidence.agent_reported_verification_commands
-                    ),
-                )
-
                 patch_record = store.write_artifact(
                     f"tasks/{task.id}/attempt-{attempt_number}/patch.diff",
                     full_patch,
@@ -507,12 +654,67 @@ class TaskHarness:
                     created_by=f"workflow-module:{self.module_id}",
                     input_refs=[task.id, run_id],
                 )
+                deterministic_evidence_uri = (
+                    f"local://tasks/{task.id}/attempt-{attempt_number}/deterministic-evidence.json"
+                )
+                evidence = _with_expected_output_deliveries(
+                    evidence,
+                    task=task,
+                    report=report,
+                    patch_record=patch_record,
+                    report_record=report_record,
+                    deterministic_evidence_uri=deterministic_evidence_uri,
+                )
                 deterministic_record = store.write_evidence(
                     f"tasks/{task.id}/attempt-{attempt_number}/deterministic-evidence.json",
                     evidence,
                     task_id=task.id,
                     kind="deterministic_gate",
                     refs=[patch_record["artifact_id"], report_record["artifact_id"]],
+                )
+                expected_output_manifest: dict[str, object] | None = None
+                expected_output_record: dict | None = None
+                if task.expected_outputs:
+                    expected_output_manifest = _expected_output_manifest_payload(
+                        task=task,
+                        run_id=run_id,
+                        attempt_number=attempt_number,
+                        evidence=evidence,
+                        deterministic_record=deterministic_record,
+                    )
+                    expected_output_record = store.write_artifact(
+                        f"tasks/{task.id}/attempt-{attempt_number}/expected-output-manifest.json",
+                        expected_output_manifest,
+                        task_id=task.id,
+                        kind="expected_output_manifest",
+                        media_type="application/json",
+                        created_by=f"workflow-module:{self.module_id}",
+                        input_refs=[
+                            task.id,
+                            run_id,
+                            str(patch_record["artifact_id"]),
+                            str(report_record["artifact_id"]),
+                            str(deterministic_record["evidence_id"]),
+                        ],
+                        evidence_refs=[str(deterministic_record["evidence_id"])],
+                    )
+                store.event(
+                    "deterministic_gate_finished",
+                    task_id=task.id,
+                    attempt=attempt_number,
+                    passed=evidence.passed,
+                    policy_passed=evidence.policy.passed,
+                    required_checks_passed=evidence.required_checks_passed,
+                    check_execution_status=evidence.check_execution_status,
+                    check_skip_reason=evidence.check_skip_reason,
+                    agent_reported_verification_command_count=len(
+                        evidence.agent_reported_verification_commands
+                    ),
+                    expected_output_count=len(evidence.expected_outputs),
+                    expected_outputs_delivered=all(
+                        output.delivered or not output.artifact_required
+                        for output in evidence.expected_outputs
+                    ),
                 )
 
                 if evidence.passed:
@@ -524,6 +726,7 @@ class TaskHarness:
                                 report=report,
                                 evidence=evidence,
                                 full_patch=full_patch,
+                                expected_output_manifest=expected_output_manifest,
                                 workspace=workspace,
                                 workspace_ref=workspace_ref,
                                 checkpoint=checkpoint,
@@ -620,7 +823,14 @@ class TaskHarness:
                     review,
                     task_id=task.id,
                     kind=review_evidence_kind,
-                    refs=[deterministic_record["evidence_id"]],
+                    refs=[
+                        str(deterministic_record["evidence_id"]),
+                        *(
+                            [str(expected_output_record["artifact_id"])]
+                            if expected_output_record
+                            else []
+                        ),
+                    ],
                 )
                 record = TaskAttemptRecord(
                     attempt=attempt_number,
@@ -978,6 +1188,7 @@ class TaskHarness:
         report,
         evidence: DeterministicEvidence,
         full_patch: str,
+        expected_output_manifest: dict[str, object] | None,
         workspace: Path,
         workspace_ref: str,
         checkpoint: str,
@@ -1002,6 +1213,7 @@ class TaskHarness:
                         report=report,
                         evidence=evidence,
                         patch_text=full_patch,
+                        expected_output_manifest=expected_output_manifest,
                         workspace=workspace,
                         run_id=run_id,
                         attempt=attempt_number,

@@ -129,6 +129,18 @@ class ChangePolicy:
 
 
 @dataclass(frozen=True, slots=True)
+class ExpectedOutputSpec:
+    name: str
+    schema_ref: str = ""
+    delivery_role: str | None = None
+    artifact_required: bool = True
+
+    def __post_init__(self) -> None:
+        if not self.name:
+            raise ValueError("expected output name is required")
+
+
+@dataclass(frozen=True, slots=True)
 class TaskSpec:
     id: str
     title: str
@@ -137,6 +149,7 @@ class TaskSpec:
     scope: tuple[str, ...] = ()
     requirements: tuple[str, ...] = ()
     non_goals: tuple[str, ...] = ()
+    expected_outputs: tuple[ExpectedOutputSpec, ...] = ()
     checks: tuple[CheckSpec, ...] = ()
     policy: ChangePolicy = field(default_factory=ChangePolicy)
     max_attempts: int = DEFAULT_MAX_ATTEMPTS
@@ -149,6 +162,9 @@ class TaskSpec:
             raise ValueError("task acceptance_criteria are required")
         if len(set(self.acceptance_criteria)) != len(self.acceptance_criteria):
             raise ValueError("task acceptance_criteria must be unique")
+        output_names = [output.name for output in self.expected_outputs]
+        if len(set(output_names)) != len(output_names):
+            raise ValueError("task expected_outputs names must be unique")
         if not 1 <= self.max_attempts <= MAX_MAX_ATTEMPTS:
             raise ValueError(f"task max_attempts must be between 1 and {MAX_MAX_ATTEMPTS}")
         if not 1 <= self.max_turns <= 100:
@@ -225,6 +241,20 @@ class PolicyEvidence:
 
 
 @dataclass(frozen=True, slots=True)
+class ExpectedOutputDelivery:
+    name: str
+    schema_ref: str = ""
+    delivery_role: str | None = None
+    artifact_required: bool = True
+    delivered: bool = False
+    status: str = "missing"
+    artifact_refs: tuple[str, ...] = ()
+    evidence_refs: tuple[str, ...] = ()
+    paths: tuple[str, ...] = ()
+    summary: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class DeterministicEvidence:
     policy: PolicyEvidence
     checks: tuple[CheckEvidence, ...] = ()
@@ -234,6 +264,7 @@ class DeterministicEvidence:
     verification_mutated_workspace: bool = False
     verification_mutation_files: tuple[str, ...] = ()
     patch_excerpt: str = ""
+    expected_outputs: tuple[ExpectedOutputDelivery, ...] = ()
 
     @property
     def required_checks_passed(self) -> bool:
@@ -247,6 +278,7 @@ class DeterministicEvidence:
             self.policy.passed
             and self.required_checks_passed
             and not self.verification_mutated_workspace
+            and all(output.delivered or not output.artifact_required for output in self.expected_outputs)
         )
 
 

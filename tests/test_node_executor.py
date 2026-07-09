@@ -78,6 +78,17 @@ class NodeWritingDriver(AgentDriver):
         raise AssertionError(f"unexpected role: {request.role}")
 
 
+class ExpectedOutputCapturingDriver(NodeWritingDriver):
+    def __init__(self) -> None:
+        super().__init__()
+        self.review_payload: dict | None = None
+
+    async def run(self, request: AgentRunRequest) -> AgentRunResult:
+        if request.role == AgentRole.TASK_REVIEWER:
+            self.review_payload = dict(request.payload)
+        return await super().run(request)
+
+
 class FailingExecutorDriver(AgentDriver):
     def __init__(self) -> None:
         self.executor_calls = 0
@@ -631,6 +642,78 @@ class NodeExecutorTests(unittest.TestCase):
             evidence_manifest = json.loads((artifact_dir / "evidence-manifest.json").read_text(encoding="utf-8"))
             kinds = {record["kind"] for record in evidence_manifest["evidence"]}
             self.assertIn("terminal_failure", kinds)
+
+    def test_expected_outputs_are_mapped_to_reviewable_delivery_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            repo = _init_repo(root)
+            task = _task()
+            plan, node = compatibility_plan_for_task(task=task, workspace=repo, run_id="RUN-output-manifest")
+            node = replace(
+                node,
+                expected_outputs=(
+                    PlanOutputContract(
+                        name="workflow-a-optimization-code-change",
+                        schema_ref="ahra/artifact/code-change/0.1",
+                        consumer_node_refs=("NODE-goal-verification",),
+                        artifact_required=True,
+                    ),
+                    PlanOutputContract(
+                        name="workflow-a-human-gate-briefing-tests",
+                        schema_ref="ahra/artifact/test-evidence/0.1",
+                        consumer_node_refs=("NODE-goal-verification",),
+                        artifact_required=True,
+                    ),
+                ),
+                gate_refs=("GATE-bounded-task-l0", "GATE-bounded-task-semantic-review"),
+                gate_digests=(
+                    canonical_fingerprint({"gateRef": "GATE-bounded-task-l0"}),
+                    canonical_fingerprint({"gateRef": "GATE-bounded-task-semantic-review"}),
+                ),
+            )
+            plan = replace(plan, nodes=(node,))
+            request = NodeExecutionRequest(
+                plan=plan,
+                node=node,
+                capability_grants=runtime_grants_for_node(plan, node),
+                workspace_ref=str(repo),
+                branch="test-branch",
+                run_id="RUN-output-manifest",
+                payload={},
+            )
+            driver = ExpectedOutputCapturingDriver()
+
+            task_result, node_result = asyncio.run(
+                BoundedTaskExecutor(
+                    driver,
+                    store=FileRunStore(root / "artifacts"),
+                    runtime_profile_ref="profile/development-bounded",
+                ).execute_task(request)
+            )
+
+            self.assertEqual(task_result.status, WorkflowOutcome.ACCEPTED)
+            self.assertEqual(node_result.status, NodeExecutionStatus.ACCEPTED)
+            self.assertIsNotNone(driver.review_payload)
+            assert driver.review_payload is not None
+            manifest = driver.review_payload["expected_output_manifest"]
+            outputs = {item["name"]: item for item in manifest["outputs"]}
+            self.assertEqual(set(outputs), {"workflow-a-optimization-code-change", "workflow-a-human-gate-briefing-tests"})
+            self.assertTrue(outputs["workflow-a-optimization-code-change"]["delivered"])
+            self.assertTrue(outputs["workflow-a-human-gate-briefing-tests"]["delivered"])
+            self.assertTrue(outputs["workflow-a-optimization-code-change"]["artifact_refs"])
+            self.assertTrue(outputs["workflow-a-human-gate-briefing-tests"]["paths"])
+
+            artifact_dir = Path(task_result.artifact_dir)
+            delivery_manifest = artifact_dir / "tasks" / task_result.task_id / "attempt-1" / "expected-output-manifest.json"
+            self.assertTrue(delivery_manifest.exists())
+            deterministic = _latest_deterministic_evidence(artifact_dir, task_result.task_id)
+            self.assertEqual(
+                {item["name"] for item in deterministic["expected_outputs"]},
+                {"workflow-a-optimization-code-change", "workflow-a-human-gate-briefing-tests"},
+            )
+            self.assertTrue(all(item["delivered"] for item in deterministic["expected_outputs"]))
+            artifact_manifest = json.loads((artifact_dir / "artifact-manifest.json").read_text(encoding="utf-8"))
+            self.assertIn("expected_output_manifest", {record["kind"] for record in artifact_manifest["artifacts"]})
 
     def test_standard_harness_compatibility_matches_native_node_observable_semantics(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

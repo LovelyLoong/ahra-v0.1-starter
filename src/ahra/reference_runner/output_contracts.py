@@ -9,6 +9,7 @@ from .models import (
     ChangePolicy,
     CheckSpec,
     CriterionAssessment,
+    ExpectedOutputSpec,
     GoalReviewResult,
     NextStepDecision,
     PlanAction,
@@ -126,6 +127,20 @@ _TASK_SPEC = {
         "scope": _STRING_LIST,
         "requirements": _STRING_LIST,
         "non_goals": _STRING_LIST,
+        "expected_outputs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["name"],
+                "properties": {
+                    "name": {"type": "string", "minLength": 1},
+                    "schema_ref": {"type": "string"},
+                    "delivery_role": {"type": ["string", "null"]},
+                    "artifact_required": {"type": "boolean"},
+                },
+            },
+        },
         "checks": {"type": "array", "items": _CHECK_SPEC},
         "policy": _CHANGE_POLICY,
         "max_attempts": {"type": "integer", "minimum": 1, "maximum": 5},
@@ -300,10 +315,20 @@ def _task(data: dict[str, Any]) -> TaskSpec:
         scope=_str_tuple(data.get("scope", ())),
         requirements=_str_tuple(data.get("requirements", ())),
         non_goals=_str_tuple(data.get("non_goals", ())),
+        expected_outputs=tuple(_expected_output(item) for item in data.get("expected_outputs", ())),
         checks=tuple(_check(item) for item in data.get("checks", ())),
         policy=_policy(data.get("policy", {})),
         max_attempts=int(data.get("max_attempts", 2)),
         max_turns=int(data.get("max_turns", 25)),
+    )
+
+
+def _expected_output(data: dict[str, Any]) -> ExpectedOutputSpec:
+    return ExpectedOutputSpec(
+        name=str(data["name"]),
+        schema_ref=str(data.get("schema_ref") or ""),
+        delivery_role=str(data["delivery_role"]) if data.get("delivery_role") else None,
+        artifact_required=bool(data.get("artifact_required", True)),
     )
 
 

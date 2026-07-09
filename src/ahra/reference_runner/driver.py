@@ -106,6 +106,7 @@ async def review_task(
     patch_text: str,
     workspace: Path,
     run_id: str,
+    expected_output_manifest: dict[str, Any] | None = None,
     attempt: int | None = None,
     review_attempt: int | None = None,
     contract_feedback: str | None = None,
@@ -117,6 +118,8 @@ async def review_task(
         "evidence": evidence,
         "patch_text": patch_text,
     }
+    if expected_output_manifest is not None:
+        payload["expected_output_manifest"] = expected_output_manifest
     if contract_feedback:
         payload["contract_feedback"] = contract_feedback
     result = await driver.run(

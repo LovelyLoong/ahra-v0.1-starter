@@ -177,7 +177,10 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
         AgentRole.TASK_REVIEWER: (
             "Task reviewer duty: perform independent read-only review of the task, "
             "work report, deterministic evidence, and patch. Do not modify files. "
-            "Return fail if any acceptance criterion lacks evidence."
+            "When payload.expected_output_manifest is present, use it as the explicit "
+            "delivery map for PlanIR expectedOutputs and fail any required output whose "
+            "delivery status is not delivered. Return fail if any acceptance criterion "
+            "lacks evidence."
         ),
         AgentRole.GOAL_REVIEWER: (
             "Goal reviewer duty: perform independent read-only review of completed "

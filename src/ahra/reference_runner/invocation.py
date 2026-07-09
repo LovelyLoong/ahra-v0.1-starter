@@ -30,6 +30,7 @@ from .models import (
     CheckSpec,
     DEFAULT_MAX_ATTEMPTS,
     ExecutionPolicy,
+    ExpectedOutputSpec,
     GoalRunResult,
     GoalSpec,
     MAX_MAX_ATTEMPTS,
@@ -786,10 +787,20 @@ def _task_from_mapping(data: dict[str, Any]) -> TaskSpec:
         scope=tuple(data.get("scope", ())),
         requirements=tuple(data.get("requirements", ())),
         non_goals=tuple(data.get("non_goals", ())),
+        expected_outputs=tuple(_expected_output_from_mapping(item) for item in data.get("expected_outputs", ())),
         checks=tuple(_check_from_mapping(item) for item in data.get("checks", ())),
         policy=_policy_from_mapping(data.get("policy", {})),
         max_attempts=int(data.get("max_attempts", DEFAULT_MAX_ATTEMPTS)),
         max_turns=int(data.get("max_turns", 25)),
+    )
+
+
+def _expected_output_from_mapping(data: dict[str, Any]) -> ExpectedOutputSpec:
+    return ExpectedOutputSpec(
+        name=str(data["name"]),
+        schema_ref=str(data.get("schema_ref") or ""),
+        delivery_role=str(data["delivery_role"]) if data.get("delivery_role") else None,
+        artifact_required=bool(data.get("artifact_required", True)),
     )
 
 

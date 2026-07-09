@@ -36,6 +36,7 @@ from .models import (
     ChangePolicy,
     CheckSpec,
     ExecutionPolicy,
+    ExpectedOutputSpec,
     TaskRunResult,
     TaskSpec,
     WorkflowOutcome,
@@ -705,6 +706,7 @@ def _task_from_request(request: NodeExecutionRequest) -> TaskSpec:
             )
         ),
         requirements=requirements,
+        expected_outputs=_expected_output_specs(request.node.expected_outputs),
         checks=(
             *(tuple(_required_artifact_check(path) for path in artifact_paths)),
             *(tuple(_process_exec_check(command) for command in process_check_commands)),
@@ -714,6 +716,18 @@ def _task_from_request(request: NodeExecutionRequest) -> TaskSpec:
             protected_globs=(),
             sensitive_globs=(),
         ),
+    )
+
+
+def _expected_output_specs(outputs: tuple[PlanOutputContract, ...]) -> tuple[ExpectedOutputSpec, ...]:
+    return tuple(
+        ExpectedOutputSpec(
+            name=output.name,
+            schema_ref=output.schema_ref or "",
+            delivery_role=output.delivery_role,
+            artifact_required=output.artifact_required,
+        )
+        for output in outputs
     )
 
 
