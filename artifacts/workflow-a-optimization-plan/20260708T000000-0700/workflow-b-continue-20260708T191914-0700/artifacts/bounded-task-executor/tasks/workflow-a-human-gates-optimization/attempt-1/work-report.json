@@ -1,0 +1,30 @@
+{
+  "summary": "Replayed the prior Workflow B patch into the bounded workspace after git apply could not update the long workspace paths directly. Implemented the Workflow A Gate 2 briefing, strict briefing binding, Workflow A status surface, structured Gate 1 decisions, admission-aware drafting/redraft flow, and the related docs, inventory, and tests. Required lint, test, and full checks passed.",
+  "changed_files": [
+    "docs/architecture/component-inventory.json",
+    "docs/architecture/framework-entrypoints.md",
+    "docs/architecture/intent-alignment-workflow.md",
+    "docs/policies/component-lifecycle.md",
+    "src/ahra/adapters/codex_sdk.py",
+    "src/ahra/alignment_session.py",
+    "src/ahra/cli.py",
+    "src/ahra/workflow_a_briefing.py",
+    "src/ahra/workflow_a_cli.py",
+    "tests/test_alignment_session.py",
+    "tests/test_cli.py",
+    "tests/test_codex_driver.py",
+    "tests/test_workflow_a_briefing.py",
+    "tests/test_workflow_a_cli.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --test",
+    "uv run python -B scripts/check.py --lint",
+    "uv run python -B scripts/check.py"
+  ],
+  "known_risks": [
+    "The initial git apply attempt failed with Windows Invalid argument unlink errors and left two untracked temporary files: docs/architecture/component-inventory.json~9276 and docs/architecture/component-inventory.json~28204. They are not staged and are not included in git diff, but deletion was blocked by sandbox approval review."
+  ],
+  "unresolved_items": [
+    "Clean up the two untracked git-apply temporary files if the next runner has approval to remove them."
+  ]
+}

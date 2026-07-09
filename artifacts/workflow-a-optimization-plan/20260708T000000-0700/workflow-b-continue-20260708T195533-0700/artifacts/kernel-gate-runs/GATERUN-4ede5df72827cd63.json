@@ -1,0 +1,73 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateRun",
+  "metadata": {
+    "gateRunId": "GATERUN-4ede5df72827cd63"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLM-WFA-ADMISSION-REDRAFT",
+      "CLM-WFA-DOCS-EXPERIMENTAL",
+      "CLM-WFA-HUMAN-GATE-BRIEFING",
+      "CLM-WFA-STATUS-AND-GATE1"
+    ],
+    "command": [
+      "deterministic-gate-runner",
+      "GATE-workflow-a-human-gates-optimization"
+    ],
+    "completedAt": "2026-07-09T03:17:02.392861Z",
+    "decisionAt": null,
+    "dependencies": [],
+    "environment": {
+      "policyDigest": "sha256:9b64794badd43e9690d0cb6847ee26fd9ba52950743eedd6381606c529c43a94",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:188c36b53a61a9c9d52018878045ed0069f38498372b19583de9a35568bff675",
+      "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "evidenceRef": "EVD-4ede5df72827cd63",
+    "fingerprint": "sha256:fee843b2516fa4b12e8310c3a1fc9616635b0a02205043f6836f8e3f8baa5caa",
+    "gateDefinitionDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "gateRef": "GATE-workflow-a-human-gates-optimization",
+    "result": "passed",
+    "startedAt": "2026-07-09T03:17:02.392861Z",
+    "subjects": [
+      {
+        "digest": "sha256:1b515a8cb82c6b2118109a4a4d6e749f4d11e075f537c4f048988a0c6f13781f",
+        "ref": "ART-2c7e5b875af84adf8999ef554c001906"
+      },
+      {
+        "digest": "sha256:35a117d125fb961b76658836184d421a1a15c84cc4c24dcb7ac905d2fa24a8f8",
+        "ref": "ART-311d71a20207430fb7e48176e73f727f"
+      },
+      {
+        "digest": "sha256:4b938279b41556ac9b848add452636a77dc7245527dca111b1c6ce75198fcaa0",
+        "ref": "ART-9b730a70e2a4418f83a3e9473a00bf89"
+      },
+      {
+        "digest": "sha256:0ae172ce6393e08012a4420bef4fc961a60bd2f3e2b9e93955cfa09b6cc9dc0a",
+        "ref": "ART-e996cb5f4b8142d2aaed3d34e4724619"
+      },
+      {
+        "digest": "sha256:b23d22d88791bbffac197bb0c287d251834db4b07143490b7702bd0833a7b972",
+        "ref": "ART-f7e7e55a4393466fb86f1af476e5f2e2"
+      },
+      {
+        "digest": "sha256:5caf0416004031efb1f0a7b6da56b6996618bee00a677810da6b4070a649e212",
+        "ref": "EVD-65687e08286640d585d38a3135d8618a"
+      },
+      {
+        "digest": "sha256:5d0106fb6e933d68841635baaf91f5a02115ccf3d3fa9009dec25ddc4445de37",
+        "ref": "EVD-b6e556bd63ba46a9abc514b0b9a4654d"
+      },
+      {
+        "digest": "sha256:1ba986ab1d2fc3a75a0de89dfef7e9de91ab04ad608583919d5f5ba35f498f9b",
+        "ref": "EVD-d19c35b6e5674967ae50972cbbb52df0"
+      }
+    ],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

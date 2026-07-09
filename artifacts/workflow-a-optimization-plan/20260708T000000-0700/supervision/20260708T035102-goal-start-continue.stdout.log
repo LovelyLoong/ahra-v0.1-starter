@@ -1,0 +1,295 @@
+{
+  "ok": true,
+  "result": {
+    "schema_version": "ahra/goal-operation-start/0.1",
+    "goalExecutionId": "GEXEC-3430cb100411dc2f",
+    "planExecutionId": "PEXEC-e08be9bbd63c062b",
+    "executionWorkspaceRef": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-continue-20260708T035025-0700\\artifacts\\development-worktrees\\GEXEC-3430cb100411dc2f\\development-bounded-c93f4291",
+    "executionWorkspacePreserved": true,
+    "ranReadyNodes": true,
+    "runOnce": false,
+    "goalStatus": "failed",
+    "planStatus": "failed",
+    "defects": [
+      {
+        "apiVersion": "ahra.dev/v1alpha1",
+        "kind": "DefectRecord",
+        "metadata": {
+          "defectId": "DEF-8908201057c1df67",
+          "createdAt": "2026-07-08T11:05:56.037410Z"
+        },
+        "spec": {
+          "claimRef": "CLM-WFA-ADMISSION-REDRAFT",
+          "directClaimRefs": [
+            "CLM-WFA-ADMISSION-REDRAFT",
+            "CLM-WFA-DOCS-EXPERIMENTAL",
+            "CLM-WFA-HUMAN-GATE-BRIEFING",
+            "CLM-WFA-STATUS-AND-GATE1"
+          ],
+          "affectedClaimRefs": [
+            "CLM-WFA-ADMISSION-REDRAFT",
+            "CLM-WFA-DOCS-EXPERIMENTAL",
+            "CLM-WFA-HUMAN-GATE-BRIEFING",
+            "CLM-WFA-STATUS-AND-GATE1"
+          ],
+          "gateRef": "GATE-workflow-a-human-gates-optimization",
+          "expected": "NodeRun completes within its authoritative node budget and records a durable terminal state.",
+          "actual": "rejected: Task exhausted its bounded attempts; failed work was preserved in the workspace.",
+          "refs": [
+            "PLAN-80f54f1bfb22aa37",
+            "PEXEC-e08be9bbd63c062b",
+            "NRUN-44b4d49ae0465d7c",
+            "tasks/workflow-a-human-gates-optimization/terminal-failure.json"
+          ],
+          "repairBoundary": "Repair the node executor, node budget, or lease convergence path without changing Goal, Claim, Gate, Policy, or Capability boundaries.",
+          "status": "open"
+        }
+      }
+    ],
+    "completion": {
+      "complete": false,
+      "missingClaimRefs": [
+        "CLM-GOAL-COMPLETE",
+        "CLM-WFA-ADMISSION-REDRAFT",
+        "CLM-WFA-DOCS-EXPERIMENTAL",
+        "CLM-WFA-HUMAN-GATE-BRIEFING",
+        "CLM-WFA-STATUS-AND-GATE1"
+      ],
+      "nonCurrentEvidenceRefs": [],
+      "uncoveredClaimRefs": [],
+      "openDefectRefs": [],
+      "historicalEvidenceRefs": [],
+      "resolutionFailureRefs": [],
+      "currentClaimCoverage": 0.0
+    },
+    "kernelVerification": {
+      "schema_version": "ahra/kernel-verification-materialization/0.1",
+      "evidenceRecords": [],
+      "gateRuns": []
+    },
+    "inspect": {
+      "schema_version": "ahra/goal-operation-inspect/0.1",
+      "goalExecution": {
+        "schema_version": "ahra/goal-execution/0.1",
+        "goal_execution_id": "GEXEC-3430cb100411dc2f",
+        "goal_ref": "GOAL-WFA-HUMAN-GATES-OPT",
+        "goal_digest": "sha256:a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+        "claim_graph_ref": "claim-graph/workflow-a-human-gates-optimization",
+        "claim_graph_digest": "sha256:b0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecf",
+        "status": "failed",
+        "status_version": 2,
+        "active_plan_execution_ref": null,
+        "plan_execution_refs": [
+          "PEXEC-e08be9bbd63c062b"
+        ],
+        "open_defect_refs": [
+          "DEF-8908201057c1df67"
+        ],
+        "resolved_defect_refs": [],
+        "repair_cycle": 0,
+        "max_repair_cycles": 0,
+        "budget_summary": {
+          "profileRef": "profile/development-bounded"
+        },
+        "usage": {},
+        "workspace_ref": "E:\\ahra-v0.1-starter",
+        "checkpoint_ref": null,
+        "artifact_refs": [
+          "ART-554c7f3e2d3745a3bf4bd6ff7fbab368",
+          "ART-a4decb5acd0b488db6e81782b53817ed",
+          "ART-d513e25321384c69852f0fcbf49de9c9",
+          "ART-7374fccf42e648b8ae3fc5a9edd220c1",
+          "ART-d355cd4c77d04056897fd340252dbd48"
+        ],
+        "evidence_refs": [
+          "EVD-53baece1c75243fe90e84d7897601ffc",
+          "EVD-41cbac1fe6154e2db9fcd70e9867aede",
+          "EVD-5a6aa3d4824849c5a96202e697278ec5",
+          "EVD-0e5115269924451184ab245bdda5b5d6"
+        ],
+        "approval_refs": [],
+        "failure_class": "rejected",
+        "message": "PlanExecution PEXEC-e08be9bbd63c062b reached failed.",
+        "created_at": "2026-07-08T10:51:04.695463Z",
+        "updated_at": "2026-07-08T11:05:56.234996Z"
+      },
+      "planExecutions": [
+        {
+          "schema_version": "ahra/plan-execution/0.1",
+          "plan_execution_id": "PEXEC-e08be9bbd63c062b",
+          "plan_id": "PLAN-80f54f1bfb22aa37",
+          "plan_version": 1,
+          "plan_digest": "sha256:68b3e8d7c87916e082d3f39d493f1f65024882fa47aec6a940dc1c5cb5c93cbc",
+          "goal_ref": "GOAL-WFA-HUMAN-GATES-OPT",
+          "goal_execution_ref": "GEXEC-3430cb100411dc2f",
+          "parent_plan_execution_ref": null,
+          "parent_plan_digest": null,
+          "reused_node_refs": [],
+          "reused_evidence_refs": [],
+          "task_ref": null,
+          "validation_report_ref": "PLANVAL-d07f62f286b006d4",
+          "validation_report_digest": "sha256:f4d0dc07a13f32662fbebab2151f144831fd4203fa9aa82c23e7989aa903db6d",
+          "status": "failed",
+          "status_version": 9,
+          "max_concurrency": 1,
+          "budget_summary": {
+            "maxCostUsd": 1.0,
+            "maxModelCalls": 11,
+            "maxSpawnedNodes": 0,
+            "maxToolCalls": 51,
+            "maxWallSeconds": 7260,
+            "nodeCount": 2
+          },
+          "node_run_refs": [
+            "NRUN-44b4d49ae0465d7c",
+            "NRUN-d709f4dd25bd9c5f"
+          ],
+          "lease": null,
+          "checkpoint_ref": "checkpoint://CHK-fcdda3da984f35f2",
+          "artifact_refs": [
+            "ART-554c7f3e2d3745a3bf4bd6ff7fbab368",
+            "ART-a4decb5acd0b488db6e81782b53817ed",
+            "ART-d513e25321384c69852f0fcbf49de9c9",
+            "ART-7374fccf42e648b8ae3fc5a9edd220c1",
+            "ART-d355cd4c77d04056897fd340252dbd48"
+          ],
+          "evidence_refs": [
+            "EVD-53baece1c75243fe90e84d7897601ffc",
+            "EVD-41cbac1fe6154e2db9fcd70e9867aede",
+            "EVD-5a6aa3d4824849c5a96202e697278ec5",
+            "EVD-0e5115269924451184ab245bdda5b5d6"
+          ],
+          "trace_refs": [
+            "TRACE-PEXEC-e08be9bbd63c062b"
+          ],
+          "handoff_refs": [],
+          "cancel_requested": false,
+          "deadline_at": null,
+          "failure_class": "rejected",
+          "message": "Task exhausted its bounded attempts; failed work was preserved in the workspace.",
+          "created_at": "2026-07-08T10:51:04.761533Z",
+          "updated_at": "2026-07-08T11:05:56.037410Z"
+        }
+      ],
+      "nodeRuns": [
+        {
+          "schema_version": "ahra/node-run-state/0.1",
+          "node_run_id": "NRUN-d709f4dd25bd9c5f",
+          "plan_execution_id": "PEXEC-e08be9bbd63c062b",
+          "plan_id": "PLAN-80f54f1bfb22aa37",
+          "plan_digest": "sha256:68b3e8d7c87916e082d3f39d493f1f65024882fa47aec6a940dc1c5cb5c93cbc",
+          "node_id": "NODE-goal-verification",
+          "node_type": "goal_verification",
+          "attempt": 1,
+          "status": "pending",
+          "status_version": 0,
+          "dependency_node_refs": [
+            "NODE-workflow-a-human-gates-optimization"
+          ],
+          "gate_refs": [
+            "GATE-goal-complete"
+          ],
+          "budget": {
+            "maxCostUsd": 0.0,
+            "maxModelCalls": 1,
+            "maxSpawnedNodes": 0,
+            "maxToolCalls": 1,
+            "maxWallSeconds": 60
+          },
+          "usage": {},
+          "artifact_refs": [],
+          "evidence_refs": [],
+          "terminal_failure_refs": [],
+          "admission_decision_refs": [],
+          "capability_grant_refs": [],
+          "capability_grant_digests": [],
+          "executor_release": null,
+          "lease": null,
+          "failure_class": null,
+          "message": "",
+          "created_at": "2026-07-08T10:51:04.761533Z",
+          "updated_at": "2026-07-08T10:51:04.761533Z"
+        },
+        {
+          "schema_version": "ahra/node-run-state/0.1",
+          "node_run_id": "NRUN-44b4d49ae0465d7c",
+          "plan_execution_id": "PEXEC-e08be9bbd63c062b",
+          "plan_id": "PLAN-80f54f1bfb22aa37",
+          "plan_digest": "sha256:68b3e8d7c87916e082d3f39d493f1f65024882fa47aec6a940dc1c5cb5c93cbc",
+          "node_id": "NODE-workflow-a-human-gates-optimization",
+          "node_type": "bounded_task",
+          "attempt": 1,
+          "status": "failed",
+          "status_version": 5,
+          "dependency_node_refs": [],
+          "gate_refs": [
+            "GATE-workflow-a-human-gates-optimization",
+            "GATE-workflow-a-human-gates-semantic-review"
+          ],
+          "budget": {
+            "maxCostUsd": 1.0,
+            "maxModelCalls": 10,
+            "maxSpawnedNodes": 0,
+            "maxToolCalls": 50,
+            "maxWallSeconds": 7200
+          },
+          "usage": {
+            "costUsd": 0.0,
+            "modelCalls": 2,
+            "spawnedNodes": 0,
+            "toolCalls": 4
+          },
+          "artifact_refs": [
+            "ART-554c7f3e2d3745a3bf4bd6ff7fbab368",
+            "ART-a4decb5acd0b488db6e81782b53817ed",
+            "ART-d513e25321384c69852f0fcbf49de9c9",
+            "ART-7374fccf42e648b8ae3fc5a9edd220c1",
+            "ART-d355cd4c77d04056897fd340252dbd48"
+          ],
+          "evidence_refs": [
+            "EVD-53baece1c75243fe90e84d7897601ffc",
+            "EVD-41cbac1fe6154e2db9fcd70e9867aede",
+            "EVD-5a6aa3d4824849c5a96202e697278ec5",
+            "EVD-0e5115269924451184ab245bdda5b5d6"
+          ],
+          "terminal_failure_refs": [
+            "tasks/workflow-a-human-gates-optimization/terminal-failure.json"
+          ],
+          "admission_decision_refs": [
+            "PDEC-c8d0b6af-9a73-421c-b882-4a9d66cf3f96",
+            "PDEC-93a28445-e0c6-4ae7-b0c6-c71395a32a94"
+          ],
+          "capability_grant_refs": [
+            "CGRANT-faace179-271f-4e3c-8242-dafd7d3de68b",
+            "CGRANT-2d513bac-30f3-4744-a0d4-ab4b5e4c02d7"
+          ],
+          "capability_grant_digests": [
+            "sha256:f42775761c97956d60607ae396bc3e2a2fde8fbfcf6f101ad341950e607b4716",
+            "sha256:40c6e9108526b4d84dae0c7ae47c80bb0b20f6d0febedab19763ae03ef5c6652"
+          ],
+          "executor_release": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "lease": null,
+          "failure_class": "rejected",
+          "message": "Task exhausted its bounded attempts; failed work was preserved in the workspace.",
+          "created_at": "2026-07-08T10:51:04.761533Z",
+          "updated_at": "2026-07-08T11:05:55.857119Z"
+        }
+      ],
+      "idempotencyRecords": [],
+      "recoveryEvents": [],
+      "artifactFindings": [],
+      "metrics": {
+        "goalStatus": "failed",
+        "planExecutionCount": 1,
+        "nodeRunCount": 2,
+        "nodeStatusCounts": {
+          "pending": 1,
+          "failed": 1
+        },
+        "evidenceRefCount": 4,
+        "capabilityGrantRefCount": 2,
+        "missingArtifactCount": 0
+      }
+    }
+  }
+}

@@ -123,6 +123,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
                 "admissionContract",
                 "redraftAttempt",
                 "previousCrossAlignmentReport",
+                "previousRequestAdmissionReport",
             },
         )
         self.assertEqual(acceptance_call.payload["boundaryContractDigest"], snapshot.boundary_contract_digest)
@@ -136,6 +137,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
         )
         self.assertEqual(acceptance_call.payload["redraftAttempt"], 0)
         self.assertIsNone(acceptance_call.payload["previousCrossAlignmentReport"])
+        self.assertIsNone(acceptance_call.payload["previousRequestAdmissionReport"])
 
         requirement_call = next(call for call in driver.calls if call.expected_output == REQUIREMENT_DRAFT_OUTPUT)
         frozen_claim_graph = result.request_draft.to_mapping()["spec"]["claimGraph"]
@@ -146,6 +148,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
             requirement_call.payload["readOnlyInputs"]["admissionContract"],
             requirement_call.payload["admissionContract"],
         )
+        self.assertIn("budgetRules", requirement_call.payload["admissionContract"])
         self.assertEqual(result.snapshot.frozen_claim_graph_digest, result.request_draft.claim_graph_digest)
 
         restored = AlignmentSessionSnapshot.from_mapping(result.snapshot.to_mapping())
@@ -389,6 +392,63 @@ class AlignmentSessionManagerTests(unittest.TestCase):
 
         self.assertEqual(resumed.stage, "awaiting_user")
 
+    def test_gate1_blocking_decision_records_block_freeze_until_answered(self) -> None:
+        driver = FakeAlignmentDriver(
+            first_decision_records=[
+                {
+                    "decisionId": "G1-artifact-path",
+                    "question": "Where should the artifact be written?",
+                    "recommendation": "Use outputs/summary.txt.",
+                    "alternatives": ["outputs/summary.txt", "reports/summary.txt"],
+                    "consequences": ["Gate 1 cannot freeze until this is answered."],
+                    "blocking": True,
+                }
+            ],
+            second_decision_records=[
+                {
+                    "decisionId": "G1-artifact-path",
+                    "question": "Where should the artifact be written?",
+                    "recommendation": "Use outputs/summary.txt.",
+                    "alternatives": ["outputs/summary.txt", "reports/summary.txt"],
+                    "consequences": ["The bounded write scope is outputs/summary.txt."],
+                    "blocking": True,
+                    "finalAnswer": "Use outputs/summary.txt.",
+                }
+            ],
+        )
+        manager = AlignmentSessionManager(driver)
+        snapshot = manager.start(_intent())
+        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+
+        self.assertEqual(snapshot.gate_decisions[0].decision_id, "G1-artifact-path")
+
+        snapshot = asyncio.run(manager.advance(snapshot, "Use outputs/summary.txt."))
+
+        self.assertEqual(snapshot.stage, "awaiting_requirement_approval")
+        self.assertEqual(snapshot.gate_decisions[0].final_answer, "Use outputs/summary.txt.")
+
+    def test_gate1_convergence_rejects_unanswered_blocking_decisions(self) -> None:
+        unanswered = [
+            {
+                "decisionId": "G1-artifact-path",
+                "question": "Where should the artifact be written?",
+                "recommendation": "Use outputs/summary.txt.",
+                "alternatives": ["outputs/summary.txt", "reports/summary.txt"],
+                "consequences": ["Gate 1 cannot freeze until this is answered."],
+                "blocking": True,
+            }
+        ]
+        driver = FakeAlignmentDriver(first_decision_records=unanswered, second_decision_records=unanswered)
+        manager = AlignmentSessionManager(driver)
+        snapshot = manager.start(_intent())
+        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
+
+        with self.assertRaises(AlignmentSessionError) as raised:
+            asyncio.run(manager.advance(snapshot, "Freeze anyway."))
+
+        self.assertEqual(raised.exception.code, "gate1_blocking_decisions_unanswered")
+        self.assertEqual(raised.exception.refs, ("G1-artifact-path",))
+
     def test_draft_contract_requires_nested_apiversion_for_plan_and_claim(self) -> None:
         """Regression: contract must explicitly require apiVersion/kind for nested objects.
 
@@ -449,6 +509,8 @@ class FakeAlignmentDriver:
         acceptance_output: dict[str, object] | None = None,
         acceptance_outputs: list[dict[str, object]] | None = None,
         boundary_contract_output: dict[str, object] | None = None,
+        first_decision_records: list[dict[str, object]] | None = None,
+        second_decision_records: list[dict[str, object]] | None = None,
     ) -> None:
         self.calls: list[AgentRunRequest] = []
         self.alignment_turns = 0
@@ -457,28 +519,43 @@ class FakeAlignmentDriver:
         self.acceptance_output = acceptance_output
         self.acceptance_outputs = list(acceptance_outputs or [])
         self.boundary_contract_output = boundary_contract_output
+        self.first_decision_records = first_decision_records
+        self.second_decision_records = second_decision_records
 
     async def run(self, request: AgentRunRequest) -> AgentRunResult:
         self.calls.append(request)
         if request.expected_output == ALIGNMENT_DECISION_OUTPUT:
             self.alignment_turns += 1
             if self.alignment_turns == 1:
-                return AgentRunResult(
-                    output={
-                        "message": "Need the completion signal before freezing.",
-                        "converged": False,
-                        "missingDimensions": ["completion signal"],
-                    }
-                )
-            return AgentRunResult(
-                output={
-                    "message": "Requirement boundary frozen.",
-                    "converged": True,
-                    "frozenRequirement": "Write one governed deterministic summary artifact in the local workspace.",
-                    "boundaryContract": self.boundary_contract_output or _boundary_contract_output(),
-                    "missingDimensions": [],
+                output = {
+                    "message": "Need the completion signal before freezing.",
+                    "converged": False,
+                    "missingDimensions": ["completion signal"],
                 }
-            )
+                if self.first_decision_records is not None:
+                    output["decisionRecords"] = self.first_decision_records
+                return AgentRunResult(output=output)
+            output = {
+                "message": "Requirement boundary frozen.",
+                "converged": True,
+                "frozenRequirement": "Write one governed deterministic summary artifact in the local workspace.",
+                "boundaryContract": self.boundary_contract_output or _boundary_contract_output(),
+                "missingDimensions": [],
+                "decisionRecords": self.second_decision_records
+                if self.second_decision_records is not None
+                else [
+                    {
+                        "decisionId": "G1-02-01",
+                        "question": "Resolve Gate 1 choice: completion signal.",
+                        "recommendation": "Use the governed summary artifact as the completion signal.",
+                        "alternatives": ["summary artifact exists"],
+                        "consequences": ["The boundary can freeze with a concrete completion signal."],
+                        "blocking": True,
+                        "finalAnswer": "The governed deterministic summary artifact exists.",
+                    }
+                ],
+            }
+            return AgentRunResult(output=output)
         if request.expected_output == REQUIREMENT_DRAFT_OUTPUT:
             return AgentRunResult(output=self._next_requirement_output())
         if request.expected_output == ACCEPTANCE_DRAFT_OUTPUT:

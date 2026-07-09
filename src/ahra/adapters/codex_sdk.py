@@ -221,6 +221,13 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
                 "a synthetic HumanGate gateRef. Budgets must use positive "
                 "maxModelCalls and maxToolCalls."
             )
+        if request.expected_output == "AlignmentTurnDecision":
+            role_instruction += (
+                " Represent unresolved Gate 1 choices as decisionRecords with "
+                "decisionId, question, recommendation, alternatives, consequences, "
+                "blocking, and finalAnswer. Do not set converged true while a "
+                "blocking decisionRecord lacks finalAnswer."
+            )
 
     return (
         "You are an AHRA AgentDriver adapter.\n"

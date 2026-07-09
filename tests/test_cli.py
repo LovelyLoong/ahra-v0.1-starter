@@ -254,6 +254,7 @@ class CliTests(unittest.TestCase):
             session = root / "workflow-a" / "session.json"
             request_draft = root / "workflow-a" / "request-draft.json"
             approval = root / "workflow-a" / "approval.json"
+            briefing = root / "workflow-a" / "gate-2-briefing.html"
             authorized = root / "workflow-a" / "goal-execution-request.yaml"
             expected_workspace = (root / "workflow-a" / "workspace").resolve()
             expected_artifacts = (root / "workflow-a" / "artifacts").resolve()
@@ -379,6 +380,31 @@ class CliTests(unittest.TestCase):
             self.assertEqual(Path(draft_payload["result"]["requestDraft"]["spec"]["artifactDir"]), expected_artifacts)
             self.assertTrue(request_draft.exists())
             self.assertTrue(approval.exists())
+            self.assertTrue(briefing.exists())
+            self.assertEqual(draft_payload["result"]["briefingPath"], str(briefing))
+            self.assertIn("requestDigest", draft_payload["result"]["approval"])
+
+            status_code, status_payload, _ = _run_cli(
+                [
+                    "workflow-a",
+                    "status",
+                    "--session",
+                    str(session),
+                    "--request-draft",
+                    str(request_draft),
+                    "--approval",
+                    str(approval),
+                    "--briefing",
+                    str(briefing),
+                    "--output",
+                    str(authorized),
+                ],
+                cwd=root,
+            )
+            self.assertEqual(status_code, 0)
+            self.assertEqual(status_payload["result"]["stage"], "request_drafted")
+            self.assertFalse(status_payload["result"]["workflowBStarted"])
+            self.assertIn("workflow-a authorize", status_payload["result"]["nextSafeAction"])
 
             admit_code, admit_payload, _ = _run_cli(
                 ["workflow-a", "admit", "--request-draft", str(request_draft)],
@@ -395,6 +421,8 @@ class CliTests(unittest.TestCase):
                     str(request_draft),
                     "--approval",
                     str(approval),
+                    "--briefing",
+                    str(briefing),
                     "--output",
                     str(authorized),
                     "--actor",

@@ -17,6 +17,7 @@ from .request_draft import (
     _request_id,
     _request_name,
 )
+from .request_admission import RequestDraftAdmission, RequestDraftAdmissionResult
 from .evidence_v2 import canonical_fingerprint
 from .goal_operations import (
     DEVELOPMENT_BOUNDED_PROFILE_REF,
@@ -107,6 +108,51 @@ class AlignmentSessionTurn:
 
 
 @dataclass(frozen=True, slots=True)
+class GateDecisionRecord:
+    decision_id: str
+    question: str
+    recommendation: str
+    alternatives: tuple[str, ...]
+    consequences: tuple[str, ...]
+    blocking: bool = True
+    final_answer: str | None = None
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, Any]) -> "GateDecisionRecord":
+        decision_id = _optional_string(data.get("decisionId") or data.get("decision_id") or data.get("id"))
+        question = _optional_string(data.get("question"))
+        recommendation = _optional_string(data.get("recommendation"))
+        if not decision_id or not question or not recommendation:
+            raise AlignmentSessionError(
+                "invalid_gate1_decision_record",
+                "Gate 1 decision records require decisionId, question, and recommendation",
+                ref="agentOutput.decisionRecords",
+            )
+        return cls(
+            decision_id=decision_id,
+            question=question,
+            recommendation=recommendation,
+            alternatives=_string_tuple(data.get("alternatives") or ()),
+            consequences=_string_tuple(data.get("consequences") or ()),
+            blocking=bool(data.get("blocking", True)),
+            final_answer=_optional_string(data.get("finalAnswer") or data.get("final_answer")),
+        )
+
+    def to_mapping(self) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            "decisionId": self.decision_id,
+            "question": self.question,
+            "recommendation": self.recommendation,
+            "alternatives": list(self.alternatives),
+            "consequences": list(self.consequences),
+            "blocking": self.blocking,
+        }
+        if self.final_answer:
+            data["finalAnswer"] = self.final_answer
+        return data
+
+
+@dataclass(frozen=True, slots=True)
 class AlignmentSessionSnapshot:
     session_id: str
     intent: IntentDraft
@@ -126,8 +172,11 @@ class AlignmentSessionSnapshot:
     frozen_claim_graph_digest: str | None = None
     cross_alignment_report: Mapping[str, Any] | None = None
     cross_alignment_redraft_attempts: int = 0
+    request_admission_report: Mapping[str, Any] | None = None
+    request_admission_redraft_attempts: int = 0
     requirement_approved_by: str | None = None
     missing_dimensions: tuple[str, ...] = ()
+    gate_decisions: tuple[GateDecisionRecord, ...] = ()
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, Any]) -> "AlignmentSessionSnapshot":
@@ -162,8 +211,18 @@ class AlignmentSessionSnapshot:
                 else None
             ),
             cross_alignment_redraft_attempts=int(data.get("crossAlignmentRedraftAttempts", 0)),
+            request_admission_report=(
+                _mapping(data["requestAdmissionReport"], "requestAdmissionReport")
+                if data.get("requestAdmissionReport")
+                else None
+            ),
+            request_admission_redraft_attempts=int(data.get("requestAdmissionRedraftAttempts", 0)),
             requirement_approved_by=str(data["requirementApprovedBy"]) if data.get("requirementApprovedBy") else None,
             missing_dimensions=tuple(str(item) for item in data.get("missingDimensions", ())),
+            gate_decisions=tuple(
+                GateDecisionRecord.from_mapping(_mapping(item, "gateDecision"))
+                for item in data.get("gateDecisions", ())
+            ),
         )
 
     @property
@@ -223,8 +282,14 @@ class AlignmentSessionSnapshot:
             data["crossAlignmentReport"] = dict(self.cross_alignment_report)
         if self.cross_alignment_redraft_attempts:
             data["crossAlignmentRedraftAttempts"] = self.cross_alignment_redraft_attempts
+        if self.request_admission_report:
+            data["requestAdmissionReport"] = dict(self.request_admission_report)
+        if self.request_admission_redraft_attempts:
+            data["requestAdmissionRedraftAttempts"] = self.request_admission_redraft_attempts
         if self.requirement_approved_by:
             data["requirementApprovedBy"] = self.requirement_approved_by
+        if self.gate_decisions:
+            data["gateDecisions"] = [decision.to_mapping() for decision in self.gate_decisions]
         return data
 
 
@@ -346,6 +411,22 @@ class AlignmentSessionManager:
         agent_message = _required_string(decision, "message", ALIGNMENT_DECISION_OUTPUT)
         converged = bool(decision.get("converged", False))
         frozen_requirement = _optional_string(decision.get("frozenRequirement") or decision.get("frozen_requirement"))
+        missing_dimensions = _string_tuple(decision.get("missingDimensions") or decision.get("missing_dimensions"))
+        gate_decisions = _merge_gate_decisions(
+            current.gate_decisions,
+            _gate_decisions_from_output(decision, missing_dimensions=missing_dimensions, turn_index=after_user.next_turn_index),
+        )
+        unresolved_decisions = _unanswered_blocking_decisions(gate_decisions)
+        if converged and unresolved_decisions:
+            raise AlignmentSessionError(
+                "gate1_blocking_decisions_unanswered",
+                "Gate 1 cannot freeze while blocking decision records remain unanswered",
+                ref="agentOutput.decisionRecords",
+                refs=tuple(decision.decision_id for decision in unresolved_decisions),
+                data={
+                    "unansweredDecisionIds": [decision.decision_id for decision in unresolved_decisions],
+                },
+            )
         if converged and not frozen_requirement:
             raise AlignmentSessionError(
                 "missing_frozen_requirement",
@@ -369,7 +450,8 @@ class AlignmentSessionManager:
             frozen_requirement=frozen_requirement or after_agent.frozen_requirement,
             boundary_contract=boundary_contract or after_agent.boundary_contract,
             boundary_contract_digest=boundary_contract_digest or after_agent.boundary_contract_digest,
-            missing_dimensions=_string_tuple(decision.get("missingDimensions") or decision.get("missing_dimensions")),
+            missing_dimensions=missing_dimensions,
+            gate_decisions=gate_decisions,
         )
 
     def approve_requirement(
@@ -384,6 +466,17 @@ class AlignmentSessionManager:
                 "requirement_approval_not_waiting",
                 "requirement approval requires an agent-proposed frozen requirement",
                 ref="session.stage",
+            )
+        unresolved_decisions = _unanswered_blocking_decisions(current.gate_decisions)
+        if unresolved_decisions:
+            raise AlignmentSessionError(
+                "gate1_blocking_decisions_unanswered",
+                "requirement freeze requires final answers for all blocking Gate 1 decisions",
+                ref="session.gateDecisions",
+                refs=tuple(decision.decision_id for decision in unresolved_decisions),
+                data={
+                    "unansweredDecisionIds": [decision.decision_id for decision in unresolved_decisions],
+                },
             )
         if actor == current.producer_actor:
             raise AlignmentSessionError(
@@ -447,6 +540,7 @@ class AlignmentSessionManager:
                         "admissionContract": admission_contract,
                         "redraftAttempt": redraft_attempt,
                         "previousCrossAlignmentReport": drafting_snapshot.cross_alignment_report,
+                        "previousRequestAdmissionReport": drafting_snapshot.request_admission_report,
                     },
                 )
             except AlignmentSessionError as exc:
@@ -494,6 +588,7 @@ class AlignmentSessionManager:
                         "runtimeRef": current.runtime_ref,
                         "redraftAttempt": redraft_attempt,
                         "previousCrossAlignmentReport": drafting_snapshot.cross_alignment_report,
+                        "previousRequestAdmissionReport": drafting_snapshot.request_admission_report,
                         "coordinationRules": {
                             "claimIdPrefix": claim_id_prefix,
                             "claimIdFormat": f"{claim_id_prefix}-<SHORT-DESCRIPTOR>",
@@ -539,11 +634,28 @@ class AlignmentSessionManager:
                 claim_graph_digest,
                 plan=plan,
             )
+            admission = None
+            if approval_service is not None:
+                admission = RequestDraftAdmission(self.registry).evaluate(request_draft)
+                if not admission.accepted:
+                    exhausted = redraft_attempt >= self.max_cross_alignment_redrafts
+                    rejected_snapshot = self._snapshot_with_request_admission_report(
+                        after_requirement,
+                        admission,
+                        redraft_attempt=redraft_attempt,
+                        exhausted=exhausted,
+                    )
+                    if exhausted:
+                        raise self._request_admission_error(admission, rejected_snapshot, request_draft)
+                    drafting_snapshot = rejected_snapshot
+                    continue
             final_snapshot = replace(
                 after_requirement,
                 stage="request_drafted",
                 cross_alignment_report=cross_alignment_report.to_mapping(),
                 cross_alignment_redraft_attempts=redraft_attempt,
+                request_admission_report=admission.to_dict() if admission is not None else after_requirement.request_admission_report,
+                request_admission_redraft_attempts=redraft_attempt if admission is not None else after_requirement.request_admission_redraft_attempts,
             )
             approval_record = None
             if approval_service is not None:
@@ -652,6 +764,32 @@ class AlignmentSessionManager:
             cross_alignment_redraft_attempts=redraft_attempt,
         )
 
+    def _snapshot_with_request_admission_report(
+        self,
+        snapshot: AlignmentSessionSnapshot,
+        report: RequestDraftAdmissionResult,
+        *,
+        redraft_attempt: int,
+        exhausted: bool,
+    ) -> AlignmentSessionSnapshot:
+        report_mapping = report.to_dict()
+        message = (
+            "RequestDraft admission failed; redraft bound exhausted"
+            if exhausted
+            else "RequestDraft admission failed; requesting bounded redraft"
+        )
+        return replace(
+            snapshot.append_turn(
+                actor="agent:request-admission",
+                message=message,
+                expected_output="RequestDraftAdmission",
+                error=report_mapping,
+            ),
+            stage="failed" if exhausted else "frozen",
+            request_admission_report=report_mapping,
+            request_admission_redraft_attempts=redraft_attempt,
+        )
+
     def _cross_alignment_error(
         self,
         report: CrossAlignmentReport,
@@ -667,6 +805,27 @@ class AlignmentSessionManager:
             data={
                 "crossAlignmentReport": report_mapping,
                 "maxCrossAlignmentRedrafts": self.max_cross_alignment_redrafts,
+            },
+            snapshot=snapshot,
+        )
+
+    def _request_admission_error(
+        self,
+        report: RequestDraftAdmissionResult,
+        snapshot: AlignmentSessionSnapshot,
+        request_draft: RequestDraft,
+    ) -> AlignmentSessionError:
+        report_mapping = report.to_dict()
+        rejection_codes = tuple(rejection.code for rejection in report.rejections)
+        return AlignmentSessionError(
+            "request_draft_admission_redraft_exhausted",
+            "RequestDraft admission rejected all bounded redraft attempts before Human Gate 2",
+            ref="requestAdmissionReport",
+            refs=rejection_codes or ("requestAdmissionReport",),
+            data={
+                "requestAdmissionReport": report_mapping,
+                "requestDraft": request_draft.to_mapping(),
+                "maxRequestAdmissionRedrafts": self.max_cross_alignment_redrafts,
             },
             snapshot=snapshot,
         )
@@ -930,6 +1089,29 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
                 "frozenRequirement": {"type": "string"},
                 "boundaryContract": _boundary_contract_output_schema(),
                 "missingDimensions": {"type": "array", "items": {"type": "string"}},
+                "decisionRecords": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "decisionId",
+                            "question",
+                            "recommendation",
+                            "alternatives",
+                            "consequences",
+                            "blocking",
+                        ],
+                        "properties": {
+                            "decisionId": {"type": "string", "minLength": 1},
+                            "question": {"type": "string", "minLength": 1},
+                            "recommendation": {"type": "string", "minLength": 1},
+                            "alternatives": {"type": "array", "items": {"type": "string"}},
+                            "consequences": {"type": "array", "items": {"type": "string"}},
+                            "blocking": {"type": "boolean"},
+                            "finalAnswer": {"type": "string"},
+                        },
+                    },
+                },
             },
         }
     elif expected_output == REQUIREMENT_DRAFT_OUTPUT:
@@ -1101,6 +1283,13 @@ def _draft_admission_contract(
         "registeredGateRefs": dict(sorted(registry.gate_ref_digests.items())),
         "registeredRuntimeRefs": {snapshot.runtime_ref: snapshot.runtime_digest},
         "allowedCapabilities": allowed_capabilities,
+        "budgetRules": [
+            "budgetRequest.maxModelCalls must be a positive integer greater than or equal to 1.",
+            "budgetRequest.maxToolCalls must be a positive integer greater than or equal to 1.",
+            "budgetRequest.maxSpawnedNodes must be a non-negative integer.",
+            "budgetRequest.maxWallSeconds and timeoutSeconds must be positive when present.",
+            "timeoutSeconds must not exceed budgetRequest.maxWallSeconds when both are present.",
+        ],
         "claimGraphRules": [
             "Every Claim criterionRefs entry must reference a frozen boundary-contract entry of kind must, must_not, or completion_signal.",
             "Claims must not reference free_zone boundary entries.",
@@ -1281,6 +1470,55 @@ def _string_tuple(value: Any) -> tuple[str, ...]:
     return tuple(str(item) for item in value)
 
 
+def _gate_decisions_from_output(
+    decision: Mapping[str, Any],
+    *,
+    missing_dimensions: tuple[str, ...],
+    turn_index: int,
+) -> tuple[GateDecisionRecord, ...]:
+    raw = decision.get("decisionRecords") or decision.get("decision_records") or decision.get("decisions")
+    if raw is not None:
+        if not isinstance(raw, (list, tuple)):
+            raise AlignmentSessionError(
+                "invalid_gate1_decision_records",
+                "decisionRecords must be a list of structured Gate 1 decision records",
+                ref="agentOutput.decisionRecords",
+            )
+        return tuple(GateDecisionRecord.from_mapping(_mapping(item, "decisionRecord")) for item in raw)
+    return tuple(
+        GateDecisionRecord(
+            decision_id=f"G1-{turn_index:02d}-{index:02d}",
+            question=f"Resolve Gate 1 choice: {dimension}.",
+            recommendation=f"Ask the human for a final answer for {dimension} before freezing the requirement boundary.",
+            alternatives=(
+                "answer before Gate 1",
+                "remove this dimension from scope",
+            ),
+            consequences=(
+                "Gate 1 remains blocked until the final answer is recorded.",
+            ),
+            blocking=True,
+        )
+        for index, dimension in enumerate(missing_dimensions, start=1)
+    )
+
+
+def _merge_gate_decisions(
+    previous: tuple[GateDecisionRecord, ...],
+    current: tuple[GateDecisionRecord, ...],
+) -> tuple[GateDecisionRecord, ...]:
+    ordered: dict[str, GateDecisionRecord] = {decision.decision_id: decision for decision in previous}
+    for decision in current:
+        ordered[decision.decision_id] = decision
+    return tuple(ordered.values())
+
+
+def _unanswered_blocking_decisions(
+    decisions: tuple[GateDecisionRecord, ...],
+) -> tuple[GateDecisionRecord, ...]:
+    return tuple(decision for decision in decisions if decision.blocking and not decision.final_answer)
+
+
 def _summary(data: Mapping[str, Any], fallback: str) -> str:
     for key in ("summary", "requirement", "frozenRequirement", "objective"):
         value = _optional_string(data.get(key))
@@ -1316,4 +1554,5 @@ __all__ = [
     "AlignmentSessionResult",
     "AlignmentSessionSnapshot",
     "AlignmentSessionTurn",
+    "GateDecisionRecord",
 ]

@@ -1,0 +1,65 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "workflow-a-human-gates-optimization",
+  "evidence": [
+    {
+      "evidence_id": "EVD-a72a907ca8bb4bc6a1bafb63d7e76285",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "deterministic_gate",
+      "name": "deterministic-evidence.json",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/attempt-1/deterministic-evidence.json",
+      "sha256": "203c6744abadf12423931d364a3b28ee197a0c9729a4e177694ed43b14d4dd83",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-09T02:34:52.169980Z",
+      "refs": [
+        "ART-02febda4aaf348d4858231751c47b77b",
+        "ART-8d4c56cbdfad44ff8b6f0372271acf0b"
+      ]
+    },
+    {
+      "evidence_id": "EVD-0ca5a91b64724843b556739068d369b0",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "semantic_review",
+      "name": "review.json",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/attempt-1/review.json",
+      "sha256": "4526a812e5131e3040179e4e95db44d4668ab1a4b80838bfcc7a4d9bbbaf1201",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-09T02:34:52.176279Z",
+      "refs": [
+        "EVD-a72a907ca8bb4bc6a1bafb63d7e76285",
+        "ART-0d8addeb121e4bada6a10dd6552df7e3"
+      ]
+    },
+    {
+      "evidence_id": "EVD-eb90d9429b1a40edaaa00c531f74edb9",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "terminal_failure",
+      "name": "terminal-failure.json",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/terminal-failure.json",
+      "sha256": "cf8b0744448631ff92ea38f0a741f50a676b274b4ce7936f3fb95798c91573ac",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-09T02:34:52.183249Z",
+      "refs": [
+        "ART-27c8ace7af5b4ec7b408322d22e329b0"
+      ]
+    },
+    {
+      "evidence_id": "EVD-489914b154484a67904a4229a95e6df5",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "node_gate_summary",
+      "name": "node-gates.json",
+      "uri": "local://nodes/NODE-workflow-a-human-gates-optimization/node-gates.json",
+      "sha256": "02e4839488ae8febd3ce20ca9a0c70a8bcde0ce451227ce4f58651f65142caea",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-09T02:34:52.187740Z",
+      "refs": [
+        "NODE-workflow-a-human-gates-optimization",
+        "PLAN-80f54f1bfb22aa37"
+      ]
+    }
+  ]
+}

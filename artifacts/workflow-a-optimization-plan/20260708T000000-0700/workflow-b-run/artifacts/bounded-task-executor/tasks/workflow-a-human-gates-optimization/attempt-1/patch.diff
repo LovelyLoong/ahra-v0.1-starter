@@ -1,0 +1,1653 @@
+diff --git a/docs/architecture/component-inventory.json b/docs/architecture/component-inventory.json
+index 62fd5cb..ea96acd 100644
+--- a/docs/architecture/component-inventory.json
++++ b/docs/architecture/component-inventory.json
+@@ -1098,20 +1098,25 @@
+       "review_after": "2026-09-30T00:00:00Z",
+       "paths": [
+         "src/ahra/alignment_session.py",
++        "src/ahra/workflow_a_briefing.py",
+         "src/ahra/request_draft.py",
+         "src/ahra/workflow_a_cli.py",
+         "src/ahra/cli.py",
+         "tests/test_alignment_session.py",
++        "tests/test_workflow_a_briefing.py",
++        "tests/test_workflow_a_cli.py",
+         "tests/test_cli.py"
+       ],
+       "serves": [
+         "Workflow A alignment session",
+         "RequestDraft",
++        "Gate 2 human briefing",
++        "Workflow A status surface",
+         "experimental Workflow A CLI lifecycle"
+       ],
+       "entrypoints": [
+         "direct Python import for AlignmentSessionManager",
+-        "explicit experimental ahra workflow-a start/advance/snapshot/approve-requirement/draft/admit/authorize; not default route"
++        "explicit experimental ahra workflow-a start/advance/snapshot/approve-requirement/draft/admit/authorize/status; not default route"
+       ],
+       "consumers": [
+         "tests/test_alignment_session.py",
+@@ -1120,12 +1125,14 @@
+       ],
+       "tests": [
+         "tests/test_alignment_session.py",
++        "tests/test_workflow_a_briefing.py",
++        "tests/test_workflow_a_cli.py",
+         "tests/test_cli.py",
+         "uv run python -B scripts/check.py"
+       ],
+       "security_class": "agent-driven request drafting through AgentDriver port; no direct provider SDK import",
+-      "side_effects": "calls injected AgentDriver; writes explicit session/request/approval files only when workflow-a CLI path is invoked; produces untrusted RequestDraft until ApprovalService Gate 2 freezes under human actor",
+-      "artifact_evidence": "TASK-0077, EVD-808a23cf72ea2ddc, EVD-e17537aeed441163, EVD-TASK-0077-0003; TASK-0078, TASK-0079, TASK-0080, TASK-0081, and TASK-0082 completed by EvidenceGate.",
++      "side_effects": "calls injected AgentDriver; writes explicit session/request/approval/briefing files only when workflow-a CLI path is invoked; produces untrusted RequestDraft until strict Gate 2 briefing binding and ApprovalService freeze under human actor",
++      "artifact_evidence": "TASK-0077, EVD-808a23cf72ea2ddc, EVD-e17537aeed441163, EVD-TASK-0077-0003; TASK-0078, TASK-0079, TASK-0080, TASK-0081, and TASK-0082 completed by EvidenceGate; current increment adds RequestDraftAdmission redraft tests, Gate 2 briefing tests, and workflow-a status coverage.",
+       "compatibility_scope": "First Workflow A checkpoint and experimental CLI only; non-default until explicit component-lifecycle promotion approves default visibility.",
+       "promotion_status": "TASK-0083 readiness audit keeps this component experimental and default_visible false. TASK-0090 proves the explicit Workflow A plus Workflow B work route for new work, but that is a governance/work-selection rule and not component-lifecycle promotion or default-visible approval for workflow-a.",
+       "promotion_blockers": [
+@@ -1139,7 +1146,7 @@
+         "A promotion task must decide whether TASK-0090's explicit A+B work-route proof is sufficient consumer evidence for component promotion before default_visible can become true.",
+         "The promotion task must update this inventory and framework entrypoints with an explicit default-route approval boundary before any default-route claim."
+       ],
+-      "x-status-note": "TASK-0078 requires explicit Requirement-Agent PlanDraft and Acceptance-Agent ClaimGraph and wires Human Gate 1 plus ApprovalService Gate 2. TASK-0081 adds explicit experimental workflow-a CLI lifecycle. TASK-0083 records that default-visible promotion is not yet supported. TASK-0090 records an explicit A+B work route separately from component promotion."
++      "x-status-note": "TASK-0078 requires explicit Requirement-Agent PlanDraft and Acceptance-Agent ClaimGraph and wires Human Gate 1 plus ApprovalService Gate 2. TASK-0081 adds explicit experimental workflow-a CLI lifecycle. TASK-0083 records that default-visible promotion is not yet supported. TASK-0090 records an explicit A+B work route separately from component promotion. The Gate 2 briefing, admission redraft, and status surface remain experimental/non-default hardening only."
+     }
+ 
+   ]
+diff --git a/docs/architecture/framework-entrypoints.md b/docs/architecture/framework-entrypoints.md
+index 861ffc8..288677e 100644
+--- a/docs/architecture/framework-entrypoints.md
++++ b/docs/architecture/framework-entrypoints.md
+@@ -117,9 +117,9 @@ been removed.
+ 
+ # Experimental Workflow A Lifecycle
+ 
+-`ahra workflow-a ...` is an explicit experimental lifecycle for ADR-0009 intent alignment sessions only. It exposes `start`, `advance`, `snapshot`, `approve-requirement`, `draft`, `admit`, and `authorize` so local operators can exercise Workflow A products without placing `component:alignment-session-manager` on the default execution path.
++`ahra workflow-a ...` is an explicit experimental lifecycle for ADR-0009 intent alignment sessions only. It exposes `start`, `advance`, `snapshot`, `approve-requirement`, `draft`, `admit`, `authorize`, and `status` so local operators can exercise Workflow A products without placing `component:alignment-session-manager` on the default execution path.
+ 
+-Default routing must not call `workflow-a` implicitly. Explicit `workflow-a` use under the TASK-0090 Workflow A plus B procedure is a governed work-selection path and does not make `workflow-a` an implicit CLI default route. `workflow-a draft` requires Human Gate 1 before RequestDraft creation, and `workflow-a authorize` uses ApprovalService Gate 2 to freeze a GoalExecutionRequest only for a human approval actor. Promotion to default-visible requires EvidenceGate-completed prerequisite tasks for the independent semantic/code-review gate, task-scoped dogfood paths, and Workflow A CLI lifecycle, plus EvidenceGate-approved non-fixture proof that an authorized Workflow A request is consumed by Workflow B through `goal validate`, `goal plan`, and `goal start`. TASK-0090 proves that explicit A+B work route separately from component promotion; until a component-lifecycle promotion task approves default visibility, `workflow-a` remains explicit experimental surface only.
++Default routing must not call `workflow-a` implicitly. Explicit `workflow-a` use under the TASK-0090 Workflow A plus B procedure is a governed work-selection path and does not make `workflow-a` an implicit CLI default route. `workflow-a draft` requires Human Gate 1 before RequestDraft creation, runs RequestDraftAdmission before Gate 2 approval creation, and writes a self-contained Gate 2 briefing HTML artifact. `workflow-a authorize` verifies the briefing's request id, approval id, and request digest binding before using ApprovalService Gate 2 to freeze a GoalExecutionRequest for a human approval actor. `workflow-a status` is a read-only human status surface for stage, known artifact paths, next safe action, and whether Workflow B appears started. Promotion to default-visible requires EvidenceGate-completed prerequisite tasks for the independent semantic/code-review gate, task-scoped dogfood paths, and Workflow A CLI lifecycle, plus EvidenceGate-approved non-fixture proof that an authorized Workflow A request is consumed by Workflow B through `goal validate`, `goal plan`, and `goal start`. TASK-0090 proves that explicit A+B work route separately from component promotion; until a component-lifecycle promotion task approves default visibility, `workflow-a` remains explicit experimental surface only.
+ 
+ # Regression Dynamic Fixture
+ 
+diff --git a/docs/architecture/intent-alignment-workflow.md b/docs/architecture/intent-alignment-workflow.md
+index 99aa196..090325d 100644
+--- a/docs/architecture/intent-alignment-workflow.md
++++ b/docs/architecture/intent-alignment-workflow.md
+@@ -214,6 +214,12 @@ still open is an `open_question` entry that blocks Gate 1. The free-zone
+ dimension turns residual subjectivity from an accidental gap into a knowing,
+ user-approved, ID'd region.
+ 
++Unresolved Gate 1 choices must also be represented as structured decision
++records, not only as prose. Each record carries `decisionId`, `question`,
++`recommendation`, `alternatives`, `consequences`, `blocking`, and
++`finalAnswer`. A blocking record without `finalAnswer` prevents Gate 1 freeze
++even if the Alignment Agent tries to mark the session converged.
++
+ # Verification: validate the product, not the process
+ 
+ Workflow A's own development tasks are verified by validating their **products**,
+@@ -225,7 +231,7 @@ checked at Workflow A's exit is deterministic and command-gate decidable:
+ |---|---|---|
+ | Structure gate | the RequestDraft is a well-formed GoalExecutionRequest suite | schema validation, exit 0 |
+ | Cross-alignment gate | every PlanNode claimRef resolves in the frozen ClaimGraph; every required Claim is covered by a node; every must/must_not/completion_signal entry is referenced by a Claim's criterionRefs; no Claim references a free_zone; no open_question remains | deterministic validator accepts; fail closed with a structured mismatch report and bounded redrafts |
+-| Admission gate | digests resolve, capabilities are within the allowed set, the ClaimGraph is acyclic and valid | `RequestDraftAdmission` accepts |
++| Admission gate | digests resolve, capabilities are within the allowed set, the ClaimGraph is acyclic and valid | `RequestDraftAdmission` runs after cross-alignment and before ApprovalService creates Gate 2 approval; rejection feeds a structured report into bounded redraft, and exhausted attempts fail without `approval.json` |
+ | Consumability gate | the frozen request is actually runnable by Workflow B | `goal validate` / `goal plan` exit 0 on the frozen request |
+ 
+ The content quality of the dialogue is not graded by these gates. The Agent may
+@@ -249,11 +255,14 @@ frozen RequestDraft passing the three exit gates and being consumable by B.
+   mismatches before Agent invocation, require explicit Requirement-Agent
+   `PlanDraft` and Acceptance-Agent `ClaimGraph`, enforce Human Gate 1, run the
+   ADR-0010 boundary-contract and acceptance-first serial drafting order, and
+-  apply the deterministic cross-alignment gate before emitting an untrusted
+-  `RequestDraft` for Gate 2 authorization. Cross-alignment failures are recorded
+-  as structured reports on the session snapshot and can trigger only bounded
+-  redrafts. It remains non-default until a separate component-lifecycle
+-  promotion approves default visibility.
++  apply the deterministic cross-alignment gate and RequestDraftAdmission before
++  emitting an untrusted `RequestDraft` for Gate 2 authorization.
++  Cross-alignment and admission failures are recorded as structured reports on
++  the session snapshot and can trigger only bounded redrafts. `workflow-a draft`
++  writes a self-contained Gate 2 HTML briefing from the RequestDraft and
++  ApprovalRecord, and `workflow-a authorize` verifies the briefing binding in
++  strict mode before freezing the GoalExecutionRequest. It remains non-default
++  until a separate component-lifecycle promotion approves default visibility.
+ 
+ # Non-goals
+ 
+diff --git a/docs/policies/component-lifecycle.md b/docs/policies/component-lifecycle.md
+index 8215be2..b402ea6 100644
+--- a/docs/policies/component-lifecycle.md
++++ b/docs/policies/component-lifecycle.md
+@@ -40,6 +40,15 @@ A default-visible capability must have:
+ - Do not add a new feature until its consumer and lifecycle class are known.
+ - Do not silently delete historical decisions or events.
+ 
++# Experimental increments
++
++An experimental component may receive usability or admission-hardening
++increments only when the changed entrypoint remains explicitly invoked and
++`default_visible` remains false in the component inventory. Adding a status
++surface, human briefing artifact, or stricter admission check to an
++experimental entrypoint is not component promotion unless a separate
++EvidenceGate-approved lifecycle task changes the lifecycle classification.
++
+ # Review cadence
+ 
+ The component inventory is checked at every architecture Stage Gate and before release. `legacy` entries require a removal trigger/date. `experimental` entries require an owner and explicit non-default status. `removal_candidate` entries cannot receive new features.
+diff --git a/src/ahra/adapters/codex_sdk.py b/src/ahra/adapters/codex_sdk.py
+index 279a8a6..f81f69c 100644
+--- a/src/ahra/adapters/codex_sdk.py
++++ b/src/ahra/adapters/codex_sdk.py
+@@ -218,6 +218,13 @@ def _prompt_for_request(request: AgentRunRequest) -> str:
+                 "a synthetic HumanGate gateRef. Budgets must use positive "
+                 "maxModelCalls and maxToolCalls."
+             )
++        if request.expected_output == "AlignmentTurnDecision":
++            role_instruction += (
++                " Represent unresolved Gate 1 choices as decisionRecords with "
++                "decisionId, question, recommendation, alternatives, consequences, "
++                "blocking, and finalAnswer. Do not set converged true while a "
++                "blocking decisionRecord lacks finalAnswer."
++            )
+ 
+     return (
+         "You are an AHRA AgentDriver adapter.\n"
+diff --git a/src/ahra/alignment_session.py b/src/ahra/alignment_session.py
+index cc4b33c..435004b 100644
+--- a/src/ahra/alignment_session.py
++++ b/src/ahra/alignment_session.py
+@@ -17,6 +17,7 @@ from .request_draft import (
+     _request_id,
+     _request_name,
+ )
++from .request_admission import RequestDraftAdmission, RequestDraftAdmissionResult
+ from .evidence_v2 import canonical_fingerprint
+ from .goal_operations import (
+     DEVELOPMENT_BOUNDED_PROFILE_REF,
+@@ -106,6 +107,51 @@ class AlignmentSessionTurn:
+         return data
+ 
+ 
++@dataclass(frozen=True, slots=True)
++class GateDecisionRecord:
++    decision_id: str
++    question: str
++    recommendation: str
++    alternatives: tuple[str, ...]
++    consequences: tuple[str, ...]
++    blocking: bool = True
++    final_answer: str | None = None
++
++    @classmethod
++    def from_mapping(cls, data: Mapping[str, Any]) -> "GateDecisionRecord":
++        decision_id = _optional_string(data.get("decisionId") or data.get("decision_id") or data.get("id"))
++        question = _optional_string(data.get("question"))
++        recommendation = _optional_string(data.get("recommendation"))
++        if not decision_id or not question or not recommendation:
++            raise AlignmentSessionError(
++                "invalid_gate1_decision_record",
++                "Gate 1 decision records require decisionId, question, and recommendation",
++                ref="agentOutput.decisionRecords",
++            )
++        return cls(
++            decision_id=decision_id,
++            question=question,
++            recommendation=recommendation,
++            alternatives=_string_tuple(data.get("alternatives") or ()),
++            consequences=_string_tuple(data.get("consequences") or ()),
++            blocking=bool(data.get("blocking", True)),
++            final_answer=_optional_string(data.get("finalAnswer") or data.get("final_answer")),
++        )
++
++    def to_mapping(self) -> dict[str, Any]:
++        data: dict[str, Any] = {
++            "decisionId": self.decision_id,
++            "question": self.question,
++            "recommendation": self.recommendation,
++            "alternatives": list(self.alternatives),
++            "consequences": list(self.consequences),
++            "blocking": self.blocking,
++        }
++        if self.final_answer:
++            data["finalAnswer"] = self.final_answer
++        return data
++
++
+ @dataclass(frozen=True, slots=True)
+ class AlignmentSessionSnapshot:
+     session_id: str
+@@ -126,8 +172,11 @@ class AlignmentSessionSnapshot:
+     frozen_claim_graph_digest: str | None = None
+     cross_alignment_report: Mapping[str, Any] | None = None
+     cross_alignment_redraft_attempts: int = 0
++    request_admission_report: Mapping[str, Any] | None = None
++    request_admission_redraft_attempts: int = 0
+     requirement_approved_by: str | None = None
+     missing_dimensions: tuple[str, ...] = ()
++    gate_decisions: tuple[GateDecisionRecord, ...] = ()
+ 
+     @classmethod
+     def from_mapping(cls, data: Mapping[str, Any]) -> "AlignmentSessionSnapshot":
+@@ -162,8 +211,18 @@ class AlignmentSessionSnapshot:
+                 else None
+             ),
+             cross_alignment_redraft_attempts=int(data.get("crossAlignmentRedraftAttempts", 0)),
++            request_admission_report=(
++                _mapping(data["requestAdmissionReport"], "requestAdmissionReport")
++                if data.get("requestAdmissionReport")
++                else None
++            ),
++            request_admission_redraft_attempts=int(data.get("requestAdmissionRedraftAttempts", 0)),
+             requirement_approved_by=str(data["requirementApprovedBy"]) if data.get("requirementApprovedBy") else None,
+             missing_dimensions=tuple(str(item) for item in data.get("missingDimensions", ())),
++            gate_decisions=tuple(
++                GateDecisionRecord.from_mapping(_mapping(item, "gateDecision"))
++                for item in data.get("gateDecisions", ())
++            ),
+         )
+ 
+     @property
+@@ -223,8 +282,14 @@ class AlignmentSessionSnapshot:
+             data["crossAlignmentReport"] = dict(self.cross_alignment_report)
+         if self.cross_alignment_redraft_attempts:
+             data["crossAlignmentRedraftAttempts"] = self.cross_alignment_redraft_attempts
++        if self.request_admission_report:
++            data["requestAdmissionReport"] = dict(self.request_admission_report)
++        if self.request_admission_redraft_attempts:
++            data["requestAdmissionRedraftAttempts"] = self.request_admission_redraft_attempts
+         if self.requirement_approved_by:
+             data["requirementApprovedBy"] = self.requirement_approved_by
++        if self.gate_decisions:
++            data["gateDecisions"] = [decision.to_mapping() for decision in self.gate_decisions]
+         return data
+ 
+ 
+@@ -346,6 +411,22 @@ class AlignmentSessionManager:
+         agent_message = _required_string(decision, "message", ALIGNMENT_DECISION_OUTPUT)
+         converged = bool(decision.get("converged", False))
+         frozen_requirement = _optional_string(decision.get("frozenRequirement") or decision.get("frozen_requirement"))
++        missing_dimensions = _string_tuple(decision.get("missingDimensions") or decision.get("missing_dimensions"))
++        gate_decisions = _merge_gate_decisions(
++            current.gate_decisions,
++            _gate_decisions_from_output(decision, missing_dimensions=missing_dimensions, turn_index=after_user.next_turn_index),
++        )
++        unresolved_decisions = _unanswered_blocking_decisions(gate_decisions)
++        if converged and unresolved_decisions:
++            raise AlignmentSessionError(
++                "gate1_blocking_decisions_unanswered",
++                "Gate 1 cannot freeze while blocking decision records remain unanswered",
++                ref="agentOutput.decisionRecords",
++                refs=tuple(decision.decision_id for decision in unresolved_decisions),
++                data={
++                    "unansweredDecisionIds": [decision.decision_id for decision in unresolved_decisions],
++                },
++            )
+         if converged and not frozen_requirement:
+             raise AlignmentSessionError(
+                 "missing_frozen_requirement",
+@@ -369,7 +450,8 @@ class AlignmentSessionManager:
+             frozen_requirement=frozen_requirement or after_agent.frozen_requirement,
+             boundary_contract=boundary_contract or after_agent.boundary_contract,
+             boundary_contract_digest=boundary_contract_digest or after_agent.boundary_contract_digest,
+-            missing_dimensions=_string_tuple(decision.get("missingDimensions") or decision.get("missing_dimensions")),
++            missing_dimensions=missing_dimensions,
++            gate_decisions=gate_decisions,
+         )
+ 
+     def approve_requirement(
+@@ -385,6 +467,17 @@ class AlignmentSessionManager:
+                 "requirement approval requires an agent-proposed frozen requirement",
+                 ref="session.stage",
+             )
++        unresolved_decisions = _unanswered_blocking_decisions(current.gate_decisions)
++        if unresolved_decisions:
++            raise AlignmentSessionError(
++                "gate1_blocking_decisions_unanswered",
++                "requirement freeze requires final answers for all blocking Gate 1 decisions",
++                ref="session.gateDecisions",
++                refs=tuple(decision.decision_id for decision in unresolved_decisions),
++                data={
++                    "unansweredDecisionIds": [decision.decision_id for decision in unresolved_decisions],
++                },
++            )
+         if actor == current.producer_actor:
+             raise AlignmentSessionError(
+                 "producer_cannot_approve_requirement",
+@@ -447,6 +540,7 @@ class AlignmentSessionManager:
+                         "admissionContract": admission_contract,
+                         "redraftAttempt": redraft_attempt,
+                         "previousCrossAlignmentReport": drafting_snapshot.cross_alignment_report,
++                        "previousRequestAdmissionReport": drafting_snapshot.request_admission_report,
+                     },
+                 )
+             except AlignmentSessionError as exc:
+@@ -494,6 +588,7 @@ class AlignmentSessionManager:
+                         "runtimeRef": current.runtime_ref,
+                         "redraftAttempt": redraft_attempt,
+                         "previousCrossAlignmentReport": drafting_snapshot.cross_alignment_report,
++                        "previousRequestAdmissionReport": drafting_snapshot.request_admission_report,
+                         "coordinationRules": {
+                             "claimIdPrefix": claim_id_prefix,
+                             "claimIdFormat": f"{claim_id_prefix}-<SHORT-DESCRIPTOR>",
+@@ -539,11 +634,28 @@ class AlignmentSessionManager:
+                 claim_graph_digest,
+                 plan=plan,
+             )
++            admission = None
++            if approval_service is not None:
++                admission = RequestDraftAdmission(self.registry).evaluate(request_draft)
++                if not admission.accepted:
++                    exhausted = redraft_attempt >= self.max_cross_alignment_redrafts
++                    rejected_snapshot = self._snapshot_with_request_admission_report(
++                        after_requirement,
++                        admission,
++                        redraft_attempt=redraft_attempt,
++                        exhausted=exhausted,
++                    )
++                    if exhausted:
++                        raise self._request_admission_error(admission, rejected_snapshot, request_draft)
++                    drafting_snapshot = rejected_snapshot
++                    continue
+             final_snapshot = replace(
+                 after_requirement,
+                 stage="request_drafted",
+                 cross_alignment_report=cross_alignment_report.to_mapping(),
+                 cross_alignment_redraft_attempts=redraft_attempt,
++                request_admission_report=admission.to_dict() if admission is not None else after_requirement.request_admission_report,
++                request_admission_redraft_attempts=redraft_attempt if admission is not None else after_requirement.request_admission_redraft_attempts,
+             )
+             approval_record = None
+             if approval_service is not None:
+@@ -652,6 +764,32 @@ class AlignmentSessionManager:
+             cross_alignment_redraft_attempts=redraft_attempt,
+         )
+ 
++    def _snapshot_with_request_admission_report(
++        self,
++        snapshot: AlignmentSessionSnapshot,
++        report: RequestDraftAdmissionResult,
++        *,
++        redraft_attempt: int,
++        exhausted: bool,
++    ) -> AlignmentSessionSnapshot:
++        report_mapping = report.to_dict()
++        message = (
++            "RequestDraft admission failed; redraft bound exhausted"
++            if exhausted
++            else "RequestDraft admission failed; requesting bounded redraft"
++        )
++        return replace(
++            snapshot.append_turn(
++                actor="agent:request-admission",
++                message=message,
++                expected_output="RequestDraftAdmission",
++                error=report_mapping,
++            ),
++            stage="failed" if exhausted else "frozen",
++            request_admission_report=report_mapping,
++            request_admission_redraft_attempts=redraft_attempt,
++        )
++
+     def _cross_alignment_error(
+         self,
+         report: CrossAlignmentReport,
+@@ -671,6 +809,27 @@ class AlignmentSessionManager:
+             snapshot=snapshot,
+         )
+ 
++    def _request_admission_error(
++        self,
++        report: RequestDraftAdmissionResult,
++        snapshot: AlignmentSessionSnapshot,
++        request_draft: RequestDraft,
++    ) -> AlignmentSessionError:
++        report_mapping = report.to_dict()
++        rejection_codes = tuple(rejection.code for rejection in report.rejections)
++        return AlignmentSessionError(
++            "request_draft_admission_redraft_exhausted",
++            "RequestDraft admission rejected all bounded redraft attempts before Human Gate 2",
++            ref="requestAdmissionReport",
++            refs=rejection_codes or ("requestAdmissionReport",),
++            data={
++                "requestAdmissionReport": report_mapping,
++                "requestDraft": request_draft.to_mapping(),
++                "maxRequestAdmissionRedrafts": self.max_cross_alignment_redrafts,
++            },
++            snapshot=snapshot,
++        )
++
+     def _resolve_profile(
+         self,
+         profile_ref: str,
+@@ -930,6 +1089,29 @@ def _output_contract(expected_output: str) -> AgentOutputContract:
+                 "frozenRequirement": {"type": "string"},
+                 "boundaryContract": _boundary_contract_output_schema(),
+                 "missingDimensions": {"type": "array", "items": {"type": "string"}},
++                "decisionRecords": {
++                    "type": "array",
++                    "items": {
++                        "type": "object",
++                        "required": [
++                            "decisionId",
++                            "question",
++                            "recommendation",
++                            "alternatives",
++                            "consequences",
++                            "blocking",
++                        ],
++                        "properties": {
++                            "decisionId": {"type": "string", "minLength": 1},
++                            "question": {"type": "string", "minLength": 1},
++                            "recommendation": {"type": "string", "minLength": 1},
++                            "alternatives": {"type": "array", "items": {"type": "string"}},
++                            "consequences": {"type": "array", "items": {"type": "string"}},
++                            "blocking": {"type": "boolean"},
++                            "finalAnswer": {"type": "string"},
++                        },
++                    },
++                },
+             },
+         }
+     elif expected_output == REQUIREMENT_DRAFT_OUTPUT:
+@@ -1101,6 +1283,13 @@ def _draft_admission_contract(
+         "registeredGateRefs": dict(sorted(registry.gate_ref_digests.items())),
+         "registeredRuntimeRefs": {snapshot.runtime_ref: snapshot.runtime_digest},
+         "allowedCapabilities": allowed_capabilities,
++        "budgetRules": [
++            "budgetRequest.maxModelCalls must be a positive integer greater than or equal to 1.",
++            "budgetRequest.maxToolCalls must be a positive integer greater than or equal to 1.",
++            "budgetRequest.maxSpawnedNodes must be a non-negative integer.",
++            "budgetRequest.maxWallSeconds and timeoutSeconds must be positive when present.",
++            "timeoutSeconds must not exceed budgetRequest.maxWallSeconds when both are present.",
++        ],
+         "claimGraphRules": [
+             "Every Claim criterionRefs entry must reference a frozen boundary-contract entry of kind must, must_not, or completion_signal.",
+             "Claims must not reference free_zone boundary entries.",
+@@ -1281,6 +1470,55 @@ def _string_tuple(value: Any) -> tuple[str, ...]:
+     return tuple(str(item) for item in value)
+ 
+ 
++def _gate_decisions_from_output(
++    decision: Mapping[str, Any],
++    *,
++    missing_dimensions: tuple[str, ...],
++    turn_index: int,
++) -> tuple[GateDecisionRecord, ...]:
++    raw = decision.get("decisionRecords") or decision.get("decision_records") or decision.get("decisions")
++    if raw is not None:
++        if not isinstance(raw, (list, tuple)):
++            raise AlignmentSessionError(
++                "invalid_gate1_decision_records",
++                "decisionRecords must be a list of structured Gate 1 decision records",
++                ref="agentOutput.decisionRecords",
++            )
++        return tuple(GateDecisionRecord.from_mapping(_mapping(item, "decisionRecord")) for item in raw)
++    return tuple(
++        GateDecisionRecord(
++            decision_id=f"G1-{turn_index:02d}-{index:02d}",
++            question=f"Resolve Gate 1 choice: {dimension}.",
++            recommendation=f"Ask the human for a final answer for {dimension} before freezing the requirement boundary.",
++            alternatives=(
++                "answer before Gate 1",
++                "remove this dimension from scope",
++            ),
++            consequences=(
++                "Gate 1 remains blocked until the final answer is recorded.",
++            ),
++            blocking=True,
++        )
++        for index, dimension in enumerate(missing_dimensions, start=1)
++    )
++
++
++def _merge_gate_decisions(
++    previous: tuple[GateDecisionRecord, ...],
++    current: tuple[GateDecisionRecord, ...],
++) -> tuple[GateDecisionRecord, ...]:
++    ordered: dict[str, GateDecisionRecord] = {decision.decision_id: decision for decision in previous}
++    for decision in current:
++        ordered[decision.decision_id] = decision
++    return tuple(ordered.values())
++
++
++def _unanswered_blocking_decisions(
++    decisions: tuple[GateDecisionRecord, ...],
++) -> tuple[GateDecisionRecord, ...]:
++    return tuple(decision for decision in decisions if decision.blocking and not decision.final_answer)
++
++
+ def _summary(data: Mapping[str, Any], fallback: str) -> str:
+     for key in ("summary", "requirement", "frozenRequirement", "objective"):
+         value = _optional_string(data.get(key))
+@@ -1316,4 +1554,5 @@ __all__ = [
+     "AlignmentSessionResult",
+     "AlignmentSessionSnapshot",
+     "AlignmentSessionTurn",
++    "GateDecisionRecord",
+ ]
+diff --git a/src/ahra/cli.py b/src/ahra/cli.py
+index b1e51c5..d6134e8 100644
+--- a/src/ahra/cli.py
++++ b/src/ahra/cli.py
+@@ -169,6 +169,7 @@ def _workflow_a_command(args: argparse.Namespace) -> Any:
+         draft_request,
+         read_snapshot,
+         start_session,
++        workflow_status,
+     )
+ 
+     if args.workflow_a_command == "start":
+@@ -203,6 +204,7 @@ def _workflow_a_command(args: argparse.Namespace) -> Any:
+                 session_path=Path(args.session),
+                 request_draft_path=Path(args.request_draft),
+                 approval_path=Path(args.approval) if args.approval else None,
++                briefing_path=Path(args.briefing) if args.briefing else None,
+                 driver=_workflow_a_driver(args),
+                 timeout_seconds=args.timeout_seconds,
+             )
+@@ -213,10 +215,20 @@ def _workflow_a_command(args: argparse.Namespace) -> Any:
+         return authorize_request(
+             request_draft_path=Path(args.request_draft),
+             approval_path=Path(args.approval),
++            briefing_path=Path(args.briefing) if args.briefing else None,
+             output_path=Path(args.output),
+             actor=args.actor,
+             reason=args.reason,
+         )
++    if args.workflow_a_command == "status":
++        return workflow_status(
++            session_path=Path(args.session),
++            request_draft_path=Path(args.request_draft) if args.request_draft else None,
++            approval_path=Path(args.approval) if args.approval else None,
++            briefing_path=Path(args.briefing) if args.briefing else None,
++            output_path=Path(args.output) if args.output else None,
++            workflow_b_artifact_dir=Path(args.workflow_b_artifact_dir) if args.workflow_b_artifact_dir else None,
++        )
+     raise ValueError(f"unknown workflow-a command: {args.workflow_a_command}")
+ 
+ 
+@@ -652,6 +664,7 @@ def _build_parser(
+     workflow_a_draft.add_argument("--session", required=True, help="Session JSON path.")
+     workflow_a_draft.add_argument("--request-draft", required=True, help="RequestDraft JSON path to write.")
+     workflow_a_draft.add_argument("--approval", help="Approval JSON path to write waiting_auth Gate 2 record.")
++    workflow_a_draft.add_argument("--briefing", help="Gate 2 briefing HTML path to write; defaults next to --approval.")
+     workflow_a_draft.add_argument("--driver-ref", default="codex-python-sdk", help="AgentDriver ref.")
+     workflow_a_draft.add_argument("--enable-fixture-driver", action="store_true", help="Enable workflow-a-fixture driver for smoke tests only.")
+     workflow_a_draft.add_argument("--timeout-seconds", type=float, help="Maximum seconds to wait for one AgentDriver call.")
+@@ -660,9 +673,17 @@ def _build_parser(
+     workflow_a_authorize = workflow_a_commands.add_parser("authorize", help="Apply Human Gate 2 and freeze GoalExecutionRequest.")
+     workflow_a_authorize.add_argument("--request-draft", required=True, help="RequestDraft JSON path.")
+     workflow_a_authorize.add_argument("--approval", required=True, help="Approval JSON path from draft.")
++    workflow_a_authorize.add_argument("--briefing", help="Gate 2 briefing HTML path; defaults next to --approval.")
+     workflow_a_authorize.add_argument("--output", required=True, help="GoalExecutionRequest YAML path to write.")
+     workflow_a_authorize.add_argument("--actor", required=True, help="Human actor authorizing the contract.")
+     workflow_a_authorize.add_argument("--reason", default="", help="Authorization reason.")
++    workflow_a_status = workflow_a_commands.add_parser("status", help="Show the experimental Workflow A status surface.")
++    workflow_a_status.add_argument("--session", required=True, help="Session JSON path.")
++    workflow_a_status.add_argument("--request-draft", help="Known RequestDraft JSON path.")
++    workflow_a_status.add_argument("--approval", help="Known ApprovalRecord JSON path.")
++    workflow_a_status.add_argument("--briefing", help="Known Gate 2 briefing HTML path.")
++    workflow_a_status.add_argument("--output", help="Known GoalExecutionRequest YAML path.")
++    workflow_a_status.add_argument("--workflow-b-artifact-dir", help="Known Workflow B artifact directory.")
+ 
+     sequence = groups.add_parser("workflow-sequence", help="Run a governed multi-task sequence.")
+     sequence_commands = sequence.add_subparsers(dest="workflow_sequence_command", required=True)
+diff --git a/src/ahra/workflow_a_briefing.py b/src/ahra/workflow_a_briefing.py
+new file mode 100644
+index 0000000..2e376e2
+--- /dev/null
++++ b/src/ahra/workflow_a_briefing.py
+@@ -0,0 +1,356 @@
++from __future__ import annotations
++
++import html
++from dataclasses import dataclass
++from html.parser import HTMLParser
++from pathlib import Path
++from typing import Any, Mapping
++
++from .approval_service import ApprovalRecord
++from .evidence_v2 import canonical_fingerprint
++from .request_admission import RequestDraftAdmission
++from .request_draft import RequestDraft
++
++
++BRIEFING_SCHEMA_VERSION = "ahra/workflow-a-gate2-briefing/0.1"
++DEFAULT_GATE2_BRIEFING_NAME = "gate-2-briefing.html"
++
++
++@dataclass(frozen=True, slots=True)
++class Gate2BriefingBinding:
++    request_id: str
++    approval_id: str
++    request_digest: str
++    plan_digest: str | None
++
++    def to_dict(self) -> dict[str, Any]:
++        return {
++            "schemaVersion": BRIEFING_SCHEMA_VERSION,
++            "requestId": self.request_id,
++            "approvalId": self.approval_id,
++            "requestDigest": self.request_digest,
++            "planDigest": self.plan_digest,
++        }
++
++
++def request_digest(draft: RequestDraft) -> str:
++    return canonical_fingerprint(draft.to_mapping())
++
++
++def plan_digest(draft: RequestDraft) -> str | None:
++    admission = RequestDraftAdmission().evaluate(draft)
++    return admission.plan_digest
++
++
++def briefing_binding(draft: RequestDraft, approval: ApprovalRecord | Mapping[str, Any]) -> Gate2BriefingBinding:
++    approval_mapping = _approval_mapping(approval)
++    return Gate2BriefingBinding(
++        request_id=draft.request_id,
++        approval_id=str(approval_mapping.get("approvalId") or ""),
++        request_digest=request_digest(draft),
++        plan_digest=plan_digest(draft),
++    )
++
++
++def render_gate2_briefing(
++    draft: RequestDraft,
++    approval: ApprovalRecord | Mapping[str, Any],
++    *,
++    request_draft_path: Path | str | None = None,
++    approval_path: Path | str | None = None,
++    output_path: Path | str | None = None,
++) -> str:
++    approval_mapping = _approval_mapping(approval)
++    binding = briefing_binding(draft, approval_mapping)
++    nodes = draft.plan_draft.nodes
++    claim_ids_by_node = {claim_ref for node in nodes for claim_ref in node.claim_refs}
++    allowed_write_scope = _allowed_write_scope(draft)
++    unauthorized_scope = _unauthorized_scope(draft, allowed_write_scope)
++    non_goals = _non_goals(unauthorized_scope)
++    request_path_text = str(request_draft_path) if request_draft_path else "<request-draft.json>"
++    approval_path_text = str(approval_path) if approval_path else "<approval.json>"
++    output_path_text = str(output_path) if output_path else "<goal-execution-request.yaml>"
++    briefing_path_text = "<gate-2-briefing.html>"
++    next_command = (
++        "uv run python -B -m ahra.cli workflow-a authorize "
++        f"--request-draft {request_path_text} --approval {approval_path_text} "
++        f"--briefing {briefing_path_text} --output {output_path_text} "
++        "--actor human:<name>"
++    )
++    status = str(approval_mapping.get("status") or "unknown")
++    checklist = (
++        "Request id and approval id match this briefing.",
++        "Request digest in this briefing matches the RequestDraft.",
++        "Allowed write scope is limited to the listed resources.",
++        "Unauthorized scope and non-goals are acceptable.",
++        "Plan nodes cover required claims before Workflow B starts.",
++        "The approving actor is human and distinct from the producer.",
++    )
++    return "\n".join(
++        [
++            "<!doctype html>",
++            '<html lang="en">',
++            "<head>",
++            '<meta charset="utf-8">',
++            '<meta name="viewport" content="width=device-width, initial-scale=1">',
++            f'<meta name="ahra-briefing-schema" content="{_e(BRIEFING_SCHEMA_VERSION)}">',
++            f'<meta name="ahra-request-id" content="{_e(binding.request_id)}">',
++            f'<meta name="ahra-approval-id" content="{_e(binding.approval_id)}">',
++            f'<meta name="ahra-request-digest" content="{_e(binding.request_digest)}">',
++            f'<meta name="ahra-plan-digest" content="{_e(binding.plan_digest or "")}">',
++            "<title>Workflow A Gate 2 Briefing</title>",
++            "<style>",
++            "body{font-family:Arial,sans-serif;line-height:1.45;margin:2rem;color:#182026;background:#fff}",
++            "main{max-width:960px;margin:0 auto}",
++            "h1,h2{line-height:1.2}",
++            "section{border-top:1px solid #d7dde2;padding-top:1rem;margin-top:1rem}",
++            "code{background:#f4f6f8;padding:.1rem .25rem;border-radius:3px}",
++            "table{border-collapse:collapse;width:100%}",
++            "th,td{border:1px solid #d7dde2;padding:.45rem;text-align:left;vertical-align:top}",
++            ".status{font-weight:700}",
++            "</style>",
++            "</head>",
++            "<body>",
++            "<main>",
++            "<h1>Workflow A Gate 2 Briefing</h1>",
++            "<section>",
++            "<h2>Binding</h2>",
++            "<dl>",
++            f"<dt>Request id</dt><dd><code>{_e(binding.request_id)}</code></dd>",
++            f"<dt>Approval id</dt><dd><code>{_e(binding.approval_id)}</code></dd>",
++            f"<dt>Request digest</dt><dd><code>{_e(binding.request_digest)}</code></dd>",
++            f"<dt>Plan digest</dt><dd><code>{_e(binding.plan_digest or 'unavailable')}</code></dd>",
++            f"<dt>Current status</dt><dd class=\"status\">{_e(status)}</dd>",
++            "</dl>",
++            "</section>",
++            "<section>",
++            "<h2>Next Safe Command</h2>",
++            f"<p><code>{_e(next_command)}</code></p>",
++            "</section>",
++            "<section>",
++            "<h2>Allowed Write Scope</h2>",
++            _list(allowed_write_scope),
++            "</section>",
++            "<section>",
++            "<h2>Explicitly Unauthorized Scope</h2>",
++            _list(unauthorized_scope),
++            "</section>",
++            "<section>",
++            "<h2>Plan Node Summary</h2>",
++            _node_table(draft),
++            "</section>",
++            "<section>",
++            "<h2>Claim Coverage Summary</h2>",
++            _claim_table(draft, claim_ids_by_node),
++            "</section>",
++            "<section>",
++            "<h2>Non-goals</h2>",
++            _list(non_goals),
++            "</section>",
++            "<section>",
++            "<h2>Human Checklist</h2>",
++            _checklist(checklist),
++            "</section>",
++            "</main>",
++            "</body>",
++            "</html>",
++            "",
++        ]
++    )
++
++
++def write_gate2_briefing(
++    path: Path,
++    draft: RequestDraft,
++    approval: ApprovalRecord | Mapping[str, Any],
++    *,
++    request_draft_path: Path | str | None = None,
++    approval_path: Path | str | None = None,
++    output_path: Path | str | None = None,
++) -> dict[str, Any]:
++    html_text = render_gate2_briefing(
++        draft,
++        approval,
++        request_draft_path=request_draft_path,
++        approval_path=approval_path,
++        output_path=output_path,
++    )
++    path.parent.mkdir(parents=True, exist_ok=True)
++    path.write_text(html_text, encoding="utf-8")
++    binding = briefing_binding(draft, approval)
++    return {
++        **binding.to_dict(),
++        "briefingPath": str(path),
++        "briefingDigest": canonical_fingerprint({"html": html_text}),
++    }
++
++
++def extract_briefing_metadata(html_text: str) -> dict[str, str]:
++    parser = _MetaParser()
++    parser.feed(html_text)
++    return dict(parser.metadata)
++
++
++def verify_gate2_briefing(
++    html_text: str,
++    draft: RequestDraft,
++    approval: ApprovalRecord | Mapping[str, Any],
++) -> dict[str, Any]:
++    metadata = extract_briefing_metadata(html_text)
++    approval_mapping = _approval_mapping(approval)
++    expected = briefing_binding(draft, approval_mapping)
++    checks = {
++        "requestId": (metadata.get("ahra-request-id"), expected.request_id),
++        "approvalId": (metadata.get("ahra-approval-id"), expected.approval_id),
++        "requestDigest": (metadata.get("ahra-request-digest"), expected.request_digest),
++    }
++    mismatches = [
++        {"field": field, "actual": actual or "", "expected": wanted}
++        for field, (actual, wanted) in checks.items()
++        if actual != wanted
++    ]
++    serialized_request_digest = approval_mapping.get("requestDigest")
++    serialized_request_id = approval_mapping.get("requestId")
++    serialized_approval_id = approval_mapping.get("approvalId")
++    if serialized_request_id != expected.request_id:
++        mismatches.append(
++            {
++                "field": "approval.requestId",
++                "actual": str(serialized_request_id or ""),
++                "expected": expected.request_id,
++            }
++        )
++    if serialized_approval_id != expected.approval_id:
++        mismatches.append(
++            {
++                "field": "approval.approvalId",
++                "actual": str(serialized_approval_id or ""),
++                "expected": expected.approval_id,
++            }
++        )
++    if serialized_request_digest and serialized_request_digest != expected.request_digest:
++        mismatches.append(
++            {
++                "field": "approval.requestDigest",
++                "actual": str(serialized_request_digest),
++                "expected": expected.request_digest,
++            }
++        )
++    if mismatches:
++        raise ValueError(f"Gate 2 briefing binding mismatch: {mismatches}")
++    return {
++        **expected.to_dict(),
++        "metadata": metadata,
++    }
++
++
++def _approval_mapping(approval: ApprovalRecord | Mapping[str, Any]) -> Mapping[str, Any]:
++    if isinstance(approval, ApprovalRecord):
++        return approval.to_dict()
++    return approval
++
++
++def _allowed_write_scope(draft: RequestDraft) -> tuple[str, ...]:
++    resources: set[str] = set()
++    for node in draft.plan_draft.nodes:
++        for request in node.capability_requests:
++            if request.capability == "filesystem.write":
++                resources.update(request.resources)
++    if not resources:
++        return ("No filesystem.write resources are requested.",)
++    return tuple(sorted(resources))
++
++
++def _unauthorized_scope(draft: RequestDraft, allowed_write_scope: tuple[str, ...]) -> tuple[str, ...]:
++    return (
++        "Any filesystem path not listed in the allowed write scope.",
++        "Any capability not listed in RequestDraft.spec.registry.allowedCapabilities: "
++        + ", ".join(draft.allowed_capabilities),
++        "Any top-level objective, claim, plan node, or output not present in the RequestDraft.",
++    )
++
++
++def _non_goals(unauthorized_scope: tuple[str, ...]) -> tuple[str, ...]:
++    return (
++        "Do not expand the request beyond the RequestDraft goal and required claims.",
++        "Do not start Workflow B until Gate 2 authorization freezes the GoalExecutionRequest.",
++        *unauthorized_scope,
++    )
++
++
++def _node_table(draft: RequestDraft) -> str:
++    rows = [
++        "<tr><th>Node</th><th>Type</th><th>Claims</th><th>Gates</th><th>Capabilities</th></tr>",
++    ]
++    for node in draft.plan_draft.nodes:
++        capabilities = [
++            request.capability + ": " + ", ".join(request.resources)
++            for request in node.capability_requests
++        ]
++        rows.append(
++            "<tr>"
++            f"<td>{_e(node.node_id)}</td>"
++            f"<td>{_e(node.node_type)}</td>"
++            f"<td>{_e(', '.join(node.claim_refs) or 'none')}</td>"
++            f"<td>{_e(', '.join(node.gate_refs) or 'none')}</td>"
++            f"<td>{_e('; '.join(capabilities) or 'none')}</td>"
++            "</tr>"
++        )
++    return "<table>" + "".join(rows) + "</table>"
++
++
++def _claim_table(draft: RequestDraft, claim_ids_by_node: set[str]) -> str:
++    rows = [
++        "<tr><th>Claim</th><th>Type</th><th>Criteria</th><th>Required</th><th>Plan coverage</th></tr>",
++    ]
++    for claim in draft.claim_graph.claims:
++        rows.append(
++            "<tr>"
++            f"<td>{_e(claim.claim_id)}</td>"
++            f"<td>{_e(claim.claim_type.value)}</td>"
++            f"<td>{_e(', '.join(claim.criterion_refs))}</td>"
++            f"<td>{_e(str(claim.required))}</td>"
++            f"<td>{_e('covered' if claim.claim_id in claim_ids_by_node else 'not covered')}</td>"
++            "</tr>"
++        )
++    return "<table>" + "".join(rows) + "</table>"
++
++
++def _list(items: tuple[str, ...]) -> str:
++    return "<ul>" + "".join(f"<li>{_e(item)}</li>" for item in items) + "</ul>"
++
++
++def _checklist(items: tuple[str, ...]) -> str:
++    return "<ul>" + "".join(f'<li><label><input type="checkbox"> {_e(item)}</label></li>' for item in items) + "</ul>"
++
++
++def _e(value: object) -> str:
++    return html.escape(str(value), quote=True)
++
++
++class _MetaParser(HTMLParser):
++    def __init__(self) -> None:
++        super().__init__()
++        self.metadata: dict[str, str] = {}
++
++    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
++        if tag.lower() != "meta":
++            return
++        values = {key.lower(): value or "" for key, value in attrs}
++        name = values.get("name")
++        if name:
++            self.metadata[name] = values.get("content", "")
++
++
++__all__ = [
++    "BRIEFING_SCHEMA_VERSION",
++    "DEFAULT_GATE2_BRIEFING_NAME",
++    "Gate2BriefingBinding",
++    "briefing_binding",
++    "extract_briefing_metadata",
++    "plan_digest",
++    "render_gate2_briefing",
++    "request_digest",
++    "verify_gate2_briefing",
++    "write_gate2_briefing",
++]
+diff --git a/src/ahra/workflow_a_cli.py b/src/ahra/workflow_a_cli.py
+index c5137ea..b72588e 100644
+--- a/src/ahra/workflow_a_cli.py
++++ b/src/ahra/workflow_a_cli.py
+@@ -23,6 +23,12 @@ from .ports import AgentDriver, AgentRunRequest, AgentRunResult
+ from .request_draft import RequestDraft
+ from .request_admission import RequestDraftAdmission
+ from .validation import load_document
++from .workflow_a_briefing import (
++    DEFAULT_GATE2_BRIEFING_NAME,
++    request_digest,
++    verify_gate2_briefing,
++    write_gate2_briefing,
++)
+ 
+ 
+ class RequestDraftAdmissionError(ValueError):
+@@ -160,13 +166,18 @@ async def draft_request(
+     session_path: Path,
+     request_draft_path: Path,
+     approval_path: Path | None,
++    briefing_path: Path | None = None,
+     driver: AgentDriver,
+     timeout_seconds: float | None = None,
+ ) -> dict[str, Any]:
+     manager = _manager(driver, timeout_seconds=timeout_seconds)
++    approval_service = ApprovalService() if approval_path is not None else None
+     try:
+-        result = await manager.draft_request(_load_snapshot(session_path), approval_service=None)
++        result = await manager.draft_request(_load_snapshot(session_path), approval_service=approval_service)
+     except AlignmentSessionError as exc:
++        request_draft_mapping = exc.data.get("requestDraft")
++        if isinstance(request_draft_mapping, Mapping):
++            _write_json(request_draft_path, request_draft_mapping)
+         _write_error_snapshot(session_path, exc)
+         raise
+     admission = RequestDraftAdmission().evaluate(result.request_draft).to_dict()
+@@ -198,14 +209,26 @@ async def draft_request(
+         "admission": admission,
+     }
+     if approval_path is not None:
+-        approval_record = ApprovalService().request_authorization(
++        approval_record = result.approval_record
++        if approval_record is None:
++            raise RuntimeError("Gate 2 approval was not created after RequestDraftAdmission")
++        approval_mapping = {
++            **approval_record.to_dict(),
++            "requestDigest": request_digest(result.request_draft),
++        }
++        _write_json(approval_path, approval_mapping)
++        selected_briefing_path = briefing_path or approval_path.with_name(DEFAULT_GATE2_BRIEFING_NAME)
++        briefing = write_gate2_briefing(
++            selected_briefing_path,
+             result.request_draft,
+-            actor=result.snapshot.producer_actor,
++            approval_mapping,
++            request_draft_path=request_draft_path,
++            approval_path=approval_path,
+         )
+-        approval_mapping = approval_record.to_dict()
+-        _write_json(approval_path, approval_mapping)
+         payload["approvalPath"] = str(approval_path)
+         payload["approval"] = approval_mapping
++        payload["briefingPath"] = str(selected_briefing_path)
++        payload["briefing"] = briefing
+     return payload
+ 
+ 
+@@ -218,6 +241,7 @@ def authorize_request(
+     *,
+     request_draft_path: Path,
+     approval_path: Path,
++    briefing_path: Path | None,
+     output_path: Path,
+     actor: str,
+     reason: str = "",
+@@ -226,22 +250,78 @@ def authorize_request(
+     approval = _load_json(approval_path)
+     if str(approval.get("requestId") or "") != draft.request_id:
+         raise ValueError("approval does not belong to RequestDraft")
++    if str(approval.get("approvalId") or "") != "APR-" + draft.request_id.removeprefix("REQ-"):
++        raise ValueError("approval id does not belong to RequestDraft")
+     if str(approval.get("status") or "") != "waiting_auth":
+         raise ValueError("approval is not waiting_auth")
++    selected_briefing_path = briefing_path or approval_path.with_name(DEFAULT_GATE2_BRIEFING_NAME)
++    verify_gate2_briefing(
++        selected_briefing_path.read_text(encoding="utf-8"),
++        draft,
++        approval,
++    )
+     service = ApprovalService()
+     record = service.request_authorization(draft, actor=str(approval.get("requestedBy") or "agent:workflow-a-cli"))
+     approved = service.approve(record.approval_id, actor=actor, reason=reason)
+     frozen = service.freeze(draft, approval_id=record.approval_id)
+-    approved_mapping = approved.to_dict()
++    approved_mapping = {
++        **approved.to_dict(),
++        "requestDigest": request_digest(draft),
++    }
+     _write_json(approval_path, approved_mapping)
+     _write_yaml(output_path, frozen.to_dict())
+     return {
+         "approval": approved_mapping,
++        "briefingPath": str(selected_briefing_path),
+         "goalExecutionRequestPath": str(output_path),
+         "goalExecutionRequest": frozen.to_dict(),
+     }
+ 
+ 
++def workflow_status(
++    *,
++    session_path: Path,
++    request_draft_path: Path | None = None,
++    approval_path: Path | None = None,
++    briefing_path: Path | None = None,
++    output_path: Path | None = None,
++    workflow_b_artifact_dir: Path | None = None,
++) -> dict[str, Any]:
++    snapshot = _load_snapshot(session_path).to_mapping()
++    stage = str(snapshot.get("stage") or "unknown")
++    approval = _load_json(approval_path) if approval_path and approval_path.exists() else None
++    selected_briefing_path = briefing_path
++    if selected_briefing_path is None and approval_path is not None:
++        selected_briefing_path = approval_path.with_name(DEFAULT_GATE2_BRIEFING_NAME)
++    workflow_b_started = _workflow_b_started(output_path, workflow_b_artifact_dir)
++    paths = {
++        "session": _path_status(session_path),
++        "requestDraft": _path_status(request_draft_path),
++        "approval": _path_status(approval_path),
++        "briefing": _path_status(selected_briefing_path),
++        "requestOutput": _path_status(output_path),
++        "workflowBArtifactDir": _path_status(workflow_b_artifact_dir),
++    }
++    next_action = _next_safe_action(
++        stage=stage,
++        approval=approval,
++        paths=paths,
++        workflow_b_started=workflow_b_started,
++    )
++    status_text = (
++        f"Workflow A stage: {stage}. "
++        f"Next safe action: {next_action}. "
++        f"Workflow B started: {str(workflow_b_started).lower()}."
++    )
++    return {
++        "stage": stage,
++        "paths": paths,
++        "nextSafeAction": next_action,
++        "workflowBStarted": workflow_b_started,
++        "statusText": status_text,
++    }
++
++
+ def load_request_draft(path: Path) -> RequestDraft:
+     data = _load_json(path)
+     spec = _mapping(data.get("spec"), "spec")
+@@ -308,6 +388,49 @@ def _write_yaml(path: Path, payload: Mapping[str, Any]) -> None:
+     path.write_text(yaml.safe_dump(dict(payload), sort_keys=False), encoding="utf-8")
+ 
+ 
++def _path_status(path: Path | None) -> dict[str, Any]:
++    if path is None:
++        return {"path": None, "known": False, "exists": False}
++    return {"path": str(path), "known": True, "exists": path.exists()}
++
++
++def _workflow_b_started(output_path: Path | None, artifact_dir: Path | None) -> bool:
++    if artifact_dir is not None and (
++        (artifact_dir / "goal-start-report.json").exists()
++        or (artifact_dir / "plan-ir.json").exists()
++        or (artifact_dir / "workflow-run-result.json").exists()
++    ):
++        return True
++    return bool(output_path is not None and output_path.exists() and artifact_dir is not None)
++
++
++def _next_safe_action(
++    *,
++    stage: str,
++    approval: Mapping[str, Any] | None,
++    paths: Mapping[str, Mapping[str, Any]],
++    workflow_b_started: bool,
++) -> str:
++    if stage in {"dialogue", "awaiting_user"}:
++        return "advance Workflow A alignment with workflow-a advance"
++    if stage == "awaiting_requirement_approval":
++        return "review Gate 1 decisions, then run workflow-a approve-requirement"
++    if stage == "frozen":
++        return "run workflow-a draft to produce RequestDraft, ApprovalRecord, and Gate 2 briefing"
++    if stage == "failed":
++        return "inspect the session failure report before redrafting or restarting"
++    if stage == "request_drafted":
++        if approval and approval.get("status") == "waiting_auth":
++            if not paths["briefing"]["exists"]:
++                return "regenerate the Gate 2 briefing before authorization"
++            return "review the Gate 2 briefing, then run workflow-a authorize"
++        if paths["requestOutput"]["exists"] and not workflow_b_started:
++            return "run goal validate/plan/start on the frozen GoalExecutionRequest"
++        if workflow_b_started:
++            return "monitor Workflow B artifacts and completion evidence"
++    return "inspect workflow-a status and current artifacts"
++
++
+ def _normalize_cli_path(value: str) -> str:
+     path = Path(value)
+     if path.is_absolute():
+@@ -448,4 +571,5 @@ __all__ = [
+     "load_request_draft",
+     "read_snapshot",
+     "start_session",
++    "workflow_status",
+ ]
+diff --git a/tests/test_alignment_session.py b/tests/test_alignment_session.py
+index 353f7c6..f357c87 100644
+--- a/tests/test_alignment_session.py
++++ b/tests/test_alignment_session.py
+@@ -123,6 +123,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+                 "admissionContract",
+                 "redraftAttempt",
+                 "previousCrossAlignmentReport",
++                "previousRequestAdmissionReport",
+             },
+         )
+         self.assertEqual(acceptance_call.payload["boundaryContractDigest"], snapshot.boundary_contract_digest)
+@@ -136,6 +137,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+         )
+         self.assertEqual(acceptance_call.payload["redraftAttempt"], 0)
+         self.assertIsNone(acceptance_call.payload["previousCrossAlignmentReport"])
++        self.assertIsNone(acceptance_call.payload["previousRequestAdmissionReport"])
+ 
+         requirement_call = next(call for call in driver.calls if call.expected_output == REQUIREMENT_DRAFT_OUTPUT)
+         frozen_claim_graph = result.request_draft.to_mapping()["spec"]["claimGraph"]
+@@ -146,6 +148,7 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+             requirement_call.payload["readOnlyInputs"]["admissionContract"],
+             requirement_call.payload["admissionContract"],
+         )
++        self.assertIn("budgetRules", requirement_call.payload["admissionContract"])
+         self.assertEqual(result.snapshot.frozen_claim_graph_digest, result.request_draft.claim_graph_digest)
+ 
+         restored = AlignmentSessionSnapshot.from_mapping(result.snapshot.to_mapping())
+@@ -389,6 +392,63 @@ class AlignmentSessionManagerTests(unittest.TestCase):
+ 
+         self.assertEqual(resumed.stage, "awaiting_user")
+ 
++    def test_gate1_blocking_decision_records_block_freeze_until_answered(self) -> None:
++        driver = FakeAlignmentDriver(
++            first_decision_records=[
++                {
++                    "decisionId": "G1-artifact-path",
++                    "question": "Where should the artifact be written?",
++                    "recommendation": "Use outputs/summary.txt.",
++                    "alternatives": ["outputs/summary.txt", "reports/summary.txt"],
++                    "consequences": ["Gate 1 cannot freeze until this is answered."],
++                    "blocking": True,
++                }
++            ],
++            second_decision_records=[
++                {
++                    "decisionId": "G1-artifact-path",
++                    "question": "Where should the artifact be written?",
++                    "recommendation": "Use outputs/summary.txt.",
++                    "alternatives": ["outputs/summary.txt", "reports/summary.txt"],
++                    "consequences": ["The bounded write scope is outputs/summary.txt."],
++                    "blocking": True,
++                    "finalAnswer": "Use outputs/summary.txt.",
++                }
++            ],
++        )
++        manager = AlignmentSessionManager(driver)
++        snapshot = manager.start(_intent())
++        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
++
++        self.assertEqual(snapshot.gate_decisions[0].decision_id, "G1-artifact-path")
++
++        snapshot = asyncio.run(manager.advance(snapshot, "Use outputs/summary.txt."))
++
++        self.assertEqual(snapshot.stage, "awaiting_requirement_approval")
++        self.assertEqual(snapshot.gate_decisions[0].final_answer, "Use outputs/summary.txt.")
++
++    def test_gate1_convergence_rejects_unanswered_blocking_decisions(self) -> None:
++        unanswered = [
++            {
++                "decisionId": "G1-artifact-path",
++                "question": "Where should the artifact be written?",
++                "recommendation": "Use outputs/summary.txt.",
++                "alternatives": ["outputs/summary.txt", "reports/summary.txt"],
++                "consequences": ["Gate 1 cannot freeze until this is answered."],
++                "blocking": True,
++            }
++        ]
++        driver = FakeAlignmentDriver(first_decision_records=unanswered, second_decision_records=unanswered)
++        manager = AlignmentSessionManager(driver)
++        snapshot = manager.start(_intent())
++        snapshot = asyncio.run(manager.advance(snapshot, "Keep scope local."))
++
++        with self.assertRaises(AlignmentSessionError) as raised:
++            asyncio.run(manager.advance(snapshot, "Freeze anyway."))
++
++        self.assertEqual(raised.exception.code, "gate1_blocking_decisions_unanswered")
++        self.assertEqual(raised.exception.refs, ("G1-artifact-path",))
++
+     def test_draft_contract_requires_nested_apiversion_for_plan_and_claim(self) -> None:
+         """Regression: contract must explicitly require apiVersion/kind for nested objects.
+ 
+@@ -449,6 +509,8 @@ class FakeAlignmentDriver:
+         acceptance_output: dict[str, object] | None = None,
+         acceptance_outputs: list[dict[str, object]] | None = None,
+         boundary_contract_output: dict[str, object] | None = None,
++        first_decision_records: list[dict[str, object]] | None = None,
++        second_decision_records: list[dict[str, object]] | None = None,
+     ) -> None:
+         self.calls: list[AgentRunRequest] = []
+         self.alignment_turns = 0
+@@ -457,28 +519,43 @@ class FakeAlignmentDriver:
+         self.acceptance_output = acceptance_output
+         self.acceptance_outputs = list(acceptance_outputs or [])
+         self.boundary_contract_output = boundary_contract_output
++        self.first_decision_records = first_decision_records
++        self.second_decision_records = second_decision_records
+ 
+     async def run(self, request: AgentRunRequest) -> AgentRunResult:
+         self.calls.append(request)
+         if request.expected_output == ALIGNMENT_DECISION_OUTPUT:
+             self.alignment_turns += 1
+             if self.alignment_turns == 1:
+-                return AgentRunResult(
+-                    output={
+-                        "message": "Need the completion signal before freezing.",
+-                        "converged": False,
+-                        "missingDimensions": ["completion signal"],
+-                    }
+-                )
+-            return AgentRunResult(
+-                output={
+-                    "message": "Requirement boundary frozen.",
+-                    "converged": True,
+-                    "frozenRequirement": "Write one governed deterministic summary artifact in the local workspace.",
+-                    "boundaryContract": self.boundary_contract_output or _boundary_contract_output(),
+-                    "missingDimensions": [],
++                output = {
++                    "message": "Need the completion signal before freezing.",
++                    "converged": False,
++                    "missingDimensions": ["completion signal"],
+                 }
+-            )
++                if self.first_decision_records is not None:
++                    output["decisionRecords"] = self.first_decision_records
++                return AgentRunResult(output=output)
++            output = {
++                "message": "Requirement boundary frozen.",
++                "converged": True,
++                "frozenRequirement": "Write one governed deterministic summary artifact in the local workspace.",
++                "boundaryContract": self.boundary_contract_output or _boundary_contract_output(),
++                "missingDimensions": [],
++                "decisionRecords": self.second_decision_records
++                if self.second_decision_records is not None
++                else [
++                    {
++                        "decisionId": "G1-02-01",
++                        "question": "Resolve Gate 1 choice: completion signal.",
++                        "recommendation": "Use the governed summary artifact as the completion signal.",
++                        "alternatives": ["summary artifact exists"],
++                        "consequences": ["The boundary can freeze with a concrete completion signal."],
++                        "blocking": True,
++                        "finalAnswer": "The governed deterministic summary artifact exists.",
++                    }
++                ],
++            }
++            return AgentRunResult(output=output)
+         if request.expected_output == REQUIREMENT_DRAFT_OUTPUT:
+             return AgentRunResult(output=self._next_requirement_output())
+         if request.expected_output == ACCEPTANCE_DRAFT_OUTPUT:
+diff --git a/tests/test_cli.py b/tests/test_cli.py
+index 80dcbda..8d43825 100644
+--- a/tests/test_cli.py
++++ b/tests/test_cli.py
+@@ -224,6 +224,7 @@ class CliTests(unittest.TestCase):
+             session = root / "workflow-a" / "session.json"
+             request_draft = root / "workflow-a" / "request-draft.json"
+             approval = root / "workflow-a" / "approval.json"
++            briefing = root / "workflow-a" / "gate-2-briefing.html"
+             authorized = root / "workflow-a" / "goal-execution-request.yaml"
+             expected_workspace = (root / "workflow-a" / "workspace").resolve()
+             expected_artifacts = (root / "workflow-a" / "artifacts").resolve()
+@@ -349,6 +350,31 @@ class CliTests(unittest.TestCase):
+             self.assertEqual(Path(draft_payload["result"]["requestDraft"]["spec"]["artifactDir"]), expected_artifacts)
+             self.assertTrue(request_draft.exists())
+             self.assertTrue(approval.exists())
++            self.assertTrue(briefing.exists())
++            self.assertEqual(draft_payload["result"]["briefingPath"], str(briefing))
++            self.assertIn("requestDigest", draft_payload["result"]["approval"])
++
++            status_code, status_payload, _ = _run_cli(
++                [
++                    "workflow-a",
++                    "status",
++                    "--session",
++                    str(session),
++                    "--request-draft",
++                    str(request_draft),
++                    "--approval",
++                    str(approval),
++                    "--briefing",
++                    str(briefing),
++                    "--output",
++                    str(authorized),
++                ],
++                cwd=root,
++            )
++            self.assertEqual(status_code, 0)
++            self.assertEqual(status_payload["result"]["stage"], "request_drafted")
++            self.assertFalse(status_payload["result"]["workflowBStarted"])
++            self.assertIn("workflow-a authorize", status_payload["result"]["nextSafeAction"])
+ 
+             admit_code, admit_payload, _ = _run_cli(
+                 ["workflow-a", "admit", "--request-draft", str(request_draft)],
+@@ -365,6 +391,8 @@ class CliTests(unittest.TestCase):
+                     str(request_draft),
+                     "--approval",
+                     str(approval),
++                    "--briefing",
++                    str(briefing),
+                     "--output",
+                     str(authorized),
+                     "--actor",
+diff --git a/tests/test_codex_driver.py b/tests/test_codex_driver.py
+index 1fff738..5c4ff08 100644
+--- a/tests/test_codex_driver.py
++++ b/tests/test_codex_driver.py
+@@ -7,6 +7,7 @@ import types
+ import unittest
+ 
+ from ahra.adapters import CodexDriverConfig, CodexSDKClient, CodexSDKDriver
++from ahra.alignment_session import ALIGNMENT_DECISION_OUTPUT, _output_contract
+ from ahra.planning import plan_draft_output_contract
+ from ahra.ports import AgentOutputContractError, AgentRole, AgentRunRequest
+ from ahra.reference_runner.models import NextStepDecision, PlanAction, WorkReport
+@@ -147,6 +148,45 @@ class CodexSDKDriverTests(unittest.TestCase):
+                 )
+             )
+ 
++    def test_alignment_prompt_requires_structured_gate1_decisions(self) -> None:
++        client = FakeCodexClient(
++            {
++                ALIGNMENT_DECISION_OUTPUT: json.dumps(
++                    {
++                        "message": "Need one answer before freeze.",
++                        "converged": False,
++                        "missingDimensions": ["artifact path"],
++                        "decisionRecords": [
++                            {
++                                "decisionId": "G1-artifact-path",
++                                "question": "Where should the artifact be written?",
++                                "recommendation": "Use outputs/summary.txt.",
++                                "alternatives": ["outputs/summary.txt"],
++                                "consequences": ["Gate 1 remains blocked."],
++                                "blocking": True,
++                            }
++                        ],
++                    }
++                )
++            }
++        )
++        driver = CodexSDKDriver(client=client)
++
++        asyncio.run(
++            driver.run(
++                AgentRunRequest(
++                    role=AgentRole.PLANNER,
++                    run_id="RUN-codex-alignment",
++                    expected_output=ALIGNMENT_DECISION_OUTPUT,
++                    output_contract=_output_contract(ALIGNMENT_DECISION_OUTPUT),
++                    payload={"phase": "alignment-dialogue"},
++                )
++            )
++        )
++
++        self.assertIn("decisionRecords", client.calls[0]["prompt"])
++        self.assertIn("blocking decisionRecord lacks finalAnswer", client.calls[0]["prompt"])
++
+     def test_output_contract_schema_is_prompted_and_validated(self) -> None:
+         client = FakeCodexClient(
+             {
+diff --git a/tests/test_workflow_a_briefing.py b/tests/test_workflow_a_briefing.py
+new file mode 100644
+index 0000000..628064e
+--- /dev/null
++++ b/tests/test_workflow_a_briefing.py
+@@ -0,0 +1,93 @@
++from __future__ import annotations
++
++import tempfile
++import unittest
++from dataclasses import replace
++from pathlib import Path
++
++from ahra.approval_service import ApprovalService
++from ahra.workflow_a_briefing import (
++    extract_briefing_metadata,
++    render_gate2_briefing,
++    request_digest,
++    verify_gate2_briefing,
++    write_gate2_briefing,
++)
++from tests.phase1_helpers import example_intent, request_draft_from_intent
++
++
++class WorkflowAGate2BriefingTests(unittest.TestCase):
++    def test_rendered_briefing_is_self_contained_and_escaped(self) -> None:
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            draft = _draft(root)
++            bad_request = replace(
++                draft.plan_draft.nodes[0].capability_requests[0],
++                resources=("<script>alert(1)</script>",),
++            )
++            bad_plan = replace(
++                draft.plan_draft,
++                nodes=(
++                    replace(
++                        draft.plan_draft.nodes[0],
++                        capability_requests=(bad_request,),
++                    ),
++                    *draft.plan_draft.nodes[1:],
++                ),
++            )
++            draft = replace(draft, plan_draft=bad_plan)
++            approval = ApprovalService().request_authorization(draft, actor="agent:producer")
++
++            html = render_gate2_briefing(draft, approval)
++
++            self.assertIn("Workflow A Gate 2 Briefing", html)
++            self.assertIn("Allowed Write Scope", html)
++            self.assertIn("Explicitly Unauthorized Scope", html)
++            self.assertIn("Human Checklist", html)
++            self.assertNotIn("<script>alert(1)</script>", html)
++            self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", html)
++            self.assertNotIn("<script", html.lower())
++            self.assertNotIn("<link", html.lower())
++            self.assertNotIn("http://", html.lower())
++            self.assertNotIn("https://", html.lower())
++
++    def test_binding_metadata_verifies_request_approval_and_digest(self) -> None:
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            draft = _draft(root)
++            approval = ApprovalService().request_authorization(draft, actor="agent:producer").to_dict()
++            approval["requestDigest"] = request_digest(draft)
++            html = render_gate2_briefing(draft, approval)
++
++            verified = verify_gate2_briefing(html, draft, approval)
++
++            self.assertEqual(verified["requestId"], draft.request_id)
++            self.assertEqual(verified["approvalId"], approval["approvalId"])
++            self.assertEqual(verified["requestDigest"], approval["requestDigest"])
++
++            tampered = html.replace(approval["requestDigest"], "sha256:" + "0" * 64)
++            with self.assertRaisesRegex(ValueError, "requestDigest"):
++                verify_gate2_briefing(tampered, draft, approval)
++
++    def test_write_briefing_returns_artifact_binding(self) -> None:
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            draft = _draft(root)
++            approval = ApprovalService().request_authorization(draft, actor="agent:producer")
++            path = root / "gate-2.html"
++
++            result = write_gate2_briefing(path, draft, approval)
++
++            self.assertTrue(path.exists())
++            self.assertEqual(result["briefingPath"], str(path))
++            metadata = extract_briefing_metadata(path.read_text(encoding="utf-8"))
++            self.assertEqual(metadata["ahra-request-id"], draft.request_id)
++            self.assertEqual(metadata["ahra-approval-id"], approval.approval_id)
++
++
++def _draft(root: Path):
++    return request_draft_from_intent(root, example_intent())
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/test_workflow_a_cli.py b/tests/test_workflow_a_cli.py
+index 4d779e6..f794caf 100644
+--- a/tests/test_workflow_a_cli.py
++++ b/tests/test_workflow_a_cli.py
+@@ -9,13 +9,13 @@ from pathlib import Path
+ from ahra.alignment_session import ACCEPTANCE_DRAFT_OUTPUT, REQUIREMENT_DRAFT_OUTPUT, AlignmentSessionError
+ from ahra.ports import AgentRunRequest, AgentRunResult
+ from ahra.workflow_a_cli import (
+-    RequestDraftAdmissionError,
+     WorkflowAFixtureDriver,
+     advance_session,
+     approve_requirement,
+     draft_request,
+     read_snapshot,
+     start_session,
++    workflow_status,
+ )
+ 
+ 
+@@ -24,7 +24,7 @@ EXAMPLE = ROOT / "examples" / "intents" / "phase1-example-intent.yaml"
+ 
+ 
+ class WorkflowACliTests(unittest.TestCase):
+-    def test_draft_preflights_admission_before_writing_approval(self) -> None:
++    def test_draft_runs_admission_redraft_before_writing_approval(self) -> None:
+         with tempfile.TemporaryDirectory() as temp:
+             root = Path(temp)
+             session = root / "session.json"
+@@ -42,7 +42,7 @@ class WorkflowACliTests(unittest.TestCase):
+             )
+             approve_requirement(session_path=session, actor="human:maintainer")
+ 
+-            with self.assertRaises(RequestDraftAdmissionError) as raised:
++            with self.assertRaises(AlignmentSessionError) as raised:
+                 asyncio.run(
+                     draft_request(
+                         session_path=session,
+@@ -52,16 +52,21 @@ class WorkflowACliTests(unittest.TestCase):
+                     )
+                 )
+ 
+-            self.assertEqual(raised.exception.to_error_dict()["code"], "request_draft_admission_rejected")
+-            self.assertIn("invalid-budget", raised.exception.codes)
++            self.assertEqual(raised.exception.code, "request_draft_admission_redraft_exhausted")
++            self.assertIn("invalid-budget", raised.exception.refs)
+             self.assertTrue(request_draft.exists())
+             self.assertFalse(approval.exists())
+ 
+             snapshot = read_snapshot(session_path=session)["snapshot"]
+-            self.assertEqual(snapshot["stage"], "frozen")
++            self.assertEqual(snapshot["stage"], "failed")
+             self.assertEqual(snapshot["turns"][-1]["actor"], "agent:request-admission")
+             rejections = snapshot["turns"][-1]["error"]["rejections"]
+             self.assertIn("invalid-budget", {item["code"] for item in rejections})
++            admission_turns = [
++                turn for turn in snapshot["turns"] if turn["actor"] == "agent:request-admission"
++            ]
++            self.assertEqual(len(admission_turns), 2)
++            self.assertEqual(admission_turns[0]["error"]["rejections"][0]["code"], "invalid-budget")
+ 
+     def test_draft_timeout_writes_structured_resumable_snapshot(self) -> None:
+         with tempfile.TemporaryDirectory() as temp:
+@@ -100,6 +105,49 @@ class WorkflowACliTests(unittest.TestCase):
+             self.assertEqual(snapshot["turns"][-1]["actor"], "agent:error")
+             self.assertEqual(snapshot["turns"][-1]["error"]["code"], "agent_driver_timeout")
+ 
++    def test_draft_writes_gate2_briefing_and_status_surface(self) -> None:
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            session = root / "session.json"
++            request_draft = root / "request-draft.json"
++            approval = root / "approval.json"
++            briefing = root / "approval-briefing.html"
++
++            start_session(intent_path=EXAMPLE, session_path=session)
++            asyncio.run(
++                advance_session(
++                    session_path=session,
++                    message="Keep the scope local.",
++                    actor="human:maintainer",
++                    driver=WorkflowAFixtureDriver(),
++                )
++            )
++            approve_requirement(session_path=session, actor="human:maintainer")
++
++            payload = asyncio.run(
++                draft_request(
++                    session_path=session,
++                    request_draft_path=request_draft,
++                    approval_path=approval,
++                    briefing_path=briefing,
++                    driver=WorkflowAFixtureDriver(),
++                )
++            )
++
++            self.assertTrue(briefing.exists())
++            self.assertEqual(payload["briefingPath"], str(briefing))
++            self.assertIn("requestDigest", payload["approval"])
++            status = workflow_status(
++                session_path=session,
++                request_draft_path=request_draft,
++                approval_path=approval,
++                briefing_path=briefing,
++                output_path=root / "goal-execution-request.yaml",
++            )
++            self.assertEqual(status["stage"], "request_drafted")
++            self.assertFalse(status["workflowBStarted"])
++            self.assertIn("workflow-a authorize", status["nextSafeAction"])
++
+ 
+ class HangingDriver:
+     async def run(self, request: AgentRunRequest) -> AgentRunResult:

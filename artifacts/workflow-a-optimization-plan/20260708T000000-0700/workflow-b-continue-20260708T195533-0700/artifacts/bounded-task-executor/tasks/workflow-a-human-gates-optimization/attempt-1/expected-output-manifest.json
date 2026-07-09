@@ -1,0 +1,40 @@
+{
+  "schema_version": "ahra/expected-output-delivery-manifest/0.1",
+  "task_id": "workflow-a-human-gates-optimization",
+  "run_id": "NRUN-44b4d49ae0465d7c",
+  "attempt": 1,
+  "summary": "PlanIR expectedOutputs mapped to concrete bounded-task artifacts or evidence.",
+  "deterministic_evidence_ref": "EVD-d19c35b6e5674967ae50972cbbb52df0",
+  "outputs": [
+    {
+      "name": "workflow-a-optimization-code-change",
+      "schema_ref": "ahra/artifact/code-change/0.1",
+      "delivery_role": null,
+      "artifact_required": true,
+      "delivered": true,
+      "status": "delivered",
+      "artifact_refs": [
+        "ART-2c7e5b875af84adf8999ef554c001906"
+      ],
+      "evidence_refs": [],
+      "paths": [
+        "local://tasks/workflow-a-human-gates-optimization/attempt-1/patch.diff"
+      ],
+      "summary": "Mapped to patch.diff because the output schema is a code/doc change artifact and the deterministic policy observed 14 changed file(s)."
+    },
+    {
+      "name": "workflow-a-human-gate-briefing-tests",
+      "schema_ref": "ahra/artifact/test-evidence/0.1",
+      "delivery_role": null,
+      "artifact_required": true,
+      "delivered": true,
+      "status": "delivered",
+      "artifact_refs": [],
+      "evidence_refs": [],
+      "paths": [
+        "local://tasks/workflow-a-human-gates-optimization/attempt-1/deterministic-evidence.json"
+      ],
+      "summary": "Mapped to deterministic-evidence.json because the output schema is test evidence and 17 deterministic check record(s) were captured."
+    }
+  ]
+}

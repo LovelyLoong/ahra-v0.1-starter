@@ -1,0 +1,36 @@
+{
+  "verdict": "fail",
+  "summary": "Semantic review was skipped because the deterministic gate failed; deterministic checks were not executed.",
+  "criteria": [
+    {
+      "criterion": "Deterministic preconditions",
+      "passed": false,
+      "evidence": "Required checks and policy must pass before semantic review.",
+      "concerns": [
+        "task policy added-line limit exceeded: 3394 > 1200",
+        "task policy does not allow path: docs/architecture/component-inventory.json~28204",
+        "task policy does not allow path: docs/architecture/component-inventory.json~9276",
+        "capability grant missing for filesystem.write:docs/architecture/component-inventory.json~28204",
+        "capability grant missing for filesystem.write:docs/architecture/component-inventory.json~9276",
+        "Expected output not delivered: workflow-a-optimization-code-change",
+        "Expected output not delivered: workflow-a-human-gate-briefing-tests",
+        "Policy gate failed before verification checks; no deterministic check records were produced.",
+        "Agent-reported verification commands were not executed or recorded by the deterministic gate (Policy gate failed before verification checks; no deterministic check records were produced.): uv run python -B scripts/check.py --test, uv run python -B scripts/check.py --lint, uv run python -B scripts/check.py"
+      ]
+    }
+  ],
+  "blocking_issues": [
+    "task policy added-line limit exceeded: 3394 > 1200",
+    "task policy does not allow path: docs/architecture/component-inventory.json~28204",
+    "task policy does not allow path: docs/architecture/component-inventory.json~9276",
+    "capability grant missing for filesystem.write:docs/architecture/component-inventory.json~28204",
+    "capability grant missing for filesystem.write:docs/architecture/component-inventory.json~9276",
+    "Expected output not delivered: workflow-a-optimization-code-change",
+    "Expected output not delivered: workflow-a-human-gate-briefing-tests",
+    "Policy gate failed before verification checks; no deterministic check records were produced."
+  ],
+  "non_blocking_issues": [
+    "Agent-reported verification commands were not executed or recorded by the deterministic gate (Policy gate failed before verification checks; no deterministic check records were produced.): uv run python -B scripts/check.py --test, uv run python -B scripts/check.py --lint, uv run python -B scripts/check.py"
+  ],
+  "confidence": 1.0
+}

@@ -1,0 +1,81 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "NodeRun",
+  "metadata": {
+    "nodeRunId": "NRUN-5a1dd2236b7b4e34b96268e772354f38",
+    "planId": "PLAN-acef0ed361a55127",
+    "nodeId": "NODE-workflow-a-human-gates-optimization",
+    "executorRelease": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "spec": {
+    "nodeType": "bounded_task",
+    "status": "rejected",
+    "artifactRefs": [
+      "ART-fdc09468636447059171260723929e30",
+      "ART-4848fb0c2835490db9866f27d40ad956",
+      "ART-b470d95b8d6e470484001b2572545ebe",
+      "ART-8ceff6a1b1c74c7d8e43ee7da7de61ff"
+    ],
+    "evidenceRefs": [
+      "EVD-7d79d0d2b8294f06bea9f98888f50e1e",
+      "EVD-57c76b4321284b6a9b66022c5e450a1b",
+      "EVD-544b5d748ec848a3980363edd4b1faee",
+      "EVD-8a68b75578c045bdbd50344ac1dd7428"
+    ],
+    "gateRefs": [
+      "GATE-workflow-a-human-gates-optimization",
+      "GATE-workflow-a-human-gates-semantic-review"
+    ],
+    "terminalFailureRefs": [
+      "tasks/workflow-a-human-gates-optimization/terminal-failure.json"
+    ],
+    "taskCompletedStateUpdateAttempted": false,
+    "usage": {
+      "modelCalls": 2,
+      "toolCalls": 4,
+      "spawnedNodes": 0,
+      "costUsd": 0.0
+    },
+    "message": "Task exhausted its bounded attempts; failed work was preserved in the workspace.",
+    "details": {
+      "taskId": "workflow-a-human-gates-optimization",
+      "taskStatus": "rejected",
+      "commit": null,
+      "semanticReviewEnabled": true,
+      "executionPolicy": {
+        "maxAttempts": 1,
+        "startupTimeoutSeconds": 120,
+        "idleTimeoutSeconds": 900,
+        "heartbeatIntervalSeconds": 60,
+        "attemptWallTimeoutSeconds": 3600,
+        "runDeadlineSeconds": 7200
+      },
+      "executionPolicyDecision": {
+        "schema_version": "ahra/execution-policy-decision/0.1",
+        "strategy": "deterministic-task-estimate-v1",
+        "nodeId": "NODE-workflow-a-human-gates-optimization",
+        "estimatedSeconds": 3600,
+        "softDeadlineSeconds": 7200,
+        "hardDeadlineSeconds": 7200,
+        "nodeBudgetSeconds": 7200,
+        "basePolicy": {
+          "maxAttempts": 1,
+          "startupTimeoutSeconds": 120,
+          "idleTimeoutSeconds": 900,
+          "heartbeatIntervalSeconds": 60,
+          "attemptWallTimeoutSeconds": 3600,
+          "runDeadlineSeconds": 7200
+        },
+        "effectivePolicy": {
+          "maxAttempts": 1,
+          "startupTimeoutSeconds": 120,
+          "idleTimeoutSeconds": 900,
+          "heartbeatIntervalSeconds": 60,
+          "attemptWallTimeoutSeconds": 3600,
+          "runDeadlineSeconds": 7200
+        },
+        "rationale": "Use a deterministic task-size estimate; interrupt an Agent phase at roughly twice the estimate while retaining a larger hard run deadline."
+      }
+    }
+  }
+}

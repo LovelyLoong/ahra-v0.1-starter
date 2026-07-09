@@ -1,0 +1,24 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "workflow-a-human-gates-optimization",
+  "artifacts": [
+    {
+      "artifact_id": "ART-53927d538ca84231a2164499dfd624a5",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "execution_policy_decision",
+      "name": "execution-policy-decision.json",
+      "uri": "local://nodes/NODE-workflow-a-human-gates-optimization/execution-policy-decision.json",
+      "sha256": "86f168c92cf29e3e13b5e7ff2508fdd4b16ba991813cd5c0454d4e35b889e142",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-08T10:44:54.747141Z",
+      "input_refs": [
+        "PLAN-acef0ed361a55127",
+        "NODE-workflow-a-human-gates-optimization",
+        "NRUN-d8b7486765e95547"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    }
+  ]
+}

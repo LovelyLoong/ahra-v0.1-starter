@@ -1,0 +1,32 @@
+{
+  "summary": "Implemented the Workflow A admission-hardening increment: Gate 2 HTML briefing generation and strict binding, Workflow A status reporting, structured Gate 1 decisions, admission-aware drafting/redraft behavior before Gate 2 approval, CLI wiring, docs, inventory updates, and focused unit/CLI coverage. Focused unit tests passed; lint/full check are blocked by a pre-existing missing skills/ahra-dynamic-kernel/SKILL.md path outside the granted write scope.",
+  "changed_files": [
+    "docs/architecture/component-inventory.json",
+    "docs/architecture/framework-entrypoints.md",
+    "docs/architecture/intent-alignment-workflow.md",
+    "docs/policies/component-lifecycle.md",
+    "src/ahra/adapters/codex_sdk.py",
+    "src/ahra/alignment_session.py",
+    "src/ahra/cli.py",
+    "src/ahra/workflow_a_briefing.py",
+    "src/ahra/workflow_a_cli.py",
+    "tests/test_alignment_session.py",
+    "tests/test_cli.py",
+    "tests/test_codex_driver.py",
+    "tests/test_workflow_a_briefing.py",
+    "tests/test_workflow_a_cli.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --test",
+    "uv run python -B scripts/check.py --lint",
+    "uv run python -B scripts/check.py"
+  ],
+  "known_risks": [
+    "uv run python -B scripts/check.py --test passed: 371 tests ran, 1 skipped.",
+    "uv run python -B scripts/check.py --lint failed before contract lint completion because scripts/lint_contracts.py attempts to read missing skills/ahra-dynamic-kernel/SKILL.md; that path is outside the granted write resources for this task.",
+    "uv run python -B scripts/check.py failed for the same lint_contracts.py missing-file error, while the unittest phase passed."
+  ],
+  "unresolved_items": [
+    "The bounded task policy does not grant writes to skills/ahra-dynamic-kernel/SKILL.md or scripts/lint_contracts.py, so I did not create or modify those files to force lint/full check success."
+  ]
+}

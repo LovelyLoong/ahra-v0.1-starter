@@ -1,0 +1,214 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GoalExecutionRequest",
+  "metadata": {
+    "idempotencyKey": "workflow-a:human-gates-optimization:continue:20260708T035025-0700",
+    "name": "workflow-a-human-gates-optimization",
+    "requestId": "GREQ-WFA-HUMAN-GATES-OPT-CONTINUE-20260708T035025-0700"
+  },
+  "spec": {
+    "artifactDir": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-continue-20260708T035025-0700\\artifacts",
+    "execution": {
+      "branch": "main",
+      "maxConcurrency": 1,
+      "maxRepairCycles": 0
+    },
+    "executor": {
+      "adapterRef": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    "gateRunner": {
+      "adapterRef": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "goal": {
+      "claimGraphDigest": "sha256:b0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecf",
+      "claimGraphRef": "claim-graph/workflow-a-human-gates-optimization",
+      "goalDigest": "sha256:a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+      "goalRef": "GOAL-WFA-HUMAN-GATES-OPT",
+      "requiredClaimRefs": [
+        "CLM-GOAL-COMPLETE",
+        "CLM-WFA-ADMISSION-REDRAFT",
+        "CLM-WFA-DOCS-EXPERIMENTAL",
+        "CLM-WFA-HUMAN-GATE-BRIEFING",
+        "CLM-WFA-STATUS-AND-GATE1"
+      ]
+    },
+    "planDraft": {
+      "apiVersion": "ahra.dev/v1alpha1",
+      "kind": "PlanDraft",
+      "metadata": {
+        "goalId": "GOAL-WFA-HUMAN-GATES-OPT",
+        "proposedBy": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "spec": {
+        "nodes": [
+          {
+            "budgetRequest": {
+              "maxCostUsd": 1.0,
+              "maxModelCalls": 10,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 50,
+              "maxWallSeconds": 7200
+            },
+            "capabilityRequests": [
+              {
+                "capability": "filesystem.write",
+                "resources": [
+                  "docs/architecture/component-inventory.json",
+                  "docs/architecture/framework-entrypoints.md",
+                  "docs/architecture/intent-alignment-workflow.md",
+                  "docs/policies/component-lifecycle.md",
+                  "src/ahra/adapters/codex_sdk.py",
+                  "src/ahra/alignment_session.py",
+                  "src/ahra/cli.py",
+                  "src/ahra/workflow_a_briefing.py",
+                  "src/ahra/workflow_a_cli.py",
+                  "tests/test_alignment_session.py",
+                  "tests/test_cli.py",
+                  "tests/test_codex_driver.py",
+                  "tests/test_workflow_a_briefing.py",
+                  "tests/test_workflow_a_cli.py"
+                ]
+              },
+              {
+                "capability": "process.exec",
+                "resources": [
+                  "uv run python -B scripts/check.py",
+                  "uv run python -B scripts/check.py --lint",
+                  "uv run python -B scripts/check.py --test"
+                ]
+              }
+            ],
+            "claimRefs": [
+              "CLM-WFA-ADMISSION-REDRAFT",
+              "CLM-WFA-DOCS-EXPERIMENTAL",
+              "CLM-WFA-HUMAN-GATE-BRIEFING",
+              "CLM-WFA-STATUS-AND-GATE1"
+            ],
+            "dependsOn": [],
+            "expectedOutputs": [
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [
+                  "NODE-goal-verification"
+                ],
+                "name": "workflow-a-optimization-code-change",
+                "schemaRef": "ahra/artifact/code-change/0.1"
+              },
+              {
+                "artifactRequired": true,
+                "consumerNodeRefs": [
+                  "NODE-goal-verification"
+                ],
+                "name": "workflow-a-human-gate-briefing-tests",
+                "schemaRef": "ahra/artifact/test-evidence/0.1"
+              }
+            ],
+            "gateRefs": [
+              "GATE-workflow-a-human-gates-optimization",
+              "GATE-workflow-a-human-gates-semantic-review"
+            ],
+            "id": "NODE-workflow-a-human-gates-optimization",
+            "inputRefs": [
+              "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-run\\artifacts\\bounded-task-executor\\tasks\\workflow-a-human-gates-optimization\\attempt-1\\deterministic-evidence.json",
+              "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-run\\artifacts\\bounded-task-executor\\tasks\\workflow-a-human-gates-optimization\\attempt-1\\review.json",
+              "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-run\\artifacts\\bounded-task-executor\\tasks\\workflow-a-human-gates-optimization\\attempt-1\\work-report.json",
+              "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-run\\artifacts\\bounded-task-executor\\tasks\\workflow-a-human-gates-optimization\\rejected.patch",
+              "artifacts/workflow-a-adoption-plan/20260708T000000-0700/approval.json",
+              "artifacts/workflow-a-adoption-plan/20260708T000000-0700/goal-execution-request.yaml",
+              "artifacts/workflow-a-adoption-plan/20260708T000000-0700/request-draft.json",
+              "artifacts/workflow-a-adoption-plan/20260708T000000-0700/session.json",
+              "artifacts/workflow-a-optimization-plan/20260708T000000-0700/human-approval-checklist.html",
+              "artifacts/workflow-a-optimization-plan/20260708T000000-0700/workflow-b-optimization-plan.md",
+              "docs/architecture/component-inventory.json",
+              "docs/architecture/framework-entrypoints.md",
+              "docs/architecture/intent-alignment-workflow.md"
+            ],
+            "nodeType": "bounded_task",
+            "objective": "Continuation instruction for this run: reuse the previous Workflow B\noutput instead of re-implementing from scratch. Start by applying\nthe prior rejected patch at 'E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-run\\artifacts\\bounded-task-executor\\tasks\\workflow-a-human-gates-optimization\\rejected.patch'. It has already been checked\nwith git apply --check against HEAD 37722a6 and applies cleanly.\nUse the prior work report and deterministic evidence as context,\nthen run the required verification commands. Only make additional\nedits if the patch application or checks reveal a real defect.\nImplement a Workflow A usability and admission-hardening increment.\nRequired behavior:\n1) Add an automatic self-contained HTML Gate 2 briefing generated\nfrom RequestDraft and ApprovalRecord inputs. The briefing must show\nrequest id, approval id, request/plan digests, current status, next\nsafe command, allowed write scope, explicitly unauthorized scope,\nplan node summary, claim coverage summary, non-goals, and a visible\nhuman checklist. The HTML must escape dynamic text and use no\nexternal scripts, remote assets, or network dependencies.\n2) Bind Gate 2 authorization to that briefing in strict mode by\nverifying request id, approval id, and request digest. The HTML is a\nhuman briefing artifact only; ApprovalRecord and GoalExecutionRequest\nremain the machine authorities.\n3) Add a human-readable Workflow A status surface that reports the\ncurrent stage, request/approval/briefing/request-output paths when\nknown, the next safe action, and whether Workflow B has started.\n4) Represent unresolved Gate 1 choices as structured decision records\nwith decision id, question, recommendation, alternatives,\nconsequences, blocking flag, and final answer. Gate 1 must not\nfreeze while blocking decisions remain unanswered.\n5) Formalize admission-aware drafting so Acceptance and Requirement\nagents receive registered node types, gate refs, runtime refs,\nallowed capabilities, and budget rules before drafting. Human\napproval must be represented as approvalRequired rather than invented\nHumanGate refs.\n6) Run RequestDraftAdmission after cross-alignment and before Gate 2\napproval creation. If admission rejects and attempts remain, feed the\nstructured rejection report back into a bounded redraft. If attempts\nare exhausted, persist the failure and do not write approval.json.\n7) Update the relevant docs and component inventory without changing\nWorkflow A's experimental/non-default lifecycle classification.\nVerification must include focused unit/CLI coverage and at least\nuv run python -B scripts/check.py, then record the commands in the\nWorkReport.verification_commands_run field.\n",
+            "retryPolicy": {
+              "idempotencyKeyRequired": true,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "non_idempotent",
+            "terminalGoalVerification": false,
+            "timeoutSeconds": 7200
+          },
+          {
+            "budgetRequest": {
+              "maxCostUsd": 0.0,
+              "maxModelCalls": 1,
+              "maxSpawnedNodes": 0,
+              "maxToolCalls": 1,
+              "maxWallSeconds": 60
+            },
+            "capabilityRequests": [],
+            "claimRefs": [
+              "CLM-GOAL-COMPLETE",
+              "CLM-WFA-ADMISSION-REDRAFT",
+              "CLM-WFA-DOCS-EXPERIMENTAL",
+              "CLM-WFA-HUMAN-GATE-BRIEFING",
+              "CLM-WFA-STATUS-AND-GATE1"
+            ],
+            "dependsOn": [
+              "NODE-workflow-a-human-gates-optimization"
+            ],
+            "expectedOutputs": [],
+            "gateRefs": [
+              "GATE-goal-complete"
+            ],
+            "id": "NODE-goal-verification",
+            "inputRefs": [
+              "NODE-workflow-a-human-gates-optimization"
+            ],
+            "nodeType": "goal_verification",
+            "objective": "Verify that Workflow A now produces a digest-bound human-readable\nGate 2 HTML briefing, exposes an actionable status surface, preserves\nGate 1/Gate 2 authority boundaries, rejects or bounded-redrafts\nadmission failures before approval creation, and remains documented\nas explicit experimental/non-default.\n",
+            "retryPolicy": {
+              "idempotencyKeyRequired": false,
+              "maxAttempts": 1,
+              "retryableFailureClasses": []
+            },
+            "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sideEffect": "idempotent",
+            "terminalGoalVerification": true,
+            "timeoutSeconds": 60
+          }
+        ],
+        "rationale": "Optimize the explicit experimental Workflow A lifecycle before using it\nfor broader AHRA adoption work. The recent Workflow A dogfood run proved\nthat raw Gate 2 artifacts are too machine-facing for human approval and\nthat RequestDraftAdmission failures can appear after cross-alignment has\npassed. This GoalExecutionRequest is the Workflow B entry request for\nthat optimization. It must not promote Workflow A to the default route,\nmust not change Workflow B execution semantics, and must not start the\npreviously frozen adoption-model request.\n"
+      }
+    },
+    "planner": {
+      "adapterRef": "planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "profileRef": "profile/development-bounded",
+    "registry": {
+      "allowedCapabilities": [
+        "filesystem.write",
+        "process.exec"
+      ],
+      "gateDefinitions": [],
+      "gateRefs": {
+        "GATE-goal-complete": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "GATE-workflow-a-human-gates-optimization": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "GATE-workflow-a-human-gates-semantic-review": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "nodeTypes": {
+        "bounded_task": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "goal_verification": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "runtimeRefs": {
+        "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    },
+    "runtime": {
+      "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "runtimeRef": "runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "store": {
+      "kind": "sqlite",
+      "path": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-continue-20260708T035025-0700\\goal-control.sqlite3"
+    },
+    "workspaceRef": "E:\\ahra-v0.1-starter"
+  }
+}

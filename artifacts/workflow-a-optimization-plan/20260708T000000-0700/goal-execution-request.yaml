@@ -1,0 +1,205 @@
+apiVersion: ahra.dev/v1alpha1
+kind: GoalExecutionRequest
+metadata:
+  name: workflow-a-human-gates-optimization
+  requestId: GREQ-WFA-HUMAN-GATES-OPT-20260708
+  idempotencyKey: workflow-a:human-gates-optimization:20260708:1
+spec:
+  profileRef: profile/development-bounded
+  workspaceRef: ../../..
+  artifactDir: workflow-b-run/artifacts
+  store:
+    kind: sqlite
+    path: workflow-b-run/goal-control.sqlite3
+  planner:
+    adapterRef: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  executor:
+    adapterRef: executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666
+  gateRunner:
+    adapterRef: gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  runtime:
+    runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    digest: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+  goal:
+    goalRef: GOAL-WFA-HUMAN-GATES-OPT
+    goalDigest: sha256:a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf
+    claimGraphRef: claim-graph/workflow-a-human-gates-optimization
+    claimGraphDigest: sha256:b0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecf
+    requiredClaimRefs:
+      - CLM-WFA-HUMAN-GATE-BRIEFING
+      - CLM-WFA-STATUS-AND-GATE1
+      - CLM-WFA-ADMISSION-REDRAFT
+      - CLM-WFA-DOCS-EXPERIMENTAL
+      - CLM-GOAL-COMPLETE
+  registry:
+    nodeTypes:
+      bounded_task: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      goal_verification: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    gateRefs:
+      GATE-workflow-a-human-gates-optimization: sha256:3333333333333333333333333333333333333333333333333333333333333333
+      GATE-workflow-a-human-gates-semantic-review: sha256:5555555555555555555555555555555555555555555555555555555555555555
+      GATE-goal-complete: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    runtimeRefs:
+      runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    allowedCapabilities:
+      - filesystem.write
+      - process.exec
+  execution:
+    maxRepairCycles: 0
+    maxConcurrency: 1
+    branch: main
+  planDraft:
+    apiVersion: ahra.dev/v1alpha1
+    kind: PlanDraft
+    metadata:
+      goalId: GOAL-WFA-HUMAN-GATES-OPT
+      proposedBy: planner/inline-plan-draft@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    spec:
+      rationale: |
+        Optimize the explicit experimental Workflow A lifecycle before using it
+        for broader AHRA adoption work. The recent Workflow A dogfood run proved
+        that raw Gate 2 artifacts are too machine-facing for human approval and
+        that RequestDraftAdmission failures can appear after cross-alignment has
+        passed. This GoalExecutionRequest is the Workflow B entry request for
+        that optimization. It must not promote Workflow A to the default route,
+        must not change Workflow B execution semantics, and must not start the
+        previously frozen adoption-model request.
+      nodes:
+        - id: NODE-workflow-a-human-gates-optimization
+          nodeType: bounded_task
+          objective: |
+            Implement a Workflow A usability and admission-hardening increment.
+            Required behavior:
+            1) Add an automatic self-contained HTML Gate 2 briefing generated
+            from RequestDraft and ApprovalRecord inputs. The briefing must show
+            request id, approval id, request/plan digests, current status, next
+            safe command, allowed write scope, explicitly unauthorized scope,
+            plan node summary, claim coverage summary, non-goals, and a visible
+            human checklist. The HTML must escape dynamic text and use no
+            external scripts, remote assets, or network dependencies.
+            2) Bind Gate 2 authorization to that briefing in strict mode by
+            verifying request id, approval id, and request digest. The HTML is a
+            human briefing artifact only; ApprovalRecord and GoalExecutionRequest
+            remain the machine authorities.
+            3) Add a human-readable Workflow A status surface that reports the
+            current stage, request/approval/briefing/request-output paths when
+            known, the next safe action, and whether Workflow B has started.
+            4) Represent unresolved Gate 1 choices as structured decision records
+            with decision id, question, recommendation, alternatives,
+            consequences, blocking flag, and final answer. Gate 1 must not
+            freeze while blocking decisions remain unanswered.
+            5) Formalize admission-aware drafting so Acceptance and Requirement
+            agents receive registered node types, gate refs, runtime refs,
+            allowed capabilities, and budget rules before drafting. Human
+            approval must be represented as approvalRequired rather than invented
+            HumanGate refs.
+            6) Run RequestDraftAdmission after cross-alignment and before Gate 2
+            approval creation. If admission rejects and attempts remain, feed the
+            structured rejection report back into a bounded redraft. If attempts
+            are exhausted, persist the failure and do not write approval.json.
+            7) Update the relevant docs and component inventory without changing
+            Workflow A's experimental/non-default lifecycle classification.
+            Verification must include focused unit/CLI coverage and at least
+            uv run python -B scripts/check.py, then record the commands in the
+            WorkReport.verification_commands_run field.
+          claimRefs:
+            - CLM-WFA-HUMAN-GATE-BRIEFING
+            - CLM-WFA-STATUS-AND-GATE1
+            - CLM-WFA-ADMISSION-REDRAFT
+            - CLM-WFA-DOCS-EXPERIMENTAL
+          dependsOn: []
+          inputRefs:
+            - artifacts/workflow-a-optimization-plan/20260708T000000-0700/workflow-b-optimization-plan.md
+            - artifacts/workflow-a-optimization-plan/20260708T000000-0700/human-approval-checklist.html
+            - artifacts/workflow-a-adoption-plan/20260708T000000-0700/session.json
+            - artifacts/workflow-a-adoption-plan/20260708T000000-0700/request-draft.json
+            - artifacts/workflow-a-adoption-plan/20260708T000000-0700/approval.json
+            - artifacts/workflow-a-adoption-plan/20260708T000000-0700/goal-execution-request.yaml
+            - docs/architecture/intent-alignment-workflow.md
+            - docs/architecture/framework-entrypoints.md
+            - docs/architecture/component-inventory.json
+          expectedOutputs:
+            - name: workflow-a-optimization-code-change
+              schemaRef: ahra/artifact/code-change/0.1
+              consumerNodeRefs:
+                - NODE-goal-verification
+              artifactRequired: true
+            - name: workflow-a-human-gate-briefing-tests
+              schemaRef: ahra/artifact/test-evidence/0.1
+              consumerNodeRefs:
+                - NODE-goal-verification
+              artifactRequired: true
+          capabilityRequests:
+            - capability: filesystem.write
+              resources:
+                - src/ahra/workflow_a_briefing.py
+                - src/ahra/workflow_a_cli.py
+                - src/ahra/cli.py
+                - src/ahra/alignment_session.py
+                - src/ahra/adapters/codex_sdk.py
+                - tests/test_workflow_a_briefing.py
+                - tests/test_workflow_a_cli.py
+                - tests/test_cli.py
+                - tests/test_alignment_session.py
+                - tests/test_codex_driver.py
+                - docs/architecture/intent-alignment-workflow.md
+                - docs/architecture/framework-entrypoints.md
+                - docs/architecture/component-inventory.json
+                - docs/policies/component-lifecycle.md
+            - capability: process.exec
+              resources:
+                - uv run python -B scripts/check.py
+                - uv run python -B scripts/check.py --lint
+                - uv run python -B scripts/check.py --test
+          gateRefs:
+            - GATE-workflow-a-human-gates-optimization
+            - GATE-workflow-a-human-gates-semantic-review
+          runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+          budgetRequest:
+            maxModelCalls: 10
+            maxToolCalls: 50
+            maxSpawnedNodes: 0
+            maxWallSeconds: 7200
+            maxCostUsd: 1.0
+          retryPolicy:
+            maxAttempts: 1
+            retryableFailureClasses: []
+            idempotencyKeyRequired: true
+          timeoutSeconds: 7200
+          sideEffect: non_idempotent
+        - id: NODE-goal-verification
+          nodeType: goal_verification
+          objective: |
+            Verify that Workflow A now produces a digest-bound human-readable
+            Gate 2 HTML briefing, exposes an actionable status surface, preserves
+            Gate 1/Gate 2 authority boundaries, rejects or bounded-redrafts
+            admission failures before approval creation, and remains documented
+            as explicit experimental/non-default.
+          claimRefs:
+            - CLM-WFA-HUMAN-GATE-BRIEFING
+            - CLM-WFA-STATUS-AND-GATE1
+            - CLM-WFA-ADMISSION-REDRAFT
+            - CLM-WFA-DOCS-EXPERIMENTAL
+            - CLM-GOAL-COMPLETE
+          dependsOn:
+            - NODE-workflow-a-human-gates-optimization
+          inputRefs:
+            - NODE-workflow-a-human-gates-optimization
+          expectedOutputs: []
+          capabilityRequests: []
+          gateRefs:
+            - GATE-goal-complete
+          runtimeRef: runtime/local-goal@sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+          budgetRequest:
+            maxModelCalls: 1
+            maxToolCalls: 1
+            maxSpawnedNodes: 0
+            maxWallSeconds: 60
+            maxCostUsd: 0.0
+          retryPolicy:
+            maxAttempts: 1
+            retryableFailureClasses: []
+            idempotencyKeyRequired: false
+          timeoutSeconds: 60
+          sideEffect: idempotent
+          terminalGoalVerification: true

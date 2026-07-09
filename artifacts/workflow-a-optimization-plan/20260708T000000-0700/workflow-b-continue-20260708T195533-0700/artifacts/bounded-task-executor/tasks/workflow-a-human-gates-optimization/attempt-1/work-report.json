@@ -1,0 +1,28 @@
+{
+  "summary": "Applied the prior rejected Workflow A patch in the provided workspace. The patch adds Gate 2 HTML briefing generation and binding checks, Workflow A status output, structured Gate 1 decisions, admission-aware drafting/redraft flow, and the requested docs/component-inventory updates. No additional code edits were needed after verification reruns passed.",
+  "changed_files": [
+    "docs/architecture/component-inventory.json",
+    "docs/architecture/framework-entrypoints.md",
+    "docs/architecture/intent-alignment-workflow.md",
+    "docs/policies/component-lifecycle.md",
+    "src/ahra/adapters/codex_sdk.py",
+    "src/ahra/alignment_session.py",
+    "src/ahra/cli.py",
+    "src/ahra/workflow_a_briefing.py",
+    "src/ahra/workflow_a_cli.py",
+    "tests/test_alignment_session.py",
+    "tests/test_cli.py",
+    "tests/test_codex_driver.py",
+    "tests/test_workflow_a_briefing.py",
+    "tests/test_workflow_a_cli.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py",
+    "uv run python -B scripts/check.py --lint",
+    "uv run python -B scripts/check.py --test"
+  ],
+  "known_risks": [
+    "The first full uv run python -B scripts/check.py invocation failed once in two broader end-to-end tests, then uv run python -B scripts/check.py --test and a repeated full uv run python -B scripts/check.py passed."
+  ],
+  "unresolved_items": []
+}

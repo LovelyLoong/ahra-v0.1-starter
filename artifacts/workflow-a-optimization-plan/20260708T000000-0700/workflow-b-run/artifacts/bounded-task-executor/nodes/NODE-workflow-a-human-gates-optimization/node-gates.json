@@ -1,0 +1,29 @@
+{
+  "schema_version": "ahra/node-gate-summary/0.1",
+  "plan_id": "PLAN-acef0ed361a55127",
+  "node_id": "NODE-workflow-a-human-gates-optimization",
+  "node_type": "bounded_task",
+  "gate_refs": [
+    "GATE-workflow-a-human-gates-optimization",
+    "GATE-workflow-a-human-gates-semantic-review"
+  ],
+  "l0_gates": [],
+  "semantic_review_enabled": true,
+  "status": "rejected",
+  "attempts": [
+    {
+      "attempt": 1,
+      "deterministicPassed": false,
+      "requiredChecksPassed": false,
+      "checkExecutionStatus": "completed",
+      "checkSkipReason": null,
+      "agentReportedVerificationCommands": [
+        "uv run python -B scripts/check.py --test",
+        "uv run python -B scripts/check.py --lint",
+        "uv run python -B scripts/check.py"
+      ],
+      "reviewVerdict": "fail",
+      "error": null
+    }
+  ]
+}

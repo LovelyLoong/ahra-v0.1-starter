@@ -1,0 +1,283 @@
+{
+  "completion": {
+    "complete": true,
+    "currentClaimCoverage": 1.0,
+    "historicalEvidenceRefs": [],
+    "missingClaimRefs": [],
+    "nonCurrentEvidenceRefs": [],
+    "openDefectRefs": [],
+    "resolutionFailureRefs": [],
+    "uncoveredClaimRefs": []
+  },
+  "defects": [],
+  "executionWorkspacePreserved": false,
+  "executionWorkspaceRef": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-continue-20260708T195533-0700\\artifacts\\development-worktrees\\GEXEC-bb76279a9f0cf847\\development-bounded-c93f4291",
+  "goalExecutionId": "GEXEC-bb76279a9f0cf847",
+  "goalStatus": "succeeded",
+  "inspect": {
+    "artifactFindings": [],
+    "goalExecution": {
+      "active_plan_execution_ref": null,
+      "approval_refs": [],
+      "artifact_refs": [
+        "ART-f7e7e55a4393466fb86f1af476e5f2e2",
+        "ART-9b730a70e2a4418f83a3e9473a00bf89",
+        "ART-2c7e5b875af84adf8999ef554c001906",
+        "ART-e996cb5f4b8142d2aaed3d34e4724619",
+        "ART-311d71a20207430fb7e48176e73f727f"
+      ],
+      "budget_summary": {
+        "profileRef": "profile/development-bounded"
+      },
+      "checkpoint_ref": null,
+      "claim_graph_digest": "sha256:b0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecf",
+      "claim_graph_ref": "claim-graph/workflow-a-human-gates-optimization",
+      "created_at": "2026-07-09T02:56:32.053971Z",
+      "evidence_refs": [
+        "EVD-4ede5df72827cd63",
+        "EVD-e1e2172766006b0c",
+        "EVD-0bfe10955290bb13"
+      ],
+      "failure_class": null,
+      "goal_digest": "sha256:a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+      "goal_execution_id": "GEXEC-bb76279a9f0cf847",
+      "goal_ref": "GOAL-WFA-HUMAN-GATES-OPT",
+      "max_repair_cycles": 0,
+      "message": "Completion Service accepted the GoalExecution.",
+      "open_defect_refs": [],
+      "plan_execution_refs": [
+        "PEXEC-e08be9bbd63c062b"
+      ],
+      "repair_cycle": 0,
+      "resolved_defect_refs": [],
+      "schema_version": "ahra/goal-execution/0.1",
+      "status": "succeeded",
+      "status_version": 3,
+      "updated_at": "2026-07-09T03:17:09.711611Z",
+      "usage": {},
+      "workspace_ref": "E:\\ahra-v0.1-starter"
+    },
+    "idempotencyRecords": [],
+    "metrics": {
+      "capabilityGrantRefCount": 2,
+      "evidenceRefCount": 3,
+      "goalStatus": "succeeded",
+      "missingArtifactCount": 0,
+      "nodeRunCount": 2,
+      "nodeStatusCounts": {
+        "succeeded": 2
+      },
+      "planExecutionCount": 1
+    },
+    "nodeRuns": [
+      {
+        "admission_decision_refs": [],
+        "artifact_refs": [],
+        "attempt": 1,
+        "budget": {
+          "maxCostUsd": 0.0,
+          "maxModelCalls": 1,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 1,
+          "maxWallSeconds": 60
+        },
+        "capability_grant_digests": [],
+        "capability_grant_refs": [],
+        "created_at": "2026-07-09T02:56:32.107115Z",
+        "dependency_node_refs": [
+          "NODE-workflow-a-human-gates-optimization"
+        ],
+        "evidence_refs": [
+          "EVD-0bfe10955290bb13"
+        ],
+        "executor_release": null,
+        "failure_class": null,
+        "gate_refs": [
+          "GATE-goal-complete"
+        ],
+        "lease": null,
+        "message": "Goal completion gate passed.",
+        "node_id": "NODE-goal-verification",
+        "node_run_id": "NRUN-d709f4dd25bd9c5f",
+        "node_type": "goal_verification",
+        "plan_digest": "sha256:68b3e8d7c87916e082d3f39d493f1f65024882fa47aec6a940dc1c5cb5c93cbc",
+        "plan_execution_id": "PEXEC-e08be9bbd63c062b",
+        "plan_id": "PLAN-80f54f1bfb22aa37",
+        "schema_version": "ahra/node-run-state/0.1",
+        "status": "succeeded",
+        "status_version": 6,
+        "terminal_failure_refs": [],
+        "updated_at": "2026-07-09T03:17:09.027817Z",
+        "usage": {
+          "costUsd": 0.0,
+          "modelCalls": 1,
+          "spawnedNodes": 0,
+          "toolCalls": 0
+        }
+      },
+      {
+        "admission_decision_refs": [
+          "PDEC-5d9b6bd4-104b-423b-8a61-7ee9439962fc",
+          "PDEC-c4ac2544-9883-46ba-93da-fac83ed87cda"
+        ],
+        "artifact_refs": [
+          "ART-f7e7e55a4393466fb86f1af476e5f2e2",
+          "ART-9b730a70e2a4418f83a3e9473a00bf89",
+          "ART-2c7e5b875af84adf8999ef554c001906",
+          "ART-e996cb5f4b8142d2aaed3d34e4724619",
+          "ART-311d71a20207430fb7e48176e73f727f"
+        ],
+        "attempt": 1,
+        "budget": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 10,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 50,
+          "maxWallSeconds": 7200
+        },
+        "capability_grant_digests": [
+          "sha256:d2730c3e97a8f2df3af4e08ea1a0d6aadcd81cbf62894d36263d411926033044",
+          "sha256:9984360b72003d4a10fb5ce87333469aa29974732cf21aef3b9385cfee42eaf0"
+        ],
+        "capability_grant_refs": [
+          "CGRANT-7d6877ca-966c-4c67-84bc-7aebc00f6a8d",
+          "CGRANT-d4891e8f-db4b-4d00-bc1c-68c1b5e148a8"
+        ],
+        "created_at": "2026-07-09T02:56:32.107115Z",
+        "dependency_node_refs": [],
+        "evidence_refs": [
+          "EVD-4ede5df72827cd63",
+          "EVD-e1e2172766006b0c"
+        ],
+        "executor_release": "executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "failure_class": null,
+        "gate_refs": [
+          "GATE-workflow-a-human-gates-optimization",
+          "GATE-workflow-a-human-gates-semantic-review"
+        ],
+        "lease": null,
+        "message": "Task passed deterministic and independent semantic gates.",
+        "node_id": "NODE-workflow-a-human-gates-optimization",
+        "node_run_id": "NRUN-44b4d49ae0465d7c",
+        "node_type": "bounded_task",
+        "plan_digest": "sha256:68b3e8d7c87916e082d3f39d493f1f65024882fa47aec6a940dc1c5cb5c93cbc",
+        "plan_execution_id": "PEXEC-e08be9bbd63c062b",
+        "plan_id": "PLAN-80f54f1bfb22aa37",
+        "schema_version": "ahra/node-run-state/0.1",
+        "status": "succeeded",
+        "status_version": 6,
+        "terminal_failure_refs": [],
+        "updated_at": "2026-07-09T03:17:05.654069Z",
+        "usage": {
+          "costUsd": 0.0,
+          "modelCalls": 2,
+          "spawnedNodes": 0,
+          "toolCalls": 4
+        }
+      }
+    ],
+    "planExecutions": [
+      {
+        "artifact_refs": [
+          "ART-f7e7e55a4393466fb86f1af476e5f2e2",
+          "ART-9b730a70e2a4418f83a3e9473a00bf89",
+          "ART-2c7e5b875af84adf8999ef554c001906",
+          "ART-e996cb5f4b8142d2aaed3d34e4724619",
+          "ART-311d71a20207430fb7e48176e73f727f"
+        ],
+        "budget_summary": {
+          "maxCostUsd": 1.0,
+          "maxModelCalls": 11,
+          "maxSpawnedNodes": 0,
+          "maxToolCalls": 51,
+          "maxWallSeconds": 7260,
+          "nodeCount": 2
+        },
+        "cancel_requested": false,
+        "checkpoint_ref": "checkpoint://CHK-df279c145664353f",
+        "created_at": "2026-07-09T02:56:32.107115Z",
+        "deadline_at": null,
+        "evidence_refs": [
+          "EVD-4ede5df72827cd63",
+          "EVD-e1e2172766006b0c",
+          "EVD-0bfe10955290bb13"
+        ],
+        "failure_class": null,
+        "goal_execution_ref": "GEXEC-bb76279a9f0cf847",
+        "goal_ref": "GOAL-WFA-HUMAN-GATES-OPT",
+        "handoff_refs": [
+          "HANDOFF-PEXEC-e08be9bbd63c062b-review"
+        ],
+        "lease": null,
+        "max_concurrency": 1,
+        "message": "Static PlanIR DAG completed and goal verification passed.",
+        "node_run_refs": [
+          "NRUN-44b4d49ae0465d7c",
+          "NRUN-d709f4dd25bd9c5f"
+        ],
+        "parent_plan_digest": null,
+        "parent_plan_execution_ref": null,
+        "plan_digest": "sha256:68b3e8d7c87916e082d3f39d493f1f65024882fa47aec6a940dc1c5cb5c93cbc",
+        "plan_execution_id": "PEXEC-e08be9bbd63c062b",
+        "plan_id": "PLAN-80f54f1bfb22aa37",
+        "plan_version": 1,
+        "reused_evidence_refs": [],
+        "reused_node_refs": [],
+        "schema_version": "ahra/plan-execution/0.1",
+        "status": "succeeded",
+        "status_version": 17,
+        "task_ref": null,
+        "trace_refs": [
+          "TRACE-PEXEC-e08be9bbd63c062b"
+        ],
+        "updated_at": "2026-07-09T03:17:09.460847Z",
+        "validation_report_digest": "sha256:f4d0dc07a13f32662fbebab2151f144831fd4203fa9aa82c23e7989aa903db6d",
+        "validation_report_ref": "PLANVAL-d07f62f286b006d4"
+      }
+    ],
+    "recoveryEvents": [],
+    "schema_version": "ahra/goal-operation-inspect/0.1"
+  },
+  "kernelVerification": {
+    "evidenceRecords": [
+      {
+        "evidenceRef": "EVD-4ede5df72827cd63",
+        "path": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-continue-20260708T195533-0700\\artifacts\\kernel-evidence\\EVD-4ede5df72827cd63.json",
+        "sha256": "ada46752a899e66d90549ddf8bd0ba3e81937a058f9a12532001352cb365da32"
+      },
+      {
+        "evidenceRef": "EVD-e1e2172766006b0c",
+        "path": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-continue-20260708T195533-0700\\artifacts\\kernel-evidence\\EVD-e1e2172766006b0c.json",
+        "sha256": "1e808cb6bc9fc2e39a850737047ad73f8df2bf0d8cd5d4c581d10a541c4fa746"
+      },
+      {
+        "evidenceRef": "EVD-0bfe10955290bb13",
+        "path": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-continue-20260708T195533-0700\\artifacts\\kernel-evidence\\EVD-0bfe10955290bb13.json",
+        "sha256": "5f0139177713cb2bc2d5b5b20f8649c2e1c61e67e2aa7bd3e04517a9b48bb7ad"
+      }
+    ],
+    "gateRuns": [
+      {
+        "gateRunRef": "GATERUN-4ede5df72827cd63",
+        "path": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-continue-20260708T195533-0700\\artifacts\\kernel-gate-runs\\GATERUN-4ede5df72827cd63.json",
+        "sha256": "74e90b0ae24a6eba09fa14abfceeac88932a07b86c2cedde3c630b9b92fec6d2"
+      },
+      {
+        "gateRunRef": "GATERUN-e1e2172766006b0c",
+        "path": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-continue-20260708T195533-0700\\artifacts\\kernel-gate-runs\\GATERUN-e1e2172766006b0c.json",
+        "sha256": "df0a9886e51319b1d759fc630f8f13e649ffcd4fb8ce5cffc5c8a734d44776f2"
+      },
+      {
+        "gateRunRef": "GATERUN-0bfe10955290bb13",
+        "path": "E:\\ahra-v0.1-starter\\artifacts\\workflow-a-optimization-plan\\20260708T000000-0700\\workflow-b-continue-20260708T195533-0700\\artifacts\\kernel-gate-runs\\GATERUN-0bfe10955290bb13.json",
+        "sha256": "ee571012ce7c8f08807f3609edbd26a8e2291480277c2fa5b93cc7adbe45de16"
+      }
+    ],
+    "schema_version": "ahra/kernel-verification-materialization/0.1"
+  },
+  "planExecutionId": "PEXEC-e08be9bbd63c062b",
+  "planStatus": "succeeded",
+  "ranReadyNodes": true,
+  "runOnce": false,
+  "schema_version": "ahra/goal-operation-start/0.1"
+}

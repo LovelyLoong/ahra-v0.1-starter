@@ -1,0 +1,145 @@
+{
+  "verdict": "pass",
+  "summary": "All acceptance criteria have explicit patch, manifest, artifact-existence, and deterministic verification evidence. The required expected outputs are marked delivered in the expected output manifest, all required files are present, policy limits are respected, and the required checks passed on the final recorded runs.",
+  "criteria": [
+    {
+      "criterion": "CLM-WFA-ADMISSION-REDRAFT",
+      "passed": true,
+      "evidence": "Patch adds RequestDraftAdmission evaluation after cross-alignment before approval creation, bounded redraft feedback via requestAdmissionReport, exhausted failure without approval.json, and tests test_draft_runs_admission_redraft_before_writing_approval plus passing check evidence.",
+      "concerns": []
+    },
+    {
+      "criterion": "CLM-WFA-DOCS-EXPERIMENTAL",
+      "passed": true,
+      "evidence": "Docs and component inventory updates keep Workflow A explicit experimental/non-default and add component-lifecycle text clarifying hardening increments are not promotion. Policy evidence shows only granted files changed.",
+      "concerns": []
+    },
+    {
+      "criterion": "CLM-WFA-HUMAN-GATE-BRIEFING",
+      "passed": true,
+      "evidence": "Patch adds src/ahra/workflow_a_briefing.py with self-contained escaped HTML, Gate 2 binding metadata, digest verification, and tests for escaping, no scripts/links/network references, and binding mismatch rejection.",
+      "concerns": []
+    },
+    {
+      "criterion": "CLM-WFA-STATUS-AND-GATE1",
+      "passed": true,
+      "evidence": "Patch adds workflow-a status command/surface and structured GateDecisionRecord handling; tests cover status output and blocking Gate 1 decisions preventing freeze until finalAnswer is present.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: docs/architecture/component-inventory.json",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch modifies this required file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: docs/architecture/framework-entrypoints.md",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch modifies this required file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: docs/architecture/intent-alignment-workflow.md",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch modifies this required file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: docs/policies/component-lifecycle.md",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch modifies this required file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/adapters/codex_sdk.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch modifies this required file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/alignment_session.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch modifies this required file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch modifies this required file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/workflow_a_briefing.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch adds this required file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: src/ahra/workflow_a_cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch modifies this required file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_alignment_session.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch adds Gate 1/admission assertions in this required test file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch adds Workflow A briefing/status CLI assertions in this required test file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_codex_driver.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch adds structured Gate 1 decision prompt coverage in this required test file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_workflow_a_briefing.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch adds this focused required test file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required artifact exists and is non-empty: tests/test_workflow_a_cli.py",
+      "passed": true,
+      "evidence": "Deterministic artifact_exists check passed and patch adds admission redraft, briefing, and status coverage in this required test file.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: workflow-a-optimization-code-change",
+      "passed": true,
+      "evidence": "expected_output_manifest marks workflow-a-optimization-code-change as delivered with status delivered and path local://tasks/workflow-a-human-gates-optimization/attempt-1/patch.diff.",
+      "concerns": []
+    },
+    {
+      "criterion": "Expected output is delivered: workflow-a-human-gate-briefing-tests",
+      "passed": true,
+      "evidence": "expected_output_manifest marks workflow-a-human-gate-briefing-tests as delivered with status delivered and path local://tasks/workflow-a-human-gates-optimization/attempt-1/deterministic-evidence.json.",
+      "concerns": []
+    },
+    {
+      "criterion": "Required verification commands were recorded and passed",
+      "passed": true,
+      "evidence": "WorkReport.verification_commands_run lists uv run python -B scripts/check.py, --lint, and --test; deterministic evidence records all three required checks passing with exit_code 0.",
+      "concerns": [
+        "Producer reported one earlier full-check failure before the final full check and focused checks passed; final deterministic evidence is passing."
+      ]
+    },
+    {
+      "criterion": "Policy and write-scope constraints were respected",
+      "passed": true,
+      "evidence": "Deterministic policy evidence reports 14 changed files, no sensitive files, no violations, 1098 added lines, and 40 deleted lines, within task limits and matching the granted file set.",
+      "concerns": []
+    }
+  ],
+  "blocking_issues": [],
+  "non_blocking_issues": [
+    "The work report notes an initial full check failed once before the later full check, lint, and test checks passed; no remaining deterministic failure is present in the provided evidence."
+  ],
+  "confidence": 0.88
+}

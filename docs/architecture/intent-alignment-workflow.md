@@ -214,6 +214,12 @@ still open is an `open_question` entry that blocks Gate 1. The free-zone
 dimension turns residual subjectivity from an accidental gap into a knowing,
 user-approved, ID'd region.
 
+Unresolved Gate 1 choices must also be represented as structured decision
+records, not only as prose. Each record carries `decisionId`, `question`,
+`recommendation`, `alternatives`, `consequences`, `blocking`, and
+`finalAnswer`. A blocking record without `finalAnswer` prevents Gate 1 freeze
+even if the Alignment Agent tries to mark the session converged.
+
 # Verification: validate the product, not the process
 
 Workflow A's own development tasks are verified by validating their **products**,
@@ -225,7 +231,7 @@ checked at Workflow A's exit is deterministic and command-gate decidable:
 |---|---|---|
 | Structure gate | the RequestDraft is a well-formed GoalExecutionRequest suite | schema validation, exit 0 |
 | Cross-alignment gate | every PlanNode claimRef resolves in the frozen ClaimGraph; every required Claim is covered by a node; every must/must_not/completion_signal entry is referenced by a Claim's criterionRefs; no Claim references a free_zone; no open_question remains | deterministic validator accepts; fail closed with a structured mismatch report and bounded redrafts |
-| Admission gate | digests resolve, capabilities are within the allowed set, the ClaimGraph is acyclic and valid | `RequestDraftAdmission` accepts |
+| Admission gate | digests resolve, capabilities are within the allowed set, the ClaimGraph is acyclic and valid | `RequestDraftAdmission` runs after cross-alignment and before ApprovalService creates Gate 2 approval; rejection feeds a structured report into bounded redraft, and exhausted attempts fail without `approval.json` |
 | Consumability gate | the frozen request is actually runnable by Workflow B | `goal validate` / `goal plan` exit 0 on the frozen request |
 
 The content quality of the dialogue is not graded by these gates. The Agent may
@@ -249,11 +255,14 @@ frozen RequestDraft passing the three exit gates and being consumable by B.
   mismatches before Agent invocation, require explicit Requirement-Agent
   `PlanDraft` and Acceptance-Agent `ClaimGraph`, enforce Human Gate 1, run the
   ADR-0010 boundary-contract and acceptance-first serial drafting order, and
-  apply the deterministic cross-alignment gate before emitting an untrusted
-  `RequestDraft` for Gate 2 authorization. Cross-alignment failures are recorded
-  as structured reports on the session snapshot and can trigger only bounded
-  redrafts. It remains non-default until a separate component-lifecycle
-  promotion approves default visibility.
+  apply the deterministic cross-alignment gate and RequestDraftAdmission before
+  emitting an untrusted `RequestDraft` for Gate 2 authorization.
+  Cross-alignment and admission failures are recorded as structured reports on
+  the session snapshot and can trigger only bounded redrafts. `workflow-a draft`
+  writes a self-contained Gate 2 HTML briefing from the RequestDraft and
+  ApprovalRecord, and `workflow-a authorize` verifies the briefing binding in
+  strict mode before freezing the GoalExecutionRequest. It remains non-default
+  until a separate component-lifecycle promotion approves default visibility.
 
 # Non-goals
 

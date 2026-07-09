@@ -1,0 +1,100 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "workflow-a-human-gates-optimization",
+  "artifacts": [
+    {
+      "artifact_id": "ART-9b730a70e2a4418f83a3e9473a00bf89",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "execution_policy_decision",
+      "name": "execution-policy-decision.json",
+      "uri": "local://nodes/NODE-workflow-a-human-gates-optimization/execution-policy-decision.json",
+      "sha256": "86f168c92cf29e3e13b5e7ff2508fdd4b16ba991813cd5c0454d4e35b889e142",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-09T02:56:42.324985Z",
+      "input_refs": [
+        "PLAN-80f54f1bfb22aa37",
+        "NODE-workflow-a-human-gates-optimization",
+        "NRUN-44b4d49ae0465d7c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-2c7e5b875af84adf8999ef554c001906",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/attempt-1/patch.diff",
+      "sha256": "1732276f4cb9c69089f09f64ff2e09b8871466bf2736ce80f6c8964686e42197",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-09T03:15:16.802771Z",
+      "input_refs": [
+        "workflow-a-human-gates-optimization",
+        "NRUN-44b4d49ae0465d7c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-e996cb5f4b8142d2aaed3d34e4724619",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/attempt-1/work-report.json",
+      "sha256": "9cdebd2ce560f27cdc05cc6814e9d3b6b57411a39d3f132028e7eb602e569281",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-09T03:15:16.805691Z",
+      "input_refs": [
+        "workflow-a-human-gates-optimization",
+        "NRUN-44b4d49ae0465d7c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-311d71a20207430fb7e48176e73f727f",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "expected_output_manifest",
+      "name": "expected-output-manifest.json",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/attempt-1/expected-output-manifest.json",
+      "sha256": "c62ca088f5519bc121c66f71c12e692364b9ba9f301077381e8b65aff616df75",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-09T03:15:16.811259Z",
+      "input_refs": [
+        "workflow-a-human-gates-optimization",
+        "NRUN-44b4d49ae0465d7c",
+        "ART-2c7e5b875af84adf8999ef554c001906",
+        "ART-e996cb5f4b8142d2aaed3d34e4724619",
+        "EVD-d19c35b6e5674967ae50972cbbb52df0"
+      ],
+      "evidence_refs": [
+        "EVD-d19c35b6e5674967ae50972cbbb52df0"
+      ],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-f7e7e55a4393466fb86f1af476e5f2e2",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-workflow-a-human-gates-optimization/node-run.json",
+      "sha256": "e95578ce755203cebab101523febbfe36009ccd2f2c037b9fdfc3d47f8b009c9",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-09T03:16:59.051916Z",
+      "input_refs": [
+        "PLAN-80f54f1bfb22aa37",
+        "NODE-workflow-a-human-gates-optimization",
+        "NRUN-44b4d49ae0465d7c"
+      ],
+      "evidence_refs": [
+        "EVD-65687e08286640d585d38a3135d8618a"
+      ],
+      "supersedes": null
+    }
+  ]
+}

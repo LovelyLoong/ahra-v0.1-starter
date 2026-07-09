@@ -1,0 +1,95 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "workflow-a-human-gates-optimization",
+  "artifacts": [
+    {
+      "artifact_id": "ART-a4decb5acd0b488db6e81782b53817ed",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "execution_policy_decision",
+      "name": "execution-policy-decision.json",
+      "uri": "local://nodes/NODE-workflow-a-human-gates-optimization/execution-policy-decision.json",
+      "sha256": "86f168c92cf29e3e13b5e7ff2508fdd4b16ba991813cd5c0454d4e35b889e142",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-08T10:51:10.559891Z",
+      "input_refs": [
+        "PLAN-80f54f1bfb22aa37",
+        "NODE-workflow-a-human-gates-optimization",
+        "NRUN-44b4d49ae0465d7c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-d513e25321384c69852f0fcbf49de9c9",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "patch",
+      "name": "patch.diff",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/attempt-1/patch.diff",
+      "sha256": "70ecff77232a17ce06b4663c622a19f67b352a931893927d91d74668ca29a0df",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-08T11:04:48.147583Z",
+      "input_refs": [
+        "workflow-a-human-gates-optimization",
+        "NRUN-44b4d49ae0465d7c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-7374fccf42e648b8ae3fc5a9edd220c1",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "work_report",
+      "name": "work-report.json",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/attempt-1/work-report.json",
+      "sha256": "a71e3ce575b00ede0862d0d83278f2afa18b6884cb37947c6bf73e4da7d7432b",
+      "media_type": "application/json",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-08T11:04:48.149576Z",
+      "input_refs": [
+        "workflow-a-human-gates-optimization",
+        "NRUN-44b4d49ae0465d7c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-d355cd4c77d04056897fd340252dbd48",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "rejected_patch",
+      "name": "rejected.patch",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/rejected.patch",
+      "sha256": "70ecff77232a17ce06b4663c622a19f67b352a931893927d91d74668ca29a0df",
+      "media_type": "text/x-diff",
+      "created_by": "workflow-module:standard-harness",
+      "created_at": "2026-07-08T11:05:55.825412Z",
+      "input_refs": [
+        "workflow-a-human-gates-optimization",
+        "NRUN-44b4d49ae0465d7c"
+      ],
+      "evidence_refs": [],
+      "supersedes": null
+    },
+    {
+      "artifact_id": "ART-554c7f3e2d3745a3bf4bd6ff7fbab368",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "node_run",
+      "name": "node-run.json",
+      "uri": "local://nodes/NODE-workflow-a-human-gates-optimization/node-run.json",
+      "sha256": "8ae5482c99dad46174a027dd5f7ca77ff5bb336d4bac06701de3eaf5a94c2969",
+      "media_type": "application/json",
+      "created_by": "node-executor:executor/bounded-task-agent-driver@sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": "2026-07-08T11:05:55.854129Z",
+      "input_refs": [
+        "PLAN-80f54f1bfb22aa37",
+        "NODE-workflow-a-human-gates-optimization",
+        "NRUN-44b4d49ae0465d7c"
+      ],
+      "evidence_refs": [
+        "EVD-0e5115269924451184ab245bdda5b5d6"
+      ],
+      "supersedes": null
+    }
+  ]
+}

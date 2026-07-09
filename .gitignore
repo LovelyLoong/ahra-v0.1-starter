@@ -13,3 +13,8 @@ work/tasks/**/evidence/debug-mode-b/**/workspace/
 **/development-worktrees/
 .claude/
 .evolver/
+logs/evolver_loop.log
+memory/atp-autobuyer-ledger.json
+memory/evolver_loop.pid
+memory/evolver_update_check.json
+memory/evolution/

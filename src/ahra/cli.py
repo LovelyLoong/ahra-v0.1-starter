@@ -169,6 +169,7 @@ def _workflow_a_command(args: argparse.Namespace) -> Any:
         draft_request,
         read_snapshot,
         start_session,
+        workflow_status,
     )
 
     if args.workflow_a_command == "start":
@@ -203,6 +204,7 @@ def _workflow_a_command(args: argparse.Namespace) -> Any:
                 session_path=Path(args.session),
                 request_draft_path=Path(args.request_draft),
                 approval_path=Path(args.approval) if args.approval else None,
+                briefing_path=Path(args.briefing) if args.briefing else None,
                 driver=_workflow_a_driver(args),
                 timeout_seconds=args.timeout_seconds,
             )
@@ -213,9 +215,19 @@ def _workflow_a_command(args: argparse.Namespace) -> Any:
         return authorize_request(
             request_draft_path=Path(args.request_draft),
             approval_path=Path(args.approval),
+            briefing_path=Path(args.briefing) if args.briefing else None,
             output_path=Path(args.output),
             actor=args.actor,
             reason=args.reason,
+        )
+    if args.workflow_a_command == "status":
+        return workflow_status(
+            session_path=Path(args.session),
+            request_draft_path=Path(args.request_draft) if args.request_draft else None,
+            approval_path=Path(args.approval) if args.approval else None,
+            briefing_path=Path(args.briefing) if args.briefing else None,
+            output_path=Path(args.output) if args.output else None,
+            workflow_b_artifact_dir=Path(args.workflow_b_artifact_dir) if args.workflow_b_artifact_dir else None,
         )
     raise ValueError(f"unknown workflow-a command: {args.workflow_a_command}")
 
@@ -652,6 +664,7 @@ def _build_parser(
     workflow_a_draft.add_argument("--session", required=True, help="Session JSON path.")
     workflow_a_draft.add_argument("--request-draft", required=True, help="RequestDraft JSON path to write.")
     workflow_a_draft.add_argument("--approval", help="Approval JSON path to write waiting_auth Gate 2 record.")
+    workflow_a_draft.add_argument("--briefing", help="Gate 2 briefing HTML path to write; defaults next to --approval.")
     workflow_a_draft.add_argument("--driver-ref", default="codex-python-sdk", help="AgentDriver ref.")
     workflow_a_draft.add_argument("--enable-fixture-driver", action="store_true", help="Enable workflow-a-fixture driver for smoke tests only.")
     workflow_a_draft.add_argument("--timeout-seconds", type=float, help="Maximum seconds to wait for one AgentDriver call.")
@@ -660,9 +673,17 @@ def _build_parser(
     workflow_a_authorize = workflow_a_commands.add_parser("authorize", help="Apply Human Gate 2 and freeze GoalExecutionRequest.")
     workflow_a_authorize.add_argument("--request-draft", required=True, help="RequestDraft JSON path.")
     workflow_a_authorize.add_argument("--approval", required=True, help="Approval JSON path from draft.")
+    workflow_a_authorize.add_argument("--briefing", help="Gate 2 briefing HTML path; defaults next to --approval.")
     workflow_a_authorize.add_argument("--output", required=True, help="GoalExecutionRequest YAML path to write.")
     workflow_a_authorize.add_argument("--actor", required=True, help="Human actor authorizing the contract.")
     workflow_a_authorize.add_argument("--reason", default="", help="Authorization reason.")
+    workflow_a_status = workflow_a_commands.add_parser("status", help="Show the experimental Workflow A status surface.")
+    workflow_a_status.add_argument("--session", required=True, help="Session JSON path.")
+    workflow_a_status.add_argument("--request-draft", help="Known RequestDraft JSON path.")
+    workflow_a_status.add_argument("--approval", help="Known ApprovalRecord JSON path.")
+    workflow_a_status.add_argument("--briefing", help="Known Gate 2 briefing HTML path.")
+    workflow_a_status.add_argument("--output", help="Known GoalExecutionRequest YAML path.")
+    workflow_a_status.add_argument("--workflow-b-artifact-dir", help="Known Workflow B artifact directory.")
 
     sequence = groups.add_parser("workflow-sequence", help="Run a governed multi-task sequence.")
     sequence_commands = sequence.add_subparsers(dest="workflow_sequence_command", required=True)

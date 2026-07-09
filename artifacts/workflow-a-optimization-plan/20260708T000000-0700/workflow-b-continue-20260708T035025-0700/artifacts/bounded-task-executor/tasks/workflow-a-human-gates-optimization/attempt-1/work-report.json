@@ -1,0 +1,26 @@
+{
+  "summary": "Applied the prior Workflow B rejected patch for the Workflow A usability and admission-hardening increment. The requested Gate 2 briefing, strict briefing binding, Workflow A status surface, Gate 1 decision records, admission-aware drafting/redraft flow, docs, inventory updates, and focused tests are present. All required verification commands passed.",
+  "changed_files": [
+    "docs/architecture/component-inventory.json",
+    "docs/architecture/framework-entrypoints.md",
+    "docs/architecture/intent-alignment-workflow.md",
+    "docs/policies/component-lifecycle.md",
+    "src/ahra/adapters/codex_sdk.py",
+    "src/ahra/alignment_session.py",
+    "src/ahra/cli.py",
+    "src/ahra/workflow_a_briefing.py",
+    "src/ahra/workflow_a_cli.py",
+    "tests/test_alignment_session.py",
+    "tests/test_cli.py",
+    "tests/test_codex_driver.py",
+    "tests/test_workflow_a_briefing.py",
+    "tests/test_workflow_a_cli.py"
+  ],
+  "verification_commands_run": [
+    "uv run python -B scripts/check.py --test",
+    "uv run python -B scripts/check.py --lint",
+    "uv run python -B scripts/check.py"
+  ],
+  "known_risks": [],
+  "unresolved_items": []
+}

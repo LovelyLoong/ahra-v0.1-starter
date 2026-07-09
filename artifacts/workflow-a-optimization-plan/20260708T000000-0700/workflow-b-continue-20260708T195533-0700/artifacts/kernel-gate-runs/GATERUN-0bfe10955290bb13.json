@@ -1,0 +1,55 @@
+{
+  "apiVersion": "ahra.dev/v1alpha1",
+  "kind": "GateRun",
+  "metadata": {
+    "gateRunId": "GATERUN-0bfe10955290bb13"
+  },
+  "spec": {
+    "claimRefs": [
+      "CLM-GOAL-COMPLETE",
+      "CLM-WFA-ADMISSION-REDRAFT",
+      "CLM-WFA-DOCS-EXPERIMENTAL",
+      "CLM-WFA-HUMAN-GATE-BRIEFING",
+      "CLM-WFA-STATUS-AND-GATE1"
+    ],
+    "command": [
+      "deterministic-gate-runner",
+      "GATE-goal-complete"
+    ],
+    "completedAt": "2026-07-09T03:17:07.729089Z",
+    "decisionAt": null,
+    "dependencies": [
+      {
+        "digest": "sha256:260fdc7aaa3bfa14368b9af99cc53e415c512cd0603242d272b9ae01c62628d7",
+        "ref": "EVD-4ede5df72827cd63"
+      },
+      {
+        "digest": "sha256:63118e87f3f4b08524d253e25070980a98cbf1fecc13535c24e8898e0763cd1c",
+        "ref": "EVD-e1e2172766006b0c"
+      }
+    ],
+    "environment": {
+      "policyDigest": "sha256:9b64794badd43e9690d0cb6847ee26fd9ba52950743eedd6381606c529c43a94",
+      "relevantEnvironmentDigest": null,
+      "runtimeProfileDigest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "testDefinitionDigest": "sha256:188c36b53a61a9c9d52018878045ed0069f38498372b19583de9a35568bff675",
+      "verifierReleaseDigest": "gate-runner/deterministic@sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "evidenceRef": "EVD-0bfe10955290bb13",
+    "fingerprint": "sha256:3b71134e0b19a53ae005f65b86e5e1c739fafc272a734e2ef2f431cd8c37a3a2",
+    "gateDefinitionDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "gateRef": "GATE-goal-complete",
+    "result": "passed",
+    "startedAt": "2026-07-09T03:17:07.729089Z",
+    "subjects": [
+      {
+        "digest": "sha256:10cd283f9ed6e30914fc2e4d3014603d4cdb3f212fc5b71cd57ed492764b8287",
+        "ref": "GATE-goal-complete"
+      }
+    ],
+    "validity": {
+      "state": "current",
+      "validUntil": null
+    }
+  }
+}

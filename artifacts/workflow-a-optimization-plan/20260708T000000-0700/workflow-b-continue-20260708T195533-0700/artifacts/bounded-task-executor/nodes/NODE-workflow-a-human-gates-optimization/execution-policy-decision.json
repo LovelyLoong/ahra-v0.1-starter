@@ -1,0 +1,26 @@
+{
+  "schema_version": "ahra/execution-policy-decision/0.1",
+  "strategy": "deterministic-task-estimate-v1",
+  "nodeId": "NODE-workflow-a-human-gates-optimization",
+  "estimatedSeconds": 3600,
+  "softDeadlineSeconds": 7200,
+  "hardDeadlineSeconds": 7200,
+  "nodeBudgetSeconds": 7200,
+  "basePolicy": {
+    "maxAttempts": 1,
+    "startupTimeoutSeconds": 120,
+    "idleTimeoutSeconds": 900,
+    "heartbeatIntervalSeconds": 60,
+    "attemptWallTimeoutSeconds": 3600,
+    "runDeadlineSeconds": 7200
+  },
+  "effectivePolicy": {
+    "maxAttempts": 1,
+    "startupTimeoutSeconds": 120,
+    "idleTimeoutSeconds": 900,
+    "heartbeatIntervalSeconds": 60,
+    "attemptWallTimeoutSeconds": 3600,
+    "runDeadlineSeconds": 7200
+  },
+  "rationale": "Use a deterministic task-size estimate; interrupt an Agent phase at roughly twice the estimate while retaining a larger hard run deadline."
+}

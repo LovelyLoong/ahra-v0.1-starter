@@ -40,6 +40,15 @@ A default-visible capability must have:
 - Do not add a new feature until its consumer and lifecycle class are known.
 - Do not silently delete historical decisions or events.
 
+# Experimental increments
+
+An experimental component may receive usability or admission-hardening
+increments only when the changed entrypoint remains explicitly invoked and
+`default_visible` remains false in the component inventory. Adding a status
+surface, human briefing artifact, or stricter admission check to an
+experimental entrypoint is not component promotion unless a separate
+EvidenceGate-approved lifecycle task changes the lifecycle classification.
+
 # Review cadence
 
 The component inventory is checked at every architecture Stage Gate and before release. `legacy` entries require a removal trigger/date. `experimental` entries require an owner and explicit non-default status. `removal_candidate` entries cannot receive new features.

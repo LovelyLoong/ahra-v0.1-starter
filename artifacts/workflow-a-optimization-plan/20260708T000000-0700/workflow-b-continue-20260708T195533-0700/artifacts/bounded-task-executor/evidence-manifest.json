@@ -1,0 +1,51 @@
+{
+  "schema_version": "awkp/0.1",
+  "task_id": "workflow-a-human-gates-optimization",
+  "evidence": [
+    {
+      "evidence_id": "EVD-d19c35b6e5674967ae50972cbbb52df0",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "deterministic_gate",
+      "name": "deterministic-evidence.json",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/attempt-1/deterministic-evidence.json",
+      "sha256": "aec273a1f421a657f881700213accde4199066b191e1c887a0a909e47233a88a",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-09T03:15:16.808339Z",
+      "refs": [
+        "ART-2c7e5b875af84adf8999ef554c001906",
+        "ART-e996cb5f4b8142d2aaed3d34e4724619"
+      ]
+    },
+    {
+      "evidence_id": "EVD-b6e556bd63ba46a9abc514b0b9a4654d",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "semantic_review",
+      "name": "review.json",
+      "uri": "local://tasks/workflow-a-human-gates-optimization/attempt-1/review.json",
+      "sha256": "730fbf9f31d3d457417b12343960971dfcafa3365cdcd611f014a3f90afc9b5a",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-09T03:16:57.854000Z",
+      "refs": [
+        "EVD-d19c35b6e5674967ae50972cbbb52df0",
+        "ART-311d71a20207430fb7e48176e73f727f"
+      ]
+    },
+    {
+      "evidence_id": "EVD-65687e08286640d585d38a3135d8618a",
+      "task_id": "workflow-a-human-gates-optimization",
+      "kind": "node_gate_summary",
+      "name": "node-gates.json",
+      "uri": "local://nodes/NODE-workflow-a-human-gates-optimization/node-gates.json",
+      "sha256": "e39b6d33955ac713b2c0ada9f48efc896f570756cca965352ef7a24ad646c283",
+      "media_type": "application/json",
+      "created_by": "workflow-module:reference-runner",
+      "created_at": "2026-07-09T03:16:59.048996Z",
+      "refs": [
+        "NODE-workflow-a-human-gates-optimization",
+        "PLAN-80f54f1bfb22aa37"
+      ]
+    }
+  ]
+}

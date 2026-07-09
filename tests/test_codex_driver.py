@@ -7,6 +7,7 @@ import types
 import unittest
 
 from ahra.adapters import CodexDriverConfig, CodexSDKClient, CodexSDKDriver
+from ahra.alignment_session import ALIGNMENT_DECISION_OUTPUT, _output_contract
 from ahra.planning import plan_draft_output_contract
 from ahra.ports import AgentOutputContractError, AgentRole, AgentRunRequest
 from ahra.reference_runner.models import NextStepDecision, PlanAction, WorkReport
@@ -146,6 +147,45 @@ class CodexSDKDriverTests(unittest.TestCase):
                     )
                 )
             )
+
+    def test_alignment_prompt_requires_structured_gate1_decisions(self) -> None:
+        client = FakeCodexClient(
+            {
+                ALIGNMENT_DECISION_OUTPUT: json.dumps(
+                    {
+                        "message": "Need one answer before freeze.",
+                        "converged": False,
+                        "missingDimensions": ["artifact path"],
+                        "decisionRecords": [
+                            {
+                                "decisionId": "G1-artifact-path",
+                                "question": "Where should the artifact be written?",
+                                "recommendation": "Use outputs/summary.txt.",
+                                "alternatives": ["outputs/summary.txt"],
+                                "consequences": ["Gate 1 remains blocked."],
+                                "blocking": True,
+                            }
+                        ],
+                    }
+                )
+            }
+        )
+        driver = CodexSDKDriver(client=client)
+
+        asyncio.run(
+            driver.run(
+                AgentRunRequest(
+                    role=AgentRole.PLANNER,
+                    run_id="RUN-codex-alignment",
+                    expected_output=ALIGNMENT_DECISION_OUTPUT,
+                    output_contract=_output_contract(ALIGNMENT_DECISION_OUTPUT),
+                    payload={"phase": "alignment-dialogue"},
+                )
+            )
+        )
+
+        self.assertIn("decisionRecords", client.calls[0]["prompt"])
+        self.assertIn("blocking decisionRecord lacks finalAnswer", client.calls[0]["prompt"])
 
     def test_output_contract_schema_is_prompted_and_validated(self) -> None:
         client = FakeCodexClient(

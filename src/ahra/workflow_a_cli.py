@@ -23,6 +23,12 @@ from .ports import AgentDriver, AgentRunRequest, AgentRunResult
 from .request_draft import RequestDraft
 from .request_admission import RequestDraftAdmission
 from .validation import load_document
+from .workflow_a_briefing import (
+    DEFAULT_GATE2_BRIEFING_NAME,
+    request_digest,
+    verify_gate2_briefing,
+    write_gate2_briefing,
+)
 
 
 class RequestDraftAdmissionError(ValueError):
@@ -160,13 +166,18 @@ async def draft_request(
     session_path: Path,
     request_draft_path: Path,
     approval_path: Path | None,
+    briefing_path: Path | None = None,
     driver: AgentDriver,
     timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
     manager = _manager(driver, timeout_seconds=timeout_seconds)
+    approval_service = ApprovalService() if approval_path is not None else None
     try:
-        result = await manager.draft_request(_load_snapshot(session_path), approval_service=None)
+        result = await manager.draft_request(_load_snapshot(session_path), approval_service=approval_service)
     except AlignmentSessionError as exc:
+        request_draft_mapping = exc.data.get("requestDraft")
+        if isinstance(request_draft_mapping, Mapping):
+            _write_json(request_draft_path, request_draft_mapping)
         _write_error_snapshot(session_path, exc)
         raise
     admission = RequestDraftAdmission().evaluate(result.request_draft).to_dict()
@@ -198,14 +209,26 @@ async def draft_request(
         "admission": admission,
     }
     if approval_path is not None:
-        approval_record = ApprovalService().request_authorization(
-            result.request_draft,
-            actor=result.snapshot.producer_actor,
-        )
-        approval_mapping = approval_record.to_dict()
+        approval_record = result.approval_record
+        if approval_record is None:
+            raise RuntimeError("Gate 2 approval was not created after RequestDraftAdmission")
+        approval_mapping = {
+            **approval_record.to_dict(),
+            "requestDigest": request_digest(result.request_draft),
+        }
         _write_json(approval_path, approval_mapping)
+        selected_briefing_path = briefing_path or approval_path.with_name(DEFAULT_GATE2_BRIEFING_NAME)
+        briefing = write_gate2_briefing(
+            selected_briefing_path,
+            result.request_draft,
+            approval_mapping,
+            request_draft_path=request_draft_path,
+            approval_path=approval_path,
+        )
         payload["approvalPath"] = str(approval_path)
         payload["approval"] = approval_mapping
+        payload["briefingPath"] = str(selected_briefing_path)
+        payload["briefing"] = briefing
     return payload
 
 
@@ -218,6 +241,7 @@ def authorize_request(
     *,
     request_draft_path: Path,
     approval_path: Path,
+    briefing_path: Path | None,
     output_path: Path,
     actor: str,
     reason: str = "",
@@ -226,19 +250,75 @@ def authorize_request(
     approval = _load_json(approval_path)
     if str(approval.get("requestId") or "") != draft.request_id:
         raise ValueError("approval does not belong to RequestDraft")
+    if str(approval.get("approvalId") or "") != "APR-" + draft.request_id.removeprefix("REQ-"):
+        raise ValueError("approval id does not belong to RequestDraft")
     if str(approval.get("status") or "") != "waiting_auth":
         raise ValueError("approval is not waiting_auth")
+    selected_briefing_path = briefing_path or approval_path.with_name(DEFAULT_GATE2_BRIEFING_NAME)
+    verify_gate2_briefing(
+        selected_briefing_path.read_text(encoding="utf-8"),
+        draft,
+        approval,
+    )
     service = ApprovalService()
     record = service.request_authorization(draft, actor=str(approval.get("requestedBy") or "agent:workflow-a-cli"))
     approved = service.approve(record.approval_id, actor=actor, reason=reason)
     frozen = service.freeze(draft, approval_id=record.approval_id)
-    approved_mapping = approved.to_dict()
+    approved_mapping = {
+        **approved.to_dict(),
+        "requestDigest": request_digest(draft),
+    }
     _write_json(approval_path, approved_mapping)
     _write_yaml(output_path, frozen.to_dict())
     return {
         "approval": approved_mapping,
+        "briefingPath": str(selected_briefing_path),
         "goalExecutionRequestPath": str(output_path),
         "goalExecutionRequest": frozen.to_dict(),
+    }
+
+
+def workflow_status(
+    *,
+    session_path: Path,
+    request_draft_path: Path | None = None,
+    approval_path: Path | None = None,
+    briefing_path: Path | None = None,
+    output_path: Path | None = None,
+    workflow_b_artifact_dir: Path | None = None,
+) -> dict[str, Any]:
+    snapshot = _load_snapshot(session_path).to_mapping()
+    stage = str(snapshot.get("stage") or "unknown")
+    approval = _load_json(approval_path) if approval_path and approval_path.exists() else None
+    selected_briefing_path = briefing_path
+    if selected_briefing_path is None and approval_path is not None:
+        selected_briefing_path = approval_path.with_name(DEFAULT_GATE2_BRIEFING_NAME)
+    workflow_b_started = _workflow_b_started(output_path, workflow_b_artifact_dir)
+    paths = {
+        "session": _path_status(session_path),
+        "requestDraft": _path_status(request_draft_path),
+        "approval": _path_status(approval_path),
+        "briefing": _path_status(selected_briefing_path),
+        "requestOutput": _path_status(output_path),
+        "workflowBArtifactDir": _path_status(workflow_b_artifact_dir),
+    }
+    next_action = _next_safe_action(
+        stage=stage,
+        approval=approval,
+        paths=paths,
+        workflow_b_started=workflow_b_started,
+    )
+    status_text = (
+        f"Workflow A stage: {stage}. "
+        f"Next safe action: {next_action}. "
+        f"Workflow B started: {str(workflow_b_started).lower()}."
+    )
+    return {
+        "stage": stage,
+        "paths": paths,
+        "nextSafeAction": next_action,
+        "workflowBStarted": workflow_b_started,
+        "statusText": status_text,
     }
 
 
@@ -306,6 +386,49 @@ def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
 def _write_yaml(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(dict(payload), sort_keys=False), encoding="utf-8")
+
+
+def _path_status(path: Path | None) -> dict[str, Any]:
+    if path is None:
+        return {"path": None, "known": False, "exists": False}
+    return {"path": str(path), "known": True, "exists": path.exists()}
+
+
+def _workflow_b_started(output_path: Path | None, artifact_dir: Path | None) -> bool:
+    if artifact_dir is not None and (
+        (artifact_dir / "goal-start-report.json").exists()
+        or (artifact_dir / "plan-ir.json").exists()
+        or (artifact_dir / "workflow-run-result.json").exists()
+    ):
+        return True
+    return bool(output_path is not None and output_path.exists() and artifact_dir is not None)
+
+
+def _next_safe_action(
+    *,
+    stage: str,
+    approval: Mapping[str, Any] | None,
+    paths: Mapping[str, Mapping[str, Any]],
+    workflow_b_started: bool,
+) -> str:
+    if stage in {"dialogue", "awaiting_user"}:
+        return "advance Workflow A alignment with workflow-a advance"
+    if stage == "awaiting_requirement_approval":
+        return "review Gate 1 decisions, then run workflow-a approve-requirement"
+    if stage == "frozen":
+        return "run workflow-a draft to produce RequestDraft, ApprovalRecord, and Gate 2 briefing"
+    if stage == "failed":
+        return "inspect the session failure report before redrafting or restarting"
+    if stage == "request_drafted":
+        if approval and approval.get("status") == "waiting_auth":
+            if not paths["briefing"]["exists"]:
+                return "regenerate the Gate 2 briefing before authorization"
+            return "review the Gate 2 briefing, then run workflow-a authorize"
+        if paths["requestOutput"]["exists"] and not workflow_b_started:
+            return "run goal validate/plan/start on the frozen GoalExecutionRequest"
+        if workflow_b_started:
+            return "monitor Workflow B artifacts and completion evidence"
+    return "inspect workflow-a status and current artifacts"
 
 
 def _normalize_cli_path(value: str) -> str:
@@ -448,4 +571,5 @@ __all__ = [
     "load_request_draft",
     "read_snapshot",
     "start_session",
+    "workflow_status",
 ]
